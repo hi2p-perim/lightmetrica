@@ -1,9 +1,23 @@
+#include <nanon/config.h>
 #include <iostream>
-#include <glm/glm.hpp>
-#include <nanon/test.h>
+#include <exception>
 
-int main()
+using namespace nanon;
+
+int main(int argc, char** argv)
 {
-	std::cout << "Hello : " << Func(10) << std::endl;
+	try
+	{
+		NanonConfig config;
+		
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+#ifdef NANON_DEBUG_MODE
+		std::cin.get();
+#endif
+	}
+
 	return 0;
 }

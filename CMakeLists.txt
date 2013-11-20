@@ -59,6 +59,9 @@ if(MSVC AND MSVC_VERSION EQUAL 1700)
 	add_definitions(-D_VARIADIC_MAX=10)
 endif()
 
+# Pugixml
+include_directories(${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src)
+
 #
 
 # Enabling C++11 for gcc

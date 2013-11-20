@@ -6,12 +6,19 @@ set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon)
 set(
 	_HEADER_FILES
 	${_INCLUDE_DIR}/common.h
-	${_INCLUDE_DIR}/test.h
+	${_INCLUDE_DIR}/config.h
+	
+	# pugixml headers
+	${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp
+	${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp
 )
 
 set(
 	_SOURCE_FILES
-	test.cpp
+	config.cpp
+	
+	# pugixml sources
+	${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp
 )
 
 # Proprocessor definition for exporting symbols
