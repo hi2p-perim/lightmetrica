@@ -8,8 +8,8 @@ NANON_NAMESPACE_BEGIN
 
 /*!
 	Configuration of the nanon renderer.
-	The nanon renderer is configured by the XML document named nanon file (*.nanon)
-	which is formatted in XML. All configuration needed for rendering is contained the document.
+	The nanon renderer is configured by the XML document named nanon file (*.nanon).
+	All configuration needed for rendering is contained the document.
 */
 class NANON_PUBLIC_API NanonConfig
 {
