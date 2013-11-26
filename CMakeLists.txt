@@ -10,7 +10,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # For windows environment, set search path for find_package
 if (MSVC)
 	list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
-	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	if (CMAKE_CL_64)
 		set(CMAKE_LIBRARY_ARCHITECTURE "x64")
 	else()
 		set(CMAKE_LIBRARY_ARCHITECTURE "i386")
