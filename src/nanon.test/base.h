@@ -22,20 +22,28 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/config.h>
-#include <pugixml.hpp>
+#ifndef __NANON_TEST_BASE_H__
+#define __NANON_TEST_BASE_H__
 
-NANON_NAMESPACE_BEGIN
+#include "common.h"
+#include <gtest/gtest.h>
 
-NanonConfig::NanonConfig()
+NANON_TEST_NAMESPACE_BEGIN
+
+class TestBase : public ::testing::Test
 {
+public:
 
-}
+	// Default timeout in milliseconds
+	static const long long OutputProcessTimeout;
 
-NanonConfig::~NanonConfig()
-{
+protected:
 
-}
+	virtual void SetUp();
+	virtual void TearDown();
 
-NANON_NAMESPACE_END
+};
+
+NANON_TEST_NAMESPACE_END
+
+#endif // __NANON_TEST_BASE_H__

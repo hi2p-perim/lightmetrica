@@ -23,19 +23,25 @@
 */
 
 #include "pch.h"
-#include <nanon/config.h>
-#include <pugixml.hpp>
+#include "base.h"
+#include <nanon/logger.h>
 
-NANON_NAMESPACE_BEGIN
+using namespace nanon;
 
-NanonConfig::NanonConfig()
+NANON_TEST_NAMESPACE_BEGIN
+
+const long long TestBase::OutputProcessTimeout = 500;
+
+void TestBase::SetUp()
 {
-
+	Logger::Reset();
+	Logger::SetOutputMode(Logger::LogOutputMode::Stderr);
+	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
 }
 
-NanonConfig::~NanonConfig()
+void TestBase::TearDown()
 {
-
+	
 }
 
-NANON_NAMESPACE_END
+NANON_TEST_NAMESPACE_END

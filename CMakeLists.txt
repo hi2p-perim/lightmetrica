@@ -39,14 +39,14 @@ find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_DIRS})
 
 # GLEW
-set(GLEW_USE_STATIC_LIBS ON)
+#set(GLEW_USE_STATIC_LIBS ON)
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 add_definitions(${GLEW_DEFINITIONS})
 list(APPEND LIBRARY_FILES ${GLEW_LIBRARIES})
 
 # GLFW
-set(GLFW_USE_STATIC_LIBS ON)
+#set(GLFW_USE_STATIC_LIBS ON)
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${GLFW_LIBRARIES})
@@ -60,7 +60,7 @@ if(MSVC AND MSVC_VERSION EQUAL 1700)
 endif()
 
 # Pugixml
-include_directories(${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src)
+include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
 
 #
 
@@ -74,10 +74,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 # Output directories
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
 
 #
 
@@ -85,7 +85,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
 include_directories("include")
 
 # Add projects
-add_subdirectory(src/libnanon)
-add_subdirectory(src/nanon.test)
-add_subdirectory(src/nanon)
-add_subdirectory(src/nanon.gui)
+add_subdirectory("src/libnanon")
+add_subdirectory("src/nanon.test")
+add_subdirectory("src/nanon")
+add_subdirectory("src/nanon.gui")

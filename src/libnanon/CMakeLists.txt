@@ -9,6 +9,7 @@ set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"
 	"${_INCLUDE_DIR}/config.h"
+	"${_INCLUDE_DIR}/logger.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -18,6 +19,7 @@ set(
 set(
 	_SOURCE_FILES
 	"config.cpp"
+	"logger.cpp"
 	
 	# pugixml sources
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
@@ -26,8 +28,21 @@ set(
 # Proprocessor definition for exporting symbols
 add_definitions(-DNN_EXPORTS)
 
-pch_add_library(
-	libnanon SHARED
-	PCH_HEADER "pch.h"
-	${_HEADER_FILES} ${_SOURCE_FILES})
+pch_add_library(libnanon SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(libnanon ${COMMON_LIBRARY_FILES})
+
+# Copy dynamic libaries as post-build events
+if(WIN32)
+	file(GLOB BINARY_FILES "${CMAKE_SOURCE_DIR}/external/bin/${CMAKE_LIBRARY_ARCHITECTURE}/*.dll")
+	foreach(BINARY_FILE_NAME ${BINARY_FILES})
+	add_custom_command(
+		TARGET libnanon
+		POST_BUILD
+			# Execute "cmake -E copy_if_different ..."
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				${BINARY_FILE_NAME}
+				# Same directory as the target executable
+				# For details, see 'generator expressions' in the documentation
+				$<TARGET_FILE_DIR:libnanon>)
+	endforeach()
+endif()

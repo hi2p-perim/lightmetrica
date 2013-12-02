@@ -61,8 +61,6 @@ elseif (NOT WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   set (PCH_INTEL TRUE)
 endif ()
 
-
-
 # Sets PCH_SUPPORTED to TRUE if the platform supports precompiled headers,
 # otherwise it is set to FALSE. Do not try to use the
 # pch_add_<library|executable> macros unless this is TRUE.

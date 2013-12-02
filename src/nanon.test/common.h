@@ -22,20 +22,12 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/config.h>
-#include <pugixml.hpp>
+#ifndef __NANON_TEST_COMMON_H__
+#define __NANON_TEST_COMMON_H__
 
-NANON_NAMESPACE_BEGIN
+#include <nanon/common.h>
 
-NanonConfig::NanonConfig()
-{
+#define NANON_TEST_NAMESPACE_BEGIN namespace nanontest {
+#define NANON_TEST_NAMESPACE_END }
 
-}
-
-NanonConfig::~NanonConfig()
-{
-
-}
-
-NANON_NAMESPACE_END
+#endif // __NANON_TEST_COMMON_H__
