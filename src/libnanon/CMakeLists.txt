@@ -26,7 +26,7 @@ set(
 )
 
 # Proprocessor definition for exporting symbols
-add_definitions(-DNN_EXPORTS)
+add_definitions(-DNANON_EXPORTS)
 
 pch_add_library(libnanon SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(libnanon ${COMMON_LIBRARY_FILES})

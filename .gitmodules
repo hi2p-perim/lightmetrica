@@ -1,3 +1,7 @@
 [submodule "external"]
 	path = external
 	url = gitolite-akarin:nanonrender-external
+[submodule "resources"]
+	path = resources
+	url = gitolite-akarin:nanonrender-resources
+	branch = master

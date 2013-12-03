@@ -30,4 +30,6 @@
 #define NANON_TEST_NAMESPACE_BEGIN namespace nanontest {
 #define NANON_TEST_NAMESPACE_END }
 
+#define NANON_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__
+
 #endif // __NANON_TEST_COMMON_H__

@@ -49,8 +49,26 @@ private:
 public:
 
 	/*!
+		Load the configuration file.
+		\param path Path to the configuration file.
+		\retval true Succeded to load the configuration.
+		\retval false Failed to load the conifiguration.
 	*/
 	bool Load(const std::string& path);
+
+	/*!
+		Load the configuration from a string.
+		Use the function to load the configuration from a string.
+		\param data Configuration string.
+		\retval true Succeded to load the configuration.
+		\retval false Failed to load the conifiguration.
+	*/
+	bool LoadFromString(const std::string& data);
+
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 

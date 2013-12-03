@@ -44,11 +44,11 @@ namespace
 	const std::string AppName = "Nanon Renderer";
 	const std::string AppNameShort = "nanon";
 	const std::string AppVersion = "0.0.1.dev";
-	const std::string AppDesc = AppNameShort + " - " + AppName + " " + AppVersion;
+	const std::string AppDescription = AppNameShort + " - " + AppName + " " + AppVersion;
 
 	void PrintHelpMessage(const po::options_description& opt)
 	{
-		std::cout << AppDesc << std::endl;
+		std::cout << AppDescription << std::endl;
 		std::cout << std::endl;
 		std::cout << "Usage: nanon [arguments] [file ..]" << std::endl;
 		std::cout << std::endl;
@@ -122,22 +122,25 @@ namespace
 
 		// Print start message
 		NANON_LOG_INFO("------------------------------------------------------------");
-		NANON_LOG_INFO(AppDesc);
+		NANON_LOG_INFO(AppDescription);
 		NANON_LOG_INFO("------------------------------------------------------------");
 		NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
 		NANON_LOG_INFO("The software is distributed under the MIT license.");
 		NANON_LOG_INFO("For detail see the LICENSE file along with the software.");
 		NANON_LOG_INFO("------------------------------------------------------------");
 
+		// Current time
+		NANON_LOG_INFO("");
+
 		// ----------------------------------------------------------------------
 
 		// Load input file
-		NanonConfig config;
-		if (config.Load(inputFile))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
+		//NanonConfig config;
+		//if (config.Load(inputFile))
+		//{
+		//	NANON_LOG_DEBUG("");
+		//	return false;
+		//}
 
 		//RendererDispatcher dispatcher;
 		//RendererDispatcher().Dispatch(config);

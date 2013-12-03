@@ -24,18 +24,80 @@
 
 #include "pch.h"
 #include <nanon/config.h>
+#include <nanon/logger.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
 
+class NanonConfig::Impl
+{
+public:
+
+	Impl();
+	~Impl();
+
+public:
+
+	bool Load(const std::string& path);
+	bool LoadFromString(const std::string& data);
+
+public:
+
+	pugi::xml_document doc;
+
+};
+
+NanonConfig::Impl::Impl()
+{
+
+}
+
+NanonConfig::Impl::~Impl()
+{
+
+}
+
+bool NanonConfig::Impl::Load( const std::string& path )
+{
+	auto result = doc.load_file(path.c_str());
+
+	NANON_LOG_INFO(result.description());
+	NANON_LOG_INFO(boost::str(boost::format("Offset : %d") % result.offset));
+
+	return result;
+}
+
+bool NanonConfig::Impl::LoadFromString( const std::string& data )
+{
+	auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
+
+	NANON_LOG_INFO(result.description());
+	NANON_LOG_INFO(boost::str(boost::format("Offset : %d") % result.offset));
+
+	return result;
+}
+
+// ----------------------------------------------------------------------
+
 NanonConfig::NanonConfig()
+	: p(new Impl)
 {
 
 }
 
 NanonConfig::~NanonConfig()
 {
+	NANON_SAFE_DELETE(p);
+}
 
+bool NanonConfig::Load( const std::string& path )
+{
+	return p->Load(path);
+}
+
+bool NanonConfig::LoadFromString( const std::string& data )
+{
+	return p->LoadFromString(data);
 }
 
 NANON_NAMESPACE_END

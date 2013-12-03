@@ -10,6 +10,7 @@ set(
 	"base.h"
 	"base.cpp"
 	"test.logger.cpp"
+	"test.config.cpp"
 )
 
 pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
