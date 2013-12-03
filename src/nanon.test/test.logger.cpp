@@ -145,7 +145,7 @@ TEST_F(LoggerTest, OutputToFile)
 
 	std::string s;
 	std::getline(ifs, s);
-	std::regex r("^\\[ Information .+ \\] hello");
+	std::regex r("^\\[ Info .+ \\] hello");
 	EXPECT_TRUE(std::regex_search(s, r)) << s;
 
 	// Clean up
@@ -212,10 +212,10 @@ TEST_F(LoggerTest, ImmediateMode)
 	bool emitted = false;
 	Logger::Connect_LogUpdate(
 		[&](Logger::LogEntry* entry)
-	{
-		if (entry->level == Logger::LogLevel::Information && entry->message == "hello")
-			emitted = true;
-	});
+		{
+			if (entry->level == Logger::LogLevel::Information && entry->message == "hello")
+				emitted = true;
+		});
 
 	NANON_LOG_INFO("hello");
 	EXPECT_TRUE(emitted);

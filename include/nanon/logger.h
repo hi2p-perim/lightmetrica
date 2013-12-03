@@ -210,7 +210,7 @@ public:
 		Check if the log queue is empty.
 		\retval true The queue is empty.
 		\retval false The queue is not empty.
-	*/
+	*/ 
 	static bool Empty();
 
 };

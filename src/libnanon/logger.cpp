@@ -31,6 +31,11 @@
 namespace bs = boost::signals2;
 namespace ch = std::chrono;
 
+namespace
+{
+	const std::string LogFormat = "[ %-5s %s ] %s\n";
+}
+
 NANON_NAMESPACE_BEGIN
 
 class LoggerImpl
@@ -206,7 +211,7 @@ void LoggerImpl::ProcessOutput()
 				for (auto& entry : entriesForFileIO)
 				{
 					auto levelStr = GetLevelString(entry->level);
-					auto line = boost::str(boost::format("[ %-5s %s ] %s\n") % levelStr % entry->time % entry->message);
+					auto line = boost::str(boost::format(LogFormat) % levelStr % entry->time % entry->message);
 					ofs << line;
 				}
 			}
@@ -220,7 +225,7 @@ void LoggerImpl::ProcessOutput()
 void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger::LogEntry>& entry )
 {
 	auto levelStr = GetLevelString(entry->level);
-	auto line = boost::str(boost::format("[ %-5s %s ] %s\n") % levelStr % entry->time % entry->message);
+	auto line = boost::str(boost::format(LogFormat) % levelStr % entry->time % entry->message);
 
 	if ((outputMode & Logger::LogOutputMode::Stdout) > 0)
 	{
@@ -255,8 +260,8 @@ std::string LoggerImpl::GetLevelString( Logger::LogLevel level )
 	static const std::string logLevelString[] =
 	{
 		"Error",
-		"Warning",
-		"Information",
+		"Warn",
+		"Info",
 		"Debug"
 	};
 

@@ -33,6 +33,7 @@
 #include <atomic>
 #include <chrono>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
 
 using namespace nanon;
 namespace po = boost::program_options;
@@ -40,13 +41,14 @@ namespace po = boost::program_options;
 namespace
 {
 
-	const std::string AppName = "Nanon renderer";
+	const std::string AppName = "Nanon Renderer";
 	const std::string AppNameShort = "nanon";
 	const std::string AppVersion = "0.0.1.dev";
+	const std::string AppDesc = AppNameShort + " - " + AppName + " " + AppVersion;
 
 	void PrintHelpMessage(const po::options_description& opt)
 	{
-		std::cout << AppNameShort << " - " << AppName << " " << AppVersion << std::endl;
+		std::cout << AppDesc << std::endl;
 		std::cout << std::endl;
 		std::cout << "Usage: nanon [arguments] [file ..]" << std::endl;
 		std::cout << std::endl;
@@ -100,7 +102,7 @@ namespace
 		// ----------------------------------------------------------------------
 
 		// Configure the logger
-		
+		Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
 
 		// Start the logger thread
 		std::atomic<bool> logThreadDone = false;
@@ -112,21 +114,30 @@ namespace
 				while (!logThreadDone || !Logger::Empty())
 				{
 					Logger::ProcessOutput();
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				}
 			});
 
 		// ----------------------------------------------------------------------
 
-		for (int i = 0; i < 10; i++)
-			NANON_LOG_INFO("hello");
+		// Print start message
+		NANON_LOG_INFO("------------------------------------------------------------");
+		NANON_LOG_INFO(AppDesc);
+		NANON_LOG_INFO("------------------------------------------------------------");
+		NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
+		NANON_LOG_INFO("The software is distributed under the MIT license.");
+		NANON_LOG_INFO("For detail see the LICENSE file along with the software.");
+		NANON_LOG_INFO("------------------------------------------------------------");
+
+		// ----------------------------------------------------------------------
 
 		// Load input file
-		//NanonConfig config;
-		//if (config.Load(inputFile))
-		//{
-		//	return false;
-		//}
+		NanonConfig config;
+		if (config.Load(inputFile))
+		{
+			NANON_LOG_DEBUG("");
+			return false;
+		}
 
 		//RendererDispatcher dispatcher;
 		//RendererDispatcher().Dispatch(config);
@@ -160,7 +171,7 @@ int main(int argc, char** argv)
 	}
 
 #ifdef NANON_DEBUG_MODE
-	std::cerr << "Press any key to exit .." << std::endl;
+	std::cerr << "Press any key to exit ...";
 	std::cin.get();
 #endif
 
