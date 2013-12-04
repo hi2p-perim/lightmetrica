@@ -106,7 +106,7 @@ TEST_F(LoggerTest, OutputToStdoutOrStderr)
 	EXPECT_TRUE(elapsed < OutputProcessTimeout);
 
 	// Check if output messages contain 'hello'
-	std::regex r("^\\[ Error .+ \\] hello");
+	std::regex r("^\\[ ERROR .+ \\] hello");
 	EXPECT_TRUE(std::regex_search(coutSS.str(), r));
 	EXPECT_TRUE(std::regex_search(cerrSS.str(), r));
 }
@@ -145,7 +145,7 @@ TEST_F(LoggerTest, OutputToFile)
 
 	std::string s;
 	std::getline(ifs, s);
-	std::regex r("^\\[ Info .+ \\] hello");
+	std::regex r("^\\[ INFO .+ \\] hello");
 	EXPECT_TRUE(std::regex_search(s, r)) << s;
 
 	// Clean up

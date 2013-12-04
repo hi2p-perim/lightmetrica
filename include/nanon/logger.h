@@ -242,6 +242,11 @@ NANON_NAMESPACE_END
 	\param message Log message.
 */
 
+/*!
+	\def NANON_LOG_INDENT()
+	Helper macro to add a indentation to the log message in the same scope.
+*/
+
 #define NANON_LOG_ERROR(message) nanon::Logger::Error(message);
 #define NANON_LOG_WARN(message) nanon::Logger::Warn(message);
 #define NANON_LOG_INFO(message) nanon::Logger::Info(message);

@@ -31,19 +31,27 @@ namespace fs = boost::filesystem;
 
 namespace
 {
-
 	const std::string ConfigData_Success = NANON_TEST_MULTILINE_LITERAL(
-		<nanon>
-			<renderer type="pathtrace" />
+		<?xml version="1.0" ?>
+		<nanon version="1.0.dev">
+			<assets />
+			<scene />
 		</nanon>
 	);
 
 	const std::string ConfigData_Fail_MissingElement = NANON_TEST_MULTILINE_LITERAL(
-		<nanon>
-			<!-- NOTHING!! -->
+		<?xml version="1.0" ?>
+		<nanon version="1.0.dev">
 		</nanon>
 	);
 
+	const std::string ConfigData_Fail_DifferentVersion = NANON_TEST_MULTILINE_LITERAL(
+		<?xml version="1.0" ?>
+		<nanon version="some.version">
+			<assets />
+			<scene />
+		</nanon>
+	);
 }
 
 NANON_TEST_NAMESPACE_BEGIN
@@ -69,6 +77,7 @@ TEST_F(NanonConfigTest, Load)
 	std::ofstream ofs(filename);
 	EXPECT_TRUE(ofs.is_open());
 	ofs << ConfigData_Success;
+	ofs.close();
 
 	// Open file
 	EXPECT_TRUE(config.Load(filename));
@@ -93,6 +102,7 @@ TEST_F(NanonConfigTest, LoadString)
 TEST_F(NanonConfigTest, LoadString_Failed)
 {
 	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_MissingElement));
+	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion));
 }
 
 NANON_TEST_NAMESPACE_END

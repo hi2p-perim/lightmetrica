@@ -27,6 +27,11 @@
 #include <nanon/logger.h>
 #include <pugixml.hpp>
 
+namespace
+{
+	const std::string ConfigFileVersion = "1.0.dev";
+}
+
 NANON_NAMESPACE_BEGIN
 
 class NanonConfig::Impl
@@ -40,6 +45,10 @@ public:
 
 	bool Load(const std::string& path);
 	bool LoadFromString(const std::string& data);
+	
+private:
+
+	bool HandleLoadResult(const pugi::xml_parse_result& result);
 
 public:
 
@@ -59,22 +68,51 @@ NanonConfig::Impl::~Impl()
 
 bool NanonConfig::Impl::Load( const std::string& path )
 {
+	NANON_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
-
-	NANON_LOG_INFO(result.description());
-	NANON_LOG_INFO(boost::str(boost::format("Offset : %d") % result.offset));
-
-	return result;
+	return HandleLoadResult(result);
 }
 
 bool NanonConfig::Impl::LoadFromString( const std::string& data )
 {
+	NANON_LOG_INFO("Loading configuration");
 	auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
+	return HandleLoadResult(result);
+}
 
-	NANON_LOG_INFO(result.description());
-	NANON_LOG_INFO(boost::str(boost::format("Offset : %d") % result.offset));
+bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
+{
+	if (!result)
+	{
+		NANON_LOG_ERROR("Failed to load the configuration file")
+		NANON_LOG_ERROR(boost::str(boost::format("%s (offset : %d)") % result.description() % result.offset));
+		return false;
+	}
 
-	return result;
+	// Validate root node
+	auto nanonNode = doc.child("nanon");
+	if (!nanonNode)
+	{
+		NANON_LOG_ERROR("Missing <nanon> elemement");
+		return false;
+	}
+	
+	// Validate version number
+	std::string version = nanonNode.attribute("version").as_string();
+	if (version != ConfigFileVersion)
+	{
+		NANON_LOG_ERROR("Different version : " + version + " ( expected : " + ConfigFileVersion + " )");
+		return false;
+	}
+
+	// Check if some required elements
+	if (!nanonNode.child("assets") || !nanonNode.child("scene"))
+	{
+		NANON_LOG_ERROR("Missing <assets> or <scene> element");
+		return false;
+	}
+
+	return true;
 }
 
 // ----------------------------------------------------------------------

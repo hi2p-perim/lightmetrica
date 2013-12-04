@@ -259,10 +259,10 @@ std::string LoggerImpl::GetLevelString( Logger::LogLevel level )
 {
 	static const std::string logLevelString[] =
 	{
-		"Error",
-		"Warn",
-		"Info",
-		"Debug"
+		"ERROR",
+		"WARN",
+		"INFO",
+		"DEBUG"
 	};
 
 	return logLevelString[static_cast<int>(level)];
