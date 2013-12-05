@@ -26,6 +26,7 @@
 #define __LIB_NANON_ASSETS_H__
 
 #include "common.h"
+#include <memory>
 
 namespace pugi
 {
@@ -33,6 +34,29 @@ namespace pugi
 };
 
 NANON_NAMESPACE_BEGIN
+
+class AssetFactory;
+
+/*!
+	An entry for the asset factory.
+	This structure is used for registering asset factory to #Assets class.
+	\sa Assets::RegisterAssetFactory
+*/
+struct AssetFactoryEntry
+{
+
+	AssetFactoryEntry() {}
+	AssetFactoryEntry(const std::string& name, int priority, AssetFactory* factory)
+		: name(name)
+		, priority(priority)
+		, factory(factory)
+	{}
+
+	std::string name;						//!< Name of the asset corresponding to the element name under 'assets'.
+	int priority;							//!< Priority (smaller is better).
+	std::shared_ptr<AssetFactory> factory;	//!< Instance of the asset factory.
+
+};
 
 /*!
 	Collection of assets.
@@ -51,6 +75,16 @@ private:
 	NANON_DISABLE_COPY_AND_MOVE(Assets);
 
 public:
+
+	/*!
+		Register an asset factory.
+		Register an asset factory which is used for creating assets.
+		Fails if the factory with same name is already registered.
+		\param entry An entry for register.
+		\retval true Succeeded to register the asset factory.
+		\retval false Failed to register the asset factory.
+	*/
+	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 
 	/*!
 		Load assets from XML element.

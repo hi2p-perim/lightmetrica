@@ -33,7 +33,14 @@ namespace
 {
 	const std::string AssetsNode_Success = NANON_TEST_MULTILINE_LITERAL(
 		<assets>
-			<textures />
+			<textures>
+				<texture id="nanon_1" type="bitmap">
+					<path>../../resources/nanon_1.jpg</path>
+				</texture>
+				<texture id="nanon_2" type="bitmap">
+					<path>../../resources/nanon_2.jpg</path>
+				</textures>
+			</textures>
 			<materials />
 			<triangle_meshes />
 			<films />
@@ -45,6 +52,17 @@ namespace
 	const std::string AssetsNode_Fail_InvalidElementName = NANON_TEST_MULTILINE_LITERAL(
 		<asset>
 		</asset>
+	);
+
+	const std::string AssetsNode_Fail_SameID = NANON_TEST_MULTILINE_LITERAL(
+		<assets>
+			<textures>
+				<texture id="wood" type="hdr" />
+			</textures>
+			<materials>
+				<material id="wood" type="diffuse" />
+			</materials>
+		</assets>
 	);
 }
 
@@ -69,6 +87,16 @@ pugi::xml_node AssetsTest::LoadXMLBuffer( const std::string& data )
 	return doc.first_child();
 }
 
+TEST_F(AssetsTest, RegisterAssetFactory)
+{
+	
+}
+
+TEST_F(AssetsTest, RegisterAssetFactory_Failed)
+{
+
+}
+
 TEST_F(AssetsTest, Load)
 {
 	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
@@ -79,6 +107,7 @@ TEST_F(AssetsTest, Load)
 TEST_F(AssetsTest, Load_Failed)
 {
 	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_InvalidElementName)));
+	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_SameID)));
 }
 
 NANON_TEST_NAMESPACE_END

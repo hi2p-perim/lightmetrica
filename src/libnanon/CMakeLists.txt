@@ -10,7 +10,9 @@ set(
 	"${_INCLUDE_DIR}/common.h"
 	"${_INCLUDE_DIR}/config.h"
 	"${_INCLUDE_DIR}/logger.h"
+	"${_INCLUDE_DIR}/asset.h"
 	"${_INCLUDE_DIR}/assets.h"
+	"${_INCLUDE_DIR}/assetfactory.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -21,7 +23,9 @@ set(
 	_SOURCE_FILES
 	"config.cpp"
 	"logger.cpp"
+	"asset.cpp"
 	"assets.cpp"
+	"assetfactory.cpp"
 	
 	# pugixml sources
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"

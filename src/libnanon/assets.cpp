@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/assets.h>
+#include <nanon/assetfactory.h>
 #include <nanon/logger.h>
 #include <pugixml.hpp>
 
@@ -34,20 +35,55 @@ class Assets::Impl
 public:
 
 	bool Load(const pugi::xml_node& node);
+	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 
 private:
 
-	bool LoadTexture(const pugi::xml_node& textureNode);
-	bool LoadMaterial(const pugi::xml_node& materialNode);
-	bool LoadTriangleMesh(const pugi::xml_node& triangleMeshNode);
-	bool LoadFilm(const pugi::xml_node& filmNode);
-	bool LoadCamera(const pugi::xml_node& cameraNode);
-	bool LoadLight(const pugi::xml_node& lightNode);
+	void InitializeAssetFactories();
+
+private:
+
+	std::vector<AssetFactoryEntry> assetFactoryEntries;
+	boost::unordered_map<std::string, size_t> assetFactoryMap;
+	boost::unordered_map<std::string, Asset*> assetInstanceMap;
 
 };
 
+bool Assets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
+{
+	// Check if the asset with same name is already registered
+	auto it = std::find_if(assetFactoryEntries.begin(), assetFactoryEntries.end(),
+		[&entry](const AssetFactoryEntry& o) { return entry.name == o.name; });
+	
+	if (it != assetFactoryEntries.end())
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("Asset factory '%s' is already registered") % entry.name));
+		return false;
+	}
+
+	assetFactoryEntries.push_back(entry);
+	return true;
+}
+
+void Assets::Impl::InitializeAssetFactories()
+{
+	// Sort by priority
+	std::sort(assetFactoryEntries.begin(), assetFactoryEntries.end(),
+		[](const AssetFactoryEntry& a, const AssetFactoryEntry& b) { return a.priority < b.priority; });
+	
+	// Create a map for the search query by name
+	assetFactoryMap.clear();
+	for (size_t i = 0; i < assetFactoryEntries.size(); i++)
+	{
+		assetFactoryMap[assetFactoryEntries[i].name] = i;
+	}
+}
+
 bool Assets::Impl::Load( const pugi::xml_node& node )
 {
+	// Initialize asset factories
+	InitializeAssetFactories();
+
 	// Element name must be 'assets'
 	if (std::strcmp(node.name(), "assets") != 0)
 	{
@@ -55,73 +91,58 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 		return false;
 	}
 
-	// Load textures
-	for (auto textureNode : node.child("textures").children())
+	// By priority, find the child element under 'assets', and
+	// find corresponding asset factory and create asset instances.
+	for (auto& factoryEntry : assetFactoryEntries)
 	{
-		if (!LoadTexture(textureNode))
+		// Find the element under 'assets'
+		auto assetGroupNode = node.child(factoryEntry.name.c_str());
+		if (assetGroupNode)
 		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
-	}
+			NANON_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
 
-	// Load materials
-	// Materials can depend on the textures
-	for (auto materialNode : node.child("materials").children())
-	{
-		if (!LoadMaterial(materialNode))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
-	}
+			// For each child of the node, create an instance of the asset
+			for (auto assetNode : assetGroupNode.children())
+			{
+				// Type of the asset
+				auto typeAttribute = assetNode.attribute("type");
+				if (!typeAttribute)
+				{
+					NANON_LOG_ERROR("Missing attribute 'type'.");
+					return false;
+				}
 
-	// Load triangle meshes
-	for (auto triangleMeshNode : node.child("triangle_meshes").children())
-	{
-		if (!LoadTriangleMesh(triangleMeshNode))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
-	}
+				auto idAttribute = assetNode.attribute("id");
+				if (!idAttribute)
+				{
+					NANON_LOG_ERROR("Missing attribute 'id'.");
+					return false;
+				}
 
-	// Load films
-	for (auto filmNode : node.child("films").children())
-	{
-		if (!LoadFilm(filmNode))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
-	}
+				NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
 
-	// Load cameras
-	for (auto cameraNode : node.child("cameras").children())
-	{
-		if (!LoadCamera(cameraNode))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
-		}
-	}
+				// Check if the 'id' is already registered
+				std::string id = idAttribute.value();
+				if (assetInstanceMap.find(id) != assetInstanceMap.end())
+				{
+					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered. Skipped.") % id));
+					return false;
+				}
 
-	// Load lights
-	for (auto lightNode : node.child("lights").children())
-	{
-		if (!LoadLight(lightNode))
-		{
-			NANON_LOG_DEBUG("");
-			return false;
+				auto* asset = factoryEntry.factory->Create(typeAttribute.value());
+				if (asset == nullptr)
+				{
+					NANON_LOG_ERROR("Failed to load the asset.");
+					return false;
+				}
+
+				// Register the instance
+				assetInstanceMap[id] = asset;
+			}
 		}
 	}
 
 	return true;
-}
-
-bool Assets::Impl::LoadTexture( const pugi::xml_node& textureNode )
-{
-
 }
 
 // ----------------------------------------------------------------------
@@ -140,6 +161,11 @@ Assets::~Assets()
 bool Assets::Load( const pugi::xml_node& node )
 {
 	return p->Load(node);
+}
+
+bool Assets::RegisterAssetFactory( const AssetFactoryEntry& entry )
+{
+
 }
 
 NANON_NAMESPACE_END
