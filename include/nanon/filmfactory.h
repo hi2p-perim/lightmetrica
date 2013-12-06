@@ -30,6 +30,8 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Film factory.
+	A factory class for films.
 */
 class NANON_PUBLIC_API FilmFactory : public AssetFactory
 {

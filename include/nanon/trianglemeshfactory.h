@@ -30,13 +30,13 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Triangle mesh factory.
+	An factory class for triangle meshes.
 */
 class NANON_PUBLIC_API TriangleMeshFactory : public AssetFactory
 {
 public:
 
-	TriangleMeshFactory() {}
-	virtual ~TriangleMeshFactory() {}
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };

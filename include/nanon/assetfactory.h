@@ -34,6 +34,10 @@ NANON_NAMESPACE_BEGIN
 class Asset;
 
 /*!
+	Asset factory.
+	The base class of the asset factories.
+	The class is used for generating assets under the 'assets' elements
+	in the configuration file.
 */
 class NANON_PUBLIC_API AssetFactory
 {
@@ -49,6 +53,11 @@ private:
 public:
 	
 	/*!
+		Create instance of an asset.
+		The function creates an instance of the asset specified by #type.
+		\param id ID of the asset to be created.
+		\param type Type of the asset.
+		\return An instance of the asset.
 	*/
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type) = 0;
 

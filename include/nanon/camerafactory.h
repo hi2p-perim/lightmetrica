@@ -30,13 +30,13 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Camera factory.
+	A factory class for cameras.
 */
 class NANON_PUBLIC_API CameraFactory : public AssetFactory
 {
 public:
 
-	CameraFactory() {}
-	virtual ~CameraFactory() {}
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };

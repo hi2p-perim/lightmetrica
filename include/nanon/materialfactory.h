@@ -30,13 +30,13 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Material factory.
+	A factory class for materials.
 */
 class NANON_PUBLIC_API MaterialFactory : public AssetFactory
 {
 public:
 
-	MaterialFactory() {}
-	virtual ~MaterialFactory() {}
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };

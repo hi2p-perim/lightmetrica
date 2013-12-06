@@ -30,13 +30,13 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Light factory.
+	A factory class for lights.
 */
 class NANON_PUBLIC_API LightFactory : public AssetFactory
 {
 public:
 
-	LightFactory() {}
-	virtual ~LightFactory() {}
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };

@@ -30,13 +30,13 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Texture factory.
+	A factory class for textures.
 */
 class NANON_PUBLIC_API TextureFactory : public AssetFactory
 {
 public:
 
-	TextureFactory() {}
-	virtual ~TextureFactory() {}
 	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };
