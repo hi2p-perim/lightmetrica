@@ -34,7 +34,7 @@ class StubAssetFactory : public nanon::AssetFactory
 {
 public:
 
-	std::shared_ptr<nanon::Asset> Create(const std::string& type);
+	std::shared_ptr<nanon::Asset> Create(const std::string& id, const std::string& type);
 
 };
 

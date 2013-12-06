@@ -35,6 +35,7 @@ namespace pugi
 
 NANON_NAMESPACE_BEGIN
 
+class Asset;
 class AssetFactory;
 
 /*!
@@ -46,13 +47,15 @@ struct AssetFactoryEntry
 {
 
 	AssetFactoryEntry() {}
-	AssetFactoryEntry(const std::string& name, int priority, AssetFactory* factory)
+	AssetFactoryEntry(const std::string& name, const std::string& child, int priority, AssetFactory* factory)
 		: name(name)
+		, child(child)
 		, priority(priority)
 		, factory(factory)
 	{}
 
 	std::string name;						//!< Name of the asset corresponding to the element name under 'assets'.
+	std::string child;						//!< Name of the child element of #name.
 	int priority;							//!< Priority (smaller is better).
 	std::shared_ptr<AssetFactory> factory;	//!< Instance of the asset factory.
 
@@ -94,6 +97,14 @@ public:
 		\retval false Failed to load assets.
 	*/
 	bool Load(const pugi::xml_node& node);
+
+	/*!
+		Get an asset by name. 
+		Returns nullptr if not found.
+		\param name Name of the asset.
+		\return Asset instance. 
+	*/
+	std::shared_ptr<Asset> GetAssetByName(const std::string& name);
 
 private:
 	

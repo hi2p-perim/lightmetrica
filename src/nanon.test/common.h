@@ -27,6 +27,11 @@
 
 #include <nanon/common.h>
 
+//#ifdef NANON_PLATFORM_WINDOWS
+//	// Disable LNK4099 : PDB was not found
+//	#pragma warning(disable : 4099)
+//#endif
+
 #define NANON_TEST_NAMESPACE_BEGIN namespace nanontest {
 #define NANON_TEST_NAMESPACE_END }
 

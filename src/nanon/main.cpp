@@ -25,6 +25,13 @@
 #include <nanon/config.h>
 #include <nanon/rendererdispatcher.h>
 #include <nanon/logger.h>
+#include <nanon/assets.h>
+#include <nanon/camerafactory.h>
+#include <nanon/filmfactory.h>
+#include <nanon/lightfactory.h>
+#include <nanon/materialfactory.h>
+#include <nanon/texturefactory.h>
+#include <nanon/trianglemeshfactory.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -67,6 +74,7 @@ private:
 	void PrintHelpMessage(const po::options_description& opt);
 	void PrintStartMessage();
 	void PrintCurrentTime();
+	void RegisterDefaultAssetFactories();
 
 private:
 
@@ -76,6 +84,9 @@ private:
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
 	std::future<void> logResult;
+
+	// Asset manager
+	Assets assets;
 
 };
 
@@ -102,7 +113,7 @@ bool NanonApplication::ParseArguments( int argc, char** argv )
 		("help", "Display help message")
 		("input-file,i", po::value<std::string>(&inputFile)->required(), "Input file (*.nanon)");
 
-	// All positional position are translated into --nanon-file
+	// All positional position are translated into --input-file
 	po::positional_options_description p;
 	p.add("input-file", -1);
 
@@ -151,6 +162,12 @@ bool NanonApplication::Run()
 		NANON_LOG_DEBUG("");
 		return false;
 	}
+
+	// Register asset factories for default assets
+	RegisterDefaultAssetFactories();
+
+	// Load assets
+	
 
 	//RendererDispatcher dispatcher;
 	//RendererDispatcher().Dispatch(config);
@@ -209,6 +226,16 @@ void NanonApplication::PrintCurrentTime()
 	ss << std::put_time(std::localtime(&time), "%Y.%m.%d.%H.%M.%S");
 #endif
 	NANON_LOG_INFO("CURRENT TIME : " + ss.str());
+}
+
+void NanonApplication::RegisterDefaultAssetFactories()
+{
+	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, new MaterialFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 }
 
 int main(int argc, char** argv)

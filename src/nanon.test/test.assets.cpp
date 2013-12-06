@@ -24,8 +24,8 @@
 
 #include "pch.h"
 #include "base.h"
+#include "stub.assetfactory.h"
 #include <nanon/assets.h>
-#include <pugixml.hpp>
 
 using namespace nanon;
 
@@ -33,37 +33,35 @@ namespace
 {
 	const std::string AssetsNode_Success = NANON_TEST_MULTILINE_LITERAL(
 		<assets>
-			<textures>
-				<texture id="nanon_1" type="bitmap">
-					<path>../../resources/nanon_1.jpg</path>
-				</texture>
-				<texture id="nanon_2" type="bitmap">
-					<path>../../resources/nanon_2.jpg</path>
-				</textures>
-			</textures>
-			<materials />
-			<triangle_meshes />
-			<films />
-			<cameras />
-			<lights />
+			<stub_assetfactory>
+				<asset id="id_1" type="success" />
+				<asset id="id_2" type="success" />
+			</stub_assetfactory>
 		</assets>
 	);
 
 	const std::string AssetsNode_Fail_InvalidElementName = NANON_TEST_MULTILINE_LITERAL(
-		<asset>
-		</asset>
+		<invalid_name>
+		</invalid_name>
 	);
 
 	const std::string AssetsNode_Fail_SameID = NANON_TEST_MULTILINE_LITERAL(
 		<assets>
-			<textures>
-				<texture id="wood" type="hdr" />
-			</textures>
-			<materials>
-				<material id="wood" type="diffuse" />
-			</materials>
+			<stub_assetfactory>
+				<asset id="wood" type="success" />
+				<asset id="wood" type="success" />
+			</stub_assetfactory>
 		</assets>
 	);
+
+	const std::string AssetNode_Fail_FailedToCreate = NANON_TEST_MULTILINE_LITERAL(
+		<assets>
+			<stub_assetfactory>
+				<asset id="id" type="fail_on_create" />
+			</stub_assetfactory>
+		</assets>	
+	);
+
 }
 
 NANON_TEST_NAMESPACE_BEGIN
@@ -72,42 +70,48 @@ class AssetsTest : public TestBase
 {
 protected:
 
-	pugi::xml_node LoadXMLBuffer(const std::string& data);
+	virtual void SetUp();
 
 protected:
 
 	Assets assets;
-	pugi::xml_document doc;
 
 };
 
-pugi::xml_node AssetsTest::LoadXMLBuffer( const std::string& data )
+void AssetsTest::SetUp()
 {
-	doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
-	return doc.first_child();
+	TestBase::SetUp();
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("stub_assetfactory", "asset", 0, new StubAssetFactory)));
 }
+
+// ----------------------------------------------------------------------
 
 TEST_F(AssetsTest, RegisterAssetFactory)
 {
-	
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
 }
 
 TEST_F(AssetsTest, RegisterAssetFactory_Failed)
 {
-
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
+	EXPECT_FALSE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
 }
 
 TEST_F(AssetsTest, Load)
 {
 	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
-
-	// TODO : Check if the assets are actually loaded
 }
 
 TEST_F(AssetsTest, Load_Failed)
 {
 	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_InvalidElementName)));
 	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_SameID)));
+}
+
+TEST_F(AssetsTest, GetAssetByName)
+{
+	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
+	
 }
 
 NANON_TEST_NAMESPACE_END

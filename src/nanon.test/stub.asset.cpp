@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include "stub.asset.h"
+#include <pugixml.hpp>
 
 NANON_TEST_NAMESPACE_BEGIN
 

@@ -22,62 +22,25 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_ASSET_H__
-#define __LIB_NANON_ASSET_H__
+#ifndef __LIB_NANON_TRIANGLE_MESH_FACTORY_H__
+#define __LIB_NANON_TRIANGLE_MESH_FACTORY_H__
 
-#include "common.h"
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "assetfactory.h"
 
 NANON_NAMESPACE_BEGIN
 
 /*!
-	Asset.
-	A base class for assets.
 */
-class NANON_PUBLIC_API Asset
+class NANON_PUBLIC_API TriangleMeshFactory : public AssetFactory
 {
 public:
 
-	/*!
-		Constructor.
-		\param id ID of the asset.
-	*/
-	Asset(const std::string& id);
-
-	//! Destructor.
-	virtual ~Asset();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Asset);
-
-public:
-
-	/*!
-		Load an asset.
-		Configure and initialize the asset by the XML elements given by #node.
-		\param id ID of the asset.
-		\param node XML node for the configuration.
-	*/
-	virtual bool Load(const pugi::xml_node& node) = 0;
-
-	/*!
-		Get ID of the asset.
-		\return ID of the asset.
-	*/
-	std::string ID() const;
-
-private:
-
-	class Impl;
-	Impl* p;
+	TriangleMeshFactory() {}
+	virtual ~TriangleMeshFactory() {}
+	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_ASSET_H__
+#endif // __LIB_NANON_TRIANGLE_MESH_FACTORY_H__

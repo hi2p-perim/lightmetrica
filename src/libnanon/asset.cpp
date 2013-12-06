@@ -27,14 +27,40 @@
 
 NANON_NAMESPACE_BEGIN
 
-Asset::Asset()
+class Asset::Impl
+{
+public:
+
+	Impl(const std::string& id)
+		: id(id)
+	{}
+
+public:
+
+	std::string ID() const { return id; }
+
+private:
+
+	const std::string& id;
+
+};
+
+// ----------------------------------------------------------------------
+
+Asset::Asset(const std::string& id)
+	: p(new Impl(id))
 {
 
 }
 
 Asset::~Asset()
 {
+	NANON_SAFE_DELETE(p);
+}
 
+std::string Asset::ID() const
+{
+	return p->ID();
 }
 
 NANON_NAMESPACE_END

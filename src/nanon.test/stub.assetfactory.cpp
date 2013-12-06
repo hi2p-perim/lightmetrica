@@ -22,16 +22,28 @@
 	THE SOFTWARE.
 */
 
+#include "pch.h"
 #include "stub.assetfactory.h"
 #include "stub.asset.h"
+#include "stub.asset.h"
+#include <nanon/logger.h>
 
 NANON_TEST_NAMESPACE_BEGIN
 
-std::shared_ptr<nanon::Asset> StubAssetFactory::Create( const std::string& type )
+std::shared_ptr<nanon::Asset> StubAssetFactory::Create( const std::string& id, const std::string& type )
 {
-	if (type == "")
+	if (type == "success")
 	{
-		
+		return std::make_shared<StubAsset_Success>(id);
+	}
+	else if (type == "fail_on_create")
+	{
+		return std::make_shared<StubAsset_FailOnCreate>(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid type '" + type + "'");
+		return nullptr;
 	}
 }
 

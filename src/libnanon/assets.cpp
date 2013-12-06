@@ -23,6 +23,7 @@
 */
 
 #include "pch.h"
+#include <nanon/asset.h>
 #include <nanon/assets.h>
 #include <nanon/assetfactory.h>
 #include <nanon/logger.h>
@@ -45,7 +46,7 @@ private:
 
 	std::vector<AssetFactoryEntry> assetFactoryEntries;
 	boost::unordered_map<std::string, size_t> assetFactoryMap;
-	boost::unordered_map<std::string, Asset*> assetInstanceMap;
+	boost::unordered_map<std::string, std::shared_ptr<Asset>> assetInstanceMap;
 
 };
 
@@ -104,6 +105,14 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 			// For each child of the node, create an instance of the asset
 			for (auto assetNode : assetGroupNode.children())
 			{
+				// Check asset name
+				auto name = assetNode.name();
+				if (name != factoryEntry.child)
+				{
+					NANON_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
+					return false;
+				}
+
 				// Type of the asset
 				auto typeAttribute = assetNode.attribute("type");
 				if (!typeAttribute)
@@ -125,12 +134,19 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 				std::string id = idAttribute.value();
 				if (assetInstanceMap.find(id) != assetInstanceMap.end())
 				{
-					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered. Skipped.") % id));
+					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
 					return false;
 				}
 
-				auto* asset = factoryEntry.factory->Create(typeAttribute.value());
+				auto asset = factoryEntry.factory->Create(id, typeAttribute.value());
 				if (asset == nullptr)
+				{
+					NANON_LOG_ERROR("Failed to create the asset.");
+					return false;
+				}
+
+				// Load asset
+				if (!asset->Load(assetNode))
 				{
 					NANON_LOG_ERROR("Failed to load the asset.");
 					return false;
@@ -165,7 +181,7 @@ bool Assets::Load( const pugi::xml_node& node )
 
 bool Assets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
-
+	return p->RegisterAssetFactory(entry);
 }
 
 NANON_NAMESPACE_END

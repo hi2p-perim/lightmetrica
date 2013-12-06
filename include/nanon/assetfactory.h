@@ -26,6 +26,8 @@
 #define __LIB_NANON_ASSET_FACTORY_H__
 
 #include "common.h"
+#include <string>
+#include <memory>
 
 NANON_NAMESPACE_BEGIN
 
@@ -48,79 +50,7 @@ public:
 	
 	/*!
 	*/
-	virtual std::shared_ptr<Asset> Create(const std::string& type) = 0;
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API TextureFactory : public AssetFactory
-{
-public:
-
-	TextureFactory() {}
-	virtual ~TextureFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API MaterialFactory : public AssetFactory
-{
-public:
-
-	MaterialFactory() {}
-	virtual ~MaterialFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API TriangleMeshFactory : public AssetFactory
-{
-public:
-
-	TriangleMeshFactory() {}
-	virtual ~TriangleMeshFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API FilmFactory : public AssetFactory
-{
-public:
-
-	FilmFactory() {}
-	virtual ~FilmFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API CameraFactory : public AssetFactory
-{
-public:
-
-	CameraFactory() {}
-	virtual ~CameraFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
-
-};
-
-/*!
-*/
-class NANON_PUBLIC_API LightFactory : public AssetFactory
-{
-public:
-
-	LightFactory() {}
-	virtual ~LightFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& type) { return nullptr; }
+	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type) = 0;
 
 };
 

@@ -30,7 +30,32 @@
 
 NANON_TEST_NAMESPACE_BEGIN
 
-class StubAsset : public nanon::Asset {};
+class StubAsset : public nanon::Asset
+{
+public:
+
+	StubAsset(const std::string& id) : nanon::Asset(id) {}
+	virtual ~StubAsset() {}
+
+};
+
+class StubAsset_Success : public StubAsset
+{
+public:
+	
+	StubAsset_Success(const std::string& id) : StubAsset(id) {}
+	virtual bool Load( const pugi::xml_node& node ) { return true; }
+
+};
+
+class StubAsset_FailOnCreate : public StubAsset
+{
+public:
+
+	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
+	virtual bool Load( const pugi::xml_node& node ) { return false; }
+
+};
 
 NANON_TEST_NAMESPACE_END
 

@@ -16,6 +16,7 @@ set(
 	"test.logger.cpp"
 	"test.config.cpp"
 	"test.assets.cpp"
+	"test.asset.cpp"
 	
 	# pugixml
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"

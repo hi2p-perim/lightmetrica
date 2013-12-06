@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include <gtest/gtest.h>
+#include <pugixml.hpp>
 
 NANON_TEST_NAMESPACE_BEGIN
 
@@ -41,6 +42,11 @@ protected:
 
 	virtual void SetUp();
 	virtual void TearDown();
+	pugi::xml_node LoadXMLBuffer(const std::string& data);
+
+protected:
+
+	pugi::xml_document doc;
 
 };
 

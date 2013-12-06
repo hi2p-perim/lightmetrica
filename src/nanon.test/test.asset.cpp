@@ -22,62 +22,26 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_ASSET_H__
-#define __LIB_NANON_ASSET_H__
+#include "pch.h"
+#include "base.h"
+#include "stub.asset.h"
 
-#include "common.h"
+using namespace nanon;
 
-namespace pugi
+NANON_TEST_NAMESPACE_BEGIN
+
+class AssetTest : public TestBase {};
+
+TEST_F(AssetTest, Load)
 {
-	class xml_node;
-};
+	StubAsset_Success asset("");
+	EXPECT_TRUE(asset.Load(pugi::xml_node()));
+}
 
-NANON_NAMESPACE_BEGIN
-
-/*!
-	Asset.
-	A base class for assets.
-*/
-class NANON_PUBLIC_API Asset
+TEST_F(AssetTest, Create_Failed)
 {
-public:
+	StubAsset_FailOnCreate asset("");
+	EXPECT_FALSE(asset.Load(pugi::xml_node()));
+}
 
-	/*!
-		Constructor.
-		\param id ID of the asset.
-	*/
-	Asset(const std::string& id);
-
-	//! Destructor.
-	virtual ~Asset();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Asset);
-
-public:
-
-	/*!
-		Load an asset.
-		Configure and initialize the asset by the XML elements given by #node.
-		\param id ID of the asset.
-		\param node XML node for the configuration.
-	*/
-	virtual bool Load(const pugi::xml_node& node) = 0;
-
-	/*!
-		Get ID of the asset.
-		\return ID of the asset.
-	*/
-	std::string ID() const;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
-
-NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_ASSET_H__
+NANON_TEST_NAMESPACE_END
