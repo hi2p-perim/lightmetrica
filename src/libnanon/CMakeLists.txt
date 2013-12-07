@@ -12,6 +12,7 @@ set(
 	"${_INCLUDE_DIR}/common.h"
 	"${_INCLUDE_DIR}/config.h"
 	"${_INCLUDE_DIR}/logger.h"
+	"${_INCLUDE_DIR}/version.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -21,6 +22,7 @@ set(
 	_SOURCE_FILES
 	"config.cpp"
 	"logger.cpp"
+	"version.cpp"
 	
 	# pugixml sources
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
@@ -146,6 +148,21 @@ source_group("${_HEADER_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_
 source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_TEXTURES_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})
+
+#
+
+# Generate header for the version number
+set(_GENERATED_FILES_ROOT "Generated Files")
+set(_GENERATED_VERSION_DEF "${PROJECT_BINARY_DIR}/versiondef.h")
+configure_file(
+	"versiondef.h.in"
+	${_GENERATED_VERSION_DEF}
+)
+source_group("${_GENERATED_FILES_ROOT}" FILES ${_GENERATED_VERSION_DEF})
+list(APPEND _SOURCE_FILES ${_GENERATED_VERSION_DEF})
+
+# Add the binary directory to the include directories for generated headers
+include_directories(${PROJECT_BINARY_DIR})
 
 #
 

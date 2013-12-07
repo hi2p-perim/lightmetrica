@@ -166,6 +166,13 @@
 #define NANON_ALIGN_16 NANON_ALIGN(16)
 #define NANON_ALIGN_32 NANON_ALIGN(32)
 
+// Floating-point precision
+#ifdef NANON_SINGLE_PRECISION
+	typedef float Float;
+#else 
+	typedef double Float;
+#endif
+
 // ----------------------------------------------------------------------
 
 // Namespace

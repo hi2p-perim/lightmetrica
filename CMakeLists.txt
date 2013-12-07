@@ -4,6 +4,24 @@ project(nanonrender)
 
 #
 
+# Build options
+
+include(CMakeDependentOption)
+
+option(NANON_SINGLE_PRECISION "Use single presicion floating-point number" ON)
+if (NANON_SINGLE_PRECISION)
+	add_definitions(-DNANON_SINGLE_PRECISION)
+endif()
+
+cmake_dependent_option(
+	NANON_DOUBLE_PRECISION "Use double precision floating-point number" ON
+	"NOT NANON_SINGLE_PRECISION" OFF)
+if (NANON_DOUBLE_PRECISION)
+	add_definitions(-DNANON_DOUBLE_PRECISION)
+endif()
+
+#
+
 # Add module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -78,6 +96,31 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+
+#
+
+# Version number
+set(NANON_VERSION_MAJOR "0")
+set(NANON_VERSION_MINOR "0")
+set(NANON_VERSION_PATCH "1")
+
+# Execute git command in the project root and check revision number
+find_package(Git REQUIRED)
+execute_process(
+	COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--short" "HEAD"
+	OUTPUT_VARIABLE NANON_VERSION_REVISION
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#
+
+# Current date
+if (WIN32)
+	execute_process(COMMAND "cmd" "/C date /T" OUTPUT_VARIABLE NANON_CURRENT_DATE)
+elseif()
+	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE NANON_CURRENT_DATE)
+endif()
+string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+)( *)(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})
 
 #
 

@@ -26,6 +26,7 @@
 #include <nanon/rendererdispatcher.h>
 #include <nanon/logger.h>
 #include <nanon/assets.h>
+#include <nanon/version.h>
 #include <nanon/camerafactory.h>
 #include <nanon/filmfactory.h>
 #include <nanon/lightfactory.h>
@@ -48,14 +49,6 @@
 using namespace nanon;
 namespace po = boost::program_options;
 
-namespace
-{
-	const std::string AppName = "Nanon Renderer";
-	const std::string AppNameShort = "nanon";
-	const std::string AppVersion = "0.0.1.dev";
-	const std::string AppDescription = AppNameShort + " - " + AppName + " " + AppVersion;
-}
-
 class NanonApplication
 {
 public:
@@ -71,12 +64,18 @@ public:
 
 private:
 
+	void SetAppInfo();
 	void PrintHelpMessage(const po::options_description& opt);
 	void PrintStartMessage();
 	void PrintCurrentTime();
 	void RegisterDefaultAssetFactories();
 
 private:
+
+	// Application info
+	std::string appName;
+	std::string appNameShort;
+	std::string appDescription;
 
 	// Command line parameters
 	std::string inputFile;
@@ -93,12 +92,19 @@ private:
 NanonApplication::NanonApplication()
 	: logThreadDone(false)
 {
+	SetAppInfo();
+}
 
+void NanonApplication::SetAppInfo()
+{
+	appName = "Nanon Renderer";
+	appNameShort = "nanon";
+	appDescription = boost::str(boost::format("%s - %s %s") % appNameShort % appName % Version::Formatted());
 }
 
 void NanonApplication::PrintHelpMessage( const po::options_description& opt )
 {
-	std::cout << AppDescription << std::endl;
+	std::cout << appDescription << std::endl;
 	std::cout << std::endl;
 	std::cout << "Usage: nanon [arguments] [file ..]" << std::endl;
 	std::cout << std::endl;
@@ -155,6 +161,8 @@ bool NanonApplication::Run()
 	PrintStartMessage();
 	PrintCurrentTime();
 
+	NANON_LOG_INFO(Version::Formatted());
+
 	// Load input file
 	NanonConfig config;
 	if (!config.Load(inputFile))
@@ -204,7 +212,8 @@ void NanonApplication::FinishLogging()
 void NanonApplication::PrintStartMessage()
 {
 	NANON_LOG_INFO("------------------------------------------------------------");
-	NANON_LOG_INFO(AppDescription);
+	NANON_LOG_INFO(appDescription);
+	NANON_LOG_INFO("        [ " + Version::Platform() + " " + Version::Archtecture() + " ] [ Build " + Version::BuildDate() + " ]");
 	NANON_LOG_INFO("------------------------------------------------------------");
 	NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
 	NANON_LOG_INFO("The software is distributed under the MIT license.");
