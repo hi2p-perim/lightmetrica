@@ -4,24 +4,6 @@ project(nanonrender)
 
 #
 
-# Build options
-
-include(CMakeDependentOption)
-
-option(NANON_SINGLE_PRECISION "Use single presicion floating-point number" ON)
-if (NANON_SINGLE_PRECISION)
-	add_definitions(-DNANON_SINGLE_PRECISION)
-endif()
-
-cmake_dependent_option(
-	NANON_DOUBLE_PRECISION "Use double precision floating-point number" ON
-	"NOT NANON_SINGLE_PRECISION" OFF)
-if (NANON_DOUBLE_PRECISION)
-	add_definitions(-DNANON_DOUBLE_PRECISION)
-endif()
-
-#
-
 # Add module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -80,11 +62,37 @@ endif()
 # Pugixml
 include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
 
+# Add the binary directory to the include directories for generated headers
+include_directories(${PROJECT_BINARY_DIR})
+
+#
+
+# Build options
+
+include(CMakeDependentOption)
+
+option(NANON_SINGLE_PRECISION "Use single presicion floating-point number" ON)
+if (NANON_SINGLE_PRECISION)
+	add_definitions(-DNANON_SINGLE_PRECISION)
+endif()
+
+cmake_dependent_option(
+	NANON_DOUBLE_PRECISION "Use double precision floating-point number" ON
+	"NOT NANON_SINGLE_PRECISION" OFF)
+if (NANON_DOUBLE_PRECISION)
+	add_definitions(-DNANON_DOUBLE_PRECISION)
+endif()
+
+option(NANON_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)
+if (NANON_FORCE_NO_SIMD)
+	add_definitions(-DNANON_FORCE_NO_SIMD)
+endif()
+
 #
 
 # Enabling C++11 for gcc
 if(CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++11)
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 	# If the build type is Debug, define macro
 	if (CMAKE_BUILD_TYPE STREQUAL Debug)
 		add_definitions(-D_DEBUG)
@@ -121,6 +129,46 @@ elseif()
 	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE NANON_CURRENT_DATE)
 endif()
 string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+)( *)(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})
+
+#
+
+if (NOT NANON_FORCE_NO_SIMD)
+
+	# SIMD compatibility check
+	try_run(
+		_SSE_CHECK_RUN_RESULT
+		_SSE_CHECK_COMPILE_RESULT
+		"${CMAKE_BINARY_DIR}/CMakeFiles/ssecheck"
+		"${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssecheck.cpp"
+		COMPILE_OUTPUT_VARIABLE _SSE_CHECK_COMPILE_OUTPUT
+		RUN_OUTPUT_VARIABLE _SSE_CHECK_RUN_OUTPUT
+	)
+	if (NOT _SSE_CHECK_RUN_OUTPUT)
+		message(FATAL_ERROR "Failed to check SIMD support")
+	endif()
+	
+	string(REGEX REPLACE ".*SSE:([0-1]).*" "\\1" NANON_USE_SSE ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE2:([0-1]).*" "\\1" NANON_USE_SSE2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE3:([0-1]).*" "\\1" NANON_USE_SSE3 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.1:([0-1]).*" "\\1" NANON_USE_SSE4_1 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.2:([0-1]).*" "\\1" NANON_USE_SSE4_2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4a:([0-1]).*" "\\1" NANON_USE_SSE4A ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE5:([0-1]).*" "\\1" NANON_USE_SSE5 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*AVX:([0-1]).*" "\\1" NANON_USE_AVX ${_SSE_CHECK_RUN_OUTPUT})
+
+	# Add compiler options
+	if (MSVC)
+		if (NANON_USE_AVX)
+			list(APPEND CMAKE_CXX_FLAGS "/arch:AVX")
+		elseif (NANON_USE_SSE2)
+			list(APPEND CMAKE_CXX_FLAGS "/arch:SSE2")
+		elseif (NANON_USE_SSE)
+			list(APPEND CMAKE_CXX_FLAGS "/arch:SSE")
+		endif()
+	elseif (CMAKE_COMPILER_IS_GNUCXX)
+		list(APPEND CMAKE_CXX_FLAGS "-march=native")
+	endif()
+endif()
 
 #
 

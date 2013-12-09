@@ -151,6 +151,18 @@ list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})
 
 #
 
+set(
+	_MATH_SIMD_HEADERS
+	"${_INCLUDE_DIR}/simd.h"
+	"${_INCLUDE_DIR}/simdfallback.h"
+	"${_INCLUDE_DIR}/simdsse.h"
+	"${_INCLUDE_DIR}/simdavx.h"
+)
+source_group("${_HEADER_FILES_ROOT}\\math\\simd" FILES ${_MATH_SIMD_HEADERS})
+list(APPEND _HEADER_FILES ${_MATH_SIMD_HEADERS})
+
+#
+
 # Generate header for the version number
 set(_GENERATED_FILES_ROOT "Generated Files")
 set(_GENERATED_VERSION_DEF "${PROJECT_BINARY_DIR}/versiondef.h")
@@ -161,8 +173,16 @@ configure_file(
 source_group("${_GENERATED_FILES_ROOT}" FILES ${_GENERATED_VERSION_DEF})
 list(APPEND _SOURCE_FILES ${_GENERATED_VERSION_DEF})
 
-# Add the binary directory to the include directories for generated headers
-include_directories(${PROJECT_BINARY_DIR})
+#
+
+# Generate header for SIMD support
+set(_GENERATED_SIMD_SUPPORT "${PROJECT_BINARY_DIR}/simdsupport.h")
+configure_file(
+	"simdsupport.h.in"
+	${_GENERATED_SIMD_SUPPORT}
+)
+source_group("${_GENERATED_FILES_ROOT}" FILES ${_GENERATED_SIMD_SUPPORT})
+list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 
 #
 

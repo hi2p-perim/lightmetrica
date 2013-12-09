@@ -59,8 +59,6 @@
 		#define NANON_ARCH_X86
 	#elif defined(_M_X64)
 		#define NANON_ARCH_X64
-	#elif defined(_M_ARM)
-		#define NANON_ARCH_ARM
 	#else
 		#error "Unsupportted architecture"
 	#endif
@@ -71,8 +69,6 @@
 		#define NANON_ARCH_X86
 	#elif defined(__x86_64__)
 		#define NANON_ARCH_X64
-	#elif defined(__arm__)
-		#define NANON_ARCH_ARM
 	#else
 		#error "Unsupportted architecture"
 	#endif
@@ -114,41 +110,6 @@
 #endif
 
 // ----------------------------------------------------------------------
-
-/*!
-	\def NANON_FORCE_NO_SIMD
-	Specifies not to use SIMD.
-*/
-
-// SSE support
-#ifndef NANON_FORCE_NO_SIMD
-	#define NANON_USE_SIMD
-	#ifdef NANON_COMPILER_MSVC
-		#if defined(NANON_ARCH_X86) || defined(NANON_ARCH_X64)
-			#define NANON_USE_SSE
-			#include <immintrin.h>
-		#elif defined(NANON_ARCH_ARM)
-			#define NANON_USE_NEON
-			#include <arm_neon.h>
-		#endif
-	#elif defined(NANON_COMPILER_GCC)
-		#if defined(NANON_ARCH_X86) || defined(NANON_ARCH_X64)
-			#define NANON_USE_SSE
-			#ifdef __AVX2__
-				#include <immintrin.h>
-			#elif defined(__SSE4__)
-				#include <smmintrin.h>
-			#elif defined(__SSE3__)
-				#include <pmmintrin.h>
-			#else
-				#include <emmintrin.h>
-			#endif
-		#elif defined(NANON_ARCH_ARM)
-			#define NANON_USE_NEON
-			#include <arm_neon.h>
-		#endif
-	#endif
-#endif
 
 // Force inline
 #ifdef NANON_COMPILER_MSVC
