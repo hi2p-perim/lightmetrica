@@ -22,61 +22,50 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "pch.h"
+#include <nanon/scene.h>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+class Scene::Impl
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
+	Impl();
+	~Impl();
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	
 
 };
 
-NANON_NAMESPACE_END
+Scene::Impl::Impl()
+{
 
-#endif // __LIB_NANON_RENDERER_H__
+}
+
+Scene::Impl::~Impl()
+{
+
+}
+
+// ----------------------------------------------------------------------
+
+Scene::Scene()
+	: p(new Impl)
+{
+
+}
+
+Scene::~Scene()
+{
+	NANON_SAFE_DELETE(p);
+}
+
+bool Scene::Load( const pugi::xml_node& node, const Assets& assets )
+{
+	return false;
+}
+
+NANON_NAMESPACE_END

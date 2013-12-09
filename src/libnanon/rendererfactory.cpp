@@ -22,61 +22,54 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "pch.h"
+#include <nanon/rendererfactory.h>
+#include <nanon/logger.h>
+#include <nanon/raycast.h>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+class RendererFactory::Impl
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
+	std::shared_ptr<Renderer> Create(const std::string& type);
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	
 
 };
 
-NANON_NAMESPACE_END
+std::shared_ptr<Renderer> RendererFactory::Impl::Create( const std::string& type )
+{
+	if (type == "raycast")
+	{
+		return std::make_shared<RaycastRenderer>();
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		return nullptr;
+	}
+}
 
-#endif // __LIB_NANON_RENDERER_H__
+// ----------------------------------------------------------------------
+
+RendererFactory::RendererFactory()
+	: p(new Impl)
+{
+
+}
+
+RendererFactory::~RendererFactory()
+{
+	NANON_SAFE_DELETE(p);
+}
+
+std::shared_ptr<Renderer> RendererFactory::Create( const std::string& type )
+{
+	return p->Create(type);
+}
+
+NANON_NAMESPACE_END

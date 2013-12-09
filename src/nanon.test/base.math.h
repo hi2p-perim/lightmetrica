@@ -22,61 +22,36 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __NANON_TEST_BASE_MATH_H__
+#define __NANON_TEST_BASE_MATH_H__
 
-#include "common.h"
-#include <string>
+#include "base.h"
 
-namespace pugi
+NANON_TEST_NAMESPACE_BEGIN
+
+template <typename T>
+class MathTestBase : public TestBase {};
+
+template <>
+class MathTestBase<float> : public TestBase
 {
-	class xml_node;
-};
+protected:
 
-NANON_NAMESPACE_BEGIN
-
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
-{
-public:
-
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	static const float Epsilon;
 
 };
 
-NANON_NAMESPACE_END
+template <>
+class MathTestBase<double> : public TestBase
+{
+protected:
 
-#endif // __LIB_NANON_RENDERER_H__
+	static const double Epsilon;
+
+};
+
+typedef ::testing::Types<float, double> MathTestTypes;
+
+NANON_TEST_NAMESPACE_END
+
+#endif // __NANON_TEST_BASE_MATH_H__

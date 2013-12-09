@@ -22,61 +22,38 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "vector.h"
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4()
+	: x(T(0))
+	, y(T(0))
+	, z(T(0))
+	, w(T(0))
 {
-public:
 
-	Renderer();
-	virtual ~Renderer();
+}
 
-private:
+template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec4<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
+	, w(v.w)
+{
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
+}
 
-public:
+template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4(const T& x, const T& y, const T& z, const T& w)
+	: x(x)
+	, y(y)
+	, z(z)
+	, w(w)
+{
 
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
+}
 
 NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_RENDERER_H__

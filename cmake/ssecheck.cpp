@@ -93,6 +93,7 @@ int main()
 	std::cout << "SSE:" << (sseSupportted ? 1 : 0) << std::endl;
 	std::cout << "SSE2:" << (sse2Supportted ? 1 : 0) << std::endl;
 	std::cout << "SSE3:" << (sse3Supportted ? 1 : 0) << std::endl;
+	std::cout << "SSSE3:" << (ssse3Supportted ? 1 : 0) << std::endl;
 	std::cout << "SSE4.1:" << (sse4_1Supportted ? 1 : 0) << std::endl;
 	std::cout << "SSE4.2:" << (sse4_2Supportted ? 1 : 0) << std::endl;
 	std::cout << "SSE4a:" << (sse4aSupportted ? 1 : 0) << std::endl;

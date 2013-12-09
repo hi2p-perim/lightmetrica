@@ -22,61 +22,45 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __LIB_NANON_AVX_VECTOR_H__
+#define __LIB_NANON_AVX_VECTOR_H__
 
-#include "common.h"
-#include <string>
+#include "vector.h"
+#include "simdsupport.h"
 
-namespace pugi
-{
-	class xml_node;
-};
+#if !defined(NANON_USE_AVX)
+	#error "avxvector.h requires the support of AVX"
+#endif
+
+#include <immintrin.h>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
 /*!
-	Renderer class.
-	A base class of the renderer.
+	AVX optimized 4D vector.
+	Specialized version of TVec4 optimized by AVX.
 */
-class NANON_PUBLIC_API Renderer
+template <>
+struct NANON_ALIGN_16 TVec4<double>
 {
-public:
 
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	union
+	{
+		__m256d v;
+		struct { double x, y, z, w; };
+		struct { double r, g, b, a; };
+		struct { double s, t, p, q; };
+	};
+	
+	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec4d& v);
+	NANON_FORCE_INLINE TVec4(__m256d v);
+	NANON_FORCE_INLINE TVec4(double x, double y, double z, double w);
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_RENDERER_H__
+#include "avxvector.inl"
+
+#endif // __LIB_NANON_AVX_VECTOR_H__

@@ -27,6 +27,10 @@
 #include <nanon/logger.h>
 #include <nanon/assets.h>
 #include <nanon/version.h>
+#include <nanon/scene.h>
+#include <nanon/scenefactory.h>
+#include <nanon/renderer.h>
+#include <nanon/rendererfactory.h>
 #include <nanon/camerafactory.h>
 #include <nanon/filmfactory.h>
 #include <nanon/lightfactory.h>
@@ -68,7 +72,7 @@ private:
 	void PrintHelpMessage(const po::options_description& opt);
 	void PrintStartMessage();
 	void PrintCurrentTime();
-	void RegisterDefaultAssetFactories();
+	void PrintFinishMessage();
 
 private:
 
@@ -83,9 +87,6 @@ private:
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
 	std::future<void> logResult;
-
-	// Asset manager
-	Assets assets;
 
 };
 
@@ -163,6 +164,8 @@ bool NanonApplication::Run()
 
 	NANON_LOG_INFO(Version::Formatted());
 
+	// ----------------------------------------------------------------------
+
 	// Load input file
 	NanonConfig config;
 	if (!config.Load(inputFile))
@@ -171,14 +174,75 @@ bool NanonApplication::Run()
 		return false;
 	}
 
-	// Register asset factories for default assets
-	RegisterDefaultAssetFactories();
+	// ----------------------------------------------------------------------
 
 	// Load assets
-	
+	Assets assets;
 
-	//RendererDispatcher dispatcher;
-	//RendererDispatcher().Dispatch(config);
+	// Register default asset factories
+	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, new MaterialFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
+
+	if (!assets.Load(config.AssetsElement()))
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Create scene
+	SceneFactory sceneFactory;
+	auto sceneNode = config.SceneElement();
+	auto scene = sceneFactory.Create(sceneNode.attribute("type").as_string());
+	if (scene == nullptr)
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// Load scene
+	if (scene->Load(sceneNode, assets))
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Create renderer
+	RendererFactory rendererFactory;
+	auto rendererNode = config.RendererElement();
+	auto renderer = rendererFactory.Create(rendererNode.attribute("type").as_string());
+	if (renderer == nullptr)
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// Configure renderer
+	if (renderer->Configure(rendererNode, assets))
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// Begin rendering
+	// TODO : Dispatch renderer in the another thread and poll progress
+	if (!renderer->Render() || !renderer->Save())
+	{
+		NANON_LOG_DEBUG("");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Finish message
+	PrintFinishMessage();
 
 	return true;
 }
@@ -237,14 +301,10 @@ void NanonApplication::PrintCurrentTime()
 	NANON_LOG_INFO("CURRENT TIME : " + ss.str());
 }
 
-void NanonApplication::RegisterDefaultAssetFactories()
+void NanonApplication::PrintFinishMessage()
 {
-	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, new MaterialFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
+	NANON_LOG_INFO("Finished");
+	NANON_LOG_INFO("------------------------------------------------------------");
 }
 
 int main(int argc, char** argv)

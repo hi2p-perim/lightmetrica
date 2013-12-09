@@ -22,61 +22,40 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __LIB_NANON_MATH_H__
+#define __LIB_NANON_MATH_H__
 
 #include "common.h"
-#include <string>
+#include "simdsupport.h"
 
-namespace pugi
-{
-	class xml_node;
-};
+// Generic implementation of math functions
+// if there is no SIMD support the implementation is used instead.
+#include "vector.h"
+#include "matrix.h"
+
+// Specialized implementation optimized by SIMD instructions
+#ifndef NANON_FORCE_NO_SIMD
+	#ifdef NANON_USE_SSE2
+		#include "ssevector.h"
+		#include "ssematrix.h"
+	#endif
+	#ifdef NANON_USE_AVX
+		#include "avxvector.h"
+		#include "avxmatrix.h"
+	#endif
+#endif
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
-{
-public:
-
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
+// Define default floating point types
+#ifdef NANON_SINGLE_PRECISION
+	typedef float Float;
+	typedef Vec4f Vec4;
+#else 
+	typedef double Float;
+	typedef Vec4d Vec4;
+#endif
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_RENDERER_H__
+#endif // __LIB_NANON_MATH_H__

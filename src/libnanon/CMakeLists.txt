@@ -152,6 +152,35 @@ list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})
 #
 
 set(
+	_MATH_HEADERS
+	"${_INCLUDE_DIR}/math.h"
+)
+source_group("${_HEADER_FILES_ROOT}\\math" FILES ${_MATH_HEADERS})
+list(APPEND _HEADER_FILES ${_MATH_HEADERS})
+
+#
+
+set(
+	_MATH_TYPES_HEADERS
+	"${_INCLUDE_DIR}/vector.h"
+	"${_INCLUDE_DIR}/vector.inl"
+	"${_INCLUDE_DIR}/matrix.h"
+	"${_INCLUDE_DIR}/matrix.inl"
+	"${_INCLUDE_DIR}/ssevector.h"
+	"${_INCLUDE_DIR}/ssevector.inl"
+	"${_INCLUDE_DIR}/ssematrix.h"
+	"${_INCLUDE_DIR}/ssematrix.inl"
+	"${_INCLUDE_DIR}/avxvector.h"
+	"${_INCLUDE_DIR}/avxvector.inl"
+	"${_INCLUDE_DIR}/avxmatrix.h"
+	"${_INCLUDE_DIR}/avxmatrix.inl"
+)
+source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
+list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
+
+#
+
+set(
 	_MATH_SIMD_HEADERS
 	"${_INCLUDE_DIR}/simd.h"
 	"${_INCLUDE_DIR}/simdfallback.h"
@@ -160,6 +189,44 @@ set(
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\simd" FILES ${_MATH_SIMD_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_SIMD_HEADERS})
+
+#
+
+set(
+	_RENDERER_HEADERS
+	"${_INCLUDE_DIR}/renderer.h"
+	"${_INCLUDE_DIR}/rendererfactory.h"
+	"${_INCLUDE_DIR}/raycast.h"
+)
+set(
+	_RENDERER_SOURCES
+	"renderer.cpp"
+	"rendererfactory.cpp"
+	"raycast.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
+list(APPEND _HEADER_FILES ${_RENDERER_HEADERS})
+list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
+
+#
+
+set(
+	_SCENE_HEADERS
+	"${_INCLUDE_DIR}/scene.h"
+	"${_INCLUDE_DIR}/scenefactory.h"
+	"${_INCLUDE_DIR}/naivescene.h"
+)
+set(
+	_SCENE_SOURCES
+	"scene.cpp"
+	"scenefactory.cpp"
+	"naivescene.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\scene" FILES ${_SCENE_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\scene" FILES ${_SCENE_SOURCES})
+list(APPEND _HEADER_FILES ${_SCENE_HEADERS})
+list(APPEND _SOURCE_FILES ${_SCENE_SOURCES})
 
 #
 

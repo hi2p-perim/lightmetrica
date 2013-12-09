@@ -37,6 +37,7 @@ NANON_NAMESPACE_BEGIN
 
 class Asset;
 class AssetFactory;
+class NanonConfig;
 
 /*!
 	An entry for the asset factory.

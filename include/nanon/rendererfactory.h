@@ -22,53 +22,35 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __LIB_NANON_RENDERER_FACTORY_H__
+#define __LIB_NANON_RENDERER_FACTORY_H__
 
 #include "common.h"
 #include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include <memory>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
+class Renderer;
 
 /*!
-	Renderer class.
-	A base class of the renderer.
 */
-class NANON_PUBLIC_API Renderer
+class NANON_PUBLIC_API RendererFactory
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
+	RendererFactory();
+	~RendererFactory();
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
+	NANON_DISABLE_COPY_AND_MOVE(RendererFactory);
 
 public:
 
 	/*!
 	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
+	std::shared_ptr<Renderer> Create(const std::string& type);
 
 private:
 
@@ -79,4 +61,4 @@ private:
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_RENDERER_H__
+#endif // __LIB_NANON_RENDERER_FACTORY_H__

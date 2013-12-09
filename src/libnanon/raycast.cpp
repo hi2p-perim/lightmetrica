@@ -22,61 +22,45 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "pch.h"
+#include <nanon/raycast.h>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+class RaycastRenderer::Impl
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	
 
 };
 
-NANON_NAMESPACE_END
+// ----------------------------------------------------------------------
 
-#endif // __LIB_NANON_RENDERER_H__
+RaycastRenderer::RaycastRenderer()
+	: p(new Impl)
+{
+
+}
+
+RaycastRenderer::~RaycastRenderer()
+{
+	NANON_SAFE_DELETE(p);
+}
+
+std::string RaycastRenderer::Type()
+{
+	return "raycast";
+}
+
+bool RaycastRenderer::Render()
+{
+	return false;
+}
+
+bool RaycastRenderer::Save()
+{
+	return false;
+}
+
+NANON_NAMESPACE_END

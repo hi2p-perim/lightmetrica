@@ -28,10 +28,10 @@
 #cmakedefine NANON_USE_SSE
 #cmakedefine NANON_USE_SSE2
 #cmakedefine NANON_USE_SSE3
+#cmakedefine NANON_USE_SSSE3
 #cmakedefine NANON_USE_SSE4_1
 #cmakedefine NANON_USE_SSE4_2
 #cmakedefine NANON_USE_SSE4A
-#cmakedefine NANON_USE_SSE5
 #cmakedefine NANON_USE_AVX
 
 #endif // __LIB_NANON_SIMD_SUPPORT_H__

@@ -22,61 +22,54 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "pch.h"
+#include <nanon/scenefactory.h>
+#include <nanon/logger.h>
+#include <nanon/naivescene.h>
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+class SceneFactory::Impl
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
+	std::shared_ptr<Scene> Create(const std::string& type);
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	
 
 };
 
-NANON_NAMESPACE_END
+std::shared_ptr<Scene> SceneFactory::Impl::Create( const std::string& type )
+{
+	if (type == "naive")
+	{
+		return std::make_shared<NaiveScene>();
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		return nullptr;
+	}
+}
 
-#endif // __LIB_NANON_RENDERER_H__
+// ----------------------------------------------------------------------
+
+SceneFactory::SceneFactory()
+	: p(new Impl)
+{
+
+}
+
+SceneFactory::~SceneFactory()
+{
+	NANON_SAFE_DELETE(p);
+}
+
+std::shared_ptr<Scene> SceneFactory::Create( const std::string& type )
+{
+	return p->Create(type);
+}
+
+NANON_NAMESPACE_END

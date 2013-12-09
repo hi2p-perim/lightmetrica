@@ -26,6 +26,7 @@
 #include <nanon/asset.h>
 #include <nanon/assets.h>
 #include <nanon/assetfactory.h>
+#include <nanon/config.h>
 #include <nanon/logger.h>
 #include <pugixml.hpp>
 

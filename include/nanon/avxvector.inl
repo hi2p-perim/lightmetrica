@@ -22,61 +22,32 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
-
-#include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
+#include "avxvector.h"
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
+NANON_FORCE_INLINE TVec4<double>::TVec4()
+	: v(_mm256_setzero_pd())
 {
-public:
 
-	Renderer();
-	virtual ~Renderer();
+}
 
-private:
+NANON_FORCE_INLINE TVec4<double>::TVec4(const Vec4d& v)
+	: v(v.v)
+{
 
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
+}
 
-public:
+NANON_FORCE_INLINE TVec4<double>::TVec4(__m256d v)
+	: v(v)
+{
 
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
+}
 
-	/*!
-	*/
-	virtual std::string Type() = 0;
+NANON_FORCE_INLINE TVec4<double>::TVec4(double x, double y, double z, double w)
+	: v(_mm256_set_pd(w, z, y, x))
+{
 
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
+}
 
 NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_RENDERER_H__

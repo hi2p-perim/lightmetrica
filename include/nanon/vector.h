@@ -22,61 +22,41 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __LIB_NANON_VECTOR_H__
+#define __LIB_NANON_VECTOR_H__
 
 #include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
 /*!
-	Renderer class.
-	A base class of the renderer.
+	4D vector.
+	Generic 4-dimensional vector.
+	\tparam T Internal value type
 */
-class NANON_PUBLIC_API Renderer
+template <typename T>
+struct TVec4
 {
-public:
 
-	Renderer();
-	virtual ~Renderer();
+	union
+	{
+		struct { T x, y, z, w; };
+		struct { T r, g, b, a; };
+		struct { T s, t, p, q; };
+	};
 
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4(const T& x, const T& y, const T& z, const T& w);
 
 };
 
+typedef TVec4<float> Vec4f;
+typedef TVec4<double> Vec4d;
+typedef TVec4<int> Vec4i;
+
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_RENDERER_H__
+#include "vector.inl"
+
+#endif // __LIB_NANON_VECTOR_H__

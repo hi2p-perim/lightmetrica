@@ -45,6 +45,9 @@ public:
 
 	bool Load(const std::string& path);
 	bool LoadFromString(const std::string& data);
+	const pugi::xml_node AssetsElement() const;
+	const pugi::xml_node SceneElement() const;
+	const pugi::xml_node RendererElement() const;
 	
 private:
 
@@ -52,11 +55,16 @@ private:
 
 public:
 
+	bool loaded;
 	pugi::xml_document doc;
+	pugi::xml_node assetsNode;
+	pugi::xml_node sceneNode;
+	pugi::xml_node rendererNode;
 
 };
 
 NanonConfig::Impl::Impl()
+	: loaded(false)
 {
 
 }
@@ -68,20 +76,36 @@ NanonConfig::Impl::~Impl()
 
 bool NanonConfig::Impl::Load( const std::string& path )
 {
+	if (loaded)
+	{
+		NANON_LOG_ERROR("Configuration is already loaded");
+		return false;
+	}
+
 	NANON_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
+	
 	return HandleLoadResult(result);
 }
 
 bool NanonConfig::Impl::LoadFromString( const std::string& data )
 {
+	if (loaded)
+	{
+		NANON_LOG_ERROR("Configuration is already loaded");
+		return false;
+	}
+
 	NANON_LOG_INFO("Loading configuration");
 	auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
+
 	return HandleLoadResult(result);
 }
 
 bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 {
+	loaded = false;
+
 	if (!result)
 	{
 		NANON_LOG_ERROR("Failed to load the configuration file")
@@ -105,14 +129,33 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 		return false;
 	}
 
-	// Check if some required elements
-	if (!nanonNode.child("assets") || !nanonNode.child("scene"))
+	// Check some required elements
+	assetsNode = nanonNode.child("assets");
+	sceneNode = nanonNode.child("scene");
+	rendererNode = nanonNode.child("renderer");
+	if (!assetsNode || !sceneNode || !rendererNode)
 	{
 		NANON_LOG_ERROR("Missing <assets> or <scene> element");
 		return false;
 	}
 
+	loaded = true;
 	return true;
+}
+
+const pugi::xml_node NanonConfig::Impl::AssetsElement() const
+{
+	return loaded ? assetsNode : pugi::xml_node();
+}
+
+const pugi::xml_node NanonConfig::Impl::SceneElement() const
+{
+	return loaded ? sceneNode : pugi::xml_node();
+}
+
+const pugi::xml_node NanonConfig::Impl::RendererElement() const
+{
+	return loaded ? rendererNode : pugi::xml_node();
 }
 
 // ----------------------------------------------------------------------
@@ -136,6 +179,21 @@ bool NanonConfig::Load( const std::string& path )
 bool NanonConfig::LoadFromString( const std::string& data )
 {
 	return p->LoadFromString(data);
+}
+
+const pugi::xml_node NanonConfig::AssetsElement() const
+{
+	return p->AssetsElement();
+}
+
+const pugi::xml_node NanonConfig::SceneElement() const
+{
+	return p->SceneElement();
+}
+
+const pugi::xml_node NanonConfig::RendererElement() const
+{
+	return p->RendererElement();
 }
 
 NANON_NAMESPACE_END

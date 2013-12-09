@@ -22,61 +22,30 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#include "pch.h"
+#include "base.math.h"
+#include <nanon/math.h>
 
-#include "common.h"
-#include <string>
+using namespace nanon;
 
-namespace pugi
+NANON_TEST_NAMESPACE_BEGIN
+
+template <typename T>
+class VectorTest : public MathTestBase<T> {};
+
+TYPED_TEST_CASE(VectorTest, MathTestTypes);
+
+TYPED_TEST(VectorTest, Constructor)
 {
-	class xml_node;
-};
+	auto x = TypeParam(1);
+	auto y = TypeParam(2);
+	auto z = TypeParam(3);
+	auto w = TypeParam(4);
+	auto v = TVec4<TypeParam>(x, y, z, w);
+	EXPECT_NEAR(x, v.x, Epsilon);
+	EXPECT_NEAR(y, v.y, Epsilon);
+	EXPECT_NEAR(z, v.z, Epsilon);
+	EXPECT_NEAR(w, v.w, Epsilon);
+}
 
-NANON_NAMESPACE_BEGIN
-
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
-{
-public:
-
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
-
-NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_RENDERER_H__
+NANON_TEST_NAMESPACE_END

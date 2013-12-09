@@ -22,61 +22,12 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#include "pch.h"
+#include "base.math.h"
 
-#include "common.h"
-#include <string>
+NANON_TEST_NAMESPACE_BEGIN
 
-namespace pugi
-{
-	class xml_node;
-};
+const float MathTestBase<float>::Epsilon = 1e-6f;
+const double MathTestBase<double>::Epsilon = 1e-16;
 
-NANON_NAMESPACE_BEGIN
-
-class Assets;
-
-/*!
-	Renderer class.
-	A base class of the renderer.
-*/
-class NANON_PUBLIC_API Renderer
-{
-public:
-
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
-
-NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_RENDERER_H__
+NANON_TEST_NAMESPACE_END

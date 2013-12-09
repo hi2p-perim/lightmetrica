@@ -28,6 +28,11 @@
 #include "common.h"
 #include <string>
 
+namespace pugi
+{
+	class xml_node;
+};
+
 NANON_NAMESPACE_BEGIN
 
 /*!
@@ -51,8 +56,8 @@ public:
 	/*!
 		Load the configuration file.
 		\param path Path to the configuration file.
-		\retval true Succeded to load the configuration.
-		\retval false Failed to load the conifiguration.
+		\retval true Succeeded to load the configuration.
+		\retval false Failed to load the configuration.
 	*/
 	bool Load(const std::string& path);
 
@@ -60,10 +65,32 @@ public:
 		Load the configuration from a string.
 		Use the function to load the configuration from a string.
 		\param data Configuration string.
-		\retval true Succeded to load the configuration.
-		\retval false Failed to load the conifiguration.
+		\retval true Succeeded to load the configuration.
+		\retval false Failed to load the configuration.
 	*/
 	bool LoadFromString(const std::string& data);
+
+	/*!
+		Get the assets element.
+		The function returns empty node if the configuration is not loaded.
+		\return XML node of the assets element.
+	*/
+	const pugi::xml_node AssetsElement() const;
+
+	/*!
+		Get the scene element.
+		The function returns empty node if the configuration is not loaded.
+		\return XML node of the scene element.
+	*/
+	const pugi::xml_node SceneElement() const;
+
+	/*!
+		Get the renderer element.
+		The function returns empty node if the configuration is not loaded.
+		\return XML node of the renderer element.
+	*/
+	const pugi::xml_node RendererElement() const;
+
 
 private:
 

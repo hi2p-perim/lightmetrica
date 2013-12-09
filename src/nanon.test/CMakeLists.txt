@@ -9,6 +9,8 @@ set(
 	"common.h"
 	"base.h"
 	"base.cpp"
+	"base.math.h"
+	"base.math.cpp"
 	"stub.assetfactory.h"
 	"stub.assetfactory.cpp"
 	"stub.asset.h"
@@ -17,6 +19,9 @@ set(
 	"test.config.cpp"
 	"test.assets.cpp"
 	"test.asset.cpp"
+	
+	# math
+	"test.vector.cpp"
 	
 	# pugixml
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"

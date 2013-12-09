@@ -22,61 +22,61 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_RENDERER_H__
-#define __LIB_NANON_RENDERER_H__
+#ifndef __LIB_NANON_SSE_VECTOR_H__
+#define __LIB_NANON_SSE_VECTOR_H__
 
-#include "common.h"
-#include <string>
+#include "vector.h"
+#include "simdsupport.h"
 
-namespace pugi
-{
-	class xml_node;
-};
+#if !defined(NANON_USE_SSE) || !defined(NANON_USE_SSE2)
+	#error "ssevector.h requires the support of SSE and SSE2"
+#endif
+
+#include <xmmintrin.h>
+
+#ifdef NANON_USE_SSE3
+#include <pmmintrin.h>
+#endif
+#ifdef NANON_USE_SSSE3
+#include <tmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_1
+#include <smmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_2
+#include <nmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4A
+#include <ammintrin.h>
+#endif
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-
 /*!
-	Renderer class.
-	A base class of the renderer.
+	SSE optimized 4D vector.
+	Specialized version of TVec4 optimized by SSE.
 */
-class NANON_PUBLIC_API Renderer
+template <>
+struct NANON_ALIGN_16 TVec4<float>
 {
-public:
 
-	Renderer();
-	virtual ~Renderer();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Renderer);
-
-public:
-
-	/*!
-	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
-
-	/*!
-	*/
-	virtual std::string Type() = 0;
-
-	/*!
-	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	union
+	{
+		__m128 v;
+		struct { float x, y, z, w; };
+		struct { float r, g, b, a; };
+		struct { float s, t, p, q; };
+	};
+	
+	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec4f& v);
+	NANON_FORCE_INLINE TVec4(__m128 v);
+	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_RENDERER_H__
+#include "ssevector.inl"
+
+#endif // __LIB_NANON_SSE_VECTOR_H__
