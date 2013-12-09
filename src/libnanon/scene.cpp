@@ -24,6 +24,9 @@
 
 #include "pch.h"
 #include <nanon/scene.h>
+#include <nanon/config.h>
+#include <nanon/assets.h>
+#include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
 
@@ -33,6 +36,10 @@ public:
 
 	Impl();
 	~Impl();
+
+public:
+
+	bool Load(const pugi::xml_node& node, const Assets& assets);
 
 private:
 
@@ -50,6 +57,11 @@ Scene::Impl::~Impl()
 
 }
 
+bool Scene::Impl::Load( const pugi::xml_node& node, const Assets& assets )
+{
+	return false;
+}
+
 // ----------------------------------------------------------------------
 
 Scene::Scene()
@@ -65,7 +77,12 @@ Scene::~Scene()
 
 bool Scene::Load( const pugi::xml_node& node, const Assets& assets )
 {
-	return false;
+	return p->Load(node, assets);
+}
+
+bool Scene::Load( const NanonConfig& config, const Assets& assets )
+{
+	return p->Load(config.SceneElement(), assets);
 }
 
 NANON_NAMESPACE_END

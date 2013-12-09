@@ -128,7 +128,7 @@ if (WIN32)
 elseif()
 	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE NANON_CURRENT_DATE)
 endif()
-string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+)( *)(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})
+string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})
 
 #
 

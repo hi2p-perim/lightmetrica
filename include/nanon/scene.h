@@ -36,6 +36,7 @@ namespace pugi
 NANON_NAMESPACE_BEGIN
 
 class Assets;
+class NanonConfig;
 
 /*!
 	Scene class.
@@ -57,6 +58,10 @@ public:
 	/*!
 	*/
 	bool Load(const pugi::xml_node& node, const Assets& assets);
+
+	/*!
+	*/
+	bool Load(const NanonConfig& config, const Assets& assets);
 
 	/*!
 	*/

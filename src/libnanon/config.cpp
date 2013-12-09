@@ -48,6 +48,8 @@ public:
 	const pugi::xml_node AssetsElement() const;
 	const pugi::xml_node SceneElement() const;
 	const pugi::xml_node RendererElement() const;
+	std::string SceneType() const;
+	std::string RendererType() const;
 	
 private:
 
@@ -131,11 +133,23 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 
 	// Check some required elements
 	assetsNode = nanonNode.child("assets");
-	sceneNode = nanonNode.child("scene");
-	rendererNode = nanonNode.child("renderer");
-	if (!assetsNode || !sceneNode || !rendererNode)
+	if (!assetsNode)
 	{
-		NANON_LOG_ERROR("Missing <assets> or <scene> element");
+		NANON_LOG_ERROR("Missing 'assets' element");
+		return false;
+	}
+
+	sceneNode = nanonNode.child("scene");
+	if (!sceneNode)
+	{
+		NANON_LOG_ERROR("Missing 'scene' element");
+		return false;
+	}
+
+	rendererNode = nanonNode.child("renderer");
+	if (!rendererNode)
+	{
+		NANON_LOG_ERROR("Missing 'renderer' element");
 		return false;
 	}
 
@@ -156,6 +170,16 @@ const pugi::xml_node NanonConfig::Impl::SceneElement() const
 const pugi::xml_node NanonConfig::Impl::RendererElement() const
 {
 	return loaded ? rendererNode : pugi::xml_node();
+}
+
+std::string NanonConfig::Impl::SceneType() const
+{
+	return sceneNode.attribute("type").as_string();
+}
+
+std::string NanonConfig::Impl::RendererType() const
+{
+	return rendererNode.attribute("type").as_string();
 }
 
 // ----------------------------------------------------------------------
@@ -194,6 +218,16 @@ const pugi::xml_node NanonConfig::SceneElement() const
 const pugi::xml_node NanonConfig::RendererElement() const
 {
 	return p->RendererElement();
+}
+
+std::string NanonConfig::SceneType() const
+{
+	return p->SceneType();
+}
+
+std::string NanonConfig::RendererType() const
+{
+	return p->RendererType();
 }
 
 NANON_NAMESPACE_END

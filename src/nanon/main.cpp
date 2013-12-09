@@ -37,6 +37,7 @@
 #include <nanon/materialfactory.h>
 #include <nanon/texturefactory.h>
 #include <nanon/trianglemeshfactory.h>
+#include <nanon/math.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -71,8 +72,8 @@ private:
 	void SetAppInfo();
 	void PrintHelpMessage(const po::options_description& opt);
 	void PrintStartMessage();
-	void PrintCurrentTime();
 	void PrintFinishMessage();
+	std::string CurrentTime();
 
 private:
 
@@ -80,6 +81,7 @@ private:
 	std::string appName;
 	std::string appNameShort;
 	std::string appDescription;
+	std::string appSSESupport;
 
 	// Command line parameters
 	std::string inputFile;
@@ -100,7 +102,44 @@ void NanonApplication::SetAppInfo()
 {
 	appName = "Nanon Renderer";
 	appNameShort = "nanon";
-	appDescription = boost::str(boost::format("%s - %s %s") % appNameShort % appName % Version::Formatted());
+	appDescription = boost::str(boost::format("%s - %s Version %s") % appNameShort % appName % Version::Formatted());
+	
+	// Enumerate supported SSE instructions
+	std::vector<std::string> supportted;
+#ifdef NANON_USE_SSE
+	supportted.push_back("SSE");
+#endif
+#ifdef NANON_USE_SSE2
+	supportted.push_back("SSE2");
+#endif
+#ifdef NANON_USE_SSE3
+	supportted.push_back("SSE3");
+#endif
+#ifdef NANON_USE_SSSE3
+	supportted.push_back("SSSE3");
+#endif
+#ifdef NANON_USE_SSE4_1
+	supportted.push_back("SSE4.1");
+#endif
+#ifdef NANON_USE_SSE4_2
+	supportted.push_back("SSE4.2");
+#endif
+#ifdef NANON_USE_SSE4A
+	supportted.push_back("SSE4A");
+#endif
+#ifdef NANON_USE_AVX
+	supportted.push_back("AVX");
+#endif
+
+	appSSESupport = "";
+	for (size_t i = 0; i < supportted.size(); i++)
+	{
+		appSSESupport += supportted[i];
+		if (i < supportted.size() - 1)
+		{
+			appSSESupport += " ";
+		}
+	}
 }
 
 void NanonApplication::PrintHelpMessage( const po::options_description& opt )
@@ -160,9 +199,6 @@ bool NanonApplication::ParseArguments( int argc, char** argv )
 bool NanonApplication::Run()
 {
 	PrintStartMessage();
-	PrintCurrentTime();
-
-	NANON_LOG_INFO(Version::Formatted());
 
 	// ----------------------------------------------------------------------
 
@@ -187,7 +223,7 @@ bool NanonApplication::Run()
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
 	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 
-	if (!assets.Load(config.AssetsElement()))
+	if (!assets.Load(config))
 	{
 		NANON_LOG_DEBUG("");
 		return false;
@@ -197,8 +233,7 @@ bool NanonApplication::Run()
 
 	// Create scene
 	SceneFactory sceneFactory;
-	auto sceneNode = config.SceneElement();
-	auto scene = sceneFactory.Create(sceneNode.attribute("type").as_string());
+	auto scene = sceneFactory.Create(config.SceneType());
 	if (scene == nullptr)
 	{
 		NANON_LOG_DEBUG("");
@@ -206,7 +241,7 @@ bool NanonApplication::Run()
 	}
 
 	// Load scene
-	if (scene->Load(sceneNode, assets))
+	if (scene->Load(config, assets))
 	{
 		NANON_LOG_DEBUG("");
 		return false;
@@ -216,8 +251,7 @@ bool NanonApplication::Run()
 
 	// Create renderer
 	RendererFactory rendererFactory;
-	auto rendererNode = config.RendererElement();
-	auto renderer = rendererFactory.Create(rendererNode.attribute("type").as_string());
+	auto renderer = rendererFactory.Create(config.RendererType());
 	if (renderer == nullptr)
 	{
 		NANON_LOG_DEBUG("");
@@ -225,7 +259,7 @@ bool NanonApplication::Run()
 	}
 
 	// Configure renderer
-	if (renderer->Configure(rendererNode, assets))
+	if (renderer->Configure(config, assets))
 	{
 		NANON_LOG_DEBUG("");
 		return false;
@@ -277,17 +311,26 @@ void NanonApplication::PrintStartMessage()
 {
 	NANON_LOG_INFO("------------------------------------------------------------");
 	NANON_LOG_INFO(appDescription);
-	NANON_LOG_INFO("        [ " + Version::Platform() + " " + Version::Archtecture() + " ] [ Build " + Version::BuildDate() + " ]");
 	NANON_LOG_INFO("------------------------------------------------------------");
 	NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
 	NANON_LOG_INFO("The software is distributed under the MIT license.");
 	NANON_LOG_INFO("For detail see the LICENSE file along with the software.");
 	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
+	NANON_LOG_INFO("PLATFORM     | " + Version::Platform() + " " + Version::Archtecture());
+	NANON_LOG_INFO("OPTIMIZATION | " + appSSESupport);
+	NANON_LOG_INFO("CURRENT TIME | " + CurrentTime());
+	NANON_LOG_INFO("------------------------------------------------------------");
 }
 
-void NanonApplication::PrintCurrentTime()
+void NanonApplication::PrintFinishMessage()
 {
-	// Current time
+	NANON_LOG_INFO("Finished");
+	NANON_LOG_INFO("------------------------------------------------------------");
+}
+
+std::string NanonApplication::CurrentTime()
+{
 	std::stringstream ss;
 	auto now = std::chrono::system_clock::now();
 	auto time = std::chrono::system_clock::to_time_t(now);
@@ -298,13 +341,7 @@ void NanonApplication::PrintCurrentTime()
 #else
 	ss << std::put_time(std::localtime(&time), "%Y.%m.%d.%H.%M.%S");
 #endif
-	NANON_LOG_INFO("CURRENT TIME : " + ss.str());
-}
-
-void NanonApplication::PrintFinishMessage()
-{
-	NANON_LOG_INFO("Finished");
-	NANON_LOG_INFO("------------------------------------------------------------");
+	return ss.str();
 }
 
 int main(int argc, char** argv)

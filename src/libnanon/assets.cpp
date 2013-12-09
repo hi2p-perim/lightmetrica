@@ -180,6 +180,11 @@ bool Assets::Load( const pugi::xml_node& node )
 	return p->Load(node);
 }
 
+bool Assets::Load( const NanonConfig& config )
+{
+	return p->Load(config.AssetsElement());
+}
+
 bool Assets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
 	return p->RegisterAssetFactory(entry);

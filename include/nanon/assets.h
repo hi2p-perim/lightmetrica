@@ -100,6 +100,15 @@ public:
 	bool Load(const pugi::xml_node& node);
 
 	/*!
+		Load assets from the configuration.
+		Get the \a assets element from the configuration and load the assets.
+		\param config Configuration.
+		\retval true Succeeded to load assets.
+		\retval false Failed to load assets.
+	*/
+	bool Load(const NanonConfig& config);
+
+	/*!
 		Get an asset by name. 
 		Returns nullptr if not found.
 		\param name Name of the asset.

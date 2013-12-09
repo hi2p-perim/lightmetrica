@@ -91,6 +91,19 @@ public:
 	*/
 	const pugi::xml_node RendererElement() const;
 
+	/*!
+		Get the scene type.
+		Returns empty string if no type is specified.
+		\return Scene type.
+	*/
+	std::string SceneType() const;
+
+	/*!
+		Get the renderer type.
+		Returns empty string if no type is specified.
+		\return Renderer type.
+	*/
+	std::string RendererType() const;
 
 private:
 
