@@ -140,8 +140,14 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, const Assets& assets, co
 	// Process children
 	for (auto child : node.children("node"))
 	{
-		Traverse(node, assets, transform);
+		if (!Traverse(node, assets, transform))
+		{
+			NANON_LOG_DEBUG("");
+			return false;
+		}
 	}
+
+	return true;
 }
 
 Mat4 Scene::Impl::CreateTransform( const pugi::xml_node& transformNode )

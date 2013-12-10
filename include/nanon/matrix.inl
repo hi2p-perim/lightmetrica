@@ -83,7 +83,7 @@ NANON_FORCE_INLINE TMat4<T> TMat4<T>::Diag(T v)
 {
 	T Zero(0);
 	return TMat4<T>(
-		v, Zero, Zero, Zero
+		v, Zero, Zero, Zero,
 		Zero, v, Zero, Zero,
 		Zero, Zero, v, Zero,
 		Zero, Zero, Zero, v);

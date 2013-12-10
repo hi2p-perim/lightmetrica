@@ -47,5 +47,6 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <limits>
 
 #endif // __LIB_NANON_PCH_H__

@@ -27,7 +27,5 @@
 
 NANON_TEST_NAMESPACE_BEGIN
 
-const float MathTestBase<float>::Epsilon = 1e-6f;
-const double MathTestBase<double>::Epsilon = 1e-16;
 
 NANON_TEST_NAMESPACE_END

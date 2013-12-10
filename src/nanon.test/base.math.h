@@ -26,31 +26,30 @@
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
+#include <cmath>
+#include <boost/multiprecision/cpp_dec_float.hpp>
+
+namespace mp = boost::multiprecision;
 
 NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
-class MathTestBase : public TestBase {};
-
-template <>
-class MathTestBase<float> : public TestBase
+class MathTestBase : public TestBase
 {
 protected:
 
-	static const float Epsilon;
+	MathTestBase()
+	{
+		Epsilon = std::numeric_limits<T>::epsilon();
+	}
 
-};
-
-template <>
-class MathTestBase<double> : public TestBase
-{
 protected:
 
-	static const double Epsilon;
+	T Epsilon;
 
 };
 
-typedef ::testing::Types<float, double> MathTestTypes;
+typedef ::testing::Types<float, double, mp::cpp_dec_float_50> MathTestTypes;
 
 NANON_TEST_NAMESPACE_END
 

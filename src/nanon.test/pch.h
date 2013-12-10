@@ -48,6 +48,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <limits>
 
 #include <gtest/gtest.h>
 

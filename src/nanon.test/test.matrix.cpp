@@ -58,7 +58,29 @@ public:
 
 protected:
 
-	TMat4<T> m1, m2;
+	::testing::AssertionResult ExpectMat4Near(const TMat4<T>& expect, const TMat4<T>& actual)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				T diff = std::abs(expect[i][j] - actual[i][j]);
+				if (diff > Epsilon)
+				{
+					return ::testing::AssertionFailure()
+						<< boost::str(boost::format("expect[%d][%d] (%f) is not near to actual[%d][%d] (%f) by %f (epsilon %f)")
+							% i % j % expect[i][j] % i % j % actual[i][j] % diff % Epsilon) << std::endl;
+				}
+			}
+		}
+
+		return ::testing::AssertionSuccess();
+	}
+
+protected:
+
+	TMat4<T> zero, identity;
+	TMat4<T> m1, m2, m3;
 	TMat4<T> m1m2;
 
 };
@@ -93,7 +115,7 @@ TYPED_TEST(MatrixTest, Accessor)
 
 TYPED_TEST(MatrixTest, Multiply)
 {
-	EXPECT_EQ(m1m2, m1 * m2);
+	EXPECT_TRUE(ExpectMat4Near(m1m2, m1 * m2));
 }
 
 NANON_TEST_NAMESPACE_END

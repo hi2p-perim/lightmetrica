@@ -42,6 +42,24 @@ public:
 
 protected:
 
+	::testing::AssertionResult ExpectVec4Near(const TVec4<T>& expect, const TVec4<T>& actual)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			T diff = std::abs(expect[i] - actual[i]);
+			if (diff > Epsilon)
+			{
+				return ::testing::AssertionFailure()
+					<< boost::str(boost::format("expect[%d] (%f) is not near to actual[%d] (%f) by %f (epsilon %f)")
+						% i % expect[i] % i % actual[i] % diff % Epsilon) << std::endl;
+			}
+		}
+
+		return ::testing::AssertionSuccess();
+	}
+
+protected:
+
 	TVec4<T> v1;
 
 };
