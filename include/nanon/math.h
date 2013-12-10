@@ -51,9 +51,11 @@ NANON_NAMESPACE_BEGIN
 #ifdef NANON_SINGLE_PRECISION
 	typedef float Float;
 	typedef Vec4f Vec4;
+	typedef Mat4f Mat4;
 #else 
 	typedef double Float;
 	typedef Vec4d Vec4;
+	typedef Mat4d Mat4;
 #endif
 
 NANON_NAMESPACE_END

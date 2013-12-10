@@ -22,60 +22,78 @@
 	THE SOFTWARE.
 */
 
-#include "vector.h"
+#include "pch.h"
+#include "base.math.h"
+#include <nanon/math.h>
 
-NANON_NAMESPACE_BEGIN
+using namespace nanon;
 
-template <typename T>
-NANON_FORCE_INLINE TVec4<T>::TVec4()
-	: x(T(0))
-	, y(T(0))
-	, z(T(0))
-	, w(T(0))
-{
-
-}
+NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
-NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec4<T>& v)
-	: x(v.x)
-	, y(v.y)
-	, z(v.z)
-	, w(v.w)
+class MatrixTest : public MathTestBase<T>
 {
+public:
 
+	MatrixTest()
+	{
+		m1 = TMat4<T>(
+			T(1), T(2), T(3), T(4),
+			T(5), T(6), T(7), T(8),
+			T(9), T(10), T(11), T(12),
+			T(13), T(14), T(15), T(16));
+
+		m2 = TMat4<T>(
+			T(1), T(5), T(9), T(13),
+			T(2), T(6), T(10), T(14),
+			T(3), T(7), T(11), T(15),
+			T(4), T(8), T(12), T(16));
+
+		m1m2 = TMat4<T>(
+			T(276), T(304), T(332), T(360),
+			T(304), T(336), T(368), T(400),
+			T(332), T(368), T(404), T(440),
+			T(360), T(400), T(440), T(480));
+	}
+
+protected:
+
+	TMat4<T> m1, m2;
+	TMat4<T> m1m2;
+
+};
+
+TYPED_TEST_CASE(MatrixTest, MathTestTypes);
+
+TYPED_TEST(MatrixTest, Constructor)
+{
+	typedef TypeParam T;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			auto v = T(i*4+j+1);
+			EXPECT_NEAR(v, m1.v[i][j], Epsilon);
+		}
+	}
 }
 
-template <typename T>
-NANON_FORCE_INLINE TVec4<T>::TVec4(const T& v)
-	: x(v)
-	, y(v)
-	, z(v)
-	, w(v)
+TYPED_TEST(MatrixTest, Accessor)
 {
-
+	typedef TypeParam T;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			auto v = T(i*4+j+1);
+			EXPECT_NEAR(v, m1[i][j], Epsilon);
+		}
+	}
 }
 
-template <typename T>
-NANON_FORCE_INLINE TVec4<T>::TVec4(const T& x, const T& y, const T& z, const T& w)
-	: x(x)
-	, y(y)
-	, z(z)
-	, w(w)
+TYPED_TEST(MatrixTest, Multiply)
 {
-
+	EXPECT_EQ(m1m2, m1 * m2);
 }
 
-template <typename T>
-NANON_FORCE_INLINE T& TVec4<T>::operator[](int i)
-{
-	return (&x)[i];
-}
-
-template <typename T>
-NANON_FORCE_INLINE const T& TVec4<T>::operator[](int i) const
-{
-	return (&x)[i];
-}
-
-NANON_NAMESPACE_END
+NANON_TEST_NAMESPACE_END

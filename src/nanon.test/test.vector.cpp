@@ -31,21 +31,39 @@ using namespace nanon;
 NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
-class VectorTest : public MathTestBase<T> {};
+class VectorTest : public MathTestBase<T>
+{
+public:
+
+	VectorTest()
+	{
+		v1 = TVec4<T>(T(1), T(2), T(3), T(4));
+	}
+
+protected:
+
+	TVec4<T> v1;
+
+};
 
 TYPED_TEST_CASE(VectorTest, MathTestTypes);
 
 TYPED_TEST(VectorTest, Constructor)
 {
-	auto x = TypeParam(1);
-	auto y = TypeParam(2);
-	auto z = TypeParam(3);
-	auto w = TypeParam(4);
-	auto v = TVec4<TypeParam>(x, y, z, w);
-	EXPECT_NEAR(x, v.x, Epsilon);
-	EXPECT_NEAR(y, v.y, Epsilon);
-	EXPECT_NEAR(z, v.z, Epsilon);
-	EXPECT_NEAR(w, v.w, Epsilon);
+	typedef TypeParam T;
+	EXPECT_NEAR(T(1), v1.x, Epsilon);
+	EXPECT_NEAR(T(2), v1.y, Epsilon);
+	EXPECT_NEAR(T(3), v1.z, Epsilon);
+	EXPECT_NEAR(T(4), v1.w, Epsilon);
+}
+
+TYPED_TEST(VectorTest, Accessor)
+{
+	typedef TypeParam T;
+	EXPECT_NEAR(T(1), v1[0], Epsilon);
+	EXPECT_NEAR(T(2), v1[1], Epsilon);
+	EXPECT_NEAR(T(3), v1[2], Epsilon);
+	EXPECT_NEAR(T(4), v1[3], Epsilon);
 }
 
 NANON_TEST_NAMESPACE_END

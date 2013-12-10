@@ -56,14 +56,27 @@ private:
 public:
 
 	/*!
+		Load scene from XML element.
+		Parse the element #node and load the scene.
+		Any reference to the assets are resolved with #assets.
+		\param node A XML element which consists of \a scene element.
+		\retval true Succeeded to load the scene.
+		\retval false Failed to load the scene.
 	*/
 	bool Load(const pugi::xml_node& node, const Assets& assets);
 
 	/*!
+		Load the asset from the configuration.
+		Get the \a scene element from the configuration and load the assets.
+		\param config Configuration.
+		\retval true Succeeded to load the scene.
+		\retval false Failed to load the scene.
 	*/
 	bool Load(const NanonConfig& config, const Assets& assets);
 
 	/*!
+		Get the scene type.
+		\return Scene type.
 	*/
 	virtual std::string Type() = 0;
 

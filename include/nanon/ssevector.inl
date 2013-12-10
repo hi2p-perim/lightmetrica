@@ -50,4 +50,9 @@ NANON_FORCE_INLINE TVec4<float>::TVec4(float x, float y, float z, float w)
 
 }
 
+NANON_FORCE_INLINE float TVec4<float>::operator[](int i) const
+{
+	return (&x)[i];
+}
+
 NANON_NAMESPACE_END

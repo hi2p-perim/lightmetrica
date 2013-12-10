@@ -89,7 +89,7 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 	// Element name must be 'assets'
 	if (std::strcmp(node.name(), "assets") != 0)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid element name : %s (expected : assets)") % node.name()));
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'assets')") % node.name()));
 		return false;
 	}
 

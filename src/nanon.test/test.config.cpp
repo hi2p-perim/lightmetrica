@@ -36,6 +36,7 @@ namespace
 		<nanon version="1.0.dev">
 			<assets />
 			<scene />
+			<renderer />
 		</nanon>
 	);
 
@@ -50,6 +51,7 @@ namespace
 		<nanon version="some.version">
 			<assets />
 			<scene />
+			<renderer />
 		</nanon>
 	);
 }

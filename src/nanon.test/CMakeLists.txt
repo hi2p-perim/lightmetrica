@@ -22,6 +22,7 @@ set(
 	
 	# math
 	"test.vector.cpp"
+	"test.matrix.cpp"
 	
 	# pugixml
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"

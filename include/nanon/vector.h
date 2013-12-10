@@ -47,7 +47,11 @@ struct TVec4
 
 	NANON_FORCE_INLINE TVec4();
 	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4(const T& v);
 	NANON_FORCE_INLINE TVec4(const T& x, const T& y, const T& z, const T& w);
+
+	NANON_FORCE_INLINE T& operator[](int i);
+	NANON_FORCE_INLINE const T& operator[](int i) const;
 
 };
 

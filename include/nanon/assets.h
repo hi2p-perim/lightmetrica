@@ -92,8 +92,8 @@ public:
 
 	/*!
 		Load assets from XML element.
-		Parse the element and register assets.
-		\param node The XML element which consists of the \a assets element.
+		Parse the element #node and register assets.
+		\param node A XML element which consists of the \a assets element.
 		\retval true Succeeded to load assets.
 		\retval false Failed to load assets.
 	*/
