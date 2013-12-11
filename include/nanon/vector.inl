@@ -28,56 +28,42 @@ NANON_NAMESPACE_BEGIN
 
 template <typename T>
 NANON_FORCE_INLINE TVec4<T>::TVec4()
-	//: x(T(0))
-	//, y(T(0))
-	//, z(T(0))
-	//, w(T(0))
+	: x(T(0))
+	, y(T(0))
+	, z(T(0))
+	, w(T(0))
 {
-	T Zero(0);
-	x = Zero;
-	y = Zero;
-	z = Zero;
-	w = Zero;
+
 }
 
 template <typename T>
 NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec4<T>& v)
-	//: x(v.x)
-	//, y(v.y)
-	//, z(v.z)
-	//, w(v.w)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
+	, w(v.w)
 {
-	x = v.x;
-	y = v.y;
-	z = v.z;
-	w = v.w;
+
 }
 
 template <typename T>
 NANON_FORCE_INLINE TVec4<T>::TVec4(const T& v)
-	//: x(v)
-	//, y(v)
-	//, z(v)
-	//, w(v)
+	: x(v)
+	, y(v)
+	, z(v)
+	, w(v)
 {
-	x = v;
-	y = v;
-	z = v;
-	w = v;
+
 }
 
 template <typename T>
 NANON_FORCE_INLINE TVec4<T>::TVec4(const T& x, const T& y, const T& z, const T& w)
-	// TODO : Fails tests in multidimensional case with initializer
-	//: x(x)
-	//, y(y)
-	//, z(z)
-	//, w(w)
+	: x(x)
+	, y(y)
+	, z(z)
+	, w(w)
 {
-	this->x = x;
-	this->y = y;
-	this->z = z;
-	this->w = w;
+
 }
 
 template <typename T>

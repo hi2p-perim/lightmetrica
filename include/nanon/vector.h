@@ -38,12 +38,15 @@ template <typename T>
 struct TVec4
 {
 
-	union
-	{
-		struct { T x, y, z, w; };
-		struct { T r, g, b, a; };
-		struct { T s, t, p, q; };
-	};
+	T x, y, z, w;
+
+	// It requires C++11 unrestricted union support
+	//union
+	//{
+	//	struct { T x, y, z, w; };
+	//	struct { T r, g, b, a; };
+	//	struct { T s, t, p, q; };
+	//};
 
 	NANON_FORCE_INLINE TVec4();
 	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);
