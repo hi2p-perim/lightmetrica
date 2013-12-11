@@ -72,8 +72,8 @@ struct NANON_ALIGN_16 TVec4<float>
 	NANON_FORCE_INLINE TVec4(const Vec4f& v);
 	NANON_FORCE_INLINE TVec4(__m128 v);
 	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
-
 	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec4f& operator=(const Vec4f& v);
 
 };
 

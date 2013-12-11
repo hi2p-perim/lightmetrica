@@ -46,12 +46,10 @@ protected:
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			T diff = std::abs(expect[i] - actual[i]);
-			if (diff > Epsilon)
+			auto result = ExpectNear(expect[i], actual[i]);
+			if (!result)
 			{
-				return ::testing::AssertionFailure()
-					<< boost::str(boost::format("expect[%d] (%f) is not near to actual[%d] (%f) by %f (epsilon %f)")
-						% i % expect[i] % i % actual[i] % diff % Epsilon) << std::endl;
+				return result;
 			}
 		}
 
@@ -69,19 +67,19 @@ TYPED_TEST_CASE(VectorTest, MathTestTypes);
 TYPED_TEST(VectorTest, Constructor)
 {
 	typedef TypeParam T;
-	EXPECT_NEAR(T(1), v1.x, Epsilon);
-	EXPECT_NEAR(T(2), v1.y, Epsilon);
-	EXPECT_NEAR(T(3), v1.z, Epsilon);
-	EXPECT_NEAR(T(4), v1.w, Epsilon);
+	EXPECT_TRUE(ExpectNear(T(1), v1.x));
+	EXPECT_TRUE(ExpectNear(T(2), v1.y));
+	EXPECT_TRUE(ExpectNear(T(3), v1.z));
+	EXPECT_TRUE(ExpectNear(T(4), v1.w));
 }
 
 TYPED_TEST(VectorTest, Accessor)
 {
 	typedef TypeParam T;
-	EXPECT_NEAR(T(1), v1[0], Epsilon);
-	EXPECT_NEAR(T(2), v1[1], Epsilon);
-	EXPECT_NEAR(T(3), v1[2], Epsilon);
-	EXPECT_NEAR(T(4), v1[3], Epsilon);
+	EXPECT_TRUE(ExpectNear(T(1), v1[0]));
+	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
+	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
+	EXPECT_TRUE(ExpectNear(T(4), v1[3]));
 }
 
 NANON_TEST_NAMESPACE_END

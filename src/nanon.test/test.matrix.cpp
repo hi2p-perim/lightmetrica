@@ -64,12 +64,10 @@ protected:
 		{
 			for (int j = 0; j < 4; j++)
 			{
-				T diff = std::abs(expect[i][j] - actual[i][j]);
-				if (diff > Epsilon)
+				auto result = ExpectNear(expect[i][j], actual[i][j]);
+				if (!result)
 				{
-					return ::testing::AssertionFailure()
-						<< boost::str(boost::format("expect[%d][%d] (%f) is not near to actual[%d][%d] (%f) by %f (epsilon %f)")
-							% i % j % expect[i][j] % i % j % actual[i][j] % diff % Epsilon) << std::endl;
+					return result;
 				}
 			}
 		}
@@ -94,8 +92,8 @@ TYPED_TEST(MatrixTest, Constructor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			auto v = T(i*4+j+1);
-			EXPECT_NEAR(v, m1.v[i][j], Epsilon);
+			T v(i*4+j+1);
+			EXPECT_TRUE(ExpectNear(v, m1.v[i][j]));
 		}
 	}
 }
@@ -107,8 +105,8 @@ TYPED_TEST(MatrixTest, Accessor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			auto v = T(i*4+j+1);
-			EXPECT_NEAR(v, m1[i][j], Epsilon);
+			T v(i*4+j+1);
+			EXPECT_TRUE(ExpectNear(v, m1[i][j]));
 		}
 	}
 }

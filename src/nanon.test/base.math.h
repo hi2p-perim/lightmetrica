@@ -33,6 +33,10 @@ namespace mp = boost::multiprecision;
 
 NANON_TEST_NAMESPACE_BEGIN
 
+//typedef mp::number<mp::cpp_dec_float<100>, mp::et_off> BigFloat;
+typedef mp::cpp_dec_float_50 BigFloat;
+typedef ::testing::Types<float, double, BigFloat> MathTestTypes;
+
 template <typename T>
 class MathTestBase : public TestBase
 {
@@ -43,13 +47,53 @@ protected:
 		Epsilon = std::numeric_limits<T>::epsilon();
 	}
 
+	::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+	{
+		T diff = std::abs(expected - actual);
+		if (diff > Epsilon)
+		{
+			return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << Epsilon << " )";
+		}
+		else
+		{
+			return ::testing::AssertionSuccess();
+		}
+	}
+
 protected:
 
 	T Epsilon;
 
 };
 
-typedef ::testing::Types<float, double, mp::cpp_dec_float_50> MathTestTypes;
+template <>
+class MathTestBase<BigFloat> : public TestBase
+{
+protected:
+
+	MathTestBase()
+	{
+		Epsilon = std::numeric_limits<BigFloat>::epsilon();
+	}
+
+	::testing::AssertionResult ExpectNear(const BigFloat& expected, const BigFloat& actual)
+	{
+		BigFloat diff = mp::abs(expected - actual);
+		if (diff > Epsilon)
+		{
+			return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << Epsilon.str() << " )";
+		}
+		else
+		{
+			return ::testing::AssertionSuccess();
+		}
+	}
+
+protected:
+
+	BigFloat Epsilon;
+
+};
 
 NANON_TEST_NAMESPACE_END
 

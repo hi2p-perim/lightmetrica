@@ -55,4 +55,10 @@ NANON_FORCE_INLINE float TVec4<float>::operator[](int i) const
 	return (&x)[i];
 }
 
+NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
+{
+	this->v = v.v;
+	return *this;
+}
+
 NANON_NAMESPACE_END
