@@ -22,49 +22,15 @@
 	THE SOFTWARE.
 */
 
-#include "ssevector.h"
+#ifndef __LIB_NANON_AVX_H__
+#define __LIB_NANON_AVX_H__
 
-NANON_NAMESPACE_BEGIN
+#include "simdsupport.h"
 
-NANON_FORCE_INLINE TVec4<float>::TVec4()
-	: v(_mm_setzero_ps())
-{
+#if !defined(NANON_USE_AVX)
+#error "This header requires the support of AVX"
+#endif
 
-}
+#include <immintrin.h>
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(const Vec4f& v)
-	: v(v.v)
-{
-
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(float v)
-	: v(_mm_set1_ps(v))
-{
-
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(__m128 v)
-	: v(v)
-{
-
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(float x, float y, float z, float w)
-	: v(_mm_set_ps(w, z, y, x))
-{
-
-}
-
-NANON_FORCE_INLINE float TVec4<float>::operator[](int i) const
-{
-	return (&x)[i];
-}
-
-NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
-{
-	this->v = v.v;
-	return *this;
-}
-
-NANON_NAMESPACE_END
+#endif // __LIB_NANON_AVX_H__

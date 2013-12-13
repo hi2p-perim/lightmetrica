@@ -38,6 +38,12 @@ NANON_FORCE_INLINE TVec4<double>::TVec4(const Vec4d& v)
 
 }
 
+NANON_FORCE_INLINE TVec4<double>::TVec4(double v)
+	: v(_mm256_set1_pd(v))
+{
+
+}
+
 NANON_FORCE_INLINE TVec4<double>::TVec4(__m256d v)
 	: v(v)
 {

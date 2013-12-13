@@ -26,29 +26,7 @@
 #define __LIB_NANON_SSE_VECTOR_H__
 
 #include "vector.h"
-#include "simdsupport.h"
-
-#if !defined(NANON_USE_SSE) || !defined(NANON_USE_SSE2)
-	#error "ssevector.h requires the support of SSE and SSE2"
-#endif
-
-#include <xmmintrin.h>
-
-#ifdef NANON_USE_SSE3
-#include <pmmintrin.h>
-#endif
-#ifdef NANON_USE_SSSE3
-#include <tmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_1
-#include <smmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_2
-#include <nmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4A
-#include <ammintrin.h>
-#endif
+#include "sse.h"
 
 NANON_NAMESPACE_BEGIN
 
@@ -64,12 +42,11 @@ struct NANON_ALIGN_16 TVec4<float>
 	{
 		__m128 v;
 		struct { float x, y, z, w; };
-		struct { float r, g, b, a; };
-		struct { float s, t, p, q; };
 	};
 	
 	NANON_FORCE_INLINE TVec4();
 	NANON_FORCE_INLINE TVec4(const Vec4f& v);
+	NANON_FORCE_INLINE TVec4(float v);
 	NANON_FORCE_INLINE TVec4(__m128 v);
 	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
 	NANON_FORCE_INLINE float operator[](int i) const;

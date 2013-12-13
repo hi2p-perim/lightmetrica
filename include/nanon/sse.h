@@ -22,49 +22,31 @@
 	THE SOFTWARE.
 */
 
-#include "ssevector.h"
+#ifndef __LIB_NANON_SSE_H__
+#define __LIB_NANON_SSE_H__
 
-NANON_NAMESPACE_BEGIN
+#include "simdsupport.h"
 
-NANON_FORCE_INLINE TVec4<float>::TVec4()
-	: v(_mm_setzero_ps())
-{
+#if !defined(NANON_USE_SSE) || !defined(NANON_USE_SSE2)
+#error "This header requires the support of SSE and SSE2"
+#endif
 
-}
+#include <xmmintrin.h>
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(const Vec4f& v)
-	: v(v.v)
-{
+#ifdef NANON_USE_SSE3
+#include <pmmintrin.h>
+#endif
+#ifdef NANON_USE_SSSE3
+#include <tmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_1
+#include <smmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_2
+#include <nmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4A
+#include <ammintrin.h>
+#endif
 
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(float v)
-	: v(_mm_set1_ps(v))
-{
-
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(__m128 v)
-	: v(v)
-{
-
-}
-
-NANON_FORCE_INLINE TVec4<float>::TVec4(float x, float y, float z, float w)
-	: v(_mm_set_ps(w, z, y, x))
-{
-
-}
-
-NANON_FORCE_INLINE float TVec4<float>::operator[](int i) const
-{
-	return (&x)[i];
-}
-
-NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
-{
-	this->v = v.v;
-	return *this;
-}
-
-NANON_NAMESPACE_END
+#endif // __LIB_NANON_SSE_H__

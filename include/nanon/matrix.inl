@@ -44,10 +44,10 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat4<T>& m)
 template <typename T>
 NANON_FORCE_INLINE TMat4<T>::TMat4(const T& v)
 {
-	v[0] = TVec4<T>(v);
-	v[1] = TVec4<T>(v);
-	v[2] = TVec4<T>(v);
-	v[3] = TVec4<T>(v);
+	this->v[0] = TVec4<T>(v);
+	this->v[1] = TVec4<T>(v);
+	this->v[2] = TVec4<T>(v);
+	this->v[3] = TVec4<T>(v);
 }
 
 template <typename T>

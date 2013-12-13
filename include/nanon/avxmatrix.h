@@ -25,7 +25,8 @@
 #ifndef __LIB_NANON_AVX_MATRIX_H__
 #define __LIB_NANON_AVX_MATRIX_H__
 
-#include "common.h"
+#include "matrix.h"
+#include "avxvector.h"
 
 NANON_NAMESPACE_BEGIN
 
