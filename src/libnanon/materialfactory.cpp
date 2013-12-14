@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/materialfactory.h>
+#include <nanon/material.h>
 
 NANON_NAMESPACE_BEGIN
 

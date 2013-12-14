@@ -67,4 +67,19 @@ NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
 	return *this;
 }
 
+NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v, float s)
+{
+	return Vec4f(_mm_mul_ps(v.v, _mm_set1_ps(s)));
+}
+
+NANON_FORCE_INLINE Vec4f operator*(float s, const Vec4f& v)
+{
+	return v * s;
+}
+
+NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v1, const Vec4f& v2)
+{
+	return Vec4f(_mm_mul_ps(v1.v, v2.v));
+}
+
 NANON_NAMESPACE_END

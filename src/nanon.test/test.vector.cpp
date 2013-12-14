@@ -24,7 +24,6 @@
 
 #include "pch.h"
 #include "base.math.h"
-#include <nanon/math.h>
 
 using namespace nanon;
 
@@ -38,27 +37,15 @@ public:
 	VectorTest()
 	{
 		v1 = TVec4<T>(T(1), T(2), T(3), T(4));
+		v2 = TVec4<T>(T(4), T(3), T(2), T(1));
+		v1s2 = TVec4<T>(T(2), T(4), T(6), T(8));
+		v1v2 = TVec4<T>(T(4), T(6), T(6), T(4));
 	}
 
 protected:
 
-	::testing::AssertionResult ExpectVec4Near(const TVec4<T>& expect, const TVec4<T>& actual)
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			auto result = ExpectNear(expect[i], actual[i]);
-			if (!result)
-			{
-				return result;
-			}
-		}
-
-		return ::testing::AssertionSuccess();
-	}
-
-protected:
-
-	TVec4<T> v1;
+	TVec4<T> v1, v2;
+	TVec4<T> v1s2, v1v2;
 
 };
 
@@ -80,6 +67,14 @@ TYPED_TEST(VectorTest, Accessor)
 	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
 	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
 	EXPECT_TRUE(ExpectNear(T(4), v1[3]));
+}
+
+TYPED_TEST(VectorTest, Multiply)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectVec4Near(v1s2, v1 * T(2)));
+	EXPECT_TRUE(ExpectVec4Near(v1s2, T(2) * v1));
+	EXPECT_TRUE(ExpectVec4Near(v1v2, v1 * v2));
 }
 
 NANON_TEST_NAMESPACE_END

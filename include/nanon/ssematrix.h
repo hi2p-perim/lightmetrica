@@ -38,7 +38,7 @@ template <>
 struct NANON_ALIGN_16 TMat4<float>
 {
 	
-	TVec4<float> v[4];
+	Vec4f v[4];
 
 	NANON_FORCE_INLINE TMat4();
 	NANON_FORCE_INLINE TMat4(const Mat4f& m);
@@ -54,7 +54,8 @@ struct NANON_ALIGN_16 TMat4<float>
 	static NANON_FORCE_INLINE Mat4f Diag(float v);
 	static NANON_FORCE_INLINE Mat4f Identity();
 
-	NANON_FORCE_INLINE TVec4<float>& operator[](int i);
+	NANON_FORCE_INLINE Vec4f& operator[](int i);
+	NANON_FORCE_INLINE const Vec4f& operator[](int i) const;
 
 };
 

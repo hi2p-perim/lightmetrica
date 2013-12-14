@@ -25,6 +25,8 @@
 #ifndef __RF_TEST_RF_CORE_PCH_H__
 #define __RF_TEST_RF_CORE_PCH_H__
 
+#include "common.h"
+
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>

@@ -88,4 +88,22 @@ NANON_FORCE_INLINE TVec4<T>& TVec4<T>::operator=(const TVec4<T>& v)
 	return *this;
 }
 
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v, T s)
+{
+	return TVec4<T>(v.x * s, v.y * s, v.z * s, v.w * s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator*(T s, const TVec4<T>& v)
+{
+	return v * s;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return TVec4<T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
+}
+
 NANON_NAMESPACE_END

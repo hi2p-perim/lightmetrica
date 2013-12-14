@@ -182,10 +182,8 @@ list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
 
 set(
 	_MATH_SIMD_HEADERS
-	"${_INCLUDE_DIR}/simd.h"
-	"${_INCLUDE_DIR}/simdfallback.h"
-	"${_INCLUDE_DIR}/simdsse.h"
-	"${_INCLUDE_DIR}/simdavx.h"
+	"${_INCLUDE_DIR}/sse.h"
+	"${_INCLUDE_DIR}/avx.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\simd" FILES ${_MATH_SIMD_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_SIMD_HEADERS})

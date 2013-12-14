@@ -216,12 +216,12 @@ bool NanonApplication::Run()
 	Assets assets;
 
 	// Register default asset factories
-	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, new MaterialFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, std::make_shared<TextureFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, std::make_shared<MaterialFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, std::make_shared<TriangleMeshFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, std::make_shared<FilmFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, std::make_shared<CameraFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, std::make_shared<LightFactory>()));
 
 	if (!assets.Load(config))
 	{

@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/trianglemeshfactory.h>
+#include <nanon/trianglemesh.h>
 
 NANON_NAMESPACE_BEGIN
 

@@ -29,7 +29,7 @@
 
 //#ifdef NANON_PLATFORM_WINDOWS
 //	// Disable LNK4099 : PDB was not found
-//	#pragma warning(disable : 4099)
+//	#pragma comment(linker, "/ignore:4099")
 //#endif
 
 #define NANON_TEST_NAMESPACE_BEGIN namespace nanontest {

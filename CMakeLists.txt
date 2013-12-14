@@ -90,6 +90,12 @@ endif()
 
 #
 
+# Ignore linker warnings in VS
+if (MSVC)
+	# Do not use list(APPEND ..)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
+endif()
+
 # Enabling C++11 for gcc
 if(CMAKE_COMPILER_IS_GNUCXX)
 	list(APPEND CMAKE_CXX_FLAGS "-std=c++11")

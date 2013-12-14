@@ -48,7 +48,7 @@ struct AssetFactoryEntry
 {
 
 	AssetFactoryEntry() {}
-	AssetFactoryEntry(const std::string& name, const std::string& child, int priority, AssetFactory* factory)
+	AssetFactoryEntry(const std::string& name, const std::string& child, int priority, const std::shared_ptr<AssetFactory>& factory)
 		: name(name)
 		, child(child)
 		, priority(priority)

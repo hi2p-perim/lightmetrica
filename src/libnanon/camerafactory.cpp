@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/camerafactory.h>
+#include <nanon/camera.h>
 
 NANON_NAMESPACE_BEGIN
 

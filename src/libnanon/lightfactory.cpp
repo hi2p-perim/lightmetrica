@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/lightfactory.h>
+#include <nanon/light.h>
 
 NANON_NAMESPACE_BEGIN
 

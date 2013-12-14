@@ -26,6 +26,7 @@
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
+#include <nanon/math.h>
 #include <cmath>
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
@@ -38,11 +39,11 @@ typedef mp::cpp_dec_float_50 BigFloat;
 typedef ::testing::Types<float, double, BigFloat> MathTestTypes;
 
 template <typename T>
-class MathTestBase : public TestBase
+class _MathTestBase : public TestBase
 {
 protected:
 
-	MathTestBase()
+	_MathTestBase()
 	{
 		Epsilon = std::numeric_limits<T>::epsilon();
 	}
@@ -67,11 +68,11 @@ protected:
 };
 
 template <>
-class MathTestBase<BigFloat> : public TestBase
+class _MathTestBase<BigFloat> : public TestBase
 {
 protected:
 
-	MathTestBase()
+	_MathTestBase()
 	{
 		Epsilon = std::numeric_limits<BigFloat>::epsilon();
 	}
@@ -92,6 +93,44 @@ protected:
 protected:
 
 	BigFloat Epsilon;
+
+};
+
+template <typename T>
+class MathTestBase : public _MathTestBase<T>
+{
+protected:
+
+	::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<T>& expect, const nanon::TVec4<T>& actual)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			auto result = ExpectNear(expect[i], actual[i]);
+			if (!result)
+			{
+				return result;
+			}
+		}
+
+		return ::testing::AssertionSuccess();
+	}
+
+	::testing::AssertionResult ExpectMat4Near(const nanon::TMat4<T>& expect, const nanon::TMat4<T>& actual)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				auto result = ExpectNear(expect[i][j], actual[i][j]);
+				if (!result)
+				{
+					return result;
+				}
+			}
+		}
+
+		return ::testing::AssertionSuccess();
+	}
 
 };
 

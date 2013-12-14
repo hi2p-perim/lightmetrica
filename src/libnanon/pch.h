@@ -25,6 +25,8 @@
 #ifndef __LIB_NANON_PCH_H__
 #define __LIB_NANON_PCH_H__
 
+#include <nanon/common.h>
+
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>

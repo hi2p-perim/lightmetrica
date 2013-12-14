@@ -24,7 +24,6 @@
 
 #include "pch.h"
 #include "base.math.h"
-#include <nanon/math.h>
 
 using namespace nanon;
 
@@ -49,37 +48,28 @@ public:
 			T(3), T(7), T(11), T(15),
 			T(4), T(8), T(12), T(16));
 
+		m1s2 = TMat4<T>(
+			T(2), T(4), T(6), T(8),
+			T(10), T(12), T(14), T(16),
+			T(18), T(20), T(22), T(24),
+			T(26), T(28), T(30), T(32));
+
 		m1m2 = TMat4<T>(
 			T(276), T(304), T(332), T(360),
 			T(304), T(336), T(368), T(400),
 			T(332), T(368), T(404), T(440),
 			T(360), T(400), T(440), T(480));
-	}
 
-protected:
-
-	::testing::AssertionResult ExpectMat4Near(const TMat4<T>& expect, const TMat4<T>& actual)
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				auto result = ExpectNear(expect[i][j], actual[i][j]);
-				if (!result)
-				{
-					return result;
-				}
-			}
-		}
-
-		return ::testing::AssertionSuccess();
+		v1 = TVec4<T>(T(4), T(3), T(2), T(1));
+		m1v1 = TVec4<T>(T(50), T(60), T(70), T(80));
 	}
 
 protected:
 
 	TMat4<T> zero, identity;
 	TMat4<T> m1, m2, m3;
-	TMat4<T> m1m2;
+	TMat4<T> m1s2, m1m2;
+	TVec4<T> v1, m1v1;
 
 };
 
@@ -92,8 +82,7 @@ TYPED_TEST(MatrixTest, Constructor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			T v(i*4+j+1);
-			EXPECT_TRUE(ExpectNear(v, m1.v[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*4+j+1), m1.v[i][j]));
 		}
 	}
 }
@@ -105,14 +94,17 @@ TYPED_TEST(MatrixTest, Accessor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			T v(i*4+j+1);
-			EXPECT_TRUE(ExpectNear(v, m1[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*4+j+1), m1[i][j]));
 		}
 	}
 }
 
 TYPED_TEST(MatrixTest, Multiply)
 {
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectMat4Near(m1s2, m1 * T(2)));
+	EXPECT_TRUE(ExpectMat4Near(m1s2, T(2) * m1));
+	EXPECT_TRUE(ExpectVec4Near(m1v1, m1 * v1));
 	EXPECT_TRUE(ExpectMat4Near(m1m2, m1 * m2));
 }
 

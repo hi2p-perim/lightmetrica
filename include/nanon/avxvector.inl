@@ -67,4 +67,19 @@ NANON_FORCE_INLINE Vec4d& TVec4<double>::operator=(const Vec4d& v)
 	return *this;
 }
 
+NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, double s)
+{
+	return Vec4d(_mm256_mul_pd(v.v, _mm256_set1_pd(s)));
+}
+
+NANON_FORCE_INLINE Vec4d operator*(double s, const Vec4d& v)
+{
+	return v * s;
+}
+
+NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2)
+{
+	return Vec4d(_mm256_mul_pd(v1.v, v2.v));
+}
+
 NANON_NAMESPACE_END

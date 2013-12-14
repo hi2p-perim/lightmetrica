@@ -31,9 +31,8 @@ class Asset::Impl
 {
 public:
 
-	Impl(const std::string& id)
-		: id(id)
-	{}
+	Impl(const std::string& id);
+	~Impl();
 
 public:
 
@@ -44,6 +43,17 @@ private:
 	const std::string& id;
 
 };
+
+Asset::Impl::Impl( const std::string& id )
+	: id(id)
+{
+
+}
+
+Asset::Impl::~Impl()
+{
+
+}
 
 // ----------------------------------------------------------------------
 

@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/texturefactory.h>
+#include <nanon/texture.h>
 
 NANON_NAMESPACE_BEGIN
 

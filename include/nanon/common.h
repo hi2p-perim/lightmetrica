@@ -49,6 +49,10 @@
 #ifdef NANON_PLATFORM_WINDOWS
 	#define NOMINMAX
 	#define WIN32_LEAN_AND_MEAN
+
+	// _SCL_SECURE_NO_WARNINGS
+	#pragma warning(disable:4996)
+	#pragma warning(disable:4819)
 #endif
 
 // Compiler and architecture
