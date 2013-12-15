@@ -214,12 +214,14 @@ set(
 	"${_INCLUDE_DIR}/scene.h"
 	"${_INCLUDE_DIR}/scenefactory.h"
 	"${_INCLUDE_DIR}/naivescene.h"
+	"${_INCLUDE_DIR}/primitive.h"
 )
 set(
 	_SCENE_SOURCES
 	"scene.cpp"
 	"scenefactory.cpp"
 	"naivescene.cpp"
+	"primitive.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\scene" FILES ${_SCENE_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\scene" FILES ${_SCENE_SOURCES})

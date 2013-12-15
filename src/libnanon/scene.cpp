@@ -41,12 +41,16 @@ public:
 
 public:
 
-	bool Load(const pugi::xml_node& node, const Assets& assets);
+	bool Load(const pugi::xml_node& node, Assets& assets);
 
 private:
 
-	bool Traverse(const pugi::xml_node& node, const Assets& assets, const Mat4& parentWorldTransform);
+	bool Traverse(const pugi::xml_node& node, Assets& assets, const Mat4& parentWorldTransform);
 	Mat4 CreateTransform(const pugi::xml_node& transformNode);
+
+	// Resolve reference to an asset using 'ref' attribute.
+	// If 'ref' attribute is not found, returns nullptr.
+	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, Assets& assets);
 
 private:
 
@@ -67,7 +71,7 @@ Scene::Impl::~Impl()
 
 }
 
-bool Scene::Impl::Load( const pugi::xml_node& node, const Assets& assets )
+bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 {
 	if (loaded)
 	{
@@ -106,8 +110,10 @@ bool Scene::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 	return true;
 }
 
-bool Scene::Impl::Traverse( const pugi::xml_node& node, const Assets& assets, const Mat4& parentWorldTransform )
+bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Mat4& parentWorldTransform )
 {
+	// Process transform
+
 	// Local transform
 	Mat4 localTransform;
 	auto transformNode = node.child("transform");
@@ -136,6 +142,68 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, const Assets& assets, co
 		// Apply local transform
 		transform = parentWorldTransform * localTransform;
 	}
+
+	// ----------------------------------------------------------------------
+
+	// Process light
+	Asset* light = nullptr;
+	auto lightNode = node.child("light");
+	if (lightNode)
+	{
+		// 'light' element must have 'ref' attribute
+		auto refAttr = lightNode.attribute("ref");
+		if (!refAttr)
+		{
+			NANON_LOG_ERROR("'light' element in 'node' must have 'ref' attribute");
+			return false;
+		}
+
+		// Find the triangle mesh specified by 'ref'
+		auto* triangleAsset = assets.GetAssetByName(refAttr.as_string());
+		if (!triangleAsset)
+		{
+			NANON_LOG_ERROR(boost::str(boost::format("Triangle mesh referenced by '%s' is not found") % refAttr.as_string()));
+			return false;
+		}
+
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Process camera
+	Asset* camera = nullptr;
+	auto cameraNode = node.child("camera");
+	if (cameraNode)
+	{
+
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Process triangle mesh
+	auto triangleMeshNode = node.child("triangle_mesh");
+	if (triangleMeshNode)
+	{
+		// 'triangle_mesh' element must have 'ref' attribute
+		auto refAttr = triangleMeshNode.attribute("ref");
+		if (!refAttr)
+		{
+			NANON_LOG_ERROR("'triangle_mesh' element in 'node' must have 'ref' attribute");
+			return false;
+		}
+
+		// Find the triangle mesh specified by 'ref'
+		auto* triangleAsset = assets.GetAssetByName(refAttr.as_string());
+		if (!triangleAsset)
+		{
+			NANON_LOG_ERROR(boost::str(boost::format("Triangle mesh referenced by '%s' is not found") % refAttr.as_string()));
+			return false;
+		}
+
+		
+	}
+
+	// ----------------------------------------------------------------------
 
 	// Process children
 	for (auto child : node.children("node"))
@@ -169,12 +237,12 @@ Scene::~Scene()
 	NANON_SAFE_DELETE(p);
 }
 
-bool Scene::Load( const pugi::xml_node& node, const Assets& assets )
+bool Scene::Load( const pugi::xml_node& node, Assets& assets )
 {
 	return p->Load(node, assets);
 }
 
-bool Scene::Load( const NanonConfig& config, const Assets& assets )
+bool Scene::Load( const NanonConfig& config, Assets& assets )
 {
 	return p->Load(config.SceneElement(), assets);
 }

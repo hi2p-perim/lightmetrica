@@ -114,7 +114,7 @@ public:
 		\param name Name of the asset.
 		\return Asset instance. 
 	*/
-	std::shared_ptr<Asset> GetAssetByName(const std::string& name);
+	Asset* GetAssetByName(const std::string& name);
 
 private:
 	

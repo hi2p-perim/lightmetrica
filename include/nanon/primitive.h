@@ -22,71 +22,36 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_SCENE_H__
-#define __LIB_NANON_SCENE_H__
+#ifndef __LIB_NANON_PRIMITIVE_H__
+#define __LIB_NANON_PRIMITIVE_H__
 
 #include "common.h"
-#include <string>
-
-namespace pugi
-{
-	class xml_node;
-};
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
-class NanonConfig;
+class TriangleMesh;
+class Material;
+class Camera;
+class Light;
 
 /*!
-	Scene class.
-	A base class of the scene.
+	Primitive.
+	Primitive is an element of the scene used for managing ray-intersectable objects,
+	i.e., an object which associated with a triangle mesh.
+	We note that some cameras or lights are associated with triangle mesh.
+	A primitive corresponds to a node in the scene.
 */
-class NANON_PUBLIC_API Scene
+class NANON_PUBLIC_API Primitive
 {
 public:
 
-	Scene();
-	virtual ~Scene();
-
-private:
-
-	NANON_DISABLE_COPY_AND_MOVE(Scene);
-
-public:
-
-	/*!
-		Load scene from XML element.
-		Parse the element #node and load the scene.
-		Any reference to the assets are resolved with #assets.
-		\param node A XML element which consists of \a scene element.
-		\retval true Succeeded to load the scene.
-		\retval false Failed to load the scene.
-	*/
-	bool Load(const pugi::xml_node& node, Assets& assets);
-
-	/*!
-		Load the asset from the configuration.
-		Get the \a scene element from the configuration and load the assets.
-		\param config Configuration.
-		\retval true Succeeded to load the scene.
-		\retval false Failed to load the scene.
-	*/
-	bool Load(const NanonConfig& config, Assets& assets);
-
-	/*!
-		Get the scene type.
-		\return Scene type.
-	*/
-	virtual std::string Type() = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
+	TriangleMesh* mesh;
+	Material* material;
+	Camera* camera;
+	Light* light;
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_SCENE_H__
+#endif // __LIB_NANON_PRIMITIVE_H__

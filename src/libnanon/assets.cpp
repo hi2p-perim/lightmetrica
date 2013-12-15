@@ -38,6 +38,7 @@ public:
 
 	bool Load(const pugi::xml_node& node);
 	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
+	Asset* GetAssetByName(const std::string& name);
 
 private:
 
@@ -162,6 +163,11 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 	return true;
 }
 
+Asset* Assets::Impl::GetAssetByName( const std::string& name )
+{
+	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap[name].get();
+}
+
 // ----------------------------------------------------------------------
 
 Assets::Assets()
@@ -188,6 +194,11 @@ bool Assets::Load( const NanonConfig& config )
 bool Assets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
 	return p->RegisterAssetFactory(entry);
+}
+
+Asset* Assets::GetAssetByName( const std::string& name )
+{
+	return p->GetAssetByName(name);
 }
 
 NANON_NAMESPACE_END
