@@ -37,6 +37,7 @@ NANON_NAMESPACE_BEGIN
 
 class Assets;
 class NanonConfig;
+struct Primitive;
 
 /*!
 	Scene class.
@@ -59,6 +60,7 @@ public:
 		Load scene from XML element.
 		Parse the element #node and load the scene.
 		Any reference to the assets are resolved with #assets.
+		The function is not reentrant. If the function fails, the state of #assets may be in the unstable state.
 		\param node A XML element which consists of \a scene element.
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
@@ -68,6 +70,7 @@ public:
 	/*!
 		Load the asset from the configuration.
 		Get the \a scene element from the configuration and load the assets.
+		The function is not reentrant.
 		\param config Configuration.
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
@@ -75,10 +78,38 @@ public:
 	bool Load(const NanonConfig& config, Assets& assets);
 
 	/*!
+		Reset the scene.
+		Get the scene back to the initial state.
+	*/
+	void Reset();
+
+	/*!
+		Get the number of primitives.
+		\return Number of primitives.
+	*/
+	int NumPrimitives() const;
+
+	/*!
+		Get a primitive by index.
+		\param index Index of a primitive.
+		\return Primitive.
+	*/
+	const Primitive* PrimitiveByIndex(int index) const;
+
+	/*!
+		Get a primitive by ID.
+		Note that ID for a primitive is optional.
+		\param id ID of a primitive.
+		\return Primitive.
+	*/
+	const Primitive* PrimitiveByID(const std::string& id) const;
+
+	/*!
 		Get the scene type.
 		\return Scene type.
 	*/
 	virtual std::string Type() = 0;
+	
 
 private:
 

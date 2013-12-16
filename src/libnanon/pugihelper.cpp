@@ -21,3 +21,27 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/pugihelper.h>
+#include <pugixml.hpp>
+
+NANON_NAMESPACE_BEGIN
+
+std::string PugiHelper::ElementInString( const pugi::xml_node& node )
+{
+	std::stringstream ss;
+	node.print(ss);
+	return ss.str();
+}
+
+std::string PugiHelper::StartElementInString( const pugi::xml_node& node )
+{
+	std::stringstream ss;
+	node.print(ss);
+	std::string line;
+	std::getline(ss, line);
+	return line;
+}
+
+NANON_NAMESPACE_END

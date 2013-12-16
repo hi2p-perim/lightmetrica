@@ -24,7 +24,7 @@
 
 #include "pch.h"
 #include <nanon/asset.h>
-#include <nanon/assets.h>
+#include <nanon/defaultassets.h>
 #include <nanon/assetfactory.h>
 #include <nanon/config.h>
 #include <nanon/logger.h>
@@ -32,7 +32,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class Assets::Impl
+class DefaultAssets::Impl
 {
 public:
 
@@ -52,7 +52,7 @@ private:
 
 };
 
-bool Assets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
+bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
 	// Check if the asset with same name is already registered
 	auto it = std::find_if(assetFactoryEntries.begin(), assetFactoryEntries.end(),
@@ -68,7 +68,7 @@ bool Assets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
 	return true;
 }
 
-void Assets::Impl::InitializeAssetFactories()
+void DefaultAssets::Impl::InitializeAssetFactories()
 {
 	// Sort by priority
 	std::sort(assetFactoryEntries.begin(), assetFactoryEntries.end(),
@@ -82,7 +82,7 @@ void Assets::Impl::InitializeAssetFactories()
 	}
 }
 
-bool Assets::Impl::Load( const pugi::xml_node& node )
+bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 {
 	// Initialize asset factories
 	InitializeAssetFactories();
@@ -163,40 +163,40 @@ bool Assets::Impl::Load( const pugi::xml_node& node )
 	return true;
 }
 
-Asset* Assets::Impl::GetAssetByName( const std::string& name )
+Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name )
 {
 	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap[name].get();
 }
 
 // ----------------------------------------------------------------------
 
-Assets::Assets()
+DefaultAssets::DefaultAssets()
 	: p(new Impl)
 {
 
 }
 
-Assets::~Assets()
+DefaultAssets::~DefaultAssets()
 {
 	NANON_SAFE_DELETE(p);
 }
 
-bool Assets::Load( const pugi::xml_node& node )
+bool DefaultAssets::Load( const pugi::xml_node& node )
 {
 	return p->Load(node);
 }
 
-bool Assets::Load( const NanonConfig& config )
+bool DefaultAssets::Load( const NanonConfig& config )
 {
 	return p->Load(config.AssetsElement());
 }
 
-bool Assets::RegisterAssetFactory( const AssetFactoryEntry& entry )
+bool DefaultAssets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
 	return p->RegisterAssetFactory(entry);
 }
 
-Asset* Assets::GetAssetByName( const std::string& name )
+Asset* DefaultAssets::GetAssetByName( const std::string& name )
 {
 	return p->GetAssetByName(name);
 }

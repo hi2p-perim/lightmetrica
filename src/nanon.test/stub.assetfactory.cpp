@@ -25,7 +25,6 @@
 #include "pch.h"
 #include "stub.assetfactory.h"
 #include "stub.asset.h"
-#include "stub.asset.h"
 #include <nanon/logger.h>
 
 NANON_TEST_NAMESPACE_BEGIN

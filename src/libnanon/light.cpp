@@ -21,3 +21,26 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/light.h>
+
+NANON_NAMESPACE_BEGIN
+
+Light::Light(const std::string& id)
+	: Asset(id)
+{
+
+}
+
+Light::~Light()
+{
+
+}
+
+bool Light::RegisterPrimitive( const Primitive* primitive )
+{
+	return false;
+}
+
+NANON_NAMESPACE_END

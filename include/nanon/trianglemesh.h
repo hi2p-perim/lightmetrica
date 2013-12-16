@@ -22,4 +22,28 @@
 	THE SOFTWARE.
 */
 
+#ifndef __LIB_NANON_TRIANGLE_MESH_H__
+#define __LIB_NANON_TRIANGLE_MESH_H__
+
 #include "asset.h"
+
+NANON_NAMESPACE_BEGIN
+
+/*!
+*/
+class NANON_PUBLIC_API TriangleMesh : public Asset
+{
+public:
+
+	TriangleMesh(const std::string& id);
+	virtual ~TriangleMesh();
+
+public:
+
+	std::string Name() const;
+
+};
+
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_TRIANGLE_MESH_H__

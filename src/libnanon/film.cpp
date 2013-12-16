@@ -21,3 +21,21 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/film.h>
+
+NANON_NAMESPACE_BEGIN
+
+Film::Film(const std::string& id)
+	: Asset(id)
+{
+
+}
+
+Film::~Film()
+{
+
+}
+
+NANON_NAMESPACE_END

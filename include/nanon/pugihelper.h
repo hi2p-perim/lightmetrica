@@ -22,25 +22,49 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATERIAL_FACTORY_H__
-#define __LIB_NANON_MATERIAL_FACTORY_H__
+#ifndef __LIB_NANON_PUGI_HELPER_H__
+#define __LIB_NANON_PUGI_HELPER_H__
 
-#include "assetfactory.h"
+#include "common.h"
+#include <string>
+
+namespace pugi
+{
+	class xml_node;
+};
 
 NANON_NAMESPACE_BEGIN
 
 /*!
-	Material factory.
-	A factory class for materials.
+	Pugi helper.
+	Helper class for pugixml.
 */
-class NANON_PUBLIC_API MaterialFactory : public AssetFactory
+class NANON_PUBLIC_API PugiHelper
 {
+private:
+
+	PugiHelper();
+	~PugiHelper();
+
+	NANON_DISABLE_COPY_AND_MOVE(PugiHelper);
+
 public:
 
-	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
+	/*!
+		Get the XML element in string.
+		\param node XML element.
+	*/
+	static std::string ElementInString(const pugi::xml_node& node);
+
+	/*!
+		Get the start element of the given XML element in string.
+		\param node XML element.
+	*/
+	static std::string StartElementInString(const pugi::xml_node& node);
 
 };
 
+
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_MATERIAL_FACTORY_H__
+#endif // __LIB_NANON_PUGI_HELPER_H__

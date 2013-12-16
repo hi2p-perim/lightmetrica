@@ -22,8 +22,8 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_TEXTURE_H__
-#define __LIB_NANON_TEXTURE_H__
+#ifndef __LIB_NANON_BSDF_H__
+#define __LIB_NANON_BSDF_H__
 
 #include "asset.h"
 
@@ -31,15 +31,19 @@ NANON_NAMESPACE_BEGIN
 
 /*!
 */
-class NANON_PUBLIC_API Texture : public Asset
+class NANON_PUBLIC_API BSDF : public Asset
 {
 public:
 
-	Texture(const std::string& id);
-	virtual ~Texture();
+	BSDF(const std::string& id);
+	virtual ~BSDF();
+
+public:
+
+	std::string Name() const;
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_TEXTURE_H__
+#endif // __LIB_NANON_BSDF_H__

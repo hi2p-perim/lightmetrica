@@ -22,4 +22,39 @@
 	THE SOFTWARE.
 */
 
+#ifndef __LIB_NANON_CAMERA_H__
+#define __LIB_NANON_CAMERA_H__
+
 #include "asset.h"
+
+NANON_NAMESPACE_BEGIN
+
+struct Primitive;
+
+/*!
+	Camera.
+	A base class of the cameras.
+*/
+class NANON_PUBLIC_API Camera : public Asset
+{
+public:
+
+	Camera(const std::string& id);
+	virtual ~Camera();
+
+public:
+	
+	/*!
+		Register an reference to the primitive.
+		Some implementation of camera needs transformed mesh information for sampling.
+		The function registers the reference to the primitive.
+		The function is internally called.
+		\param primitive An instance of the primitive.
+	*/
+	virtual bool RegisterPrimitive(const Primitive* primitive);
+
+};
+
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_CAMERA_H__

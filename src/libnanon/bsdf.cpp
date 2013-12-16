@@ -23,9 +23,24 @@
 */
 
 #include "pch.h"
-#include "base.math.h"
+#include <nanon/bsdf.h>
 
-NANON_TEST_NAMESPACE_BEGIN
+NANON_NAMESPACE_BEGIN
 
+BSDF::BSDF(const std::string& id)
+	: Asset(id)
+{
 
-NANON_TEST_NAMESPACE_END
+}
+
+BSDF::~BSDF()
+{
+
+}
+
+std::string BSDF::Name() const
+{
+	return "bsdf";
+}
+
+NANON_NAMESPACE_END

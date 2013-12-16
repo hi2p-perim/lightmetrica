@@ -21,3 +21,26 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/trianglemesh.h>
+
+NANON_NAMESPACE_BEGIN
+
+TriangleMesh::TriangleMesh(const std::string& id)
+	: Asset(id)
+{
+
+}
+
+TriangleMesh::~TriangleMesh()
+{
+
+}
+
+std::string TriangleMesh::Name() const
+{
+	return "triangle_mesh";
+}
+
+NANON_NAMESPACE_END

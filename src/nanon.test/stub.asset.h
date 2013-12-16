@@ -36,6 +36,7 @@ public:
 
 	StubAsset(const std::string& id) : nanon::Asset(id) {}
 	virtual ~StubAsset() {}
+	virtual std::string Name() const { return "asset"; }
 
 };
 
@@ -45,6 +46,7 @@ public:
 	
 	StubAsset_Success(const std::string& id) : StubAsset(id) {}
 	virtual bool Load( const pugi::xml_node& node ) { return true; }
+	virtual std::string Type() const { return "success"; }
 
 };
 
@@ -54,6 +56,7 @@ public:
 
 	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
 	virtual bool Load( const pugi::xml_node& node ) { return false; }
+	virtual std::string Type() const { return "fail_on_create"; }
 
 };
 

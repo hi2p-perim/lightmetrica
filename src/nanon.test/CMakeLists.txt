@@ -10,15 +10,15 @@ set(
 	"base.h"
 	"base.cpp"
 	"base.math.h"
-	"base.math.cpp"
 	"stub.assetfactory.h"
 	"stub.assetfactory.cpp"
 	"stub.asset.h"
 	"stub.asset.cpp"
 	"test.logger.cpp"
 	"test.config.cpp"
-	"test.assets.cpp"
+	"test.defaultassets.cpp"
 	"test.asset.cpp"
+	"test.scene.cpp"
 	
 	# math
 	"test.vector.cpp"

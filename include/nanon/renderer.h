@@ -35,7 +35,7 @@ namespace pugi
 
 NANON_NAMESPACE_BEGIN
 
-class Assets;
+class DefaultAssets;
 class NanonConfig;
 
 /*!
@@ -57,11 +57,11 @@ public:
 
 	/*!
 	*/
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
+	bool Configure(const pugi::xml_node& node, const DefaultAssets& assets);
 
 	/*!
 	*/
-	bool Configure(const NanonConfig& config, const Assets& assets);
+	bool Configure(const NanonConfig& config, const DefaultAssets& assets);
 
 	/*!
 	*/

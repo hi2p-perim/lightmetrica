@@ -22,15 +22,25 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/materialfactory.h>
-#include <nanon/material.h>
+#ifndef __LIB_NANON_BSDF_FACTORY_H__
+#define __LIB_NANON_BSDF_FACTORY_H__
+
+#include "assetfactory.h"
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> MaterialFactory::Create( const std::string& id, const std::string& type )
+/*!
+	BSDF factory.
+	A factory class for BSDFs.
+*/
+class NANON_PUBLIC_API BSDFFactory : public AssetFactory
 {
-	return nullptr;
-}
+public:
+
+	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
+
+};
 
 NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_BSDF_FACTORY_H__

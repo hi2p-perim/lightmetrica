@@ -22,4 +22,24 @@
 	THE SOFTWARE.
 */
 
+#ifndef __LIB_NANON_FILM_H__
+#define __LIB_NANON_FILM_H__
+
 #include "asset.h"
+
+NANON_NAMESPACE_BEGIN
+
+/*!
+*/
+class NANON_PUBLIC_API Film : public Asset
+{
+public:
+
+	Film(const std::string& id);
+	virtual ~Film();
+
+};
+
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_FILM_H__

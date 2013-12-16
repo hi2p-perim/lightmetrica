@@ -26,11 +26,12 @@
 #define __LIB_NANON_PRIMITIVE_H__
 
 #include "common.h"
+#include "math.h"
 
 NANON_NAMESPACE_BEGIN
 
 class TriangleMesh;
-class Material;
+class BSDF;
 class Camera;
 class Light;
 
@@ -41,14 +42,44 @@ class Light;
 	We note that some cameras or lights are associated with triangle mesh.
 	A primitive corresponds to a node in the scene.
 */
-class NANON_PUBLIC_API Primitive
+struct Primitive
 {
-public:
 
-	TriangleMesh* mesh;
-	Material* material;
-	Camera* camera;
-	Light* light;
+	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf)
+		: transform(transform)
+		, mesh(mesh)
+		, bsdf(bsdf)
+		, camera(nullptr)
+		, light(nullptr)
+	{
+
+	}
+
+	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Camera* camera)
+		: transform(transform)
+		, mesh(mesh)
+		, bsdf(bsdf)
+		, camera(camera)
+		, light(nullptr)
+	{
+
+	}
+
+	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Light* light)
+		: transform(transform)
+		, mesh(mesh)
+		, bsdf(bsdf)
+		, camera(nullptr)
+		, light(light)
+	{
+
+	}
+
+	const Mat4 transform;
+	const TriangleMesh* mesh;
+	const BSDF* bsdf;
+	const Camera* camera;
+	const Light* light;
 
 };
 

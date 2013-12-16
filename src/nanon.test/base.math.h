@@ -39,100 +39,76 @@ typedef mp::cpp_dec_float_50 BigFloat;
 typedef ::testing::Types<float, double, BigFloat> MathTestTypes;
 
 template <typename T>
-class _MathTestBase : public TestBase
-{
-protected:
-
-	_MathTestBase()
-	{
-		Epsilon = std::numeric_limits<T>::epsilon();
-	}
-
-	::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
-	{
-		T diff = std::abs(expected - actual);
-		if (diff > Epsilon)
-		{
-			return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << Epsilon << " )";
-		}
-		else
-		{
-			return ::testing::AssertionSuccess();
-		}
-	}
-
-protected:
-
-	T Epsilon;
-
-};
-
-template <>
-class _MathTestBase<BigFloat> : public TestBase
-{
-protected:
-
-	_MathTestBase()
-	{
-		Epsilon = std::numeric_limits<BigFloat>::epsilon();
-	}
-
-	::testing::AssertionResult ExpectNear(const BigFloat& expected, const BigFloat& actual)
-	{
-		BigFloat diff = mp::abs(expected - actual);
-		if (diff > Epsilon)
-		{
-			return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << Epsilon.str() << " )";
-		}
-		else
-		{
-			return ::testing::AssertionSuccess();
-		}
-	}
-
-protected:
-
-	BigFloat Epsilon;
-
-};
+class MathTestBase : public TestBase {};
 
 template <typename T>
-class MathTestBase : public _MathTestBase<T>
+NANON_FORCE_INLINE T Epsilon()
 {
-protected:
+	return std::numeric_limits<T>::epsilon();
+}
 
-	::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<T>& expect, const nanon::TVec4<T>& actual)
+template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+{
+	T diff = std::abs(expected - actual);
+	T epsilon = Epsilon<T>();
+	if (diff > epsilon)
 	{
-		for (int i = 0; i < 4; i++)
+		return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << epsilon << " )";
+	}
+	else
+	{
+		return ::testing::AssertionSuccess();
+	}
+}
+
+template <>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<BigFloat>(const BigFloat& expected, const BigFloat& actual)
+{
+	BigFloat diff = mp::abs(expected - actual);
+	BigFloat epsilon = Epsilon<BigFloat>();
+	if (diff > epsilon)
+	{
+		return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << epsilon.str() << " )";
+	}
+	else
+	{
+		return ::testing::AssertionSuccess();
+	}
+}
+
+template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<T>& expect, const nanon::TVec4<T>& actual)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		auto result = ExpectNear(expect[i], actual[i]);
+		if (!result)
 		{
-			auto result = ExpectNear(expect[i], actual[i]);
+			return result;
+		}
+	}
+
+	return ::testing::AssertionSuccess();
+}
+
+template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const nanon::TMat4<T>& expect, const nanon::TMat4<T>& actual)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			auto result = ExpectNear(expect[i][j], actual[i][j]);
 			if (!result)
 			{
 				return result;
 			}
 		}
-
-		return ::testing::AssertionSuccess();
 	}
 
-	::testing::AssertionResult ExpectMat4Near(const nanon::TMat4<T>& expect, const nanon::TMat4<T>& actual)
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				auto result = ExpectNear(expect[i][j], actual[i][j]);
-				if (!result)
-				{
-					return result;
-				}
-			}
-		}
-
-		return ::testing::AssertionSuccess();
-	}
-
-};
+	return ::testing::AssertionSuccess();
+}
 
 NANON_TEST_NAMESPACE_END
 

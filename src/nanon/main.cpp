@@ -25,7 +25,7 @@
 #include <nanon/config.h>
 #include <nanon/rendererdispatcher.h>
 #include <nanon/logger.h>
-#include <nanon/assets.h>
+#include <nanon/defaultassets.h>
 #include <nanon/version.h>
 #include <nanon/scene.h>
 #include <nanon/scenefactory.h>
@@ -34,7 +34,7 @@
 #include <nanon/camerafactory.h>
 #include <nanon/filmfactory.h>
 #include <nanon/lightfactory.h>
-#include <nanon/materialfactory.h>
+#include <nanon/bsdffactory.h>
 #include <nanon/texturefactory.h>
 #include <nanon/trianglemeshfactory.h>
 #include <nanon/math.h>
@@ -206,18 +206,18 @@ bool NanonApplication::Run()
 	NanonConfig config;
 	if (!config.Load(inputFile))
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
 	// ----------------------------------------------------------------------
 
 	// Load assets
-	Assets assets;
+	DefaultAssets assets;
 
 	// Register default asset factories
 	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, std::make_shared<TextureFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, std::make_shared<MaterialFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, std::make_shared<BSDFFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, std::make_shared<TriangleMeshFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, std::make_shared<FilmFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, std::make_shared<CameraFactory>()));
@@ -225,7 +225,7 @@ bool NanonApplication::Run()
 
 	if (!assets.Load(config))
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
@@ -236,14 +236,14 @@ bool NanonApplication::Run()
 	auto scene = sceneFactory.Create(config.SceneType());
 	if (scene == nullptr)
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
 	// Load scene
 	if (scene->Load(config, assets))
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
@@ -254,14 +254,14 @@ bool NanonApplication::Run()
 	auto renderer = rendererFactory.Create(config.RendererType());
 	if (renderer == nullptr)
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
 	// Configure renderer
 	if (renderer->Configure(config, assets))
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
@@ -269,7 +269,7 @@ bool NanonApplication::Run()
 	// TODO : Dispatch renderer in the another thread and poll progress
 	if (!renderer->Render() || !renderer->Save())
 	{
-		NANON_LOG_DEBUG("");
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 

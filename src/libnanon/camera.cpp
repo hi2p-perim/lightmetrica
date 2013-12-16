@@ -21,3 +21,26 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/camera.h>
+
+NANON_NAMESPACE_BEGIN
+
+Camera::Camera(const std::string& id)
+	: Asset(id)
+{
+
+}
+
+Camera::~Camera()
+{
+
+}
+
+bool Camera::RegisterPrimitive( const Primitive* primitive )
+{
+	return false;
+}
+
+NANON_NAMESPACE_END

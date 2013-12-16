@@ -24,18 +24,20 @@
 
 #include "pch.h"
 #include "base.h"
+#include "stub.asset.h"
 #include "stub.assetfactory.h"
-#include <nanon/assets.h>
+#include <nanon/defaultassets.h>
 
 using namespace nanon;
 
 namespace
 {
+
 	const std::string AssetsNode_Success = NANON_TEST_MULTILINE_LITERAL(
 		<assets>
 			<stub_assetfactory>
-				<asset id="id_1" type="success" />
-				<asset id="id_2" type="success" />
+				<asset id="id1" type="success" />
+				<asset id="id2" type="success" />
 			</stub_assetfactory>
 		</assets>
 	);
@@ -74,7 +76,7 @@ protected:
 
 protected:
 
-	Assets assets;
+	DefaultAssets assets;
 
 };
 
@@ -100,6 +102,18 @@ TEST_F(AssetsTest, RegisterAssetFactory_Failed)
 TEST_F(AssetsTest, Load)
 {
 	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
+
+	auto* id1 = assets.GetAssetByName("id1");
+	ASSERT_TRUE(id1);
+	EXPECT_EQ("id1", id1->ID());
+	EXPECT_EQ("asset", id1->Name());
+	EXPECT_EQ("success", id1->Type());
+
+	auto* id2 = assets.GetAssetByName("id2");
+	ASSERT_TRUE(id2);
+	EXPECT_EQ("id2", id2->ID());
+	EXPECT_EQ("asset", id2->Name());
+	EXPECT_EQ("success", id2->Type());
 }
 
 TEST_F(AssetsTest, Load_Failed)
@@ -108,10 +122,10 @@ TEST_F(AssetsTest, Load_Failed)
 	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_SameID)));
 }
 
-TEST_F(AssetsTest, GetAssetByName)
+TEST_F(AssetsTest, GetAssetByName_Failed)
 {
 	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
-	
+	EXPECT_FALSE(assets.GetAssetByName("id3"));
 }
 
 NANON_TEST_NAMESPACE_END

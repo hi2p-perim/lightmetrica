@@ -26,8 +26,15 @@
 #include <nanon/scene.h>
 #include <nanon/config.h>
 #include <nanon/assets.h>
+#include <nanon/asset.h>
+#include <nanon/light.h>
+#include <nanon/camera.h>
+#include <nanon/trianglemesh.h>
+#include <nanon/bsdf.h>
 #include <nanon/logger.h>
 #include <nanon/math.h>
+#include <nanon/pugihelper.h>
+#include <nanon/primitive.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
@@ -40,8 +47,12 @@ public:
 	~Impl();
 
 public:
-
+	
+	void Reset();
 	bool Load(const pugi::xml_node& node, Assets& assets);
+	int NumPrimitives() const;
+	const Primitive* PrimitiveByIndex(int index) const;
+	const Primitive* PrimitiveByID(const std::string& id) const;
 
 private:
 
@@ -50,25 +61,39 @@ private:
 
 	// Resolve reference to an asset using 'ref' attribute.
 	// If 'ref' attribute is not found, returns nullptr.
-	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, Assets& assets);
+	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& type, Assets& assets);
 
 private:
 
 	Scene* self;
 	bool loaded;
 
+	// Scene components
+	Camera* mainCamera;
+	std::vector<Light*> lights;
+	std::vector<std::shared_ptr<Primitive>> primitives;
+	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;
+
 };
 
 Scene::Impl::Impl(Scene* self)
 	: self(self)
-	, loaded(false)
 {
-
+	Reset();
 }
 
 Scene::Impl::~Impl()
 {
 
+}
+
+void Scene::Impl::Reset()
+{
+	loaded = false;
+	mainCamera = nullptr;
+	lights.clear();
+	primitives.clear();
+	idPrimitiveIndexMap.clear();
 }
 
 bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
@@ -102,7 +127,8 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	}
 	if (!Traverse(rootNode, assets, Mat4::Identity()))
 	{
-		NANON_LOG_DEBUG("");
+		Reset();
+		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
@@ -128,7 +154,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		localTransform = Mat4::Identity();
 	}
 
-	// Transformation of the node
+	// World transform
 	Mat4 transform;
 	auto globalTransformNode = node.child("global_transform");
 	if (globalTransformNode)
@@ -145,72 +171,146 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	// ----------------------------------------------------------------------
 
-	// Process light
-	Asset* light = nullptr;
+	Light* light = nullptr;
+	Camera* camera = nullptr;
+
+	auto cameraNode = node.child("camera");
 	auto lightNode = node.child("light");
+
+	// Camera and light element cannot be used in the same time
+	if (cameraNode && lightNode)
+	{
+		NANON_LOG_ERROR("'camera' and 'light' elements cannot be used in the same time");
+		NANON_LOG_ERROR(PugiHelper::ElementInString(node));
+		return false;
+	}
+
+	// Process light
 	if (lightNode)
 	{
-		// 'light' element must have 'ref' attribute
-		auto refAttr = lightNode.attribute("ref");
-		if (!refAttr)
+		// Resolve the reference to the light
+		light = dynamic_cast<Light*>(ResolveReferenceToAsset(lightNode, "light", assets));
+		if (!light)
 		{
-			NANON_LOG_ERROR("'light' element in 'node' must have 'ref' attribute");
+			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
-		// Find the triangle mesh specified by 'ref'
-		auto* triangleAsset = assets.GetAssetByName(refAttr.as_string());
-		if (!triangleAsset)
-		{
-			NANON_LOG_ERROR(boost::str(boost::format("Triangle mesh referenced by '%s' is not found") % refAttr.as_string()));
-			return false;
-		}
-
-	}
-
-	// ----------------------------------------------------------------------
+		// Register the light to the scene
+		lights.push_back(light);
+	}	
 
 	// Process camera
-	Asset* camera = nullptr;
-	auto cameraNode = node.child("camera");
-	if (cameraNode)
+	// If the camera is already found, ignore the seconds one
+	if (cameraNode && !mainCamera)
 	{
+		// Resolve the reference to the camera
+		camera = dynamic_cast<Camera*>(ResolveReferenceToAsset(cameraNode, "camera", assets));
+		if (!camera)
+		{
+			NANON_LOG_DEBUG_EMPTY();
+			return false;
+		}
 
+		// Register the camera to the scene
+		mainCamera = camera;
 	}
 
 	// ----------------------------------------------------------------------
-
+	
 	// Process triangle mesh
 	auto triangleMeshNode = node.child("triangle_mesh");
 	if (triangleMeshNode)
 	{
-		// 'triangle_mesh' element must have 'ref' attribute
-		auto refAttr = triangleMeshNode.attribute("ref");
-		if (!refAttr)
+		// Triangle mesh must be associated with a bsdf
+		auto bsdfNode = node.child("bsdf");
+		if (!bsdfNode)
 		{
-			NANON_LOG_ERROR("'triangle_mesh' element in 'node' must have 'ref' attribute");
+			NANON_LOG_ERROR("Missing 'bsdf' element");
+			NANON_LOG_ERROR(PugiHelper::ElementInString(node));
 			return false;
 		}
 
-		// Find the triangle mesh specified by 'ref'
-		auto* triangleAsset = assets.GetAssetByName(refAttr.as_string());
-		if (!triangleAsset)
+		// Resolve the reference to the triangle mesh
+		auto* triangleMesh = dynamic_cast<TriangleMesh*>(ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh", assets));
+		if (!triangleMesh)
 		{
-			NANON_LOG_ERROR(boost::str(boost::format("Triangle mesh referenced by '%s' is not found") % refAttr.as_string()));
+			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
+		// Resolve the reference to the bsdf
+		auto* bsdf = dynamic_cast<BSDF*>(ResolveReferenceToAsset(bsdfNode, "bsdf", assets));
+		if (!bsdf)
+		{
+			NANON_LOG_DEBUG_EMPTY();
+			return false;
+		}
+
+		// Create primitive
+		std::shared_ptr<Primitive> primitive;
+		if (camera)
+		{
+			// Register the primitive to the camera
+			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, camera);
+			if (!camera->RegisterPrimitive(primitive.get()))
+			{
+				NANON_LOG_DEBUG_EMPTY();
+				return false;
+			}
+		}
+		else if (light)
+		{
+			// Register the primitive to the light
+			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, light);
+			if (!light->RegisterPrimitive(primitive.get()))
+			{
+				NANON_LOG_DEBUG_EMPTY();
+				return false;
+			}
+		}
+		else
+		{
+			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf);
+		}
 		
+		// Register the primitive to the scene
+		primitives.push_back(primitive);
+
+		// Optionally, register ID for the primitive, if 'id' attribute exists
+		auto idAttr = node.attribute("id");
+		if (idAttr)
+		{
+			// Check if already exists
+			std::string id = idAttr.as_string();
+			if (idPrimitiveIndexMap.find(id) == idPrimitiveIndexMap.end())
+			{
+				NANON_LOG_ERROR("");
+				NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+				return false;
+			}
+
+			idPrimitiveIndexMap[id] = primitives.size() - 1;
+		}
 	}
 
 	// ----------------------------------------------------------------------
+
+	// Leaf node cannot have children
+	bool isLeaf = lightNode || cameraNode || triangleMeshNode;
+	if (node.child("node") && isLeaf)
+	{
+		NANON_LOG_ERROR("Leaf node cannot have children");
+		NANON_LOG_ERROR(PugiHelper::ElementInString(node));
+		return false;
+	}
 
 	// Process children
 	for (auto child : node.children("node"))
 	{
 		if (!Traverse(node, assets, transform))
 		{
-			NANON_LOG_DEBUG("");
+			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 	}
@@ -222,6 +322,52 @@ Mat4 Scene::Impl::CreateTransform( const pugi::xml_node& transformNode )
 {
 	// TODO
 	return Mat4::Identity();
+}
+
+Asset* Scene::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& type, Assets& assets )
+{
+	// The element must have 'ref' attribute
+	auto refAttr = node.attribute("ref");
+	if (!refAttr)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % type));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
+
+	// Find the light specified by 'ref'
+	auto* asset = assets.GetAssetByName(refAttr.as_string());
+	if (!asset)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
+	else if (asset->Type() != type)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset type '%s' (expected '%s')") % asset->Type() % type));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
+
+	return asset;
+}
+
+int Scene::Impl::NumPrimitives() const
+{
+	return static_cast<int>(primitives.size());
+}
+
+const Primitive* Scene::Impl::PrimitiveByIndex( int index ) const
+{
+	return index < primitives.size() ? primitives[index].get() : nullptr;
+}
+
+const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
+{
+	return idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end()
+		? primitives[idPrimitiveIndexMap.at(id)].get()
+		: nullptr;
 }
 
 // ----------------------------------------------------------------------
@@ -245,6 +391,26 @@ bool Scene::Load( const pugi::xml_node& node, Assets& assets )
 bool Scene::Load( const NanonConfig& config, Assets& assets )
 {
 	return p->Load(config.SceneElement(), assets);
+}
+
+void Scene::Reset()
+{
+	p->Reset();
+}
+
+int Scene::NumPrimitives() const
+{
+	return p->NumPrimitives();
+}
+
+const Primitive* Scene::PrimitiveByIndex( int index ) const
+{
+	return p->PrimitiveByIndex(index);
+}
+
+const Primitive* Scene::PrimitiveByID( const std::string& id ) const
+{
+	return p->PrimitiveByID(id);
 }
 
 NANON_NAMESPACE_END

@@ -66,6 +66,18 @@ public:
 	virtual bool Load(const pugi::xml_node& node) = 0;
 
 	/*!
+		Get the name of the asset.
+		\return Name of the asset.
+	*/
+	virtual std::string Name() const = 0;
+
+	/*!
+		Get the type of the asset.
+		\return Type of the asset.
+	*/
+	virtual std::string Type() const = 0;
+
+	/*!
 		Get ID of the asset.
 		\return ID of the asset.
 	*/

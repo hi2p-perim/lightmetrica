@@ -21,3 +21,21 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#include "pch.h"
+#include <nanon/texture.h>
+
+NANON_NAMESPACE_BEGIN
+
+Texture::Texture(const std::string& id)
+	: Asset(id)
+{
+
+}
+
+Texture::~Texture()
+{
+
+}
+
+NANON_NAMESPACE_END

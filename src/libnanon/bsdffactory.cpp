@@ -22,4 +22,15 @@
 	THE SOFTWARE.
 */
 
-#include "asset.h"
+#include "pch.h"
+#include <nanon/bsdffactory.h>
+#include <nanon/bsdf.h>
+
+NANON_NAMESPACE_BEGIN
+
+std::shared_ptr<Asset> BSDFFactory::Create( const std::string& id, const std::string& type )
+{
+	return nullptr;
+}
+
+NANON_NAMESPACE_END

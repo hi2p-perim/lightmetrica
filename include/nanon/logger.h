@@ -243,6 +243,11 @@ NANON_NAMESPACE_END
 */
 
 /*!
+	\def NANON_LOG_DEBUG_EMPTY()
+	Add an debug log with an empty message.
+*/
+
+/*!
 	\def NANON_LOG_INDENT()
 	Helper macro to add a indentation to the log message in the same scope.
 */
@@ -263,5 +268,6 @@ NANON_NAMESPACE_END
 #else
 	#define NANON_LOG_DEBUG(message)
 #endif
+#define NANON_LOG_DEBUG_EMPTY() NANON_LOG_DEBUG("");
 
 #endif // __NANON_CORE_LOGGER_H__

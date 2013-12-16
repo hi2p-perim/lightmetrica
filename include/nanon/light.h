@@ -22,4 +22,39 @@
 	THE SOFTWARE.
 */
 
+#ifndef __LIB_NANON_LIGHT_H__
+#define __LIB_NANON_LIGHT_H__
+
 #include "asset.h"
+
+NANON_NAMESPACE_BEGIN
+
+struct Primitive;
+
+/*!
+	Light.
+	A base class of the lights.
+*/
+class NANON_PUBLIC_API Light : public Asset
+{
+public:
+
+	Light(const std::string& id);
+	virtual ~Light();
+
+public:
+
+	/*!
+		Register an reference to the primitive.
+		Some implementation of light needs transformed mesh information for sampling.
+		The function registers the reference to the primitive.
+		The function is internally called.
+		\param primitive An instance of the primitive.
+	*/
+	virtual bool RegisterPrimitive(const Primitive* primitive);
+
+};
+
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_LIGHT_H__

@@ -13,6 +13,7 @@ set(
 	"${_INCLUDE_DIR}/config.h"
 	"${_INCLUDE_DIR}/logger.h"
 	"${_INCLUDE_DIR}/version.h"
+	"${_INCLUDE_DIR}/pugihelper.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -23,6 +24,7 @@ set(
 	"config.cpp"
 	"logger.cpp"
 	"version.cpp"
+	"pugihelper.cpp"
 	
 	# pugixml sources
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
@@ -34,12 +36,13 @@ set(
 	_ASSETS_HEADERS
 	"${_INCLUDE_DIR}/asset.h"
 	"${_INCLUDE_DIR}/assets.h"
+	"${_INCLUDE_DIR}/defaultassets.h"
 	"${_INCLUDE_DIR}/assetfactory.h"
 )
 set(
 	_ASSETS_SOURCES
 	"asset.cpp"
-	"assets.cpp"
+	"defaultassets.cpp"
 	"assetfactory.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_HEADERS})
@@ -101,19 +104,19 @@ list(APPEND _SOURCE_FILES ${_ASSETS_FILMS_SOURCES})
 #
 
 set(
-	_ASSETS_MATERIALS_HEADERS
-	"${_INCLUDE_DIR}/material.h"
-	"${_INCLUDE_DIR}/materialfactory.h"
+	_ASSETS_BSDFS_HEADERS
+	"${_INCLUDE_DIR}/bsdf.h"
+	"${_INCLUDE_DIR}/bsdffactory.h"
 )
 set(
-	_ASSETS_MATERIALS_SOURCES
-	"material.cpp"
-	"materialfactory.cpp"
+	_ASSETS_BSDFS_SOURCES
+	"bsdf.cpp"
+	"bsdffactory.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\materials" FILES ${_ASSETS_MATERIALS_HEADERS})
-source_group("${_SOURCE_FILES_ROOT}\\assets\\materials" FILES ${_ASSETS_MATERIALS_SOURCES})
-list(APPEND _HEADER_FILES ${_ASSETS_MATERIALS_HEADERS})
-list(APPEND _SOURCE_FILES ${_ASSETS_MATERIALS_SOURCES})
+source_group("${_HEADER_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_SOURCES})
+list(APPEND _HEADER_FILES ${_ASSETS_BSDFS_HEADERS})
+list(APPEND _SOURCE_FILES ${_ASSETS_BSDFS_SOURCES})
 
 #
 
