@@ -28,28 +28,4 @@
 #include "mathtypes.h"
 #include "mathfunctions.h"
 
-NANON_NAMESPACE_BEGIN
-
-// Define default floating point types
-#ifdef NANON_SINGLE_PRECISION
-	typedef float Float;
-	typedef Vec4f Vec4;
-	typedef Mat4f Mat4;
-#elif defined(NANON_DOUBLE_PRECISION)
-	typedef double Float;
-	typedef Vec4d Vec4;
-	typedef Mat4d Mat4;
-#elif defined(NANON_MULTI_PRECISION)
-	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
-		// Default precision : 100 decimal digits
-		#define NANON_PRECISION_NUM 100
-	#endif
-	typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PPRECISION_NUM>> Float;
-	typedef Vec4<Float> Vec4;
-	typedef Mat4<Float> Mat4;
-#endif
-
-NANON_NAMESPACE_END
-
 #endif // __LIB_NANON_MATH_H__
