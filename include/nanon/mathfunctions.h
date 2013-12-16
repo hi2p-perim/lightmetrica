@@ -22,34 +22,29 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATH_H__
-#define __LIB_NANON_MATH_H__
+#ifndef __LIB_NANON_MATH_FUNCTIONS_H__
+#define __LIB_NANON_MATH_FUNCTIONS_H__
 
 #include "mathtypes.h"
-#include "mathfunctions.h"
 
 NANON_NAMESPACE_BEGIN
 
-// Define default floating point types
-#ifdef NANON_SINGLE_PRECISION
-	typedef float Float;
-	typedef Vec4f Vec4;
-	typedef Mat4f Mat4;
-#elif defined(NANON_DOUBLE_PRECISION)
-	typedef double Float;
-	typedef Vec4d Vec4;
-	typedef Mat4d Mat4;
-#elif defined(NANON_MULTI_PRECISION)
-	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
-		// Default precision : 100 decimal digits
-		#define NANON_PRECISION_NUM 100
-	#endif
-	typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PPRECISION_NUM>> Float;
-	typedef Vec4<Float> Vec4;
-	typedef Mat4<Float> Mat4;
-#endif
+namespace MathFunc
+{
+
+	template <typename T> NANON_FORCE_INLINE Translate(const Mat4<T>& m, const Vec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Translate(const Vec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Rotate(const Mat4<T>& m, T angle, const Vec3<T>& axis);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Rotate(T angle, const Vec3<T>& axis);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Scale(const Mat4<T>& m, const Vec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Scale(const Vec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> LookAt(const Vec3<T>& eye, const Vec3<T>& center, const Vec3<T>& up);
+	template <typename T> NANON_FORCE_INLINE Mat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
+
+}
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_MATH_H__
+#include "mathfunctions.inl"
+
+#endif // __LIB_NANON_MATH_FUNCTIONS_H__

@@ -164,6 +164,16 @@ list(APPEND _HEADER_FILES ${_MATH_HEADERS})
 #
 
 set(
+	_MATH_FUNCTIONS_HEADERS
+	"${_INCLUDE_DIR}/mathfunctions.h"
+	"${_INCLUDE_DIR}/mathfunctions.inl"
+)
+source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
+list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
+
+#
+
+set(
 	_MATH_TYPES_HEADERS
 	"${_INCLUDE_DIR}/vector.h"
 	"${_INCLUDE_DIR}/vector.inl"

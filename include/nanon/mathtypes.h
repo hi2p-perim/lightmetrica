@@ -22,34 +22,27 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATH_H__
-#define __LIB_NANON_MATH_H__
+#ifndef __LIB_NANON_MATH_TYPES_H__
+#define __LIB_NANON_MATH_TYPES_H__
 
-#include "mathtypes.h"
-#include "mathfunctions.h"
+#include "common.h"
+#include "simdsupport.h"
 
-NANON_NAMESPACE_BEGIN
+// Generic implementation of math functions
+// if there is no SIMD support the implementation is used instead.
+#include "vector.h"
+#include "matrix.h"
 
-// Define default floating point types
-#ifdef NANON_SINGLE_PRECISION
-	typedef float Float;
-	typedef Vec4f Vec4;
-	typedef Mat4f Mat4;
-#elif defined(NANON_DOUBLE_PRECISION)
-	typedef double Float;
-	typedef Vec4d Vec4;
-	typedef Mat4d Mat4;
-#elif defined(NANON_MULTI_PRECISION)
-	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
-		// Default precision : 100 decimal digits
-		#define NANON_PRECISION_NUM 100
+// Specialized implementation optimized by SIMD instructions
+#ifndef NANON_FORCE_NO_SIMD
+	#ifdef NANON_USE_SSE2
+		#include "ssevector.h"
+		#include "ssematrix.h"
 	#endif
-	typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PPRECISION_NUM>> Float;
-	typedef Vec4<Float> Vec4;
-	typedef Mat4<Float> Mat4;
+	#ifdef NANON_USE_AVX
+		#include "avxvector.h"
+		#include "avxmatrix.h"
+	#endif
 #endif
 
-NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_MATH_H__
+#endif // __LIB_NANON_MATH_TYPES_H__
