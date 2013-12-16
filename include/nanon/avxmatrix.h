@@ -44,6 +44,7 @@ struct NANON_ALIGN_16 TMat4<double>
 	NANON_FORCE_INLINE TMat4(const Mat4d& m);
 	NANON_FORCE_INLINE TMat4(double v);
 	NANON_FORCE_INLINE TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v2, const Vec4d& v3);
+	NANON_FORCE_INLINE TMat4(const double* v);
 	NANON_FORCE_INLINE TMat4(
 		double v00, double v10, double v20, double v30,
 		double v01, double v11, double v21, double v31,

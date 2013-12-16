@@ -56,12 +56,16 @@ public:
 
 private:
 
+	// Traverse the scene and create primitives.
 	bool Traverse(const pugi::xml_node& node, Assets& assets, const Mat4& parentWorldTransform);
-	Mat4 CreateTransform(const pugi::xml_node& transformNode);
+
+	// Create transformation from the element 'transform'.
+	// The result is stored in the transform.
+	bool CreateTransform(const pugi::xml_node& transformNode, Mat4& transform);
 
 	// Resolve reference to an asset using 'ref' attribute.
 	// If 'ref' attribute is not found, returns nullptr.
-	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& type, Assets& assets);
+	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name, Assets& assets);
 
 private:
 
@@ -146,7 +150,11 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (transformNode)
 	{
 		// Create transform from the node
-		localTransform = CreateTransform(transformNode);
+		if (!CreateTransform(transformNode, localTransform))
+		{
+			NANON_LOG_DEBUG_EMPTY();
+			return false;
+		}
 	}
 	else
 	{
@@ -161,7 +169,11 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	{
 		// If the 'global_transform' node exists, use it as the transform of the node.
 		// Local transform is ignored.
-		transform = CreateTransform(globalTransformNode);
+		if (!CreateTransform(globalTransformNode, transform))
+		{
+			NANON_LOG_DEBUG_EMPTY();
+			return false;
+		}
 	}
 	else
 	{
@@ -283,9 +295,9 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		{
 			// Check if already exists
 			std::string id = idAttr.as_string();
-			if (idPrimitiveIndexMap.find(id) == idPrimitiveIndexMap.end())
+			if (idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end())
 			{
-				NANON_LOG_ERROR("");
+				NANON_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
 				NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
 				return false;
 			}
@@ -308,7 +320,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	// Process children
 	for (auto child : node.children("node"))
 	{
-		if (!Traverse(node, assets, transform))
+		if (!Traverse(child, assets, transform))
 		{
 			NANON_LOG_DEBUG_EMPTY();
 			return false;
@@ -318,19 +330,70 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	return true;
 }
 
-Mat4 Scene::Impl::CreateTransform( const pugi::xml_node& transformNode )
+bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Mat4& transform )
 {
-	// TODO
-	return Mat4::Identity();
+	// Default transform
+	transform = Mat4::Identity();
+
+	// The element 'matrix' specifies column major, 4x4 matrix
+	auto matrixNode = transformNode.child("matrix");
+	if (matrixNode)
+	{
+		// Parse matrix elements (in double)
+		std::vector<double> m;
+		std::stringstream ss(matrixNode.child_value());
+
+		double v;
+		while (ss >> v) m.push_back(v);
+
+		// Check number of elements
+		if (m.size() != 16)
+		{
+			NANON_LOG_ERROR("Invalid number of elements in 'matrix'");
+			return false;
+		}
+
+		// Convert to Float and create matrix
+		std::vector<Float> m2(16);
+		std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Float(v); });
+		transform = Mat4(&m2[0]);
+	}
+	else
+	{
+		// If the 'matrix' element is not specified, use 'translate', 'rotate', 'scale' elements
+		auto translateNode = transformNode.child("translate");
+		auto rotate = transformNode.child("rotate");
+		auto scale = transformNode.child("scale");
+		
+		// 'translate' node 
+		if (translateNode)
+		{
+			
+		}
+
+		// 'rotate' node
+		if (rotate)
+		{
+
+		}
+
+		// 'scale' node
+		if (scale)
+		{
+
+		}
+	}
+
+	return true;
 }
 
-Asset* Scene::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& type, Assets& assets )
+Asset* Scene::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name, Assets& assets )
 {
 	// The element must have 'ref' attribute
 	auto refAttr = node.attribute("ref");
 	if (!refAttr)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % type));
+		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
 		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
@@ -343,9 +406,9 @@ Asset* Scene::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const s
 		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
-	else if (asset->Type() != type)
+	else if (asset->Name() != name)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset type '%s' (expected '%s')") % asset->Type() % type));
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
 		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}

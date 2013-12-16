@@ -40,7 +40,7 @@ public:
 
 private:
 
-	const std::string& id;
+	std::string id;
 
 };
 

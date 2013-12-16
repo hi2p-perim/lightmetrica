@@ -104,13 +104,13 @@ TEST_F(AssetsTest, Load)
 	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
 
 	auto* id1 = assets.GetAssetByName("id1");
-	ASSERT_TRUE(id1);
+	ASSERT_NE(nullptr, id1);
 	EXPECT_EQ("id1", id1->ID());
 	EXPECT_EQ("asset", id1->Name());
 	EXPECT_EQ("success", id1->Type());
 
 	auto* id2 = assets.GetAssetByName("id2");
-	ASSERT_TRUE(id2);
+	ASSERT_NE(nullptr, id2);
 	EXPECT_EQ("id2", id2->ID());
 	EXPECT_EQ("asset", id2->Name());
 	EXPECT_EQ("success", id2->Type());

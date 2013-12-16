@@ -38,7 +38,7 @@ namespace
 {
 
 	const std::string SceneNode_Success = NANON_TEST_MULTILINE_LITERAL(
-		<scene>
+		<scene type="stub">
 			<root>
 				<node id="node1">
 					<triangle_mesh ref="mesh1" />
@@ -47,6 +47,54 @@ namespace
 				<node id="node2">
 					<triangle_mesh ref="mesh2" />
 					<bsdf ref="bsdf2" />
+				</node>
+			</root>
+		</scene>
+	);
+
+	// Specify transform by matrix
+	const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
+		<scene type="stub">
+			<root>
+				<transform>
+					<matrix>
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						1 2 3 1
+					</matrix>
+				</transform>
+				<node id="node1">
+					<transform>
+						<matrix>
+							2 0 0 0
+							0 2 0 0
+							0 0 2 0
+							0 0 0 1
+						</matrix>
+					</transform>
+					<triangle_mesh ref="mesh1" />
+					<bsdf ref="bsdf1" />
+				</node>
+			</root>
+		</scene>
+	);
+
+	// Invalid number of element in 'matrix'
+	const std::string SceneNode_Fail_MatrixInvalidNumberOfElements = NANON_TEST_MULTILINE_LITERAL(
+		<scene type="stub">
+			<root>
+				<node id="node1">
+					<transform>
+						<matrix>
+							1 0 0 0
+							0 1 0 0
+							0 0 1 0
+							0 0 0
+						</matrix>
+					</transform>
+					<triangle_mesh ref="mesh1" />
+					<bsdf ref="bsdf1" />
 				</node>
 			</root>
 		</scene>
@@ -123,14 +171,38 @@ TEST_F(SceneTest, Load)
 	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success), assets));
 
 	const auto* node1 = scene.PrimitiveByID("node1");
+	ASSERT_NE(nullptr, node1);
 	EXPECT_EQ("stub", node1->mesh->Type());
 	EXPECT_EQ("stub", node1->bsdf->Type());
 	EXPECT_TRUE(ExpectMat4Near(Mat4::Identity(), node1->transform));
 	
 	const auto* node2 = scene.PrimitiveByID("node2");
+	ASSERT_NE(nullptr, node2);
 	EXPECT_EQ("stub", node2->mesh->Type());
 	EXPECT_EQ("stub", node2->bsdf->Type());
 	EXPECT_TRUE(ExpectMat4Near(Mat4::Identity(), node2->transform));
+}
+
+TEST_F(SceneTest, Load_WithTransform)
+{
+	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransform), assets));
+	
+	const auto* node1 = scene.PrimitiveByID("node1");
+	ASSERT_NE(nullptr, node1);
+
+	auto transform = node1->transform;
+	Mat4 expected(
+		2, 0, 0, 0,
+		0, 2, 0, 0,
+		0, 0, 2, 0,
+		1, 2, 3, 1);
+
+	ASSERT_TRUE(ExpectMat4Near(expected, transform));
+}
+
+TEST_F(SceneTest, Load_Fail_MatrixInvalidNumberOfElements)
+{
+	EXPECT_FALSE(scene.Load(LoadXMLBuffer(SceneNode_Fail_MatrixInvalidNumberOfElements), assets));
 }
 
 NANON_TEST_NAMESPACE_END

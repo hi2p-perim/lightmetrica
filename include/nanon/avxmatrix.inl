@@ -55,6 +55,14 @@ NANON_FORCE_INLINE Mat4d::TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v
 	v[3] = v3;
 }
 
+NANON_FORCE_INLINE Mat4d::TMat4(const double* v)
+{
+	this->v[0] = Vec4d(v[0], v[1], v[2], v[3]);
+	this->v[1] = Vec4d(v[4], v[5], v[6], v[7]);
+	this->v[2] = Vec4d(v[8], v[9], v[10], v[11]);
+	this->v[3] = Vec4d(v[12], v[13], v[14], v[15]);
+}
+
 NANON_FORCE_INLINE Mat4d::TMat4(
 	double v00, double v10, double v20, double v30,
 	double v01, double v11, double v21, double v31,

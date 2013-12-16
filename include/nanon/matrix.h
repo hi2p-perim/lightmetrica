@@ -51,6 +51,7 @@ struct TMat4
 	NANON_FORCE_INLINE TMat4(const TMat4<T>& m);
 	NANON_FORCE_INLINE TMat4(const T& v);
 	NANON_FORCE_INLINE TMat4(const TVec4<T>& v0, const TVec4<T>& v1, const TVec4<T>& v2, const TVec4<T>& v3);
+	NANON_FORCE_INLINE TMat4(const T* v);
 	NANON_FORCE_INLINE TMat4(
 		T v00, T v10, T v20, T v30,
 		T v01, T v11, T v21, T v31,
