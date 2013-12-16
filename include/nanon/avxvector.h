@@ -31,6 +31,32 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	AVX optimized 3D vector.
+	Specialized version of TVec3 optimized by AVX.
+*/
+template <>
+struct NANON_ALIGN_16 TVec3<double>
+{
+
+	union
+	{
+		__m256d v;
+		struct { double x, y, z, w; };
+	};
+	
+	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec3d& v);
+	NANON_FORCE_INLINE TVec3(double v);
+	NANON_FORCE_INLINE TVec3(__m256d v);
+	NANON_FORCE_INLINE TVec3(double x, double y, double z);
+	NANON_FORCE_INLINE double operator[](int i) const;
+	NANON_FORCE_INLINE Vec3d& operator=(const Vec3d& v);
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
 	AVX optimized 4D vector.
 	Specialized version of TVec4 optimized by AVX.
 */

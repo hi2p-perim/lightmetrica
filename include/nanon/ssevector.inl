@@ -26,6 +26,64 @@
 
 NANON_NAMESPACE_BEGIN
 
+NANON_FORCE_INLINE TVec3<float>::TVec3()
+	: v(_mm_setzero_ps())
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<float>::TVec3(const Vec3f& v)
+	: v(v.v)
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<float>::TVec3(float v)
+	: v(_mm_set1_ps(v))
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<float>::TVec3(__m128 v)
+	: v(v)
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<float>::TVec3(float x, float y, float z)
+	: v(_mm_set_ps(0.0f, z, y, x))
+{
+
+}
+
+NANON_FORCE_INLINE float TVec3<float>::operator[](int i) const
+{
+	return (&x)[i];
+}
+
+NANON_FORCE_INLINE Vec3f& TVec3<float>::operator=(const Vec3f& v)
+{
+	this->v = v.v;
+	return *this;
+}
+
+NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, float s)
+{
+	return Vec3f(_mm_mul_ps(v.v, _mm_set1_ps(s)));
+}
+
+NANON_FORCE_INLINE Vec3f operator*(float s, const Vec3f& v)
+{
+	return v * s;
+}
+
+NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v1, const Vec3f& v2)
+{
+	return Vec3f(_mm_mul_ps(v1.v, v2.v));
+}
+
+// --------------------------------------------------------------------------------
+
 NANON_FORCE_INLINE TVec4<float>::TVec4()
 	: v(_mm_setzero_ps())
 {

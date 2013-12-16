@@ -26,6 +26,106 @@
 
 NANON_NAMESPACE_BEGIN
 
+NANON_FORCE_INLINE Mat3f::TMat3()
+{
+
+}
+
+NANON_FORCE_INLINE Mat3f::TMat3(const Mat3f& m)
+{
+	v[0] = m.v[0];
+	v[1] = m.v[1];
+	v[2] = m.v[2];
+}
+
+NANON_FORCE_INLINE Mat3f::TMat3(float v)
+{
+	this->v[0] = Vec3f(v);
+	this->v[1] = Vec3f(v);
+	this->v[2] = Vec3f(v);
+}
+
+NANON_FORCE_INLINE Mat3f::TMat3(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
+{
+	v[0] = v0;
+	v[1] = v1;
+	v[2] = v2;
+}
+
+NANON_FORCE_INLINE Mat3f::TMat3(const float* v)
+{
+	this->v[0] = Vec3f(v[0], v[1], v[2]);
+	this->v[1] = Vec3f(v[3], v[4], v[5]);
+	this->v[2] = Vec3f(v[6], v[7], v[8]);
+}
+
+NANON_FORCE_INLINE Mat3f::TMat3(
+	float v00, float v10, float v20,
+	float v01, float v11, float v21,
+	float v02, float v12, float v22)
+{
+	v[0] = Vec3f(v00, v10, v20);
+	v[1] = Vec3f(v01, v11, v21);
+	v[2] = Vec3f(v02, v12, v22);
+}
+
+NANON_FORCE_INLINE Mat3f Mat3f::Zero()
+{
+	return TMat3<float>();
+}
+
+NANON_FORCE_INLINE Mat3f Mat3f::Diag(float v)
+{
+	return TMat3<float>(
+		v, 0.0f, 0.0f,
+		0.0f, v, 0.0f,
+		0.0f, 0.0f, v);
+}
+
+NANON_FORCE_INLINE Mat3f Mat3f::Identity()
+{
+	return Diag(1.0f);
+}
+
+NANON_FORCE_INLINE Vec3f& Mat3f::operator[](int i)
+{
+	return v[i];
+}
+
+NANON_FORCE_INLINE const Vec3f& Mat3f::operator[](int i) const
+{
+	return v[i];
+}
+
+NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m, float s)
+{
+	return Mat3f(m[0] * s, m[1] * s, m[2] * s);
+}
+
+NANON_FORCE_INLINE Mat3f operator*(float s, const Mat3f& m)
+{
+	return m * s;
+}
+
+NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
+{
+	return Vec3f(
+		_mm_add_ps(
+			_mm_add_ps(
+				_mm_mul_ps(m[0].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(0, 0, 0, 0))),
+				_mm_mul_ps(m[1].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(1, 1, 1, 1)))),
+			_mm_add_ps(
+				_mm_mul_ps(m[2].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(2, 2, 2, 2))),
+				_mm_mul_ps(m[3].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3))))));
+}
+
+NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
+{
+	return Mat3f(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
+}
+
+// --------------------------------------------------------------------------------
+
 NANON_FORCE_INLINE Mat4f::TMat4()
 {
 

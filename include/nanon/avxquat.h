@@ -22,54 +22,9 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/rendererfactory.h>
-#include <nanon/logger.h>
-#include <nanon/raycast.h>
+#ifndef __LIB_NANON_AVX_QUAT_H__
+#define __LIB_NANON_AVX_QUAT_H__
 
-NANON_NAMESPACE_BEGIN
 
-class RendererFactory::Impl
-{
-public:
 
-	std::shared_ptr<Renderer> Create(const std::string& type);
-
-private:
-
-	
-
-};
-
-std::shared_ptr<Renderer> RendererFactory::Impl::Create( const std::string& type )
-{
-	if (type == "raycast")
-	{
-		return std::make_shared<RaycastRenderer>();
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
-		return nullptr;
-	}
-}
-
-// --------------------------------------------------------------------------------
-
-RendererFactory::RendererFactory()
-	: p(new Impl)
-{
-
-}
-
-RendererFactory::~RendererFactory()
-{
-	NANON_SAFE_DELETE(p);
-}
-
-std::shared_ptr<Renderer> RendererFactory::Create( const std::string& type )
-{
-	return p->Create(type);
-}
-
-NANON_NAMESPACE_END
+#endif // __LIB_NANON_AVX_QUAT_H__

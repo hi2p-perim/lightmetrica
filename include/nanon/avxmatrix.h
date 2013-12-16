@@ -31,6 +31,37 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	AVX optimized 3x3 matrix.
+	Specialized version of TMat3 optimized by AVX.
+*/
+template <>
+struct NANON_ALIGN_16 TMat3<double>
+{
+	
+	Vec3d v[3];
+
+	NANON_FORCE_INLINE TMat3();
+	NANON_FORCE_INLINE TMat3(const Mat3d& m);
+	NANON_FORCE_INLINE TMat3(double v);
+	NANON_FORCE_INLINE TMat3(const Vec3d& v0, const Vec3d& v1, const Vec3d& v2);
+	NANON_FORCE_INLINE TMat3(const double* v);
+	NANON_FORCE_INLINE TMat3(
+		double v00, double v10, double v20,
+		double v01, double v11, double v21,
+		double v02, double v12, double v22);
+
+	static NANON_FORCE_INLINE Mat3d Zero();
+	static NANON_FORCE_INLINE Mat3d Diag(double v);
+	static NANON_FORCE_INLINE Mat3d Identity();
+
+	NANON_FORCE_INLINE Vec3d& operator[](int i);
+	NANON_FORCE_INLINE const Vec3d& operator[](int i) const;
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
 	AVX optimized 4x4 matrix.
 	Specialized version of TMat4 optimized by AVX.
 */

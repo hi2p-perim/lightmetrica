@@ -31,6 +31,37 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	SSE optimized 3x3 matrix.
+	Specialized version of TMat3 optimized by SSE.
+*/
+template <>
+struct NANON_ALIGN_16 TMat3<float>
+{
+	
+	Vec3f v[3];
+
+	NANON_FORCE_INLINE TMat3();
+	NANON_FORCE_INLINE TMat3(const Mat3f& m);
+	NANON_FORCE_INLINE TMat3(float v);
+	NANON_FORCE_INLINE TMat3(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2);
+	NANON_FORCE_INLINE TMat3(const float* v);
+	NANON_FORCE_INLINE TMat3(
+		float v00, float v10, float v20,
+		float v01, float v11, float v21,
+		float v02, float v12, float v22);
+
+	static NANON_FORCE_INLINE Mat3f Zero();
+	static NANON_FORCE_INLINE Mat3f Diag(float v);
+	static NANON_FORCE_INLINE Mat3f Identity();
+
+	NANON_FORCE_INLINE Vec3f& operator[](int i);
+	NANON_FORCE_INLINE const Vec3f& operator[](int i) const;
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
 	SSE optimized 4x4 matrix.
 	Specialized version of TMat4 optimized by SSE.
 */

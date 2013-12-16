@@ -26,6 +26,64 @@
 
 NANON_NAMESPACE_BEGIN
 
+NANON_FORCE_INLINE TVec3<double>::TVec3()
+	: v(_mm256_setzero_pd())
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<double>::TVec3(const Vec3d& v)
+	: v(v.v)
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<double>::TVec3(double v)
+	: v(_mm256_set1_pd(v))
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<double>::TVec3(__m256d v)
+	: v(v)
+{
+
+}
+
+NANON_FORCE_INLINE TVec3<double>::TVec3(double x, double y, double z)
+	: v(_mm256_set_pd(0, z, y, x))
+{
+
+}
+
+NANON_FORCE_INLINE double TVec3<double>::operator[](int i) const
+{
+	return (&x)[i];
+}
+
+NANON_FORCE_INLINE Vec3d& TVec3<double>::operator=(const Vec3d& v)
+{
+	this->v = v.v;
+	return *this;
+}
+
+NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, double s)
+{
+	return Vec3d(_mm256_mul_pd(v.v, _mm256_set1_pd(s)));
+}
+
+NANON_FORCE_INLINE Vec3d operator*(double s, const Vec3d& v)
+{
+	return v * s;
+}
+
+NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v1, const Vec3d& v2)
+{
+	return Vec3d(_mm256_mul_pd(v1.v, v2.v));
+}
+
+// --------------------------------------------------------------------------------
+
 NANON_FORCE_INLINE TVec4<double>::TVec4()
 	: v(_mm256_setzero_pd())
 {

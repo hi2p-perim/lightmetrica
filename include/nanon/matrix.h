@@ -31,6 +31,47 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	3x3 matrix.
+	Generic column major 3x3 matrix. 
+	A matrix
+		v00 v01 v02
+		v10 v11 v12
+		v20 v21 v22
+	is stored sequentially as v00, v10, ..., v22.
+	\tparam T Internal value type.
+*/
+template <typename T>
+struct TMat3
+{
+
+	TVec3<T> v[3];
+
+	NANON_FORCE_INLINE TMat3();
+	NANON_FORCE_INLINE TMat3(const TMat3<T>& m);
+	NANON_FORCE_INLINE TMat3(const T& v);
+	NANON_FORCE_INLINE TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const TVec3<T>& v2);
+	NANON_FORCE_INLINE TMat3(const T* v);
+	NANON_FORCE_INLINE TMat3(
+		T v00, T v10, T v20,
+		T v01, T v11, T v21,
+		T v02, T v12, T v22);
+
+	static NANON_FORCE_INLINE TMat3<T> Zero();
+	static NANON_FORCE_INLINE TMat3<T> Diag(T v);
+	static NANON_FORCE_INLINE TMat3<T> Identity();
+
+	NANON_FORCE_INLINE TVec3<T>& operator[](int i);
+	NANON_FORCE_INLINE const TVec3<T>& operator[](int i) const;
+
+};
+
+typedef TMat3<float> Mat3f;
+typedef TMat3<double> Mat3d;
+typedef TMat3<int> Mat3i;
+
+// --------------------------------------------------------------------------------
+
+/*!
 	4x4 matrix.
 	Generic column major 4x4 matrix. 
 	A matrix

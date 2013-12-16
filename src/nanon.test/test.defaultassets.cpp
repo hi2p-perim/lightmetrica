@@ -86,7 +86,7 @@ void AssetsTest::SetUp()
 	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("stub_assetfactory", "asset", 0, std::make_shared<StubAssetFactory>())));
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 TEST_F(AssetsTest, RegisterAssetFactory)
 {

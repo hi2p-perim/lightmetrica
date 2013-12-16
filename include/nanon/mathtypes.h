@@ -32,16 +32,19 @@
 // if there is no SIMD support the implementation is used instead.
 #include "vector.h"
 #include "matrix.h"
+#include "quat.h"
 
 // Specialized implementation optimized by SIMD instructions
 #ifndef NANON_FORCE_NO_SIMD
 	#ifdef NANON_USE_SSE2
 		#include "ssevector.h"
 		#include "ssematrix.h"
+		#include "ssequat.h"
 	#endif
 	#ifdef NANON_USE_AVX
 		#include "avxvector.h"
 		#include "avxmatrix.h"
+		#include "avxquat.h"
 	#endif
 #endif
 

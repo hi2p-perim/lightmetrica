@@ -175,18 +175,25 @@ list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
 
 set(
 	_MATH_TYPES_HEADERS
+	"${_INCLUDE_DIR}/mathtypes.h"
 	"${_INCLUDE_DIR}/vector.h"
 	"${_INCLUDE_DIR}/vector.inl"
 	"${_INCLUDE_DIR}/matrix.h"
 	"${_INCLUDE_DIR}/matrix.inl"
+	"${_INCLUDE_DIR}/quat.h"
+	"${_INCLUDE_DIR}/quat.inl"
 	"${_INCLUDE_DIR}/ssevector.h"
 	"${_INCLUDE_DIR}/ssevector.inl"
 	"${_INCLUDE_DIR}/ssematrix.h"
 	"${_INCLUDE_DIR}/ssematrix.inl"
+	"${_INCLUDE_DIR}/ssequat.h"
+	"${_INCLUDE_DIR}/ssequat.inl"
 	"${_INCLUDE_DIR}/avxvector.h"
 	"${_INCLUDE_DIR}/avxvector.inl"
 	"${_INCLUDE_DIR}/avxmatrix.h"
 	"${_INCLUDE_DIR}/avxmatrix.inl"
+	"${_INCLUDE_DIR}/avxquat.h"
+	"${_INCLUDE_DIR}/avxquat.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})

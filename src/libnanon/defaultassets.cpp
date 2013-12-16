@@ -168,7 +168,7 @@ Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name )
 	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap[name].get();
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 DefaultAssets::DefaultAssets()
 	: p(new Impl)

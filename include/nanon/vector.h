@@ -30,6 +30,60 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	2D vector.
+	Generic 2-dimensional vector.
+	\tparam T Internal value type.
+*/
+template <typename T>
+struct TVec2
+{
+
+	T x, y;
+
+	NANON_FORCE_INLINE TVec2();
+	NANON_FORCE_INLINE TVec2(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2(const T& v);
+	NANON_FORCE_INLINE TVec2(const T& x, const T& y);
+	NANON_FORCE_INLINE T& operator[](int i);
+	NANON_FORCE_INLINE const T& operator[](int i) const;
+	NANON_FORCE_INLINE TVec2<T>& operator=(const TVec2<T>& v);
+
+};
+
+typedef TVec2<float> Vec2f;
+typedef TVec2<double> Vec2d;
+typedef TVec2<int> Vec2i;
+
+// --------------------------------------------------------------------------------
+
+/*!
+	3D vector.
+	Generic 3-dimensional vector.
+	\tparam T Internal value type.
+*/
+template <typename T>
+struct TVec3
+{
+
+	T x, y, z;
+
+	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3(const T& v);
+	NANON_FORCE_INLINE TVec3(const T& x, const T& y, const T& z);
+	NANON_FORCE_INLINE T& operator[](int i);
+	NANON_FORCE_INLINE const T& operator[](int i) const;
+	NANON_FORCE_INLINE TVec3<T>& operator=(const TVec3<T>& v);
+
+};
+
+typedef TVec3<float> Vec3f;
+typedef TVec3<double> Vec3d;
+typedef TVec3<int> Vec3i;
+
+// --------------------------------------------------------------------------------
+
+/*!
 	4D vector.
 	Generic 4-dimensional vector.
 	\tparam T Internal value type
@@ -39,14 +93,6 @@ struct TVec4
 {
 
 	T x, y, z, w;
-
-	// It requires C++11 unrestricted union support
-	//union
-	//{
-	//	struct { T x, y, z, w; };
-	//	struct { T r, g, b, a; };
-	//	struct { T s, t, p, q; };
-	//};
 
 	NANON_FORCE_INLINE TVec4();
 	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);

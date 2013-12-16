@@ -27,6 +27,118 @@
 NANON_NAMESPACE_BEGIN
 
 template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3()
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat3<T>& m)
+{
+	v[0] = m.v[0];
+	v[1] = m.v[1];
+	v[2] = m.v[2];
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(const T& v)
+{
+	this->v[0] = TVec3<T>(v);
+	this->v[1] = TVec3<T>(v);
+	this->v[2] = TVec3<T>(v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	v[0] = v0;
+	v[1] = v1;
+	v[2] = v2;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(const T* v)
+{
+	this->v[0] = TVec3<T>(v[0], v[1], v[2]);
+	this->v[1] = TVec3<T>(v[3], v[4], v[5]);
+	this->v[2] = TVec3<T>(v[6], v[7], v[8]);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(
+	T v00, T v10, T v20,
+	T v01, T v11, T v21,
+	T v02, T v12, T v22)
+{
+	v[0] = TVec3<T>(v00, v10, v20);
+	v[1] = TVec3<T>(v01, v11, v21);
+	v[2] = TVec3<T>(v02, v12, v22);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> TMat3<T>::Zero()
+{
+	return TMat3<T>();
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> TMat3<T>::Diag(T v)
+{
+	T Zero(0);
+	return TMat3<T>(
+		v, Zero, Zero,
+		Zero, v, Zero,
+		Zero, Zero, v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> TMat3<T>::Identity()
+{
+	return Diag(T(1));
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>& TMat3<T>::operator[](int i)
+{
+	return v[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE const TVec3<T>& TMat3<T>::operator[](int i) const
+{
+	return v[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m, const T& s)
+{
+	return TMat3<T>(m[0] * s, m[1] * s, m[2] * s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> operator*(const T& v, const TMat3<T>& m)
+{
+	return m * v;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator*(const TMat3<T>& m, const TVec3<T>& v)
+{
+	return TVec3<T>(
+		m[0][0] * v.x + m[1][0] * v.y + m[2][0] * v.z,
+		m[0][1] * v.x + m[1][1] * v.y + m[2][1] * v.z,
+		m[0][2] * v.x + m[1][2] * v.y + m[2][2] * v.z);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m1, const TMat3<T>& m2)
+{
+	return TMat3<T>(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
+}
+
+// --------------------------------------------------------------------------------
+
+template <typename T>
 NANON_FORCE_INLINE TMat4<T>::TMat4()
 {
 

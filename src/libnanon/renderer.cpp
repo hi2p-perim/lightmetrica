@@ -62,7 +62,7 @@ bool Renderer::Impl::Configure( const pugi::xml_node& node, const DefaultAssets&
 	return false;
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 Renderer::Renderer()
 	: p(new Impl)

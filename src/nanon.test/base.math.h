@@ -78,6 +78,36 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<BigFloat>(const BigFloa
 }
 
 template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::TVec2<T>& expect, const nanon::TVec2<T>& actual)
+{
+	for (int i = 0; i < 2; i++)
+	{
+		auto result = ExpectNear(expect[i], actual[i]);
+		if (!result)
+		{
+			return result;
+		}
+	}
+
+	return ::testing::AssertionSuccess();
+}
+
+template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::TVec3<T>& expect, const nanon::TVec3<T>& actual)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		auto result = ExpectNear(expect[i], actual[i]);
+		if (!result)
+		{
+			return result;
+		}
+	}
+
+	return ::testing::AssertionSuccess();
+}
+
+template <typename T>
 NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<T>& expect, const nanon::TVec4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
@@ -86,6 +116,24 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<
 		if (!result)
 		{
 			return result;
+		}
+	}
+
+	return ::testing::AssertionSuccess();
+}
+
+template <typename T>
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::TMat3<T>& expect, const nanon::TMat3<T>& actual)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			auto result = ExpectNear(expect[i][j], actual[i][j]);
+			if (!result)
+			{
+				return result;
+			}
 		}
 	}
 

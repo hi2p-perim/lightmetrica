@@ -31,6 +31,32 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	SSE optimized 3D vector.
+	Specialized version of TVec3 optimized by SSE.
+*/
+template <>
+struct NANON_ALIGN_16 TVec3<float>
+{
+
+	union
+	{
+		__m128 v;
+		struct { float x, y, z, _w; };
+	};
+	
+	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec3f& v);
+	NANON_FORCE_INLINE TVec3(float v);
+	NANON_FORCE_INLINE TVec3(__m128 v);
+	NANON_FORCE_INLINE TVec3(float x, float y, float z);
+	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec3f& operator=(const Vec3f& v);
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
 	SSE optimized 4D vector.
 	Specialized version of TVec4 optimized by SSE.
 */

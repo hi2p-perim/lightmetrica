@@ -309,7 +309,7 @@ bool LoggerImpl::Empty()
 	return entries.empty() && entriesForFileIO.empty();
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 boost::signals2::connection Logger::Connect_LogUpdate( const std::function<void (LogEntry*)>& func )
 {

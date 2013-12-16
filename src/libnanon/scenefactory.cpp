@@ -54,7 +54,7 @@ std::shared_ptr<Scene> SceneFactory::Impl::Create( const std::string& type )
 	}
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 SceneFactory::SceneFactory()
 	: p(new Impl)

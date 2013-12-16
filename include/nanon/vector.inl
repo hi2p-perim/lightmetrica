@@ -27,6 +27,155 @@
 NANON_NAMESPACE_BEGIN
 
 template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2()
+	: x(T(0))
+	, y(T(0))
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2(const TVec2<T>& v)
+	: x(v.x)
+	, y(v.y)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2(const T& v)
+	: x(v)
+	, y(v)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2(const T& x, const T& y)
+	: x(x)
+	, y(y)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE T& TVec2<T>::operator[](int i)
+{
+	return (&x)[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE const T& TVec2<T>::operator[](int i) const
+{
+	return (&x)[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T>& TVec2<T>::operator=(const TVec2<T>& v)
+{
+	x = v.x;
+	y = v.y;
+	return *this;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, T s)
+{
+	return TVec2<T>(v.x * s, v.y * s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T> operator*(T s, const TVec2<T>& v)
+{
+	return v * s;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return TVec2<T>(v1.x * v2.x, v1.y * v2.y);
+}
+
+// --------------------------------------------------------------------------------
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3()
+	: x(T(0))
+	, y(T(0))
+	, z(T(0))
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3(const TVec3<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3(const T& v)
+	: x(v)
+	, y(v)
+	, z(v)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3(const T& x, const T& y, const T& z)
+	: x(x)
+	, y(y)
+	, z(z)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE T& TVec3<T>::operator[](int i)
+{
+	return (&x)[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE const T& TVec3<T>::operator[](int i) const
+{
+	return (&x)[i];
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>& TVec3<T>::operator=(const TVec3<T>& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	return *this;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, T s)
+{
+	return TVec3<T>(v.x * s, v.y * s, v.z * s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator*(T s, const TVec3<T>& v)
+{
+	return v * s;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+}
+
+// --------------------------------------------------------------------------------
+
+template <typename T>
 NANON_FORCE_INLINE TVec4<T>::TVec4()
 	: x(T(0))
 	, y(T(0))

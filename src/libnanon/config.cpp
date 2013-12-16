@@ -182,7 +182,7 @@ std::string NanonConfig::Impl::RendererType() const
 	return rendererNode.attribute("type").as_string();
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 NanonConfig::NanonConfig()
 	: p(new Impl)

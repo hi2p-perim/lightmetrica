@@ -181,7 +181,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		transform = parentWorldTransform * localTransform;
 	}
 
-	// ----------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
 
 	Light* light = nullptr;
 	Camera* camera = nullptr;
@@ -228,7 +228,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		mainCamera = camera;
 	}
 
-	// ----------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
 	
 	// Process triangle mesh
 	auto triangleMeshNode = node.child("triangle_mesh");
@@ -306,7 +306,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		}
 	}
 
-	// ----------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
 
 	// Leaf node cannot have children
 	bool isLeaf = lightNode || cameraNode || triangleMeshNode;
@@ -433,7 +433,7 @@ const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
 		: nullptr;
 }
 
-// ----------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 Scene::Scene()
 	: p(new Impl(this))

@@ -25,21 +25,22 @@
 #ifndef __LIB_NANON_MATH_FUNCTIONS_H__
 #define __LIB_NANON_MATH_FUNCTIONS_H__
 
-#include "mathtypes.h"
+#include "matrix.h"
 
 NANON_NAMESPACE_BEGIN
 
 namespace MathFunc
 {
 
-	template <typename T> NANON_FORCE_INLINE Translate(const Mat4<T>& m, const Vec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Translate(const Vec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Rotate(const Mat4<T>& m, T angle, const Vec3<T>& axis);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Rotate(T angle, const Vec3<T>& axis);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Scale(const Mat4<T>& m, const Vec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Scale(const Vec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> LookAt(const Vec3<T>& eye, const Vec3<T>& center, const Vec3<T>& up);
-	template <typename T> NANON_FORCE_INLINE Mat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
+	// Transform
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up);
+	template <typename T> NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
 
 }
 
