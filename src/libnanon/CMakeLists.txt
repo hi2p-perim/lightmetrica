@@ -157,6 +157,7 @@ list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})
 set(
 	_MATH_HEADERS
 	"${_INCLUDE_DIR}/math.h"
+	"${_INCLUDE_DIR}/math.common.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math" FILES ${_MATH_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_HEADERS})
@@ -165,8 +166,13 @@ list(APPEND _HEADER_FILES ${_MATH_HEADERS})
 
 set(
 	_MATH_FUNCTIONS_HEADERS
-	"${_INCLUDE_DIR}/mathfunctions.h"
-	"${_INCLUDE_DIR}/mathfunctions.inl"
+	"${_INCLUDE_DIR}/math.functions.h"
+	"${_INCLUDE_DIR}/math.transform.h"
+	"${_INCLUDE_DIR}/math.transform.inl"
+	"${_INCLUDE_DIR}/math.ssetransform.h"
+	"${_INCLUDE_DIR}/math.ssetransform.inl"
+	"${_INCLUDE_DIR}/math.avxtransform.h"
+	"${_INCLUDE_DIR}/math.avxtransform.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
@@ -175,25 +181,25 @@ list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
 
 set(
 	_MATH_TYPES_HEADERS
-	"${_INCLUDE_DIR}/mathtypes.h"
-	"${_INCLUDE_DIR}/vector.h"
-	"${_INCLUDE_DIR}/vector.inl"
-	"${_INCLUDE_DIR}/matrix.h"
-	"${_INCLUDE_DIR}/matrix.inl"
-	"${_INCLUDE_DIR}/quat.h"
-	"${_INCLUDE_DIR}/quat.inl"
-	"${_INCLUDE_DIR}/ssevector.h"
-	"${_INCLUDE_DIR}/ssevector.inl"
-	"${_INCLUDE_DIR}/ssematrix.h"
-	"${_INCLUDE_DIR}/ssematrix.inl"
-	"${_INCLUDE_DIR}/ssequat.h"
-	"${_INCLUDE_DIR}/ssequat.inl"
-	"${_INCLUDE_DIR}/avxvector.h"
-	"${_INCLUDE_DIR}/avxvector.inl"
-	"${_INCLUDE_DIR}/avxmatrix.h"
-	"${_INCLUDE_DIR}/avxmatrix.inl"
-	"${_INCLUDE_DIR}/avxquat.h"
-	"${_INCLUDE_DIR}/avxquat.inl"
+	"${_INCLUDE_DIR}/math.types.h"
+	"${_INCLUDE_DIR}/math.vector.h"
+	"${_INCLUDE_DIR}/math.vector.inl"
+	"${_INCLUDE_DIR}/math.matrix.h"
+	"${_INCLUDE_DIR}/math.matrix.inl"
+	"${_INCLUDE_DIR}/math.quat.h"
+	"${_INCLUDE_DIR}/math.quat.inl"
+	"${_INCLUDE_DIR}/math.ssevector.h"
+	"${_INCLUDE_DIR}/math.ssevector.inl"
+	"${_INCLUDE_DIR}/math.ssematrix.h"
+	"${_INCLUDE_DIR}/math.ssematrix.inl"
+	"${_INCLUDE_DIR}/math.ssequat.h"
+	"${_INCLUDE_DIR}/math.ssequat.inl"
+	"${_INCLUDE_DIR}/math.avxvector.h"
+	"${_INCLUDE_DIR}/math.avxvector.inl"
+	"${_INCLUDE_DIR}/math.avxmatrix.h"
+	"${_INCLUDE_DIR}/math.avxmatrix.inl"
+	"${_INCLUDE_DIR}/math.avxquat.h"
+	"${_INCLUDE_DIR}/math.avxquat.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
@@ -202,8 +208,8 @@ list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
 
 set(
 	_MATH_SIMD_HEADERS
-	"${_INCLUDE_DIR}/sse.h"
-	"${_INCLUDE_DIR}/avx.h"
+	"${_INCLUDE_DIR}/math.sse.h"
+	"${_INCLUDE_DIR}/math.avx.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\simd" FILES ${_MATH_SIMD_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_SIMD_HEADERS})
