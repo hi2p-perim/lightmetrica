@@ -26,8 +26,27 @@
 #define __LIB_NANON_MATH_COMMON_H__
 
 #include "common.h"
+#include <cmath>
 
 #define NANON_MATH_NAMESPACE_BEGIN namespace Math {
 #define NANON_MATH_NAMESPACE_END }
+
+// Multiprecision support
+// Note that the multiprecision support can be enabled irrelevant to 
+// the macro NANON_MULTI_PRECISION for testing.
+#ifdef NANON_ENABLE_MULTIPRECISION
+	#include <boost/multiprecision/cpp_dec_float.hpp>
+	#ifndef NANON_PRECISION_NUM
+		// Default precision : 50 decimal digits
+		#define NANON_PRECISION_NUM 50
+	#endif
+	NANON_NAMESPACE_BEGIN
+	NANON_MATH_NAMESPACE_BEGIN
+		#ifdef NANON_ENABLE_MULTIPRECISION
+			typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PRECISION_NUM>> BigFloat;
+		#endif
+	NANON_MATH_NAMESPACE_END
+	NANON_NAMESPACE_END
+#endif
 
 #endif // __LIB_NANON_MATH_COMMON_H__

@@ -22,31 +22,60 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATH_SSE_H__
-#define __LIB_NANON_MATH_SSE_H__
+#include "pch.h"
+#include "base.math.h"
+#include <nanon/math.functions.h>
 
-#include "simdsupport.h"
+using namespace nanon;
 
-#if !defined(NANON_USE_SSE) || !defined(NANON_USE_SSE2)
-#error "This header requires the support of SSE and SSE2"
-#endif
+NANON_TEST_NAMESPACE_BEGIN
 
-#include <xmmintrin.h>
+template <typename T>
+class MathTransformTest : public MathTestBase<T> {};
 
-#ifdef NANON_USE_SSE3
-#include <pmmintrin.h>
-#endif
-#ifdef NANON_USE_SSSE3
-#include <tmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_1
-#include <smmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_2
-#include <nmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4A
-#include <ammintrin.h>
-#endif
+TYPED_TEST_CASE(MathTransformTest, MathTestTypes);
 
-#endif // __LIB_NANON_MATH_SSE_H__
+TYPED_TEST(MathTransformTest, Translate)
+{
+	typedef TypeParam T;
+
+	Math::TVec4<T> v1(T(1), T(2), T(3), T(1));
+	Math::TVec3<T> v2(T(3), T(2), T(1));
+	Math::TVec4<T> expect(T(4), T(4), T(4), T(1));
+
+	EXPECT_TRUE(ExpectVec4Near(expect, Math::Translate(v2) * v1));
+}
+
+//TYPED_TEST(MathTransformTest, Rotate)
+//{
+//	typedef TypeParam T;
+//
+//	Math::TVec4<T> v(T(1), T(0), T(0), T(1));
+//	Math::TVec3<T> axis(T(0), T(0), T(1));
+//	T angle(90);
+//	Math::TVec4<T> expect(T(0), T(1), T(0), T(1));
+//
+//	EXPECT_TRUE(ExpectVec4Near(expect, Math::Rotate(angle, axis) * v));
+//}
+
+//TYPED_TEST(MathTransformTest, Scale)
+//{
+//
+//}
+//
+//TYPED_TEST(MathTransformTest, Combination)
+//{
+//
+//}
+//
+//TYPED_TEST(MathTransformTest, LookAt)
+//{
+//
+//}
+//
+//TYPED_TEST(MathTransformTest, Perspective)
+//{
+//
+//}
+
+NANON_TEST_NAMESPACE_END

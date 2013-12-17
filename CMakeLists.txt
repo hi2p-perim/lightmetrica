@@ -1,3 +1,27 @@
+#
+#	nanon : A research-oriented renderer
+#
+#	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
+#
+#	Permission is hereby granted, free of charge, to any person obtaining a copy
+#	of this software and associated documentation files (the "Software"), to deal
+#	in the Software without restriction, including without limitation the rights
+#	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#	copies of the Software, and to permit persons to whom the Software is
+#	furnished to do so, subject to the following conditions:
+#
+#	The above copyright notice and this permission notice shall be included in
+#	all copies or substantial portions of the Software.
+#
+#	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#	THE SOFTWARE.
+#
+
 cmake_minimum_required(VERSION 2.8)
 
 project(nanonrender)
@@ -81,6 +105,14 @@ cmake_dependent_option(
 	"NOT NANON_SINGLE_PRECISION" OFF)
 if (NANON_DOUBLE_PRECISION)
 	add_definitions(-DNANON_DOUBLE_PRECISION)
+endif()
+
+cmake_dependent_option(
+	NANON_MULTI_PRECISION "Use multi precision floating-point number" ON
+	"NOT NANON_SINGLE_PRECISION;NOT NANON_DOUBLE_PRECISION" OFF)
+if (NANON_MULTI_PRECISION)
+	add_definitions(-DNANON_ENABLE_MULTI_PRECISION)
+	add_definitions(-DNANON_MULTI_PRECISION)
 endif()
 
 option(NANON_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)

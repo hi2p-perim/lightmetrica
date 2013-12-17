@@ -26,6 +26,7 @@
 #define __LIB_NANON_MATH_H__
 
 #include "math.types.h"
+#include "math.constants.h"
 #include "math.functions.h"
 
 #endif // __LIB_NANON_MATH_H__

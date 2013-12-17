@@ -30,11 +30,11 @@ using namespace nanon;
 NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
-class Matrix3Test : public MathTestBase<T>
+class MathMatrix3Test : public MathTestBase<T>
 {
 public:
 
-	Matrix3Test()
+	MathMatrix3Test()
 	{
 		m1 = Math::TMat3<T>(
 			T(1), T(2), T(3),
@@ -69,9 +69,9 @@ protected:
 
 };
 
-TYPED_TEST_CASE(Matrix3Test, MathTestTypes);
+TYPED_TEST_CASE(MathMatrix3Test, MathTestTypes);
 
-TYPED_TEST(Matrix3Test, Constructor)
+TYPED_TEST(MathMatrix3Test, Constructor)
 {
 	typedef TypeParam T;
 	for (int i = 0; i < 3; i++)
@@ -83,7 +83,7 @@ TYPED_TEST(Matrix3Test, Constructor)
 	}
 }
 
-TYPED_TEST(Matrix3Test, Accessor)
+TYPED_TEST(MathMatrix3Test, Accessor)
 {
 	typedef TypeParam T;
 	for (int i = 0; i < 3; i++)
@@ -95,7 +95,7 @@ TYPED_TEST(Matrix3Test, Accessor)
 	}
 }
 
-TYPED_TEST(Matrix3Test, Multiply)
+TYPED_TEST(MathMatrix3Test, Multiply)
 {
 	typedef TypeParam T;
 	EXPECT_TRUE(ExpectMat3Near(m1s2, m1 * T(2)));
@@ -107,11 +107,11 @@ TYPED_TEST(Matrix3Test, Multiply)
 // --------------------------------------------------------------------------------
 
 template <typename T>
-class Matrix4Test : public MathTestBase<T>
+class MathMatrix4Test : public MathTestBase<T>
 {
 public:
 
-	Matrix4Test()
+	MathMatrix4Test()
 	{
 		m1 = Math::TMat4<T>(
 			T(1), T(2), T(3), T(4),
@@ -150,9 +150,9 @@ protected:
 
 };
 
-TYPED_TEST_CASE(Matrix4Test, MathTestTypes);
+TYPED_TEST_CASE(MathMatrix4Test, MathTestTypes);
 
-TYPED_TEST(Matrix4Test, Constructor)
+TYPED_TEST(MathMatrix4Test, Constructor)
 {
 	typedef TypeParam T;
 	for (int i = 0; i < 4; i++)
@@ -164,7 +164,7 @@ TYPED_TEST(Matrix4Test, Constructor)
 	}
 }
 
-TYPED_TEST(Matrix4Test, Accessor)
+TYPED_TEST(MathMatrix4Test, Accessor)
 {
 	typedef TypeParam T;
 	for (int i = 0; i < 4; i++)
@@ -176,7 +176,7 @@ TYPED_TEST(Matrix4Test, Accessor)
 	}
 }
 
-TYPED_TEST(Matrix4Test, Multiply)
+TYPED_TEST(MathMatrix4Test, Multiply)
 {
 	typedef TypeParam T;
 	EXPECT_TRUE(ExpectMat4Near(m1s2, m1 * T(2)));

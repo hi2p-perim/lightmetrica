@@ -21,3 +21,43 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+
+#ifndef __LIB_NANON_MATH_SIMD_H__
+#define __LIB_NANON_MATH_SIMD_H__
+
+#include "simdsupport.h"
+
+#ifdef NANON_FORCE_NO_SIMD
+	#undef NANON_USE_SSE
+	#undef NANON_USE_SSE2
+	#undef NANON_USE_SSE3
+	#undef NANON_USE_SSSE3
+	#undef NANON_USE_SSE4_1
+	#undef NANON_USE_SSE4_2
+	#undef NANON_USE_SSE4A
+	#undef NANON_USE_AVX
+#endif
+
+#ifdef NANON_USE_SSE2
+#include <xmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE3
+#include <pmmintrin.h>
+#endif
+#ifdef NANON_USE_SSSE3
+#include <tmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_1
+#include <smmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4_2
+#include <nmmintrin.h>
+#endif
+#ifdef NANON_USE_SSE4A
+#include <ammintrin.h>
+#endif
+#ifdef NANON_USE_AVX
+#include <immintrin.h>
+#endif
+
+#endif // __LIB_NANON_MATH_SIMD_H__

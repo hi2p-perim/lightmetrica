@@ -25,17 +25,7 @@
 #ifndef __LIB_NANON_MATH_FUNCTIONS_H__
 #define __LIB_NANON_MATH_FUNCTIONS_H__
 
-#include "simdsupport.h"
-
+#include "math.basic.h"
 #include "math.transform.h"
-
-#ifndef NANON_FORCE_NO_SIMD
-	#ifdef NANON_USE_SSE2
-		#include "math.ssetransform.h"
-	#endif
-	#ifdef NANON_USE_AVX
-		#include "math.avxtransform.h"
-	#endif
-#endif
 
 #endif // __LIB_NANON_MATH_FUNCTIONS_H__

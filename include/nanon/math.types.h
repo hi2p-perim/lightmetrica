@@ -25,28 +25,10 @@
 #ifndef __LIB_NANON_MATH_TYPES_H__
 #define __LIB_NANON_MATH_TYPES_H__
 
-#include "math.common.h"
-#include "simdsupport.h"
-
-// Generic implementation of math functions
-// if there is no SIMD support the implementation is used instead.
 #include "math.vector.h"
 #include "math.matrix.h"
 #include "math.quat.h"
-
-// Specialized implementation optimized by SIMD instructions
-#ifndef NANON_FORCE_NO_SIMD
-	#ifdef NANON_USE_SSE2
-		#include "math.ssevector.h"
-		#include "math.ssematrix.h"
-		#include "math.ssequat.h"
-	#endif
-	#ifdef NANON_USE_AVX
-		#include "math.avxvector.h"
-		#include "math.avxmatrix.h"
-		#include "math.avxquat.h"
-	#endif
-#endif
+#include "math.constants.h"
 
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN
@@ -54,31 +36,21 @@ NANON_MATH_NAMESPACE_BEGIN
 // Define default floating point types
 #ifdef NANON_SINGLE_PRECISION
 	typedef float Float;
-	typedef Vec2f Vec2;
-	typedef Vec3f Vec3;
-	typedef Vec4f Vec4;
-	typedef Mat3f Mat3;
-	typedef Mat4f Mat4;
 #elif defined(NANON_DOUBLE_PRECISION)
 	typedef double Float;
-	typedef Vec2d Vec2;
-	typedef Vec3d Vec3;
-	typedef Vec4d Vec4;
-	typedef Mat3d Mat3;
-	typedef Mat4d Mat4;
 #elif defined(NANON_MULTI_PRECISION)
-	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
-		// Default precision : 100 decimal digits
-		#define NANON_PRECISION_NUM 100
+	#ifndef NANON_ENABLE_MULTI_PRECISION
+		#error "Multiprecision support must be enabled"
 	#endif
-	typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PPRECISION_NUM>> Float;
-	typedef Vec2<Float> Vec2;
-	typedef Vec3<Float> Vec3;
-	typedef Vec4<Float> Vec4;
-	typedef Mat3<Float> Mat3;
-	typedef Mat4<Float> Mat4;
+	typedef BigFloat Float;
 #endif
+
+typedef TVec2<Float> Vec2;
+typedef TVec3<Float> Vec3;
+typedef TVec4<Float> Vec4;
+typedef TMat3<Float> Mat3;
+typedef TMat4<Float> Mat4;
+typedef TConstants<Float> Constants;
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

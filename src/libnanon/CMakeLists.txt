@@ -1,5 +1,25 @@
 #
-# Project libnanon
+#	nanon : A research-oriented renderer
+#
+#	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
+#
+#	Permission is hereby granted, free of charge, to any person obtaining a copy
+#	of this software and associated documentation files (the "Software"), to deal
+#	in the Software without restriction, including without limitation the rights
+#	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#	copies of the Software, and to permit persons to whom the Software is
+#	furnished to do so, subject to the following conditions:
+#
+#	The above copyright notice and this permission notice shall be included in
+#	all copies or substantial portions of the Software.
+#
+#	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#	THE SOFTWARE.
 #
 
 include (PCHTargets)
@@ -158,6 +178,7 @@ set(
 	_MATH_HEADERS
 	"${_INCLUDE_DIR}/math.h"
 	"${_INCLUDE_DIR}/math.common.h"
+	"${_INCLUDE_DIR}/math.simd.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math" FILES ${_MATH_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_HEADERS})
@@ -167,12 +188,10 @@ list(APPEND _HEADER_FILES ${_MATH_HEADERS})
 set(
 	_MATH_FUNCTIONS_HEADERS
 	"${_INCLUDE_DIR}/math.functions.h"
+	"${_INCLUDE_DIR}/math.basic.h"
+	"${_INCLUDE_DIR}/math.basic.inl"
 	"${_INCLUDE_DIR}/math.transform.h"
 	"${_INCLUDE_DIR}/math.transform.inl"
-	"${_INCLUDE_DIR}/math.ssetransform.h"
-	"${_INCLUDE_DIR}/math.ssetransform.inl"
-	"${_INCLUDE_DIR}/math.avxtransform.h"
-	"${_INCLUDE_DIR}/math.avxtransform.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
@@ -188,31 +207,10 @@ set(
 	"${_INCLUDE_DIR}/math.matrix.inl"
 	"${_INCLUDE_DIR}/math.quat.h"
 	"${_INCLUDE_DIR}/math.quat.inl"
-	"${_INCLUDE_DIR}/math.ssevector.h"
-	"${_INCLUDE_DIR}/math.ssevector.inl"
-	"${_INCLUDE_DIR}/math.ssematrix.h"
-	"${_INCLUDE_DIR}/math.ssematrix.inl"
-	"${_INCLUDE_DIR}/math.ssequat.h"
-	"${_INCLUDE_DIR}/math.ssequat.inl"
-	"${_INCLUDE_DIR}/math.avxvector.h"
-	"${_INCLUDE_DIR}/math.avxvector.inl"
-	"${_INCLUDE_DIR}/math.avxmatrix.h"
-	"${_INCLUDE_DIR}/math.avxmatrix.inl"
-	"${_INCLUDE_DIR}/math.avxquat.h"
-	"${_INCLUDE_DIR}/math.avxquat.inl"
+	"${_INCLUDE_DIR}/math.constants.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
-
-#
-
-set(
-	_MATH_SIMD_HEADERS
-	"${_INCLUDE_DIR}/math.sse.h"
-	"${_INCLUDE_DIR}/math.avx.h"
-)
-source_group("${_HEADER_FILES_ROOT}\\math\\simd" FILES ${_MATH_SIMD_HEADERS})
-list(APPEND _HEADER_FILES ${_MATH_SIMD_HEADERS})
 
 #
 

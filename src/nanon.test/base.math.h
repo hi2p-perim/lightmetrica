@@ -26,32 +26,23 @@
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
-#include <nanon/math.types.h>
-#include <cmath>
-#include <boost/multiprecision/cpp_dec_float.hpp>
+#define NANON_ENABLE_MULTIPRECISION
+#include <nanon/math.h>
 
 namespace mp = boost::multiprecision;
 
 NANON_TEST_NAMESPACE_BEGIN
 
-//typedef mp::number<mp::cpp_dec_float<100>, mp::et_off> BigFloat;
-typedef mp::cpp_dec_float_50 BigFloat;
-typedef ::testing::Types<float, double, BigFloat> MathTestTypes;
+typedef ::testing::Types<float, double, nanon::Math::BigFloat> MathTestTypes;
 
 template <typename T>
 class MathTestBase : public TestBase {};
 
 template <typename T>
-NANON_FORCE_INLINE T Epsilon()
-{
-	return std::numeric_limits<T>::epsilon();
-}
-
-template <typename T>
 NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
 	T diff = std::abs(expected - actual);
-	T epsilon = Epsilon<T>();
+	T epsilon = nanon::Math::TConstants<T>::EpsLarge;
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << epsilon << " )";
@@ -63,10 +54,10 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, cons
 }
 
 template <>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<BigFloat>(const BigFloat& expected, const BigFloat& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<nanon::Math::BigFloat>(const nanon::Math::BigFloat& expected, const nanon::Math::BigFloat& actual)
 {
-	BigFloat diff = mp::abs(expected - actual);
-	BigFloat epsilon = Epsilon<BigFloat>();
+	nanon::Math::BigFloat diff = mp::abs(expected - actual);
+	nanon::Math::BigFloat epsilon = nanon::Math::TConstants<nanon::Math::BigFloat>::EpsLarge;
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << epsilon.str() << " )";

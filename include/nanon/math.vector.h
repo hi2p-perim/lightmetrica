@@ -26,6 +26,7 @@
 #define __LIB_NANON_VECTOR_H__
 
 #include "math.common.h"
+#include "math.simd.h"
 
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN
@@ -50,6 +51,19 @@ struct TVec2
 	NANON_FORCE_INLINE TVec2<T>& operator=(const TVec2<T>& v);
 
 };
+
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator+(const TVec2<T>& v1, const TVec2<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(T s, const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v1, const TVec2<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(T s, const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2);
+
+template <typename T> NANON_FORCE_INLINE T Length(const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE T Length2(const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec2<T> Normalize(const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE T Dot(const TVec2<T>& v1, const TVec2<T>& v2);
 
 typedef TVec2<float> Vec2f;
 typedef TVec2<double> Vec2d;
@@ -78,6 +92,11 @@ struct TVec3
 
 };
 
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator+(const TVec3<T>& v1, const TVec3<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(T s, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, const TVec3<T>& v2);
+
 typedef TVec3<float> Vec3f;
 typedef TVec3<double> Vec3d;
 typedef TVec3<int> Vec3i;
@@ -105,9 +124,146 @@ struct TVec4
 
 };
 
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator+(const TVec4<T>& v1, const TVec4<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(T s, const TVec4<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, const TVec4<T>& v2);
+
 typedef TVec4<float> Vec4f;
 typedef TVec4<double> Vec4d;
 typedef TVec4<int> Vec4i;
+
+// --------------------------------------------------------------------------------
+
+#ifdef NANON_USE_SSE2
+
+/*!
+	SSE optimized 3D vector.
+	Specialized version of TVec3 optimized by SSE.
+*/
+template <>
+struct NANON_ALIGN_16 TVec3<float>
+{
+
+	union
+	{
+		__m128 v;
+		struct { float x, y, z, _; };
+	};
+	
+	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec3f& v);
+	NANON_FORCE_INLINE TVec3(float v);
+	NANON_FORCE_INLINE TVec3(__m128 v);
+	NANON_FORCE_INLINE TVec3(float x, float y, float z);
+	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec3f& operator=(const Vec3f& v);
+
+};
+
+template <> NANON_FORCE_INLINE Vec3f operator+(const Vec3f& v1, const Vec3f& v2);
+template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, float s);
+template <> NANON_FORCE_INLINE Vec3f operator*(float s, const Vec3f& v);
+template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v1, const Vec3f& v2);
+
+// --------------------------------------------------------------------------------
+
+/*!
+	SSE optimized 4D vector.
+	Specialized version of TVec4 optimized by SSE.
+*/
+template <>
+struct NANON_ALIGN_16 TVec4<float>
+{
+
+	union
+	{
+		__m128 v;
+		struct { float x, y, z, w; };
+	};
+	
+	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec4f& v);
+	NANON_FORCE_INLINE TVec4(float v);
+	NANON_FORCE_INLINE TVec4(__m128 v);
+	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
+	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec4f& operator=(const Vec4f& v);
+
+};
+
+template <> NANON_FORCE_INLINE Vec4f operator+(const Vec4f& v1, const Vec4f& v2);
+template <> NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v, float s);
+template <> NANON_FORCE_INLINE Vec4f operator*(float s, const Vec4f& v);
+template <> NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v1, const Vec4f& v2);
+
+#endif
+
+// --------------------------------------------------------------------------------
+
+#ifdef NANON_USE_AVX
+
+/*!
+	AVX optimized 3D vector.
+	Specialized version of TVec3 optimized by AVX.
+*/
+template <>
+struct NANON_ALIGN_16 TVec3<double>
+{
+
+	union
+	{
+		__m256d v;
+		struct { double x, y, z, _; };
+	};
+	
+	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec3d& v);
+	NANON_FORCE_INLINE TVec3(double v);
+	NANON_FORCE_INLINE TVec3(__m256d v);
+	NANON_FORCE_INLINE TVec3(double x, double y, double z);
+	NANON_FORCE_INLINE double operator[](int i) const;
+	NANON_FORCE_INLINE Vec3d& operator=(const Vec3d& v);
+
+};
+
+template <> NANON_FORCE_INLINE Vec3d operator+(const Vec3d& v1, const Vec3d& v2);
+template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, double s);
+template <> NANON_FORCE_INLINE Vec3d operator*(double s, const Vec3d& v);
+template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v1, const Vec3d& v2);
+
+// --------------------------------------------------------------------------------
+
+/*!
+	AVX optimized 4D vector.
+	Specialized version of TVec4 optimized by AVX.
+*/
+template <>
+struct NANON_ALIGN_16 TVec4<double>
+{
+
+	union
+	{
+		__m256d v;
+		struct { double x, y, z, w; };
+	};
+	
+	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec4d& v);
+	NANON_FORCE_INLINE TVec4(double v);
+	NANON_FORCE_INLINE TVec4(__m256d v);
+	NANON_FORCE_INLINE TVec4(double x, double y, double z, double w);
+	NANON_FORCE_INLINE double operator[](int i) const;
+	NANON_FORCE_INLINE Vec4d& operator=(const Vec4d& v);
+
+};
+
+template <> NANON_FORCE_INLINE Vec4d operator+(const Vec4d& v1, const Vec4d& v2);
+template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, double s);
+template <> NANON_FORCE_INLINE Vec4d operator*(double s, const Vec4d& v);
+template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2);
+
+#endif
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
