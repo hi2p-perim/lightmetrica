@@ -56,8 +56,8 @@ template <typename T> const T TConstants<T>::Pi = boost::math::constants::pi<T>(
 template <typename T> const T TConstants<T>::InvTwoPi = boost::math::constants::one_div_two_pi()<T>();
 template <typename T> const T TConstants<T>::Inf = std::numeric_limits<T>::infinity();
 template <typename T> const T TConstants<T>::Eps = std::numeric_limits<T>::epsilon();
-template <typename T> const T TConstants<T>::EpsLarge = T(1e-15);
-template <> const float TConstants<float>::EpsLarge = 1e-5f;
+template <typename T> const T TConstants<T>::EpsLarge = T(1e-10);
+template <> const float TConstants<float>::EpsLarge = 1e-3f;
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

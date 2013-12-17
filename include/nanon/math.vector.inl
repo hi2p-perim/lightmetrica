@@ -347,6 +347,42 @@ NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, const TVec4<T>& v2)
 	return TVec4<T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
 }
 
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v, T s)
+{
+	return TVec4<T>(v.x / s, v.y / s, v.z / s, v.w / s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return TVec4<T>(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Length(const TVec4<T>& v)
+{
+	return Math::Sqrt(Math::Length2(v));
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Length2(const TVec4<T>& v)
+{
+	return Dot(v, v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> Normalize(const TVec4<T>& v)
+{
+	return v / Length(v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Dot(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
+}
+
 // --------------------------------------------------------------------------------
 
 #ifdef NANON_USE_SSE2
@@ -459,24 +495,80 @@ NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
 	return *this;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4f operator+(const Vec4f& v1, const Vec4f& v2)
 {
 	return Vec4f(_mm_add_ps(v1.v, v2.v));
 }
 
+template <>
 NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v, float s)
 {
 	return Vec4f(_mm_mul_ps(v.v, _mm_set1_ps(s)));
 }
 
+template <>
 NANON_FORCE_INLINE Vec4f operator*(float s, const Vec4f& v)
 {
 	return v * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v1, const Vec4f& v2)
 {
 	return Vec4f(_mm_mul_ps(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v, float s)
+{
+	return v / Vec4f(s);
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v1, const Vec4f& v2)
+{
+	return Vec4f(_mm_div_ps(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE float Length(const Vec4f& v)
+{
+#ifdef NANON_USE_SSE4_1
+	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v.v, v.v, 0xf1)));
+#else
+#error "TODO"
+#endif
+}
+
+template <>
+NANON_FORCE_INLINE float Length2(const Vec4f& v)
+{
+#ifdef NANON_USE_SSE4_1
+	return _mm_cvtss_f32(_mm_dp_ps(v.v, v.v, 0xf1));
+#else
+#error "TODO"
+#endif
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f Normalize(const Vec4f& v)
+{
+#ifdef NANON_USE_SSE4_1
+	return Vec4f(_mm_mul_ps(v.v, _mm_rsqrt_ps(_mm_dp_ps(v.v, v.v, 0xff))));
+#else
+#error "TODO"
+#endif
+}
+
+template <>
+NANON_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2)
+{
+#ifdef NANON_USE_SSE4_1
+	return _mm_cvtss_f32(_mm_dp_ps(v1.v, v2.v, 0xf1));
+#else
+#error "TODO"
+#endif
 }
 
 #endif
@@ -526,21 +618,25 @@ NANON_FORCE_INLINE Vec3d& TVec3<double>::operator=(const Vec3d& v)
 	return *this;
 }
 
+template <>
 NANON_FORCE_INLINE Vec3d operator+(const Vec3d& v1, const Vec3d& v2)
 {
 	return Vec3d(_mm256_add_pd(v1.v, v2.v));
 }
 
+template <>
 NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, double s)
 {
 	return Vec3d(_mm256_mul_pd(v.v, _mm256_set1_pd(s)));
 }
 
+template <>
 NANON_FORCE_INLINE Vec3d operator*(double s, const Vec3d& v)
 {
 	return v * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v1, const Vec3d& v2)
 {
 	return Vec3d(_mm256_mul_pd(v1.v, v2.v));
@@ -589,21 +685,25 @@ NANON_FORCE_INLINE Vec4d& TVec4<double>::operator=(const Vec4d& v)
 	return *this;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4d operator+(const Vec4d& v1, const Vec4d& v2)
 {
 	return Vec4d(_mm256_add_pd(v1.v, v2.v));
 }
 
+template <>
 NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, double s)
 {
 	return Vec4d(_mm256_mul_pd(v.v, _mm256_set1_pd(s)));
 }
 
+template <>
 NANON_FORCE_INLINE Vec4d operator*(double s, const Vec4d& v)
 {
 	return v * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2)
 {
 	return Vec4d(_mm256_mul_pd(v1.v, v2.v));

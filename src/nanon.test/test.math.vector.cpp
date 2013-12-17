@@ -191,11 +191,12 @@ public:
 	{
 		v1 = Math::TVec4<T>(T(1), T(2), T(3), T(4));
 		v2 = Math::TVec4<T>(T(4), T(3), T(2), T(1));
+		v3 = Math::TVec4<T>(T(1), T(2), T(0), T(2));
 	}
 
 protected:
 
-	Math::TVec4<T> v1, v2;
+	Math::TVec4<T> v1, v2, v3;
 
 };
 
@@ -227,7 +228,7 @@ TYPED_TEST(MathVector4Test, Add)
 	EXPECT_TRUE(ExpectVec4Near(v1plusv2, v2 + v1));
 }
 
-TYPED_TEST(MathVector4Test, Multiply)
+TYPED_TEST(MathVector4Test, MultiplyDivide)
 {
 	typedef TypeParam T;
 	Math::TVec4<T> v1s2(T(2), T(4), T(6), T(8));
@@ -235,7 +236,28 @@ TYPED_TEST(MathVector4Test, Multiply)
 	EXPECT_TRUE(ExpectVec4Near(v1s2, v1 * T(2)));
 	EXPECT_TRUE(ExpectVec4Near(v1s2, T(2) * v1));
 	EXPECT_TRUE(ExpectVec4Near(v1v2, v1 * v2));
-	EXPECT_TRUE(ExpectVec4Near(v1v2, v2 * v1));
+	EXPECT_TRUE(ExpectVec4Near(v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec4Near(v1, v1v2 / v2));
+}
+
+TYPED_TEST(MathVector4Test, Length)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(3), Math::Length(v3)));
+	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(v3)));
+}
+
+TYPED_TEST(MathVector4Test, Normalize)
+{
+	typedef TypeParam T;
+	Math::TVec4<T> expect = v3 / T(3);
+	EXPECT_TRUE(ExpectVec4Near(expect, Math::Normalize(v3)));
+}
+
+TYPED_TEST(MathVector4Test, Dot)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(20), Math::Dot(v1, v2)));
 }
 
 NANON_TEST_NAMESPACE_END

@@ -48,8 +48,8 @@ NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& a
 	T c = Cos(Radians(angle));
 	T s = Sin(Radians(angle));
 
-	TMat4<T> a = Normalize(axis);
-	TMat4<T> t = (T(1) - c) * a;
+	TVec3<T> a = Normalize(axis);
+	TVec3<T> t = (T(1) - c) * a;
 
 	TMat4<T> rot;
 	rot[0][0] = c + t[0] * a[0];
@@ -76,6 +76,45 @@ NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
 {
 	return Rotate(TMat4<T>::Identity(), angle, axis);
 }
+
+#ifdef NANON_USE_SSE2
+
+//template <>
+//NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
+//{
+//	float c = Cos(Radians(angle));
+//	float s = Sin(Radians(angle));
+//
+//	Vec3f a = Normalize(axis);
+//	Vec3f t = (1.0f - c) * a;
+//
+//	TMat4<T> rot;
+//	rot[0][0] = c + t[0] * a[0];
+//	rot[0][1] =     t[0] * a[1] + s * a[2];
+//	rot[0][2] =     t[0] * a[2] - s * a[1];
+//	rot[1][0] =     t[1] * a[0] - s * a[2];
+//	rot[1][1] = c + t[1] * a[1];
+//	rot[1][2] =     t[1] * a[2] + s * a[0];
+//	rot[2][0] =     t[2] * a[0] + s * a[1];
+//	rot[2][1] =     t[2] * a[1] - s * a[0];
+//	rot[2][2] = c + t[2] * a[2];
+//
+//	return Mat4f::Identity();
+//}
+//
+//template <>
+//NANON_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
+//{
+//	return m * Rotate(angle, axis);
+//}
+
+#endif
+
+#ifdef NANON_USE_AVX
+
+
+
+#endif
 
 //template <typename T>
 //NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
