@@ -70,7 +70,7 @@ TYPED_TEST(MathVector2Test, Add)
 	EXPECT_TRUE(ExpectVec2Near(v1plusv2, v2 + v1));
 }
 
-TYPED_TEST(MathVector2Test, Multiply)
+TYPED_TEST(MathVector2Test, MultiplyDivide)
 {
 	typedef TypeParam T;
 	Math::TVec2<T> v1s2(T(2), T(4));
@@ -78,7 +78,8 @@ TYPED_TEST(MathVector2Test, Multiply)
 	EXPECT_TRUE(ExpectVec2Near(v1s2, v1 * T(2)));
 	EXPECT_TRUE(ExpectVec2Near(v1s2, T(2) * v1));
 	EXPECT_TRUE(ExpectVec2Near(v1v2, v1 * v2));
-	EXPECT_TRUE(ExpectVec2Near(v1v2, v2 * v1));
+	EXPECT_TRUE(ExpectVec2Near(v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec2Near(v1, v1v2 / v2));
 }
 
 TYPED_TEST(MathVector2Test, Length)
@@ -112,11 +113,12 @@ public:
 	{
 		v1 = Math::TVec3<T>(T(1), T(2), T(3));
 		v2 = Math::TVec3<T>(T(4), T(3), T(2));
+		v3 = Math::TVec3<T>(T(2), T(2), T(1));
 	}
 
 protected:
 
-	Math::TVec3<T> v1, v2;
+	Math::TVec3<T> v1, v2, v3;
 
 };
 
@@ -146,7 +148,7 @@ TYPED_TEST(MathVector3Test, Add)
 	EXPECT_TRUE(ExpectVec3Near(v1plusv2, v2 + v1));
 }
 
-TYPED_TEST(MathVector3Test, Multiply)
+TYPED_TEST(MathVector3Test, MultiplyDivide)
 {
 	typedef TypeParam T;
 	Math::TVec3<T> v1s2(T(2), T(4), T(6));
@@ -154,7 +156,28 @@ TYPED_TEST(MathVector3Test, Multiply)
 	EXPECT_TRUE(ExpectVec3Near(v1s2, v1 * T(2)));
 	EXPECT_TRUE(ExpectVec3Near(v1s2, T(2) * v1));
 	EXPECT_TRUE(ExpectVec3Near(v1v2, v1 * v2));
-	EXPECT_TRUE(ExpectVec3Near(v1v2, v2 * v1));
+	EXPECT_TRUE(ExpectVec3Near(v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec3Near(v1, v1v2 / v2));
+}
+
+TYPED_TEST(MathVector3Test, Length)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(3), Math::Length(v3)));
+	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(v3)));
+}
+
+TYPED_TEST(MathVector3Test, Normalize)
+{
+	typedef TypeParam T;
+	Math::TVec3<T> expect = v3 / T(3);
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::Normalize(v3)));
+}
+
+TYPED_TEST(MathVector3Test, Dot)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(16), Math::Dot(v1, v2)));
 }
 
 // --------------------------------------------------------------------------------

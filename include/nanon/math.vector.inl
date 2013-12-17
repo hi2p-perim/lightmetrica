@@ -111,12 +111,6 @@ NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, T s)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec2<T> operator/(T s, const TVec2<T>& v)
-{
-	return TVec2<T>(s / v.x, s / v.y);
-}
-
-template <typename T>
 NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2)
 {
 	return TVec2<T>(v1.x / v2.x, v1.y / v2.y);
@@ -131,7 +125,7 @@ NANON_FORCE_INLINE T Length(const TVec2<T>& v)
 template <typename T>
 NANON_FORCE_INLINE T Length2(const TVec2<T>& v)
 {
-	return v.x * v.x + v.y * v.y;
+	return Dot(v, v);
 }
 
 template <typename T>
@@ -227,6 +221,42 @@ template <typename T>
 NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return TVec3<T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v, T s)
+{
+	return TVec3<T>(v.x / s, v.y / s, v.z / s);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Length(const TVec3<T>& v)
+{
+	return Math::Sqrt(Math::Length2(v));
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Length2(const TVec3<T>& v)
+{
+	return Dot(v, v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> Normalize(const TVec3<T>& v)
+{
+	return v / Length(v);
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Dot(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 // --------------------------------------------------------------------------------

@@ -57,7 +57,6 @@ template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, T
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(T s, const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v1, const TVec2<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, T s);
-template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(T s, const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec2<T>& v);
@@ -96,6 +95,13 @@ template <typename T> NANON_FORCE_INLINE TVec3<T> operator+(const TVec3<T>& v1, 
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, T s);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(T s, const TVec3<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, const TVec3<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v1, const TVec3<T>& v2);
+
+template <typename T> NANON_FORCE_INLINE T Length(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE T Length2(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec3<T> Normalize(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE T Dot(const TVec3<T>& v1, const TVec3<T>& v2);
 
 typedef TVec3<float> Vec3f;
 typedef TVec3<double> Vec3d;

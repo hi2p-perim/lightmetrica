@@ -42,40 +42,40 @@ NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v)
 	return Translate<T>(TMat4<T>::Identity(), v);
 }
 
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis)
-//{
-//	T c = Cos(Radians(angle));
-//	T s = Sin(Radians(angle));
-//
-//	auto a = Normalize(axis);
-//	auto t = (T(1) - c) * a;
-//
-//	TMat4<T> rot;
-//	rot[0][0] = c + t[0] * a[0];
-//	rot[0][1] =     t[0] * a[1] + s * a[2];
-//	rot[0][2] =     t[0] * a[2] - s * a[1];
-//	rot[1][0] =     t[1] * a[0] - s * a[2];
-//	rot[1][1] = c + t[1] * a[1];
-//	rot[1][2] =     t[1] * a[2] + s * a[0];
-//	rot[2][0] =     t[2] * a[0] + s * a[1];
-//	rot[2][1] =     t[2] * a[1] - s * a[0];
-//	rot[2][2] = c + t[2] * a[2];
-//
-//	TMat4<T> r;
-//	r[0] = m[0] * rot[0][0] + m[1] * rot[0][1] + m[2] * rot[0][2];
-//	r[1] = m[0] * rot[1][0] + m[1] * rot[1][1] + m[2] * rot[1][2];
-//	r[2] = m[0] * rot[2][0] + m[1] * rot[2][1] + m[2] * rot[2][2];
-//	r[3] = m[3];
-//
-//	return r;
-//}
-//
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
-//{
-//	return Rotate(TMat4<T>::Identity(), angle, axis);
-//}
+template <typename T>
+NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis)
+{
+	T c = Cos(Radians(angle));
+	T s = Sin(Radians(angle));
+
+	TMat4<T> a = Normalize(axis);
+	TMat4<T> t = (T(1) - c) * a;
+
+	TMat4<T> rot;
+	rot[0][0] = c + t[0] * a[0];
+	rot[0][1] =     t[0] * a[1] + s * a[2];
+	rot[0][2] =     t[0] * a[2] - s * a[1];
+	rot[1][0] =     t[1] * a[0] - s * a[2];
+	rot[1][1] = c + t[1] * a[1];
+	rot[1][2] =     t[1] * a[2] + s * a[0];
+	rot[2][0] =     t[2] * a[0] + s * a[1];
+	rot[2][1] =     t[2] * a[1] - s * a[0];
+	rot[2][2] = c + t[2] * a[2];
+
+	TMat4<T> r;
+	r[0] = m[0] * rot[0][0] + m[1] * rot[0][1] + m[2] * rot[0][2];
+	r[1] = m[0] * rot[1][0] + m[1] * rot[1][1] + m[2] * rot[1][2];
+	r[2] = m[0] * rot[2][0] + m[1] * rot[2][1] + m[2] * rot[2][2];
+	r[3] = m[3];
+
+	return r;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
+{
+	return Rotate(TMat4<T>::Identity(), angle, axis);
+}
 
 //template <typename T>
 //NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
