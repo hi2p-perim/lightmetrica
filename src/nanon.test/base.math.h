@@ -26,7 +26,7 @@
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
-#include <nanon/math.h>
+#include <nanon/math.types.h>
 #include <cmath>
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
@@ -78,7 +78,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<BigFloat>(const BigFloa
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::TVec2<T>& expect, const nanon::TVec2<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::Math::TVec2<T>& expect, const nanon::Math::TVec2<T>& actual)
 {
 	for (int i = 0; i < 2; i++)
 	{
@@ -93,7 +93,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::TVec2<
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::TVec3<T>& expect, const nanon::TVec3<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::Math::TVec3<T>& expect, const nanon::Math::TVec3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -108,7 +108,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::TVec3<
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<T>& expect, const nanon::TVec4<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::Math::TVec4<T>& expect, const nanon::Math::TVec4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -123,7 +123,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::TVec4<
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::TMat3<T>& expect, const nanon::TMat3<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::Math::TMat3<T>& expect, const nanon::Math::TMat3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -141,7 +141,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::TMat3<
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const nanon::TMat4<T>& expect, const nanon::TMat4<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const nanon::Math::TMat4<T>& expect, const nanon::Math::TMat4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{

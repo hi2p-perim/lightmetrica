@@ -22,13 +22,13 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATRIX_H__
-#define __LIB_NANON_MATRIX_H__
+#ifndef __LIB_NANON_MATH_MATRIX_H__
+#define __LIB_NANON_MATH_MATRIX_H__
 
-#include "common.h"
-#include "vector.h"
+#include "math.vector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 /*!
 	3x3 matrix.
@@ -112,8 +112,9 @@ typedef TMat4<float> Mat4f;
 typedef TMat4<double> Mat4d;
 typedef TMat4<int> Mat4i;
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#include "matrix.inl"
+#include "math.matrix.inl"
 
-#endif // __LIB_NANON_MATRIX_H__
+#endif // __LIB_NANON_MATH_MATRIX_H__

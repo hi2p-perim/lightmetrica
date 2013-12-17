@@ -22,9 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "matrix.h"
+#include "math.matrix.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 template <typename T>
 NANON_FORCE_INLINE TMat3<T>::TMat3()
@@ -256,4 +257,5 @@ NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m1, const TMat4<T>& m2)
 	return TMat4<T>(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
 }
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

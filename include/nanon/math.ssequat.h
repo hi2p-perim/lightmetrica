@@ -22,10 +22,8 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATH_H__
-#define __LIB_NANON_MATH_H__
+#ifndef __LIB_NANON_SSE_MATH_QUAT_H__
+#define __LIB_NANON_SSE_MATH_QUAT_H__
 
-#include "math.types.h"
-#include "math.functions.h"
 
-#endif // __LIB_NANON_MATH_H__
+#endif // __LIB_NANON_SSE_MATH_QUAT_H__

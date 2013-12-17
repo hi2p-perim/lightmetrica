@@ -25,9 +25,10 @@
 #ifndef __LIB_NANON_VECTOR_H__
 #define __LIB_NANON_VECTOR_H__
 
-#include "common.h"
+#include "math.common.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 /*!
 	2D vector.
@@ -108,8 +109,9 @@ typedef TVec4<float> Vec4f;
 typedef TVec4<double> Vec4d;
 typedef TVec4<int> Vec4i;
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#include "vector.inl"
+#include "math.vector.inl"
 
 #endif // __LIB_NANON_VECTOR_H__

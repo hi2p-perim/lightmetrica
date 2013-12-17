@@ -22,9 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "avxvector.h"
+#include "math.avxvector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 NANON_FORCE_INLINE TVec3<double>::TVec3()
 	: v(_mm256_setzero_pd())
@@ -140,4 +141,5 @@ NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2)
 	return Vec4d(_mm256_mul_pd(v1.v, v2.v));
 }
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

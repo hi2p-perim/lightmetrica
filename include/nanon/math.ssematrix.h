@@ -22,13 +22,14 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_SSE_MATRIX_H__
-#define __LIB_NANON_SSE_MATRIX_H__
+#ifndef __LIB_NANON_SSE_MATH_MATRIX_H__
+#define __LIB_NANON_SSE_MATH_MATRIX_H__
 
-#include "matrix.h"
-#include "ssevector.h"
+#include "math.matrix.h"
+#include "math.ssevector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 /*!
 	SSE optimized 3x3 matrix.
@@ -91,8 +92,9 @@ struct NANON_ALIGN_16 TMat4<float>
 
 };
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#include "ssematrix.inl"
+#include "math.ssematrix.inl"
 
-#endif //__LIB_NANON_SSE_MATRIX_H__
+#endif //__LIB_NANON_SSE_MATH_MATRIX_H__

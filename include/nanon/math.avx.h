@@ -22,31 +22,15 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_SSE_H__
-#define __LIB_NANON_SSE_H__
+#ifndef __LIB_NANON_MATH_AVX_H__
+#define __LIB_NANON_MATH_AVX_H__
 
 #include "simdsupport.h"
 
-#if !defined(NANON_USE_SSE) || !defined(NANON_USE_SSE2)
-#error "This header requires the support of SSE and SSE2"
+#if !defined(NANON_USE_AVX)
+#error "This header requires the support of AVX"
 #endif
 
-#include <xmmintrin.h>
+#include <immintrin.h>
 
-#ifdef NANON_USE_SSE3
-#include <pmmintrin.h>
-#endif
-#ifdef NANON_USE_SSSE3
-#include <tmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_1
-#include <smmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4_2
-#include <nmmintrin.h>
-#endif
-#ifdef NANON_USE_SSE4A
-#include <ammintrin.h>
-#endif
-
-#endif // __LIB_NANON_SSE_H__
+#endif // __LIB_NANON_MATH_AVX_H__

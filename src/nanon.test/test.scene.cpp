@@ -176,13 +176,13 @@ TEST_F(SceneTest, Load)
 	ASSERT_NE(nullptr, node1);
 	EXPECT_EQ("stub", node1->mesh->Type());
 	EXPECT_EQ("stub", node1->bsdf->Type());
-	EXPECT_TRUE(ExpectMat4Near(Mat4::Identity(), node1->transform));
+	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node1->transform));
 	
 	const auto* node2 = scene.PrimitiveByID("node2");
 	ASSERT_NE(nullptr, node2);
 	EXPECT_EQ("stub", node2->mesh->Type());
 	EXPECT_EQ("stub", node2->bsdf->Type());
-	EXPECT_TRUE(ExpectMat4Near(Mat4::Identity(), node2->transform));
+	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node2->transform));
 }
 
 TEST_F(SceneTest, Load_WithTransform)
@@ -193,7 +193,7 @@ TEST_F(SceneTest, Load_WithTransform)
 	ASSERT_NE(nullptr, node1);
 
 	auto transform = node1->transform;
-	Mat4 expected(
+	Math::Mat4 expected(
 		2, 0, 0, 0,
 		0, 2, 0, 0,
 		0, 0, 2, 0,

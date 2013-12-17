@@ -25,27 +25,17 @@
 #ifndef __LIB_NANON_MATH_FUNCTIONS_H__
 #define __LIB_NANON_MATH_FUNCTIONS_H__
 
-#include "matrix.h"
+#include "simdsupport.h"
 
-NANON_NAMESPACE_BEGIN
+#include "math.transform.h"
 
-namespace MathFunc
-{
-
-	// Transform
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up);
-	template <typename T> NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
-
-}
-
-NANON_NAMESPACE_END
-
-#include "mathfunctions.inl"
+#ifndef NANON_FORCE_NO_SIMD
+	#ifdef NANON_USE_SSE2
+		#include "math.ssetransform.h"
+	#endif
+	#ifdef NANON_USE_AVX
+		#include "math.avxtransform.h"
+	#endif
+#endif
 
 #endif // __LIB_NANON_MATH_FUNCTIONS_H__

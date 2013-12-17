@@ -22,9 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "ssevector.h"
+#include "math.ssevector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 NANON_FORCE_INLINE TVec3<float>::TVec3()
 	: v(_mm_setzero_ps())
@@ -140,4 +141,5 @@ NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v1, const Vec4f& v2)
 	return Vec4f(_mm_mul_ps(v1.v, v2.v));
 }
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

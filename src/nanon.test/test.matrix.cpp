@@ -36,36 +36,36 @@ public:
 
 	Matrix3Test()
 	{
-		m1 = TMat3<T>(
+		m1 = Math::TMat3<T>(
 			T(1), T(2), T(3),
 			T(4), T(5), T(6),
 			T(7), T(8), T(9));
 
-		m2 = TMat3<T>(
+		m2 = Math::TMat3<T>(
 			T(1), T(4), T(7),
 			T(2), T(5), T(8),
 			T(3), T(6), T(9));
 
-		m1s2 = TMat3<T>(
+		m1s2 = Math::TMat3<T>(
 			T(2), T(4), T(6),
 			T(8), T(10), T(12),
 			T(14), T(16), T(18));
 
-		m1m2 = TMat3<T>(
+		m1m2 = Math::TMat3<T>(
 			T(66), T(78), T(90),
 			T(78), T(93), T(108),
 			T(90), T(108), T(126));
 
-		v1 = TVec3<T>(T(3), T(2), T(1));
-		m1v1 = TVec3<T>(T(18), T(24), T(30));
+		v1 = Math::TVec3<T>(T(3), T(2), T(1));
+		m1v1 = Math::TVec3<T>(T(18), T(24), T(30));
 	}
 
 protected:
 
-	TMat3<T> zero, identity;
-	TMat3<T> m1, m2, m3;
-	TMat3<T> m1s2, m1m2;
-	TVec3<T> v1, m1v1;
+	Math::TMat3<T> zero, identity;
+	Math::TMat3<T> m1, m2, m3;
+	Math::TMat3<T> m1s2, m1m2;
+	Math::TVec3<T> v1, m1v1;
 
 };
 
@@ -113,40 +113,40 @@ public:
 
 	Matrix4Test()
 	{
-		m1 = TMat4<T>(
+		m1 = Math::TMat4<T>(
 			T(1), T(2), T(3), T(4),
 			T(5), T(6), T(7), T(8),
 			T(9), T(10), T(11), T(12),
 			T(13), T(14), T(15), T(16));
 
-		m2 = TMat4<T>(
+		m2 = Math::TMat4<T>(
 			T(1), T(5), T(9), T(13),
 			T(2), T(6), T(10), T(14),
 			T(3), T(7), T(11), T(15),
 			T(4), T(8), T(12), T(16));
 
-		m1s2 = TMat4<T>(
+		m1s2 = Math::TMat4<T>(
 			T(2), T(4), T(6), T(8),
 			T(10), T(12), T(14), T(16),
 			T(18), T(20), T(22), T(24),
 			T(26), T(28), T(30), T(32));
 
-		m1m2 = TMat4<T>(
+		m1m2 = Math::TMat4<T>(
 			T(276), T(304), T(332), T(360),
 			T(304), T(336), T(368), T(400),
 			T(332), T(368), T(404), T(440),
 			T(360), T(400), T(440), T(480));
 
-		v1 = TVec4<T>(T(4), T(3), T(2), T(1));
-		m1v1 = TVec4<T>(T(50), T(60), T(70), T(80));
+		v1 = Math::TVec4<T>(T(4), T(3), T(2), T(1));
+		m1v1 = Math::TVec4<T>(T(50), T(60), T(70), T(80));
 	}
 
 protected:
 
-	TMat4<T> zero, identity;
-	TMat4<T> m1, m2, m3;
-	TMat4<T> m1s2, m1m2;
-	TVec4<T> v1, m1v1;
+	Math::TMat4<T> zero, identity;
+	Math::TMat4<T> m1, m2, m3;
+	Math::TMat4<T> m1s2, m1m2;
+	Math::TVec4<T> v1, m1v1;
 
 };
 

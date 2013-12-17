@@ -22,66 +22,68 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_AVX_VECTOR_H__
-#define __LIB_NANON_AVX_VECTOR_H__
+#ifndef __LIB_NANON_SSE_VECTOR_H__
+#define __LIB_NANON_SSE_VECTOR_H__
 
-#include "vector.h"
-#include "avx.h"
+#include "math.vector.h"
+#include "math.sse.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 /*!
-	AVX optimized 3D vector.
-	Specialized version of TVec3 optimized by AVX.
+	SSE optimized 3D vector.
+	Specialized version of TVec3 optimized by SSE.
 */
 template <>
-struct NANON_ALIGN_16 TVec3<double>
+struct NANON_ALIGN_16 TVec3<float>
 {
 
 	union
 	{
-		__m256d v;
-		struct { double x, y, z, w; };
+		__m128 v;
+		struct { float x, y, z, _; };
 	};
 	
 	NANON_FORCE_INLINE TVec3();
-	NANON_FORCE_INLINE TVec3(const Vec3d& v);
-	NANON_FORCE_INLINE TVec3(double v);
-	NANON_FORCE_INLINE TVec3(__m256d v);
-	NANON_FORCE_INLINE TVec3(double x, double y, double z);
-	NANON_FORCE_INLINE double operator[](int i) const;
-	NANON_FORCE_INLINE Vec3d& operator=(const Vec3d& v);
+	NANON_FORCE_INLINE TVec3(const Vec3f& v);
+	NANON_FORCE_INLINE TVec3(float v);
+	NANON_FORCE_INLINE TVec3(__m128 v);
+	NANON_FORCE_INLINE TVec3(float x, float y, float z);
+	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec3f& operator=(const Vec3f& v);
 
 };
 
 // --------------------------------------------------------------------------------
 
 /*!
-	AVX optimized 4D vector.
-	Specialized version of TVec4 optimized by AVX.
+	SSE optimized 4D vector.
+	Specialized version of TVec4 optimized by SSE.
 */
 template <>
-struct NANON_ALIGN_16 TVec4<double>
+struct NANON_ALIGN_16 TVec4<float>
 {
 
 	union
 	{
-		__m256d v;
-		struct { double x, y, z, w; };
+		__m128 v;
+		struct { float x, y, z, w; };
 	};
 	
 	NANON_FORCE_INLINE TVec4();
-	NANON_FORCE_INLINE TVec4(const Vec4d& v);
-	NANON_FORCE_INLINE TVec4(double v);
-	NANON_FORCE_INLINE TVec4(__m256d v);
-	NANON_FORCE_INLINE TVec4(double x, double y, double z, double w);
-	NANON_FORCE_INLINE double operator[](int i) const;
-	NANON_FORCE_INLINE Vec4d& operator=(const Vec4d& v);
+	NANON_FORCE_INLINE TVec4(const Vec4f& v);
+	NANON_FORCE_INLINE TVec4(float v);
+	NANON_FORCE_INLINE TVec4(__m128 v);
+	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
+	NANON_FORCE_INLINE float operator[](int i) const;
+	NANON_FORCE_INLINE Vec4f& operator=(const Vec4f& v);
 
 };
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#include "avxvector.inl"
+#include "math.ssevector.inl"
 
-#endif // __LIB_NANON_AVX_VECTOR_H__
+#endif // __LIB_NANON_SSE_VECTOR_H__

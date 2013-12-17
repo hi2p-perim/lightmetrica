@@ -22,15 +22,8 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_AVX_H__
-#define __LIB_NANON_AVX_H__
+#ifndef __LIB_NANON_MATH_QUAT_H__
+#define __LIB_NANON_MATH_QUAT_H__
 
-#include "simdsupport.h"
 
-#if !defined(NANON_USE_AVX)
-#error "This header requires the support of AVX"
-#endif
-
-#include <immintrin.h>
-
-#endif // __LIB_NANON_AVX_H__
+#endif // __LIB_NANON_MATH_QUAT_H__

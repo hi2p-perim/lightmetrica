@@ -22,10 +22,12 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_MATH_H__
-#define __LIB_NANON_MATH_H__
+#ifndef __LIB_NANON_MATH_COMMON_H__
+#define __LIB_NANON_MATH_COMMON_H__
 
-#include "math.types.h"
-#include "math.functions.h"
+#include "common.h"
 
-#endif // __LIB_NANON_MATH_H__
+#define NANON_MATH_NAMESPACE_BEGIN namespace Math {
+#define NANON_MATH_NAMESPACE_END }
+
+#endif // __LIB_NANON_MATH_COMMON_H__

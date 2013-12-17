@@ -22,8 +22,9 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_SSE_QUAT_H__
-#define __LIB_NANON_SSE_QUAT_H__
+#ifndef __LIB_NANON_MATH_AVX_QUAT_H__
+#define __LIB_NANON_MATH_AVX_QUAT_H__
 
 
-#endif // __LIB_NANON_SSE_QUAT_H__
+
+#endif // __LIB_NANON_MATH_AVX_QUAT_H__

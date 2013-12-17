@@ -22,9 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "vector.h"
+#include "math.vector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 template <typename T>
 NANON_FORCE_INLINE TVec2<T>::TVec2()
@@ -255,4 +256,5 @@ NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, const TVec4<T>& v2)
 	return TVec4<T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
 }
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

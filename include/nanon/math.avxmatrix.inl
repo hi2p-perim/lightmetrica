@@ -22,9 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "ssematrix.h"
+#include "math.ssematrix.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 NANON_FORCE_INLINE Mat3d::TMat3()
 {
@@ -231,4 +232,5 @@ NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m1, const Mat4d& m2)
 	return Mat4d(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
 }
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

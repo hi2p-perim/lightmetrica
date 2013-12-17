@@ -36,16 +36,16 @@ public:
 
 	Vector2Test()
 	{
-		v1 = TVec2<T>(T(1), T(2));
-		v2 = TVec2<T>(T(4), T(3));
-		v1s2 = TVec2<T>(T(2), T(4));
-		v1v2 = TVec2<T>(T(4), T(6));
+		v1 = Math::TVec2<T>(T(1), T(2));
+		v2 = Math::TVec2<T>(T(4), T(3));
+		v1s2 = Math::TVec2<T>(T(2), T(4));
+		v1v2 = Math::TVec2<T>(T(4), T(6));
 	}
 
 protected:
 
-	TVec2<T> v1, v2;
-	TVec2<T> v1s2, v1v2;
+	Math::TVec2<T> v1, v2;
+	Math::TVec2<T> v1s2, v1v2;
 
 };
 
@@ -82,16 +82,16 @@ public:
 
 	Vector3Test()
 	{
-		v1 = TVec3<T>(T(1), T(2), T(3));
-		v2 = TVec3<T>(T(4), T(3), T(2));
-		v1s2 = TVec3<T>(T(2), T(4), T(6));
-		v1v2 = TVec3<T>(T(4), T(6), T(6));
+		v1 = Math::TVec3<T>(T(1), T(2), T(3));
+		v2 = Math::TVec3<T>(T(4), T(3), T(2));
+		v1s2 = Math::TVec3<T>(T(2), T(4), T(6));
+		v1v2 = Math::TVec3<T>(T(4), T(6), T(6));
 	}
 
 protected:
 
-	TVec3<T> v1, v2;
-	TVec3<T> v1s2, v1v2;
+	Math::TVec3<T> v1, v2;
+	Math::TVec3<T> v1s2, v1v2;
 
 };
 
@@ -130,16 +130,16 @@ public:
 
 	Vector4Test()
 	{
-		v1 = TVec4<T>(T(1), T(2), T(3), T(4));
-		v2 = TVec4<T>(T(4), T(3), T(2), T(1));
-		v1s2 = TVec4<T>(T(2), T(4), T(6), T(8));
-		v1v2 = TVec4<T>(T(4), T(6), T(6), T(4));
+		v1 = Math::TVec4<T>(T(1), T(2), T(3), T(4));
+		v2 = Math::TVec4<T>(T(4), T(3), T(2), T(1));
+		v1s2 = Math::TVec4<T>(T(2), T(4), T(6), T(8));
+		v1v2 = Math::TVec4<T>(T(4), T(6), T(6), T(4));
 	}
 
 protected:
 
-	TVec4<T> v1, v2;
-	TVec4<T> v1s2, v1v2;
+	Math::TVec4<T> v1, v2;
+	Math::TVec4<T> v1s2, v1v2;
 
 };
 

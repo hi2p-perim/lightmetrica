@@ -26,7 +26,7 @@
 #define __LIB_NANON_PRIMITIVE_H__
 
 #include "common.h"
-#include "math.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
@@ -45,7 +45,7 @@ class Light;
 struct Primitive
 {
 
-	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf)
+	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf)
 		: transform(transform)
 		, mesh(mesh)
 		, bsdf(bsdf)
@@ -55,7 +55,7 @@ struct Primitive
 
 	}
 
-	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Camera* camera)
+	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Camera* camera)
 		: transform(transform)
 		, mesh(mesh)
 		, bsdf(bsdf)
@@ -65,7 +65,7 @@ struct Primitive
 
 	}
 
-	Primitive(const Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Light* light)
+	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Light* light)
 		: transform(transform)
 		, mesh(mesh)
 		, bsdf(bsdf)
@@ -75,7 +75,7 @@ struct Primitive
 
 	}
 
-	const Mat4 transform;
+	const Math::Mat4 transform;
 	const TriangleMesh* mesh;
 	const BSDF* bsdf;
 	const Camera* camera;

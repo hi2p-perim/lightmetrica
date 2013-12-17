@@ -22,12 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "mathfunctions.h"
+#include "math.transform.h"
 
 NANON_NAMESPACE_BEGIN
-
-namespace MathFunc
-{
+NANON_MATH_NAMESPACE_BEGIN
 
 template <typename T>
 NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v)
@@ -131,6 +129,5 @@ NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
 	return r;
 }
 
-}
-
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

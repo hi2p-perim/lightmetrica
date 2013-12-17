@@ -57,11 +57,11 @@ public:
 private:
 
 	// Traverse the scene and create primitives.
-	bool Traverse(const pugi::xml_node& node, Assets& assets, const Mat4& parentWorldTransform);
+	bool Traverse(const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform);
 
 	// Create transformation from the element 'transform'.
 	// The result is stored in the transform.
-	bool CreateTransform(const pugi::xml_node& transformNode, Mat4& transform);
+	bool CreateTransform(const pugi::xml_node& transformNode, Math::Mat4& transform);
 
 	// Resolve reference to an asset using 'ref' attribute.
 	// If 'ref' attribute is not found, returns nullptr.
@@ -129,7 +129,7 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 		NANON_LOG_ERROR("Missing 'root' node");
 		return false;
 	}
-	if (!Traverse(rootNode, assets, Mat4::Identity()))
+	if (!Traverse(rootNode, assets, Math::Mat4::Identity()))
 	{
 		Reset();
 		NANON_LOG_DEBUG_EMPTY();
@@ -140,12 +140,12 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	return true;
 }
 
-bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Mat4& parentWorldTransform )
+bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform )
 {
 	// Process transform
 
 	// Local transform
-	Mat4 localTransform;
+	Math::Mat4 localTransform;
 	auto transformNode = node.child("transform");
 	if (transformNode)
 	{
@@ -159,11 +159,11 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	else
 	{
 		// If 'transform' node does not exists, use identity as local transform
-		localTransform = Mat4::Identity();
+		localTransform = Math::Mat4::Identity();
 	}
 
 	// World transform
-	Mat4 transform;
+	Math::Mat4 transform;
 	auto globalTransformNode = node.child("global_transform");
 	if (globalTransformNode)
 	{
@@ -330,10 +330,10 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	return true;
 }
 
-bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Mat4& transform )
+bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Math::Mat4& transform )
 {
 	// Default transform
-	transform = Mat4::Identity();
+	transform = Math::Mat4::Identity();
 
 	// The element 'matrix' specifies column major, 4x4 matrix
 	auto matrixNode = transformNode.child("matrix");
@@ -354,9 +354,9 @@ bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Mat4& tr
 		}
 
 		// Convert to Float and create matrix
-		std::vector<Float> m2(16);
-		std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Float(v); });
-		transform = Mat4(&m2[0]);
+		std::vector<Math::Float> m2(16);
+		std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Math::Float(v); });
+		transform = Math::Mat4(&m2[0]);
 	}
 	else
 	{

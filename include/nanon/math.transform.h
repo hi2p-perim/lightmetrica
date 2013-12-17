@@ -22,8 +22,27 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_QUAT_H__
-#define __LIB_NANON_QUAT_H__
+#ifndef __LIB_NANON_MATH_TRANSFORM_H__
+#define __LIB_NANON_MATH_TRANSFORM_H__
 
+#include "math.matrix.h"
 
-#endif // __LIB_NANON_QUAT_H__
+NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
+
+// Transform
+template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
+
+NANON_MATH_NAMESPACE_END
+NANON_NAMESPACE_END
+
+#include "math.transform.inl"
+
+#endif // __LIB_NANON_MATH_TRANSFORM_H__

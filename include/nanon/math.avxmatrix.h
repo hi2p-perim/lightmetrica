@@ -22,13 +22,14 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_AVX_MATRIX_H__
-#define __LIB_NANON_AVX_MATRIX_H__
+#ifndef __LIB_NANON_MATH_AVX_MATRIX_H__
+#define __LIB_NANON_MATH_AVX_MATRIX_H__
 
-#include "matrix.h"
-#include "avxvector.h"
+#include "math.matrix.h"
+#include "math.avxvector.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 /*!
 	AVX optimized 3x3 matrix.
@@ -91,8 +92,9 @@ struct NANON_ALIGN_16 TMat4<double>
 
 };
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#include "avxmatrix.inl"
+#include "math.avxmatrix.inl"
 
-#endif //__LIB_NANON_AVX_MATRIX_H__
+#endif //__LIB_NANON_MATH_AVX_MATRIX_H__

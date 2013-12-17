@@ -25,30 +25,31 @@
 #ifndef __LIB_NANON_MATH_TYPES_H__
 #define __LIB_NANON_MATH_TYPES_H__
 
-#include "common.h"
+#include "math.common.h"
 #include "simdsupport.h"
 
 // Generic implementation of math functions
 // if there is no SIMD support the implementation is used instead.
-#include "vector.h"
-#include "matrix.h"
-#include "quat.h"
+#include "math.vector.h"
+#include "math.matrix.h"
+#include "math.quat.h"
 
 // Specialized implementation optimized by SIMD instructions
 #ifndef NANON_FORCE_NO_SIMD
 	#ifdef NANON_USE_SSE2
-		#include "ssevector.h"
-		#include "ssematrix.h"
-		#include "ssequat.h"
+		#include "math.ssevector.h"
+		#include "math.ssematrix.h"
+		#include "math.ssequat.h"
 	#endif
 	#ifdef NANON_USE_AVX
-		#include "avxvector.h"
-		#include "avxmatrix.h"
-		#include "avxquat.h"
+		#include "math.avxvector.h"
+		#include "math.avxmatrix.h"
+		#include "math.avxquat.h"
 	#endif
 #endif
 
 NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
 // Define default floating point types
 #ifdef NANON_SINGLE_PRECISION
@@ -79,6 +80,7 @@ NANON_NAMESPACE_BEGIN
 	typedef Mat4<Float> Mat4;
 #endif
 
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
 #endif // __LIB_NANON_MATH_TYPES_H__
