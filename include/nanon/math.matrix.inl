@@ -42,6 +42,14 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat3<T>& m)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat4<T>& m)
+{
+	v[0] = TVec3<T>(m.v[0]);
+	v[1] = TVec3<T>(m.v[1]);
+	v[2] = TVec3<T>(m.v[2]);
+}
+
+template <typename T>
 NANON_FORCE_INLINE TMat3<T>::TMat3(const T& v)
 {
 	this->v[0] = TVec3<T>(v);
@@ -273,6 +281,13 @@ NANON_FORCE_INLINE Mat3f::TMat3(const Mat3f& m)
 	v[2] = m.v[2];
 }
 
+NANON_FORCE_INLINE Mat3f::TMat3(const Mat4f& m)
+{
+	v[0] = Vec3f(m.v[0]);
+	v[1] = Vec3f(m.v[1]);
+	v[2] = Vec3f(m.v[2]);
+}
+
 NANON_FORCE_INLINE Mat3f::TMat3(float v)
 {
 	this->v[0] = Vec3f(v);
@@ -482,6 +497,13 @@ NANON_FORCE_INLINE Mat3d::TMat3(const Mat3d& m)
 	v[0] = m.v[0];
 	v[1] = m.v[1];
 	v[2] = m.v[2];
+}
+
+NANON_FORCE_INLINE Mat3d::TMat3(const Mat4d& m)
+{
+	v[0] = Vec4d(m.v[0]);
+	v[1] = Vec4d(m.v[1]);
+	v[2] = Vec4d(m.v[2]);
 }
 
 NANON_FORCE_INLINE Mat3d::TMat3(double v)

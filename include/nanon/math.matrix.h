@@ -30,6 +30,9 @@
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN
 
+template <typename T> struct TMat3;
+template <typename T> struct TMat4;
+
 /*!
 	3x3 matrix.
 	Generic column major 3x3 matrix. 
@@ -48,6 +51,7 @@ struct TMat3
 
 	NANON_FORCE_INLINE TMat3();
 	NANON_FORCE_INLINE TMat3(const TMat3<T>& m);
+	NANON_FORCE_INLINE TMat3(const TMat4<T>& m);
 	NANON_FORCE_INLINE TMat3(const T& v);
 	NANON_FORCE_INLINE TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const TVec3<T>& v2);
 	NANON_FORCE_INLINE TMat3(const T* v);
@@ -116,6 +120,9 @@ typedef TMat4<int> Mat4i;
 
 #ifdef NANON_USE_SSE2
 
+template <> struct NANON_ALIGN_16 TMat3<float>;
+template <> struct NANON_ALIGN_16 TMat4<float>;
+
 /*!
 	SSE optimized 3x3 matrix.
 	Specialized version of TMat3 optimized by SSE.
@@ -128,6 +135,7 @@ struct NANON_ALIGN_16 TMat3<float>
 
 	NANON_FORCE_INLINE TMat3();
 	NANON_FORCE_INLINE TMat3(const Mat3f& m);
+	NANON_FORCE_INLINE TMat3(const Mat4f& m);
 	NANON_FORCE_INLINE TMat3(float v);
 	NANON_FORCE_INLINE TMat3(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2);
 	NANON_FORCE_INLINE TMat3(const float* v);
@@ -183,6 +191,9 @@ struct NANON_ALIGN_16 TMat4<float>
 
 #ifdef NANON_USE_AVX
 
+template <> struct NANON_ALIGN_16 TMat3<double>;
+template <> struct NANON_ALIGN_16 TMat4<double>;
+
 /*!
 	AVX optimized 3x3 matrix.
 	Specialized version of TMat3 optimized by AVX.
@@ -195,6 +206,7 @@ struct NANON_ALIGN_16 TMat3<double>
 
 	NANON_FORCE_INLINE TMat3();
 	NANON_FORCE_INLINE TMat3(const Mat3d& m);
+	NANON_FORCE_INLINE TMat3(const Mat4d& m);
 	NANON_FORCE_INLINE TMat3(double v);
 	NANON_FORCE_INLINE TMat3(const Vec3d& v0, const Vec3d& v1, const Vec3d& v2);
 	NANON_FORCE_INLINE TMat3(const double* v);

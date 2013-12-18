@@ -45,6 +45,22 @@ NANON_FORCE_INLINE TVec2<T>::TVec2(const TVec2<T>& v)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2(const TVec3<T>& v)
+	: x(v.x)
+	, y(v.y)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T>::TVec2(const TVec4<T>& v)
+	: x(v.x)
+	, y(v.y)
+{
+
+}
+
+template <typename T>
 NANON_FORCE_INLINE TVec2<T>::TVec2(const T& v)
 	: x(v)
 	, y(v)
@@ -152,7 +168,25 @@ NANON_FORCE_INLINE TVec3<T>::TVec3()
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3(const TVec2<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(T(0))
+{
+
+}
+
+template <typename T>
 NANON_FORCE_INLINE TVec3<T>::TVec3(const TVec3<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T>::TVec3(const TVec4<T>& v)
 	: x(v.x)
 	, y(v.y)
 	, z(v.z)
@@ -266,6 +300,26 @@ NANON_FORCE_INLINE TVec4<T>::TVec4()
 	: x(T(0))
 	, y(T(0))
 	, z(T(0))
+	, w(T(0))
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec2<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(T(0))
+	, w(T(0))
+{
+
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec3<T>& v)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
 	, w(T(0))
 {
 
@@ -387,42 +441,54 @@ NANON_FORCE_INLINE T Dot(const TVec4<T>& v1, const TVec4<T>& v2)
 
 #ifdef NANON_USE_SSE2
 
-NANON_FORCE_INLINE TVec3<float>::TVec3()
+NANON_FORCE_INLINE Vec3f::TVec3()
 	: v(_mm_setzero_ps())
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<float>::TVec3(const Vec3f& v)
+NANON_FORCE_INLINE Vec3f::TVec3(const Vec2f& v)
+	: v(_mm_set_ps(0.0f, 0.0f, v.y, v.x))
+{
+
+}
+
+NANON_FORCE_INLINE Vec3f::TVec3(const Vec3f& v)
 	: v(v.v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<float>::TVec3(float v)
+NANON_FORCE_INLINE Vec3f::TVec3(const Vec4f& v)
+	: v(v.v)
+{
+	_ = 0.0f;
+}
+
+NANON_FORCE_INLINE Vec3f::TVec3(float v)
 	: v(_mm_set1_ps(v))
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<float>::TVec3(__m128 v)
+NANON_FORCE_INLINE Vec3f::TVec3(__m128 v)
 	: v(v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<float>::TVec3(float x, float y, float z)
+NANON_FORCE_INLINE Vec3f::TVec3(float x, float y, float z)
 	: v(_mm_set_ps(0.0f, z, y, x))
 {
 
 }
 
-NANON_FORCE_INLINE float TVec3<float>::operator[](int i) const
+NANON_FORCE_INLINE float Vec3f::operator[](int i) const
 {
 	return (&x)[i];
 }
 
-NANON_FORCE_INLINE Vec3f& TVec3<float>::operator=(const Vec3f& v)
+NANON_FORCE_INLINE Vec3f& Vec3f::operator=(const Vec3f& v)
 {
 	this->v = v.v;
 	return *this;
@@ -508,42 +574,54 @@ NANON_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2)
 
 // --------------------------------------------------------------------------------
 
-NANON_FORCE_INLINE TVec4<float>::TVec4()
+NANON_FORCE_INLINE Vec4f::TVec4()
 	: v(_mm_setzero_ps())
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(const Vec4f& v)
+NANON_FORCE_INLINE Vec4f::TVec4(const Vec2f& v)
+	: v(_mm_set_ps(0.0f, 0.0f, y, x))
+{
+
+}
+
+NANON_FORCE_INLINE Vec4f::TVec4(const Vec3f& v)
 	: v(v.v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(float v)
+NANON_FORCE_INLINE Vec4f::TVec4(const Vec4f& v)
+	: v(v.v)
+{
+
+}
+
+NANON_FORCE_INLINE Vec4f::TVec4(float v)
 	: v(_mm_set1_ps(v))
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(__m128 v)
+NANON_FORCE_INLINE Vec4f::TVec4(__m128 v)
 	: v(v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<float>::TVec4(float x, float y, float z, float w)
+NANON_FORCE_INLINE Vec4f::TVec4(float x, float y, float z, float w)
 	: v(_mm_set_ps(w, z, y, x))
 {
 
 }
 
-NANON_FORCE_INLINE float TVec4<float>::operator[](int i) const
+NANON_FORCE_INLINE float Vec4f::operator[](int i) const
 {
 	return (&x)[i];
 }
 
-NANON_FORCE_INLINE Vec4f& TVec4<float>::operator=(const Vec4f& v)
+NANON_FORCE_INLINE Vec4f& Vec4f::operator=(const Vec4f& v)
 {
 	this->v = v.v;
 	return *this;
@@ -631,42 +709,54 @@ NANON_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2)
 
 #ifdef NANON_USE_AVX
 
-NANON_FORCE_INLINE TVec3<double>::TVec3()
+NANON_FORCE_INLINE Vec3d::TVec3()
 	: v(_mm256_setzero_pd())
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<double>::TVec3(const Vec3d& v)
+NANON_FORCE_INLINE Vec3d::TVec3(const Vec2d& v)
+	: v(_mm256_set_pd(0, 0, v.y, v.x))
+{
+
+}
+
+NANON_FORCE_INLINE Vec3d::TVec3(const Vec3d& v)
 	: v(v.v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<double>::TVec3(double v)
+NANON_FORCE_INLINE Vec3d::TVec3(const Vec4d& v)
+	: v(v.v)
+{
+	_ = 0;
+}
+
+NANON_FORCE_INLINE Vec3d::TVec3(double v)
 	: v(_mm256_set1_pd(v))
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<double>::TVec3(__m256d v)
+NANON_FORCE_INLINE Vec3d::TVec3(__m256d v)
 	: v(v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec3<double>::TVec3(double x, double y, double z)
+NANON_FORCE_INLINE Vec3d::TVec3(double x, double y, double z)
 	: v(_mm256_set_pd(0, z, y, x))
 {
 
 }
 
-NANON_FORCE_INLINE double TVec3<double>::operator[](int i) const
+NANON_FORCE_INLINE double Vec3d::operator[](int i) const
 {
 	return (&x)[i];
 }
 
-NANON_FORCE_INLINE Vec3d& TVec3<double>::operator=(const Vec3d& v)
+NANON_FORCE_INLINE Vec3d& Vec3d::operator=(const Vec3d& v)
 {
 	this->v = v.v;
 	return *this;
@@ -741,42 +831,54 @@ NANON_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2)
 
 // --------------------------------------------------------------------------------
 
-NANON_FORCE_INLINE TVec4<double>::TVec4()
+NANON_FORCE_INLINE Vec4d::TVec4()
 	: v(_mm256_setzero_pd())
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<double>::TVec4(const Vec4d& v)
+NANON_FORCE_INLINE Vec4d::TVec4(const Vec2d& v)
+	: v(_mm256_set_pd(0, 0, v.y, v.x))
+{
+
+}
+
+NANON_FORCE_INLINE Vec4d::TVec4(const Vec3d& v)
 	: v(v.v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<double>::TVec4(double v)
+NANON_FORCE_INLINE Vec4d::TVec4(const Vec4d& v)
+	: v(v.v)
+{
+
+}
+
+NANON_FORCE_INLINE Vec4d::TVec4(double v)
 	: v(_mm256_set1_pd(v))
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<double>::TVec4(__m256d v)
+NANON_FORCE_INLINE Vec4d::TVec4(__m256d v)
 	: v(v)
 {
 
 }
 
-NANON_FORCE_INLINE TVec4<double>::TVec4(double x, double y, double z, double w)
+NANON_FORCE_INLINE Vec4d::TVec4(double x, double y, double z, double w)
 	: v(_mm256_set_pd(w, z, y, x))
 {
 
 }
 
-NANON_FORCE_INLINE double TVec4<double>::operator[](int i) const
+NANON_FORCE_INLINE double Vec4d::operator[](int i) const
 {
 	return (&x)[i];
 }
 
-NANON_FORCE_INLINE Vec4d& TVec4<double>::operator=(const Vec4d& v)
+NANON_FORCE_INLINE Vec4d& Vec4d::operator=(const Vec4d& v)
 {
 	this->v = v.v;
 	return *this;

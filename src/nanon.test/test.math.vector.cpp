@@ -55,6 +55,15 @@ TYPED_TEST(MathVector2Test, Constructor)
 	EXPECT_TRUE(ExpectNear(T(2), v1.y));
 }
 
+TYPED_TEST(MathVector2Test, Conversion)
+{
+	typedef TypeParam T;
+	Math::TVec3<T> t1(T(1), T(2), T(3));
+	Math::TVec4<T> t2(T(1), T(2), T(3), T(4));
+	EXPECT_TRUE(ExpectVec2Near(v1, Math::TVec2<T>(t1)));
+	EXPECT_TRUE(ExpectVec2Near(v1, Math::TVec2<T>(t2)));
+}
+
 TYPED_TEST(MathVector2Test, Accessor)
 {
 	typedef TypeParam T;
@@ -130,6 +139,18 @@ TYPED_TEST(MathVector3Test, Constructor)
 	EXPECT_TRUE(ExpectNear(T(1), v1.x));
 	EXPECT_TRUE(ExpectNear(T(2), v1.y));
 	EXPECT_TRUE(ExpectNear(T(3), v1.z));
+}
+
+TYPED_TEST(MathVector3Test, Conversion)
+{
+	typedef TypeParam T;
+
+	Math::TVec2<T> t1(T(1), T(2));
+	Math::TVec3<T> a1(T(1), T(2), T(0));
+	EXPECT_TRUE(ExpectVec3Near(a1, Math::TVec3<T>(t1)));
+
+	Math::TVec4<T> t2(T(1), T(2), T(3), T(4));
+	EXPECT_TRUE(ExpectVec3Near(v1, Math::TVec3<T>(t2)));
 }
 
 TYPED_TEST(MathVector3Test, Accessor)
@@ -209,6 +230,19 @@ TYPED_TEST(MathVector4Test, Constructor)
 	EXPECT_TRUE(ExpectNear(T(2), v1.y));
 	EXPECT_TRUE(ExpectNear(T(3), v1.z));
 	EXPECT_TRUE(ExpectNear(T(4), v1.w));
+}
+
+TYPED_TEST(MathVector4Test, Conversion)
+{
+	typedef TypeParam T;
+
+	Math::TVec2<T> t1(T(1), T(2));
+	Math::TVec4<T> a1(T(1), T(2), T(0), T(0));
+	EXPECT_TRUE(ExpectVec4Near(a1, Math::TVec4<T>(t1)));
+
+	Math::TVec3<T> t2(T(1), T(2), T(3));
+	Math::TVec4<T> a2(T(1), T(2), T(3), T(0));
+	EXPECT_TRUE(ExpectVec4Near(a2, Math::TVec4<T>(t2)));
 }
 
 TYPED_TEST(MathVector4Test, Accessor)

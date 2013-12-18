@@ -88,18 +88,16 @@ NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
 //	Vec3f a = Normalize(axis);
 //	Vec3f t = (1.0f - c) * a;
 //
-//	TMat4<T> rot;
-//	rot[0][0] = c + t[0] * a[0];
-//	rot[0][1] =     t[0] * a[1] + s * a[2];
-//	rot[0][2] =     t[0] * a[2] - s * a[1];
-//	rot[1][0] =     t[1] * a[0] - s * a[2];
-//	rot[1][1] = c + t[1] * a[1];
-//	rot[1][2] =     t[1] * a[2] + s * a[0];
-//	rot[2][0] =     t[2] * a[0] + s * a[1];
-//	rot[2][1] =     t[2] * a[1] - s * a[0];
-//	rot[2][2] = c + t[2] * a[2];
+//	Vec3f t1 = a * t[0];
+//	Vec3f t2 = a * t[1];
+//	Vec3f t3 = a * t[2];
 //
-//	return Mat4f::Identity();
+//	Mat3f rot(
+//		Vec3f(c, 0, 0) + a * t[0] + Vec3f( 0       ,  s * a[2], -s * a[1]),
+//		Vec3f(0, c, 0) + a * t[1] + Vec3f(-s * a[2],  0       ,  s * a[0]),
+//		Vec3f(0, 0, c) + a * t[2] + Vec3f( s * a[1], -s * a[0],  0       ));
+//
+//	return Mat4f(rot);
 //}
 //
 //template <>

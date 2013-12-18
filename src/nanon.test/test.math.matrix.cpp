@@ -83,6 +83,17 @@ TYPED_TEST(MathMatrix3Test, Constructor)
 	}
 }
 
+TYPED_TEST(MathMatrix3Test, Conversion)
+{
+	typedef TypeParam T;
+	Math::TMat4<T> t1(
+		T(1), T(2), T(3), T(4),
+		T(4), T(5), T(6), T(8),
+		T(7), T(8), T(9), T(12),
+		T(13), T(14), T(15), T(16));
+	EXPECT_TRUE(ExpectMat3Near(m1, Math::TMat3<T>(t1)));
+}
+
 TYPED_TEST(MathMatrix3Test, Accessor)
 {
 	typedef TypeParam T;

@@ -31,6 +31,10 @@
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN
 
+template <typename T> struct TVec2;
+template <typename T> struct TVec3;
+template <typename T> struct TVec4;
+
 /*!
 	2D vector.
 	Generic 2-dimensional vector.
@@ -44,6 +48,8 @@ struct TVec2
 
 	NANON_FORCE_INLINE TVec2();
 	NANON_FORCE_INLINE TVec2(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec2(const TVec4<T>& v);
 	NANON_FORCE_INLINE TVec2(const T& v);
 	NANON_FORCE_INLINE TVec2(const T& x, const T& y);
 	NANON_FORCE_INLINE T& operator[](int i);
@@ -82,7 +88,9 @@ struct TVec3
 	T x, y, z;
 
 	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const TVec2<T>& v);
 	NANON_FORCE_INLINE TVec3(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3(const TVec4<T>& v);
 	NANON_FORCE_INLINE TVec3(const T& v);
 	NANON_FORCE_INLINE TVec3(const T& x, const T& y, const T& z);
 	NANON_FORCE_INLINE T& operator[](int i);
@@ -121,6 +129,8 @@ struct TVec4
 	T x, y, z, w;
 
 	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec4(const TVec3<T>& v);
 	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);
 	NANON_FORCE_INLINE TVec4(const T& v);
 	NANON_FORCE_INLINE TVec4(const T& x, const T& y, const T& z, const T& w);
@@ -165,7 +175,9 @@ struct NANON_ALIGN_16 TVec3<float>
 	};
 	
 	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec2f& v);
 	NANON_FORCE_INLINE TVec3(const Vec3f& v);
+	NANON_FORCE_INLINE TVec3(const Vec4f& v);
 	NANON_FORCE_INLINE TVec3(float v);
 	NANON_FORCE_INLINE TVec3(__m128 v);
 	NANON_FORCE_INLINE TVec3(float x, float y, float z);
@@ -203,6 +215,8 @@ struct NANON_ALIGN_16 TVec4<float>
 	};
 	
 	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec2f& v);
+	NANON_FORCE_INLINE TVec4(const Vec3f& v);
 	NANON_FORCE_INLINE TVec4(const Vec4f& v);
 	NANON_FORCE_INLINE TVec4(float v);
 	NANON_FORCE_INLINE TVec4(__m128 v);
@@ -245,7 +259,9 @@ struct NANON_ALIGN_16 TVec3<double>
 	};
 	
 	NANON_FORCE_INLINE TVec3();
+	NANON_FORCE_INLINE TVec3(const Vec2d& v);
 	NANON_FORCE_INLINE TVec3(const Vec3d& v);
+	NANON_FORCE_INLINE TVec3(const Vec4d& v);
 	NANON_FORCE_INLINE TVec3(double v);
 	NANON_FORCE_INLINE TVec3(__m256d v);
 	NANON_FORCE_INLINE TVec3(double x, double y, double z);
@@ -283,6 +299,8 @@ struct NANON_ALIGN_16 TVec4<double>
 	};
 	
 	NANON_FORCE_INLINE TVec4();
+	NANON_FORCE_INLINE TVec4(const Vec2d& v);
+	NANON_FORCE_INLINE TVec4(const Vec3d& v);
 	NANON_FORCE_INLINE TVec4(const Vec4d& v);
 	NANON_FORCE_INLINE TVec4(double v);
 	NANON_FORCE_INLINE TVec4(__m256d v);
