@@ -49,7 +49,7 @@ NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& a
 	T s = Sin(Radians(angle));
 
 	TVec3<T> a = Normalize(axis);
-	TVec3<T> t = (T(1) - c) * a;
+	TVec3<T> t = T(T(1) - c) * a;	// For expression template, (T(1) - c) * a generates compile errors
 
 	TMat4<T> rot;
 	rot[0][0] = c + t[0] * a[0];
@@ -77,55 +77,84 @@ NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
 	return Rotate(TMat4<T>::Identity(), angle, axis);
 }
 
+template <typename T>
+NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
+{
+	return TMat4<T>(m[0] * v[0], m[1] * v[1], m[2] * v[2], m[3]);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
+{
+	return Scale(TMat4<T>::Identity(), v);
+}
+
+// --------------------------------------------------------------------------------
+
 #ifdef NANON_USE_SSE2
 
-//template <>
-//NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
-//{
-//	float c = Cos(Radians(angle));
-//	float s = Sin(Radians(angle));
-//
-//	Vec3f a = Normalize(axis);
-//	Vec3f t = (1.0f - c) * a;
-//
-//	Vec3f t1 = a * t[0];
-//	Vec3f t2 = a * t[1];
-//	Vec3f t3 = a * t[2];
-//
-//	Mat3f rot(
-//		Vec3f(c, 0, 0) + a * t[0] + Vec3f( 0       ,  s * a[2], -s * a[1]),
-//		Vec3f(0, c, 0) + a * t[1] + Vec3f(-s * a[2],  0       ,  s * a[0]),
-//		Vec3f(0, 0, c) + a * t[2] + Vec3f( s * a[1], -s * a[0],  0       ));
-//
-//	return Mat4f(rot);
-//}
-//
-//template <>
-//NANON_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
-//{
-//	return m * Rotate(angle, axis);
-//}
+template <>
+NANON_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
+{
+	return m * Rotate(angle, axis);
+}
+
+template <>
+NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
+{
+	float c = Cos(Radians(angle));
+	float s = Sin(Radians(angle));
+
+	Vec3f a = Normalize(axis);
+	Vec3f t = (1.0f - c) * a;
+
+	Vec3f t1 = a * t[0];
+	Vec3f t2 = a * t[1];
+	Vec3f t3 = a * t[2];
+
+	Mat3f rot(
+		Vec3f(c, 0, 0) + a * t[0] + Vec3f( 0       ,  s * a[2], -s * a[1]),
+		Vec3f(0, c, 0) + a * t[1] + Vec3f(-s * a[2],  0       ,  s * a[0]),
+		Vec3f(0, 0, c) + a * t[2] + Vec3f( s * a[1], -s * a[0],  0       ));
+
+	return Mat4f(rot);
+}
 
 #endif
+
+// --------------------------------------------------------------------------------
 
 #ifdef NANON_USE_AVX
 
+template <>
+NANON_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis)
+{
+	return m * Rotate(angle, axis);
+}
 
+template <>
+NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
+{
+	double c = Cos(Radians(angle));
+	double s = Sin(Radians(angle));
+
+	Vec3d a = Normalize(axis);
+	Vec3d t = (1.0f - c) * a;
+
+	Vec3d t1 = a * t[0];
+	Vec3d t2 = a * t[1];
+	Vec3d t3 = a * t[2];
+
+	Mat3d rot(
+		Vec3d(c, 0, 0) + a * t[0] + Vec3d( 0       ,  s * a[2], -s * a[1]),
+		Vec3d(0, c, 0) + a * t[1] + Vec3d(-s * a[2],  0       ,  s * a[0]),
+		Vec3d(0, 0, c) + a * t[2] + Vec3d( s * a[1], -s * a[0],  0       ));
+
+	return Mat4d(rot);
+}
 
 #endif
 
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
-//{
-//	return TMat4<T>(m[0] * v[0], m[1] * v[1], m[2] * v[2], m[3]);
-//}
-//
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
-//{
-//	return Scale(TMat4<T>::Identity(), v);
-//}
-//
 //template <typename T>
 //NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up)
 //{

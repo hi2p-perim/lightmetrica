@@ -59,10 +59,10 @@ struct TVec2
 };
 
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator+(const TVec2<T>& v1, const TVec2<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, T s);
-template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(T s, const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, const T& s);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const T& s, const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v1, const TVec2<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec2<T>& v);
@@ -100,10 +100,10 @@ struct TVec3
 };
 
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator+(const TVec3<T>& v1, const TVec3<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, T s);
-template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(T s, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, const T& s);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const T& s, const TVec3<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, const TVec3<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v1, const TVec3<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec3<T>& v);
@@ -141,10 +141,10 @@ struct TVec4
 };
 
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator+(const TVec4<T>& v1, const TVec4<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v, T s);
-template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(T s, const TVec4<T>& v);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v, const T& s);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const T& s, const TVec4<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, const TVec4<T>& v2);
-template <typename T> NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v, T s);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v1, const TVec4<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec4<T>& v);
@@ -187,10 +187,10 @@ struct NANON_ALIGN_16 TVec3<float>
 };
 
 template <> NANON_FORCE_INLINE Vec3f operator+(const Vec3f& v1, const Vec3f& v2);
-template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, float s);
-template <> NANON_FORCE_INLINE Vec3f operator*(float s, const Vec3f& v);
+template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, const float& s);
+template <> NANON_FORCE_INLINE Vec3f operator*(const float& s, const Vec3f& v);
 template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v1, const Vec3f& v2);
-template <> NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v, float s);
+template <> NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v, const float& s);
 template <> NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v1, const Vec3f& v2);
 
 template <> NANON_FORCE_INLINE float Length(const Vec3f& v);
@@ -227,10 +227,10 @@ struct NANON_ALIGN_16 TVec4<float>
 };
 
 template <> NANON_FORCE_INLINE Vec4f operator+(const Vec4f& v1, const Vec4f& v2);
-template <> NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v, float s);
-template <> NANON_FORCE_INLINE Vec4f operator*(float s, const Vec4f& v);
+template <> NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v, const float& s);
+template <> NANON_FORCE_INLINE Vec4f operator*(const float& s, const Vec4f& v);
 template <> NANON_FORCE_INLINE Vec4f operator*(const Vec4f& v1, const Vec4f& v2);
-template <> NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v, float s);
+template <> NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v, const float& s);
 template <> NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v1, const Vec4f& v2);
 
 template <> NANON_FORCE_INLINE float Length(const Vec4f& v);
@@ -271,10 +271,10 @@ struct NANON_ALIGN_16 TVec3<double>
 };
 
 template <> NANON_FORCE_INLINE Vec3d operator+(const Vec3d& v1, const Vec3d& v2);
-template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, double s);
-template <> NANON_FORCE_INLINE Vec3d operator*(double s, const Vec3d& v);
+template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, const double& s);
+template <> NANON_FORCE_INLINE Vec3d operator*(const double& s, const Vec3d& v);
 template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v1, const Vec3d& v2);
-template <> NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v, double s);
+template <> NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v, const double& s);
 template <> NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v1, const Vec3d& v2);
 
 template <> NANON_FORCE_INLINE double Length(const Vec3d& v);
@@ -311,10 +311,10 @@ struct NANON_ALIGN_16 TVec4<double>
 };
 
 template <> NANON_FORCE_INLINE Vec4d operator+(const Vec4d& v1, const Vec4d& v2);
-template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, double s);
-template <> NANON_FORCE_INLINE Vec4d operator*(double s, const Vec4d& v);
+template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, const double& s);
+template <> NANON_FORCE_INLINE Vec4d operator*(const double& s, const Vec4d& v);
 template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2);
-template <> NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v, double s);
+template <> NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v, const double& s);
 template <> NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v1, const Vec4d& v2);
 
 template <> NANON_FORCE_INLINE double Length(const Vec4d& v);

@@ -69,6 +69,11 @@ struct TMat3
 
 };
 
+template <typename T> NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m, const T& s);
+template <typename T> NANON_FORCE_INLINE TMat3<T> operator*(const T& v, const TMat3<T>& m);
+template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TMat3<T>& m, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m1, const TMat3<T>& m2);
+
 typedef TMat3<float> Mat3f;
 typedef TMat3<double> Mat3d;
 typedef TMat3<int> Mat3i;
@@ -93,6 +98,7 @@ struct TMat4
 	TVec4<T> v[4];
 
 	NANON_FORCE_INLINE TMat4();
+	NANON_FORCE_INLINE TMat4(const TMat3<T>& m);
 	NANON_FORCE_INLINE TMat4(const TMat4<T>& m);
 	NANON_FORCE_INLINE TMat4(const T& v);
 	NANON_FORCE_INLINE TMat4(const TVec4<T>& v0, const TVec4<T>& v1, const TVec4<T>& v2, const TVec4<T>& v3);
@@ -111,6 +117,11 @@ struct TMat4
 	NANON_FORCE_INLINE const TVec4<T>& operator[](int i) const;
 
 };
+
+template <typename T> NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m, const T& s);
+template <typename T> NANON_FORCE_INLINE TMat4<T> operator*(const T& v, const TMat4<T>& m);
+template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TMat4<T>& m, const TVec4<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m1, const TMat4<T>& m2);
 
 typedef TMat4<float> Mat4f;
 typedef TMat4<double> Mat4d;
@@ -153,6 +164,11 @@ struct NANON_ALIGN_16 TMat3<float>
 
 };
 
+template <> NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m, const float& s);
+template <> NANON_FORCE_INLINE Mat3f operator*(const float& s, const Mat3f& m);
+template <> NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v);
+template <> NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2);
+
 // --------------------------------------------------------------------------------
 
 /*!
@@ -166,6 +182,7 @@ struct NANON_ALIGN_16 TMat4<float>
 	Vec4f v[4];
 
 	NANON_FORCE_INLINE TMat4();
+	NANON_FORCE_INLINE TMat4(const Mat3f& m);
 	NANON_FORCE_INLINE TMat4(const Mat4f& m);
 	NANON_FORCE_INLINE TMat4(float v);
 	NANON_FORCE_INLINE TMat4(const Vec4f& v0, const Vec4f& v1, const Vec4f& v2, const Vec4f& v3);
@@ -184,6 +201,11 @@ struct NANON_ALIGN_16 TMat4<float>
 	NANON_FORCE_INLINE const Vec4f& operator[](int i) const;
 
 };
+
+template <> NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m, const float& s);
+template <> NANON_FORCE_INLINE Mat4f operator*(const float& s, const Mat4f& m);
+template <> NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v);
+template <> NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m1, const Mat4f& m2);
 
 #endif
 
@@ -224,6 +246,11 @@ struct NANON_ALIGN_16 TMat3<double>
 
 };
 
+template <> NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m, const double& s);
+template <> NANON_FORCE_INLINE Mat3d operator*(const double& s, const Mat3d& m);
+template <> NANON_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v);
+template <> NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m1, const Mat3d& m2);
+
 // --------------------------------------------------------------------------------
 
 /*!
@@ -237,6 +264,7 @@ struct NANON_ALIGN_16 TMat4<double>
 	Vec4d v[4];
 
 	NANON_FORCE_INLINE TMat4();
+	NANON_FORCE_INLINE TMat4(const Mat3d& m);
 	NANON_FORCE_INLINE TMat4(const Mat4d& m);
 	NANON_FORCE_INLINE TMat4(double v);
 	NANON_FORCE_INLINE TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v2, const Vec4d& v3);
@@ -255,6 +283,11 @@ struct NANON_ALIGN_16 TMat4<double>
 	NANON_FORCE_INLINE const Vec4d& operator[](int i) const;
 
 };
+
+template <> NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m, const double& s);
+template <> NANON_FORCE_INLINE Mat4d operator*(const double& s, const Mat4d& m);
+template <> NANON_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v);
+template <> NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m1, const Mat4d& m2);
 
 #endif
 

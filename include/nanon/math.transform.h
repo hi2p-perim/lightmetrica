@@ -34,10 +34,20 @@ template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, c
 template <typename T> NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v);
 template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis);
 template <typename T> NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis);
-//template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v);
-//template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
 //template <typename T> NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up);
 //template <typename T> NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
+
+#ifdef NANON_USE_SSE2
+template <> NANON_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis);
+template <> NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis);
+#endif
+
+#ifdef NANON_USE_AVX
+template <> NANON_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis);
+template <> NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis);
+#endif
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

@@ -46,33 +46,33 @@ TYPED_TEST(MathTransformTest, Translate)
 	EXPECT_TRUE(ExpectVec4Near(expect, Math::Translate(v2) * v1));
 }
 
-//TYPED_TEST(MathTransformTest, Rotate)
-//{
-//	typedef TypeParam T;
-//
-//	Math::TVec4<T> v(T(1), T(0), T(0), T(1));
-//	Math::TVec3<T> axis(T(0), T(0), T(1));
-//	T angle(90);
-//	Math::TVec4<T> expect(T(0), T(1), T(0), T(1));
-//
-//	EXPECT_TRUE(ExpectVec4Near(expect, Math::Rotate(angle, axis) * v));
-//}
+TYPED_TEST(MathTransformTest, Rotate)
+{
+	typedef TypeParam T;
 
-//TYPED_TEST(MathTransformTest, Scale)
-//{
-//
-//}
-//
-//TYPED_TEST(MathTransformTest, Combination)
-//{
-//
-//}
-//
+	Math::TVec4<T> v(T(1), T(0), T(0), T(1));
+	Math::TVec3<T> axis(T(0), T(0), T(1));
+	T angle(90);
+	Math::TVec4<T> expect(T(0), T(1), T(0), T(1));
+	
+	EXPECT_TRUE(ExpectVec4Near(expect, Math::Rotate(angle, axis) * v));
+}
+
+TYPED_TEST(MathTransformTest, Scale)
+{
+	typedef TypeParam T;
+
+	Math::TVec4<T> v(T(1), T(2), T(3), T(1));
+	Math::TVec3<T> scale(T(2));
+	Math::TVec4<T> expect(T(2), T(4), T(6), T(1));
+	EXPECT_TRUE(ExpectVec4Near(expect, Math::Scale(scale) * v));
+}
+
 //TYPED_TEST(MathTransformTest, LookAt)
 //{
 //
 //}
-//
+
 //TYPED_TEST(MathTransformTest, Perspective)
 //{
 //

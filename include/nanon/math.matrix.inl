@@ -154,6 +154,15 @@ NANON_FORCE_INLINE TMat4<T>::TMat4()
 }
 
 template <typename T>
+NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat3<T>& m)
+{
+	v[0] = TVec4<T>(m.v[0]);
+	v[1] = TVec4<T>(m.v[1]);
+	v[2] = TVec4<T>(m.v[2]);
+	v[3] = TVec4<T>(T(0), T(0), T(0), T(1));
+}
+
+template <typename T>
 NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat4<T>& m)
 {
 	v[0] = m.v[0];
@@ -347,16 +356,19 @@ NANON_FORCE_INLINE const Vec3f& Mat3f::operator[](int i) const
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m, float s)
+template <>
+NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m, const float& s)
 {
 	return Mat3f(m[0] * s, m[1] * s, m[2] * s);
 }
 
-NANON_FORCE_INLINE Mat3f operator*(float s, const Mat3f& m)
+template <>
+NANON_FORCE_INLINE Mat3f operator*(const float& s, const Mat3f& m)
 {
 	return m * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
 {
 	return Vec3f(
@@ -369,6 +381,7 @@ NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
 				_mm_mul_ps(m[3].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3))))));
 }
 
+template <>
 NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
 {
 	return Mat3f(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
@@ -379,6 +392,14 @@ NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
 NANON_FORCE_INLINE Mat4f::TMat4()
 {
 
+}
+
+NANON_FORCE_INLINE Mat4f::TMat4(const Mat3f& m)
+{
+	v[0] = Vec4f(m.v[0]);
+	v[1] = Vec4f(m.v[1]);
+	v[2] = Vec4f(m.v[2]);
+	v[3] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 NANON_FORCE_INLINE Mat4f::TMat4(const Mat4f& m)
@@ -454,16 +475,19 @@ NANON_FORCE_INLINE const Vec4f& Mat4f::operator[](int i) const
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m, float s)
+template <>
+NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m, const float& s)
 {
 	return Mat4f(m[0] * s, m[1] * s, m[2] * s, m[3] * s);
 }
 
-NANON_FORCE_INLINE Mat4f operator*(float s, const Mat4f& m)
+template <>
+NANON_FORCE_INLINE Mat4f operator*(const float& s, const Mat4f& m)
 {
 	return m * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v)
 {
 	return Vec4f(
@@ -476,6 +500,7 @@ NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v)
 				_mm_mul_ps(m[3].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3))))));
 }
 
+template <>
 NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m1, const Mat4f& m2)
 {
 	return Mat4f(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
@@ -565,16 +590,19 @@ NANON_FORCE_INLINE const Vec3d& Mat3d::operator[](int i) const
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m, double s)
+template <>
+NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m, const double& s)
 {
 	return Mat3d(m[0] * s, m[1] * s, m[2] * s);
 }
 
-NANON_FORCE_INLINE Mat3d operator*(double s, const Mat3d& m)
+template <>
+NANON_FORCE_INLINE Mat3d operator*(const double& s, const Mat3d& m)
 {
 	return m * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
 {
 	return Vec3d(
@@ -587,6 +615,7 @@ NANON_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
 				_mm256_mul_pd(m[3].v, _mm256_broadcast_sd(&(v.x) + 3)))));
 }
 
+template <>
 NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m1, const Mat3d& m2)
 {
 	return Mat3d(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
@@ -597,6 +626,14 @@ NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m1, const Mat3d& m2)
 NANON_FORCE_INLINE Mat4d::TMat4()
 {
 
+}
+
+NANON_FORCE_INLINE Mat4d::TMat4(const Mat3d& m)
+{
+	v[0] = Vec4d(m.v[0]);
+	v[1] = Vec4d(m.v[1]);
+	v[2] = Vec4d(m.v[2]);
+	v[3] = Vec4d(0, 0, 0, 1);
 }
 
 NANON_FORCE_INLINE Mat4d::TMat4(const Mat4d& m)
@@ -672,16 +709,19 @@ NANON_FORCE_INLINE const Vec4d& Mat4d::operator[](int i) const
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m, double s)
+template <>
+NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m, const double& s)
 {
 	return Mat4d(m[0] * s, m[1] * s, m[2] * s, m[3] * s);
 }
 
-NANON_FORCE_INLINE Mat4d operator*(double s, const Mat4d& m)
+template <>
+NANON_FORCE_INLINE Mat4d operator*(const double& s, const Mat4d& m)
 {
 	return m * s;
 }
 
+template <>
 NANON_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v)
 {
 	return Vec4d(
@@ -694,6 +734,7 @@ NANON_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v)
 				_mm256_mul_pd(m[3].v, _mm256_broadcast_sd(&(v.x) + 3)))));
 }
 
+template <>
 NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m1, const Mat4d& m2)
 {
 	return Mat4d(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
