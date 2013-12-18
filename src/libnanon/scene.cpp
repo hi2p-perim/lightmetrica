@@ -368,19 +368,19 @@ bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Math::Ma
 		// 'translate' node 
 		if (translateNode)
 		{
-			
+			throw std::exception("TODO");
 		}
 
 		// 'rotate' node
 		if (rotate)
 		{
-
+			throw std::exception("TODO");
 		}
 
 		// 'scale' node
 		if (scale)
 		{
-
+			throw std::exception("TODO");
 		}
 	}
 

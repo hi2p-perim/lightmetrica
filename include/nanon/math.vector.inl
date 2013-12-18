@@ -103,6 +103,12 @@ NANON_FORCE_INLINE TVec2<T> operator+(const TVec2<T>& v1, const TVec2<T>& v2)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec2<T> operator-(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return TVec2<T>(v1.x - v2.x, v1.y - v2.y);
+}
+
+template <typename T>
 NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v, const T& s)
 {
 	return TVec2<T>(v.x * s, v.y * s);
@@ -240,6 +246,12 @@ NANON_FORCE_INLINE TVec3<T> operator+(const TVec3<T>& v1, const TVec3<T>& v2)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator-(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+}
+
+template <typename T>
 NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v, const T& s)
 {
 	return TVec3<T>(v.x * s, v.y * s, v.z * s);
@@ -291,6 +303,12 @@ template <typename T>
 NANON_FORCE_INLINE T Dot(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(v1.y * v2.z - v2.y * v1.z, v1.z * v2.x - v2.z * v1.x, v1.x * v2.y - v2.x * v1.y);
 }
 
 // --------------------------------------------------------------------------------
@@ -381,6 +399,12 @@ template <typename T>
 NANON_FORCE_INLINE TVec4<T> operator+(const TVec4<T>& v1, const TVec4<T>& v2)
 {
 	return TVec4<T>(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator-(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return TVec4<T>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
 }
 
 template <typename T>
@@ -501,6 +525,12 @@ NANON_FORCE_INLINE Vec3f operator+(const Vec3f& v1, const Vec3f& v2)
 }
 
 template <>
+NANON_FORCE_INLINE Vec3f operator-(const Vec3f& v1, const Vec3f& v2)
+{
+	return Vec3f(_mm_sub_ps(v1.v, v2.v));
+}
+
+template <>
 NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, const float& s)
 {
 	return Vec3f(_mm_mul_ps(v.v, _mm_set1_ps(s)));
@@ -572,6 +602,19 @@ NANON_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2)
 #endif
 }
 
+template <>
+NANON_FORCE_INLINE Vec3f Cross(const Vec3f& v1, const Vec3f& v2)
+{
+	return Vec3f(
+		_mm_sub_ps(
+			_mm_mul_ps(
+				_mm_shuffle_ps(v1.v, v1.v, _MM_SHUFFLE(3, 0, 2, 1)),
+				_mm_shuffle_ps(v2.v, v2.v, _MM_SHUFFLE(3, 1, 0, 2))), 
+			_mm_mul_ps(
+				_mm_shuffle_ps(v1.v, v1.v, _MM_SHUFFLE(3, 1, 0, 2)),
+				_mm_shuffle_ps(v2.v, v2.v, _MM_SHUFFLE(3, 0, 2, 1)))));
+}
+
 // --------------------------------------------------------------------------------
 
 NANON_FORCE_INLINE Vec4f::TVec4()
@@ -631,6 +674,12 @@ template <>
 NANON_FORCE_INLINE Vec4f operator+(const Vec4f& v1, const Vec4f& v2)
 {
 	return Vec4f(_mm_add_ps(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f operator-(const Vec4f& v1, const Vec4f& v2)
+{
+	return Vec4f(_mm_sub_ps(v1.v, v2.v));
 }
 
 template <>
@@ -769,6 +818,12 @@ NANON_FORCE_INLINE Vec3d operator+(const Vec3d& v1, const Vec3d& v2)
 }
 
 template <>
+NANON_FORCE_INLINE Vec3d operator-(const Vec3d& v1, const Vec3d& v2)
+{
+	return Vec3d(_mm256_sub_pd(v1.v, v2.v));
+}
+
+template <>
 NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, const double& s)
 {
 	return Vec3d(_mm256_mul_pd(v.v, _mm256_set1_pd(s)));
@@ -827,6 +882,42 @@ NANON_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2)
 	__m128d t4 = _mm256_castpd256_pd128(t2);	// t4 = [ v1.z * v2.z + v1.w * v2.w, _ ]
 	__m128d result = _mm_add_pd(t3, t4);		// result = [ v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w, _ ]
 	return Vec3d(_mm256_castpd128_pd256(result)).x;
+}
+
+template <>
+NANON_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2)
+{
+#ifdef NANON_USE_AVX2
+
+	return Vec3d(
+		_mm256_sub_pd(
+			_mm256_mul_pd(
+				_mm256_permute4x64_pd(v1.v, _MM_SHUFFLE(3, 0, 2, 1)),
+				_mm256_permute4x64_pd(v2.v, _MM_SHUFFLE(3, 1, 0, 2))), 
+			_mm256_mul_pd(
+				_mm256_permute4x64_pd(v1.v, _MM_SHUFFLE(3, 1, 0, 2)),
+				_mm256_permute4x64_pd(v2.v, _MM_SHUFFLE(3, 0, 2, 1)))));
+
+#else
+
+	__m256d v1_1032 = _mm256_permute2f128_pd(v1.v, v1.v, 1);
+	__m256d v1_0321 = _mm256_shuffle_pd(v1.v, v1_1032, 0x5);
+	__m256d v1_3021 = _mm256_permute_pd(v1_0321, 0x6);
+	__m256d v1_1320 = _mm256_shuffle_pd(v1.v, v1_1032, 0xc);
+	__m256d v1_3102 = _mm256_permute_pd(v1_1320, 0x5);
+
+	__m256d v2_1032 = _mm256_permute2f128_pd(v2.v, v2.v, 1);
+	__m256d v2_0321 = _mm256_shuffle_pd(v2.v, v2_1032, 0x5);
+	__m256d v2_3021 = _mm256_permute_pd(v2_0321, 0x6);
+	__m256d v2_1320 = _mm256_shuffle_pd(v2.v, v2_1032, 0xc);
+	__m256d v2_3102 = _mm256_permute_pd(v2_1320, 0x5);
+
+	return Vec3d(
+		_mm256_sub_pd(
+			_mm256_mul_pd(v1_3021, v2_3102), 
+			_mm256_mul_pd(v1_3102, v2_3021)));
+
+#endif
 }
 
 // --------------------------------------------------------------------------------
@@ -888,6 +979,12 @@ template <>
 NANON_FORCE_INLINE Vec4d operator+(const Vec4d& v1, const Vec4d& v2)
 {
 	return Vec4d(_mm256_add_pd(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4d operator-(const Vec4d& v1, const Vec4d& v2)
+{
+	return Vec4d(_mm256_sub_pd(v1.v, v2.v));
 }
 
 template <>

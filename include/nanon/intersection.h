@@ -22,35 +22,34 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_NAIVE_SCENE_H__
-#define __LIB_NANON_NAIVE_SCENE_H__
+#ifndef __LIB_NANON_INTERSECTION_H__
+#define __LIB_NANON_INTERSECTION_H__
 
-#include "scene.h"
+#include "common.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
+struct Primitive;
+
 /*!
 */
-class NANON_PUBLIC_API NaiveScene : public Scene
+struct Intersection
 {
-public:
 
-	NaiveScene();
-	virtual ~NaiveScene();
+	const Primitive* primitive;
 
-public:
+	Math::Vec3 p;			//!< Intersection point
+	Math::Vec3 gn;			//!< Geometry normal
+	Math::Vec3 sn;			//!< Shading normal
+	Math::Vec3 ss, st;		//!< Tangent vectors w.r.t. shading normal
+	Math::Vec2 uv;			//!< Texture coordinates
 
-	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect);
-	virtual std::string Type();
-
-private:
-
-	class Impl;
-	Impl* p;
+	Math::Mat3 worldToShading;
+	Math::Mat3 shadingToWorld;
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_NAIVE_SCENE_H__
+#endif // __LIB_NANON_INTERSECTION_H__

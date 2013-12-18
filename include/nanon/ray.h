@@ -22,35 +22,23 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_NAIVE_SCENE_H__
-#define __LIB_NANON_NAIVE_SCENE_H__
+#ifndef __LIB_NANON_RAY_H__
+#define __LIB_NANON_RAY_H__
 
-#include "scene.h"
+#include "common.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
-/*!
-*/
-class NANON_PUBLIC_API NaiveScene : public Scene
+struct Ray
 {
-public:
 
-	NaiveScene();
-	virtual ~NaiveScene();
-
-public:
-
-	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect);
-	virtual std::string Type();
-
-private:
-
-	class Impl;
-	Impl* p;
+	Math::Vec3 o;
+	Math::Vec3 d;
+	Math::Float maxT, minT;
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_NAIVE_SCENE_H__
+#endif // __LIB_NANON_RAY_H__

@@ -247,6 +247,14 @@ bool NanonApplication::Run()
 		return false;
 	}
 
+	// Build scene
+	// TODO : Do it on the another thread and poll progress
+	if (scene->Build())
+	{
+		NANON_LOG_DEBUG_EMPTY();
+		return false;
+	}
+
 	// --------------------------------------------------------------------------------
 
 	// Create renderer

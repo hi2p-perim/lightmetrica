@@ -34,6 +34,8 @@ set(
 	"${_INCLUDE_DIR}/logger.h"
 	"${_INCLUDE_DIR}/version.h"
 	"${_INCLUDE_DIR}/pugihelper.h"
+	"${_INCLUDE_DIR}/ray.h"
+	"${_INCLUDE_DIR}/intersection.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"

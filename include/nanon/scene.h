@@ -38,6 +38,8 @@ NANON_NAMESPACE_BEGIN
 class Assets;
 class NanonConfig;
 struct Primitive;
+struct Ray;
+struct Intersection;
 
 /*!
 	Scene class.
@@ -76,6 +78,27 @@ public:
 		\retval false Failed to load the scene.
 	*/
 	bool Load(const NanonConfig& config, Assets& assets);
+
+	/*!
+		Build acceleration structure.
+		Some scene may have an acceleration structure for the optimization.
+		The function must be called after #Load.
+		The function must be called before any intersection queries.
+		\retval true Succeeded to build.
+		\retval false Failed to build.
+	*/
+	virtual bool Build() = 0;
+
+	/*!
+		Intersection query.
+		The function checks if #ray hits with the scene.
+		When intersected, information on the hit point is stored in the intersection data.
+		\param ray Ray.
+		\param isect Intersection data.
+		\retval true Intersected with the scene.
+		\retval false Not intersected with the scene.
+	*/
+	virtual bool Intersect(Ray& ray, Intersection& isect) = 0;
 
 	/*!
 		Reset the scene.

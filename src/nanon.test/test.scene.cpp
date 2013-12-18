@@ -53,7 +53,7 @@ namespace
 	);
 
 	// Specify transform by matrix
-	const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Success_WithTransformByMatrix = NANON_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
 			<root>
 				<transform>
@@ -80,6 +80,23 @@ namespace
 		</scene>
 	);
 
+	// Specify transform
+	//const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
+	//	<scene type="stub">
+	//		<root>
+	//			<node id="node1">
+	//				<transform>
+	//					<translate>1 1 1</translate>
+	//					<rotate>1 0 0 1</rotate>
+	//					<scale>2 2 2</scale>
+	//				</transform>
+	//				<triangle_mesh ref="mesh1" />
+	//				<bsdf ref="bsdf1" />
+	//			</node>
+	//		</root>
+	//	</scene>
+	//);
+
 	// Invalid number of element in 'matrix'
 	const std::string SceneNode_Fail_MatrixInvalidNumberOfElements = NANON_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
@@ -99,8 +116,6 @@ namespace
 			</root>
 		</scene>
 	);
-
-
 
 }
 
@@ -153,6 +168,8 @@ class StubScene : public Scene
 {
 public:
 
+	virtual bool Build() { return true; }
+	virtual bool Intersect( Ray& ray, Intersection& isect )  { return false; }
 	virtual std::string Type() { return "stub"; }
 
 };
@@ -185,9 +202,9 @@ TEST_F(SceneTest, Load)
 	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node2->transform));
 }
 
-TEST_F(SceneTest, Load_WithTransform)
+TEST_F(SceneTest, Load_WithTransformByMatrix)
 {
-	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransform), assets));
+	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransformByMatrix), assets));
 	
 	const auto* node1 = scene.PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
