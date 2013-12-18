@@ -178,6 +178,13 @@ template <> NANON_FORCE_INLINE Vec3f operator+(const Vec3f& v1, const Vec3f& v2)
 template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v, float s);
 template <> NANON_FORCE_INLINE Vec3f operator*(float s, const Vec3f& v);
 template <> NANON_FORCE_INLINE Vec3f operator*(const Vec3f& v1, const Vec3f& v2);
+template <> NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v, float s);
+template <> NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v1, const Vec3f& v2);
+
+template <> NANON_FORCE_INLINE float Length(const Vec3f& v);
+template <> NANON_FORCE_INLINE float Length2(const Vec3f& v);
+template <> NANON_FORCE_INLINE Vec3f Normalize(const Vec3f& v);
+template <> NANON_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2);
 
 // --------------------------------------------------------------------------------
 
@@ -251,6 +258,13 @@ template <> NANON_FORCE_INLINE Vec3d operator+(const Vec3d& v1, const Vec3d& v2)
 template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v, double s);
 template <> NANON_FORCE_INLINE Vec3d operator*(double s, const Vec3d& v);
 template <> NANON_FORCE_INLINE Vec3d operator*(const Vec3d& v1, const Vec3d& v2);
+template <> NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v, double s);
+template <> NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v1, const Vec3d& v2);
+
+template <> NANON_FORCE_INLINE double Length(const Vec3d& v);
+template <> NANON_FORCE_INLINE double Length2(const Vec3d& v);
+template <> NANON_FORCE_INLINE Vec3d Normalize(const Vec3d& v);
+template <> NANON_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2);
 
 // --------------------------------------------------------------------------------
 
@@ -282,6 +296,13 @@ template <> NANON_FORCE_INLINE Vec4d operator+(const Vec4d& v1, const Vec4d& v2)
 template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v, double s);
 template <> NANON_FORCE_INLINE Vec4d operator*(double s, const Vec4d& v);
 template <> NANON_FORCE_INLINE Vec4d operator*(const Vec4d& v1, const Vec4d& v2);
+template <> NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v, double s);
+template <> NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v1, const Vec4d& v2);
+
+template <> NANON_FORCE_INLINE double Length(const Vec4d& v);
+template <> NANON_FORCE_INLINE double Length2(const Vec4d& v);
+template <> NANON_FORCE_INLINE Vec4d Normalize(const Vec4d& v);
+template <> NANON_FORCE_INLINE double Dot(const Vec4d& v1, const Vec4d& v2);
 
 #endif
 
