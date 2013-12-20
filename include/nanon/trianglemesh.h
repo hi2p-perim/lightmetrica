@@ -26,10 +26,14 @@
 #define __LIB_NANON_TRIANGLE_MESH_H__
 
 #include "asset.h"
+#include "math.types.h"
+#include <vector>
 
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Triangle mesh.
+	A base class for the triangle meshes.
 */
 class NANON_PUBLIC_API TriangleMesh : public Asset
 {
@@ -41,6 +45,32 @@ public:
 public:
 
 	std::string Name() const;
+
+public:
+
+	/*!
+		Get the position array.
+		\return The position array.
+	*/
+	const std::vector<Math::Vec3>& Positions() const { return positions; }
+
+	/*!
+		Get the normal array.
+		\return The normal array.
+	*/
+	const std::vector<Math::Vec3>& Normals() const { return normals; }
+
+	/*!
+		Get the texture coordinates array.
+		\return The texture coordinates array.
+	*/
+	const std::vector<Math::Vec2>& TexCoords() const { return texcoords; }
+
+protected:
+
+	std::vector<Math::Vec3> positions;
+	std::vector<Math::Vec3> normals;
+	std::vector<Math::Vec2> texcoords;
 
 };
 
