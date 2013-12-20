@@ -44,33 +44,33 @@ public:
 
 public:
 
-	std::string Name() const;
+	std::string Name() const { return "triangle_mesh"; }
 
 public:
+
+	/*!
+		Get the number of faces.
+		\return The number of faces.
+	*/
+	virtual int NumFaces() const = 0;
 
 	/*!
 		Get the position array.
 		\return The position array.
 	*/
-	const std::vector<Math::Vec3>& Positions() const { return positions; }
+	virtual const Math::Vec3* Positions() const = 0;
 
 	/*!
 		Get the normal array.
 		\return The normal array.
 	*/
-	const std::vector<Math::Vec3>& Normals() const { return normals; }
+	virtual const Math::Vec3* Normals() const = 0;
 
 	/*!
 		Get the texture coordinates array.
 		\return The texture coordinates array.
 	*/
-	const std::vector<Math::Vec2>& TexCoords() const { return texcoords; }
-
-protected:
-
-	std::vector<Math::Vec3> positions;
-	std::vector<Math::Vec3> normals;
-	std::vector<Math::Vec2> texcoords;
+	virtual const Math::Vec2* TexCoords() const = 0;
 
 };
 

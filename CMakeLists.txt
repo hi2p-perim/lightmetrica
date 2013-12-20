@@ -86,6 +86,9 @@ endif()
 # Pugixml
 include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
 
+# tinyobjloader
+include_directories("${PROJECT_SOURCE_DIR}/external/src/tinyobjloader")
+
 # Add the binary directory to the include directories for generated headers
 include_directories(${PROJECT_BINARY_DIR})
 

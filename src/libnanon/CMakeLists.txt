@@ -146,11 +146,17 @@ set(
 	_ASSETS_TRIANGLE_MESHES_HEADERS
 	"${_INCLUDE_DIR}/trianglemesh.h"
 	"${_INCLUDE_DIR}/trianglemeshfactory.h"
+	"${_INCLUDE_DIR}/objmesh.h"
 )
 set(
 	_ASSETS_TRIANGLE_MESHES_SOURCES
 	"trianglemesh.cpp"
 	"trianglemeshfactory.cpp"
+	"objmesh.cpp"
+	
+	# tinyobjloader by syoyo
+	"${PROJECT_SOURCE_DIR}/external/src/tinyobjloader/tiny_obj_loader.h"
+	"${PROJECT_SOURCE_DIR}/external/src/tinyobjloader/tiny_obj_loader.cc"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})

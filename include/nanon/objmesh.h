@@ -22,22 +22,44 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/trianglemesh.h>
+#ifndef __LIB_NANON_OBJ_MESH_H__
+#define __LIB_NANON_OBJ_MESH_H__
+
+#include "trianglemesh.h"
 
 NANON_NAMESPACE_BEGIN
 
-TriangleMesh::TriangleMesh( const std::string& id )
-	: Asset(id)
+/*!
+	Obj mesh.
+	Triangle mesh implementation for Wavefront obj files.
+	The class partially supports the specification of the Wavefront obj files.
+*/
+class NANON_PUBLIC_API ObjMesh : public TriangleMesh
 {
+public:
 
-}
+	ObjMesh(const std::string& id);
+	virtual ~ObjMesh();
 
-TriangleMesh::~TriangleMesh()
-{
+public:
 
-}
+	virtual bool Load( const pugi::xml_node& node );
+	virtual std::string Type() const { return "obj"; }
 
+public:
 
+	virtual int NumFaces() const;
+	virtual const Math::Vec3* Positions() const;
+	virtual const Math::Vec3* Normals() const;
+	virtual const Math::Vec2* TexCoords() const;
+
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_OBJ_MESH_H__

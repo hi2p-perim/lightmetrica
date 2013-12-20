@@ -23,21 +23,40 @@
 */
 
 #include "pch.h"
-#include <nanon/trianglemesh.h>
+#include "base.h"
+#include <nanon/objmesh.h>
 
-NANON_NAMESPACE_BEGIN
+using namespace nanon;
 
-TriangleMesh::TriangleMesh( const std::string& id )
-	: Asset(id)
+namespace
 {
-
+	
 }
 
-TriangleMesh::~TriangleMesh()
-{
+NANON_TEST_NAMESPACE_BEGIN
 
+class ObjMeshTest : public TestBase
+{
+public:
+
+	ObjMeshTest()
+		: mesh("test")
+	{
+		
+	}
+
+public:
+
+	ObjMesh mesh;
+
+};
+
+TEST_F(ObjMeshTest, Load)
+{
+	FAIL();
+	//SaveTemporaryFile();
+	//EXPECT_TRUE(mesh.Load(""));
+	//ClearTemporaryFile();
 }
 
-
-
-NANON_NAMESPACE_END
+NANON_TEST_NAMESPACE_END

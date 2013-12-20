@@ -128,6 +128,10 @@ public:
 	StubTriangleMesh(const std::string& id) : TriangleMesh(id) {}
 	virtual bool Load(const pugi::xml_node& node) { return true; }
 	virtual std::string Type() const { return "stub"; }
+	virtual int NumFaces() const { return 0; }
+	virtual const Math::Vec3* Positions() const { return nullptr; }
+	virtual const Math::Vec3* Normals() const { return nullptr; }
+	virtual const Math::Vec2* TexCoords() const { return nullptr; }
 
 };
 
