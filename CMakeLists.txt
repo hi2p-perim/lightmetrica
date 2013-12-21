@@ -75,6 +75,11 @@ find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${GLFW_LIBRARIES})
 
+# Assimp
+find_package(ASSIMP REQUIRED)
+include_directories(${ASSIMP_INCLUDE_DIRS})
+list(APPEND LIBRARY_FILES ${ASSIMP_LIBRARIES})
+
 # Google test
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -85,9 +90,6 @@ endif()
 
 # Pugixml
 include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
-
-# tinyobjloader
-include_directories("${PROJECT_SOURCE_DIR}/external/src/tinyobjloader")
 
 # Add the binary directory to the include directories for generated headers
 include_directories(${PROJECT_BINARY_DIR})

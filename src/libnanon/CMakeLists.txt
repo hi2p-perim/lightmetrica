@@ -153,10 +153,6 @@ set(
 	"trianglemesh.cpp"
 	"trianglemeshfactory.cpp"
 	"objmesh.cpp"
-	
-	# tinyobjloader by syoyo
-	"${PROJECT_SOURCE_DIR}/external/src/tinyobjloader/tiny_obj_loader.h"
-	"${PROJECT_SOURCE_DIR}/external/src/tinyobjloader/tiny_obj_loader.cc"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
@@ -289,7 +285,7 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 add_definitions(-DNANON_EXPORTS)
 
 pch_add_library(libnanon SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
-target_link_libraries(libnanon ${COMMON_LIBRARY_FILES})
+target_link_libraries(libnanon ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES})
 
 # Copy dynamic libaries as post-build events
 if(WIN32)

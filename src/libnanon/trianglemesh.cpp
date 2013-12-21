@@ -38,6 +38,4 @@ TriangleMesh::~TriangleMesh()
 
 }
 
-
-
 NANON_NAMESPACE_END

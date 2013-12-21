@@ -39,7 +39,7 @@ set(
 	"test.defaultassets.cpp"
 	"test.asset.cpp"
 	"test.scene.cpp"
-	"test.scene.cpp"
+	"test.objmesh.cpp"
 	
 	# math
 	"test.math.vector.cpp"

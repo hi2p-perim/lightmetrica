@@ -48,10 +48,12 @@ public:
 
 public:
 
+	virtual int NumVertices() const;
 	virtual int NumFaces() const;
 	virtual const Math::Vec3* Positions() const;
 	virtual const Math::Vec3* Normals() const;
 	virtual const Math::Vec2* TexCoords() const;
+	virtual const Math::Vec3i* Faces() const;
 
 private:
 

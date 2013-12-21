@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include "base.h"
+#include "base.math.h"
 #include <nanon/objmesh.h>
 
 using namespace nanon;
@@ -31,6 +32,41 @@ using namespace nanon;
 namespace
 {
 	
+	const std::string ObjMesh_Triangle_Success = NANON_TEST_MULTILINE_LITERAL(
+		v 0 1 1 \n
+		v 0 0 1 \n
+		v 1 0 1 \n
+		v 1 1 1 \n
+		f 1 2 3 \n
+		f 2 3 4 \n
+	);
+
+	const std::string ObjMesh_Polygon_Success = NANON_TEST_MULTILINE_LITERAL(
+		v 0 1 1 \n
+		v 0 0 1 \n
+		v 1 0 1 \n
+		v 1 1 1 \n
+		f 1 2 3 4 \n
+	);
+
+	const std::string ObjMesh_Fail_MissingIndex = NANON_TEST_MULTILINE_LITERAL(
+		v 0 1 1 \n
+		v 0 0 1 \n
+		v 1 0 1 \n
+		f 1 2 4 \n
+	);
+
+	const std::string ObjMeshNode_Template = NANON_TEST_MULTILINE_LITERAL(
+		<triangle_mesh id="test" type="obj">
+			<path>%s</path>
+		</triangle_mesh>
+	);
+
+	const std::string ObjMeshNode_Fail_MissingPathElement = NANON_TEST_MULTILINE_LITERAL(
+		<triangle_mesh id="test" type="obj">
+		</triangle_mesh>
+	);
+
 }
 
 NANON_TEST_NAMESPACE_BEGIN
@@ -42,7 +78,12 @@ public:
 	ObjMeshTest()
 		: mesh("test")
 	{
-		
+
+	}
+
+	pugi::xml_node GenerateNode(const std::string& path)
+	{
+		return LoadXMLBuffer(boost::str(boost::format(ObjMeshNode_Template) % path));
 	}
 
 public:
@@ -51,12 +92,26 @@ public:
 
 };
 
-TEST_F(ObjMeshTest, Load)
+TEST_F(ObjMeshTest, Load_Success)
 {
-	FAIL();
-	//SaveTemporaryFile();
-	//EXPECT_TRUE(mesh.Load(""));
-	//ClearTemporaryFile();
+	TemporaryFile tmp1("tmp1.obj", ObjMesh_Triangle_Success);
+	TemporaryFile tmp2("tmp2.obj", ObjMesh_Polygon_Success);
+	EXPECT_TRUE(mesh.Load(GenerateNode(tmp1.Path())));
+	ASSERT_EQ(2, mesh.NumFaces());
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), mesh.Positions()[mesh.Faces()[0][0]]));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), mesh.Positions()[mesh.Faces()[0][1]]));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), mesh.Positions()[mesh.Faces()[0][2]]));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), mesh.Positions()[mesh.Faces()[1][0]]));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), mesh.Positions()[mesh.Faces()[1][1]]));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), mesh.Positions()[mesh.Faces()[1][2]]));
+	EXPECT_TRUE(mesh.Load(GenerateNode(tmp2.Path())));
+}
+
+TEST_F(ObjMeshTest, Load_Fail)
+{
+	TemporaryFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
+	EXPECT_FALSE(mesh.Load(LoadXMLBuffer(ObjMeshNode_Fail_MissingPathElement)));
+	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path())));
 }
 
 NANON_TEST_NAMESPACE_END

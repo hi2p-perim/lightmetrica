@@ -49,6 +49,12 @@ public:
 public:
 
 	/*!
+		Get the number of vertices.
+		\return The number of vertices.
+	*/
+	virtual int NumVertices() const = 0;
+
+	/*!
 		Get the number of faces.
 		\return The number of faces.
 	*/
@@ -71,6 +77,12 @@ public:
 		\return The texture coordinates array.
 	*/
 	virtual const Math::Vec2* TexCoords() const = 0;
+
+	/*!
+		Get the face array.
+		\return The face array.
+	*/
+	virtual const Math::Vec3i* Faces() const = 0;
 
 };
 

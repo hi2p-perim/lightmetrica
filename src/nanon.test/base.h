@@ -50,6 +50,22 @@ protected:
 
 };
 
+class TemporaryFile
+{
+public:
+
+	TemporaryFile(const std::string& filename, const std::string& content);
+	~TemporaryFile();
+
+	// Get the full path of the filename
+	std::string Path() const;
+
+private:
+
+	std::string path;
+
+};
+
 NANON_TEST_NAMESPACE_END
 
 #endif // __NANON_TEST_BASE_H__

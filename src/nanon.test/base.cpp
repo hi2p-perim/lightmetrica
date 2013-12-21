@@ -27,6 +27,7 @@
 #include <nanon/logger.h>
 
 using namespace nanon;
+namespace fs = boost::filesystem;
 
 NANON_TEST_NAMESPACE_BEGIN
 
@@ -50,5 +51,27 @@ pugi::xml_node TestBase::LoadXMLBuffer( const std::string& data )
 	return doc.first_child();
 }
 
+// --------------------------------------------------------------------------------
+
+TemporaryFile::TemporaryFile( const std::string& filename, const std::string& content )
+{
+	path = (fs::temp_directory_path() / filename).string();
+	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+	EXPECT_TRUE(ofs.is_open());
+	ofs << content;
+}
+
+TemporaryFile::~TemporaryFile()
+{
+	if (fs::exists(path))
+	{
+		EXPECT_TRUE(fs::remove(path));
+	}
+}
+
+std::string TemporaryFile::Path() const
+{
+	return path;
+}
 
 NANON_TEST_NAMESPACE_END
