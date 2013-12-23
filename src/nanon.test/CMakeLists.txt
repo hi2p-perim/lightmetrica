@@ -43,6 +43,7 @@ set(
 	"test.scene.intersection.cpp"
 	"test.objmesh.cpp"
 	"test.hdrfilm.cpp"
+	"test.perspectivecamera.cpp"
 	
 	# math
 	"test.math.vector.cpp"

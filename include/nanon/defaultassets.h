@@ -28,11 +28,6 @@
 #include "assets.h"
 #include <memory>
 
-namespace pugi
-{
-	class xml_node;
-};
-
 NANON_NAMESPACE_BEGIN
 
 class AssetFactory;
@@ -74,7 +69,8 @@ public:
 
 public:
 
-	virtual Asset* GetAssetByName(const std::string& name);
+	virtual Asset* GetAssetByName(const std::string& name) const;
+	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
 
 public:
 

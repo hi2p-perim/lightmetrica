@@ -27,6 +27,11 @@
 
 #include "common.h"
 
+namespace pugi
+{
+	class xml_node;
+};
+
 NANON_NAMESPACE_BEGIN
 
 class Asset;
@@ -54,7 +59,16 @@ public:
 		\param name Name of the asset.
 		\return Asset instance. 
 	*/
-	virtual Asset* GetAssetByName(const std::string& name) = 0;
+	virtual Asset* GetAssetByName(const std::string& name) const = 0;
+
+	/*!
+		Resolve reference to the asset.
+		Resolve reference to an asset using \a ref attribute.
+		Returns nullptr if \a ref attribute is not found.
+		\param node A XML element which consists of the \a ref attribute.
+		\param name Target asset type, e.g. triangle_mesh.
+	*/
+	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const = 0;
 
 };
 

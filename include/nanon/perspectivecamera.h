@@ -22,60 +22,42 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_CAMERA_H__
-#define __LIB_NANON_CAMERA_H__
+#ifndef __LIB_NANON_PERSPECTIVE_CAMERA_H__
+#define __LIB_NANON_PERSPECTIVE_CAMERA_H__
 
-#include "asset.h"
-#include "math.types.h"
+#include "camera.h"
 
 NANON_NAMESPACE_BEGIN
 
-class Film;
-struct Ray;
-struct Primitive;
-
 /*!
-	Camera.
-	A base class of the cameras.
+	Perspective camera.
+	A camera with perspective projection. a.k.a. pinhole camera.
 */
-class NANON_PUBLIC_API Camera : public Asset
+class NANON_PUBLIC_API PerspectiveCamera : public Camera
 {
 public:
 
-	Camera(const std::string& id);
-	virtual ~Camera();
+	PerspectiveCamera(const std::string& id);
+	~PerspectiveCamera();
 
 public:
 
-	virtual std::string Name() const { return "camera"; }
+	virtual bool Load( const pugi::xml_node& node, const Assets& assets );
+	virtual std::string Type() const { return "perspective"; }
 
 public:
 
-	/*!
-		Convert the raster position to a ray.
-		\param rasterPos Raster position in [0, 1]^2.
-		\param ray Ray.
-	*/
-	virtual void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const = 0;
+	virtual void RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const;
+	virtual const Film* GetFilm() const;
+	virtual bool RegisterPrimitive( Primitive* primitive );
 
-	/*!
-		Get film.
-		Returns the film referenced by the camera.
-		\param Film.
-	*/
-	virtual const Film* GetFilm() const = 0;
-	
-	/*!
-		Register an reference to the primitive.
-		Some implementation of camera needs transformed mesh information for sampling.
-		The function registers the reference to the primitive.
-		The function is internally called.
-		\param primitive An instance of the primitive.
-	*/
-	virtual bool RegisterPrimitive(Primitive* primitive) = 0;
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_CAMERA_H__
+#endif // __LIB_NANON_PERSPECTIVE_CAMERA_H__

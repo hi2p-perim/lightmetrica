@@ -22,60 +22,13 @@
 	THE SOFTWARE.
 */
 
-#ifndef __LIB_NANON_CAMERA_H__
-#define __LIB_NANON_CAMERA_H__
-
-#include "asset.h"
-#include "math.types.h"
+#include "pch.h"
+#include "base.h"
 
 NANON_NAMESPACE_BEGIN
+NANON_TEST_NAMESPACE_BEGIN
 
-class Film;
-struct Ray;
-struct Primitive;
 
-/*!
-	Camera.
-	A base class of the cameras.
-*/
-class NANON_PUBLIC_API Camera : public Asset
-{
-public:
 
-	Camera(const std::string& id);
-	virtual ~Camera();
-
-public:
-
-	virtual std::string Name() const { return "camera"; }
-
-public:
-
-	/*!
-		Convert the raster position to a ray.
-		\param rasterPos Raster position in [0, 1]^2.
-		\param ray Ray.
-	*/
-	virtual void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const = 0;
-
-	/*!
-		Get film.
-		Returns the film referenced by the camera.
-		\param Film.
-	*/
-	virtual const Film* GetFilm() const = 0;
-	
-	/*!
-		Register an reference to the primitive.
-		Some implementation of camera needs transformed mesh information for sampling.
-		The function registers the reference to the primitive.
-		The function is internally called.
-		\param primitive An instance of the primitive.
-	*/
-	virtual bool RegisterPrimitive(Primitive* primitive) = 0;
-
-};
-
+NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_CAMERA_H__

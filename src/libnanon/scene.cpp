@@ -65,10 +65,6 @@ private:
 	// The result is stored in the transform.
 	bool CreateTransform(const pugi::xml_node& transformNode, Math::Mat4& transform);
 
-	// Resolve reference to an asset using 'ref' attribute.
-	// If 'ref' attribute is not found, returns nullptr.
-	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name, Assets& assets);
-
 private:
 
 	Scene* self;
@@ -217,7 +213,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (lightNode)
 	{
 		// Resolve the reference to the light
-		light = dynamic_cast<Light*>(ResolveReferenceToAsset(lightNode, "light", assets));
+		light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
 		if (!light)
 		{
 			NANON_LOG_DEBUG_EMPTY();
@@ -233,7 +229,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (cameraNode && !mainCamera)
 	{
 		// Resolve the reference to the camera
-		camera = dynamic_cast<Camera*>(ResolveReferenceToAsset(cameraNode, "camera", assets));
+		camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
 		if (!camera)
 		{
 			NANON_LOG_DEBUG_EMPTY();
@@ -260,7 +256,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		}
 
 		// Resolve the reference to the triangle mesh
-		auto* triangleMesh = dynamic_cast<TriangleMesh*>(ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh", assets));
+		auto* triangleMesh = dynamic_cast<TriangleMesh*>(assets.ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh"));
 		if (!triangleMesh)
 		{
 			NANON_LOG_DEBUG_EMPTY();
@@ -268,7 +264,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		}
 
 		// Resolve the reference to the bsdf
-		auto* bsdf = dynamic_cast<BSDF*>(ResolveReferenceToAsset(bsdfNode, "bsdf", assets));
+		auto* bsdf = dynamic_cast<BSDF*>(assets.ResolveReferenceToAsset(bsdfNode, "bsdf"));
 		if (!bsdf)
 		{
 			NANON_LOG_DEBUG_EMPTY();
@@ -401,35 +397,6 @@ bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Math::Ma
 	}
 
 	return true;
-}
-
-Asset* Scene::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name, Assets& assets )
-{
-	// The element must have 'ref' attribute
-	auto refAttr = node.attribute("ref");
-	if (!refAttr)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-
-	// Find the light specified by 'ref'
-	auto* asset = assets.GetAssetByName(refAttr.as_string());
-	if (!asset)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-	else if (asset->Name() != name)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-
-	return asset;
 }
 
 int Scene::Impl::NumPrimitives() const

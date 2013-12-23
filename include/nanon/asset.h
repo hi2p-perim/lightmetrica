@@ -34,6 +34,8 @@ namespace pugi
 
 NANON_NAMESPACE_BEGIN
 
+class Assets;
+
 /*!
 	Asset.
 	A base class for assets.
@@ -60,10 +62,12 @@ public:
 	/*!
 		Load an asset.
 		Configure and initialize the asset by the XML elements given by #node.
-		\param id ID of the asset.
+		Some assets have references to the other assets, so #assets is also required.
+		Dependent asset must be loaded beforehand.
 		\param node XML node for the configuration.
+		\param assets Asset manager.
 	*/
-	virtual bool Load(const pugi::xml_node& node) = 0;
+	virtual bool Load(const pugi::xml_node& node, const Assets& assets) = 0;
 
 	/*!
 		Get the name of the asset.

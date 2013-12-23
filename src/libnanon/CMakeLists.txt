@@ -77,11 +77,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_SOURCES})
 set(
 	_ASSETS_CAMERAS_HEADERS
 	"${_INCLUDE_DIR}/camera.h"
+	"${_INCLUDE_DIR}/perspectivecamera.h"
 	"${_INCLUDE_DIR}/camerafactory.h"
 )
 set(
 	_ASSETS_CAMERAS_SOURCES
 	"camera.cpp"
+	"perspectivecamera.cpp"
 	"camerafactory.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\cameras" FILES ${_ASSETS_CAMERAS_HEADERS})
