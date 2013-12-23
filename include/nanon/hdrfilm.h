@@ -22,46 +22,53 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
+#ifndef __LIB_NANON_HDR_FILM_H__
+#define __LIB_NANON_HDR_FILM_H__
 
-#include "common.h"
-#include <nanon/asset.h>
+#include "film.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
+/*!
+	High dynamic range bitmap film.
+	Implements HDR version of bitmap image recording.
+*/
+class NANON_PUBLIC_API HDRBitmapFilm : public Film
 {
 public:
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
+	HDRBitmapFilm(const std::string& id);
+	virtual ~HDRBitmapFilm();
 
-};
-
-class StubAsset_Success : public StubAsset
-{
 public:
+
+	virtual bool Load(const pugi::xml_node& node);
+	virtual std::string Type() const { return "hdr"; }
 	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return true; }
-	virtual std::string Type() const { return "success"; }
-
-};
-
-class StubAsset_FailOnCreate : public StubAsset
-{
 public:
 
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
+	virtual int Width() const;
+	virtual int Height() const;
+	virtual bool Save() const;
+	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
+
+public:
+
+	/*!
+		Get the internal data.
+		Copy the internal data to the given array #dest.
+		This function is used internally for testing.
+		\param dest An array to store internal data.
+	*/
+	void InternalData(std::vector<Math::Vec3>& dest);
+
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 
-NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_STUB_ASSET_H__
+#endif // __LIB_NANON_HDR_FILM_H__

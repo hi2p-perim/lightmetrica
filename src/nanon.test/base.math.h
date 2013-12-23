@@ -31,9 +31,10 @@
 
 namespace mp = boost::multiprecision;
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-typedef ::testing::Types<float, double, nanon::Math::BigFloat> MathTestTypes;
+typedef ::testing::Types<float, double, Math::BigFloat> MathTestTypes;
 
 template <typename T>
 class MathTestBase : public TestBase {};
@@ -42,7 +43,7 @@ template <typename T>
 NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
 	T diff = std::abs(expected - actual);
-	T epsilon = nanon::Math::TConstants<T>::EpsLarge;
+	T epsilon = Math::TConstants<T>::EpsLarge;
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << epsilon << " )";
@@ -54,10 +55,10 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, cons
 }
 
 template <>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<nanon::Math::BigFloat>(const nanon::Math::BigFloat& expected, const nanon::Math::BigFloat& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
 {
-	nanon::Math::BigFloat diff = mp::abs(expected - actual);
-	nanon::Math::BigFloat epsilon = nanon::Math::TConstants<nanon::Math::BigFloat>::EpsLarge;
+	Math::BigFloat diff = mp::abs(expected - actual);
+	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge;
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << epsilon.str() << " )";
@@ -69,7 +70,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<nanon::Math::BigFloat>(
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::Math::TVec2<T>& expect, const nanon::Math::TVec2<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, const Math::TVec2<T>& actual)
 {
 	for (int i = 0; i < 2; i++)
 	{
@@ -84,7 +85,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const nanon::Math::
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::Math::TVec3<T>& expect, const nanon::Math::TVec3<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -99,7 +100,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const nanon::Math::
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::Math::TVec4<T>& expect, const nanon::Math::TVec4<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& expect, const Math::TVec4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -114,7 +115,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const nanon::Math::
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::Math::TMat3<T>& expect, const nanon::Math::TMat3<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& expect, const Math::TMat3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -132,7 +133,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const nanon::Math::
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const nanon::Math::TMat4<T>& expect, const nanon::Math::TMat4<T>& actual)
+NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T>& expect, const Math::TMat4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -150,5 +151,6 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const nanon::Math::
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END
 
 #endif // __NANON_TEST_BASE_MATH_H__

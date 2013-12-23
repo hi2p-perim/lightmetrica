@@ -26,10 +26,14 @@
 #define __LIB_NANON_FILM_H__
 
 #include "asset.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Film.
+	A base class of the films.
+	The class is used to rendered images equipped with cameras.
 */
 class NANON_PUBLIC_API Film : public Asset
 {
@@ -37,6 +41,38 @@ public:
 
 	Film(const std::string& id);
 	virtual ~Film();
+
+public:
+
+	std::string Name() const { return "film"; }
+
+public:
+
+	/*!
+		Get the width of the film.
+		\retval Width of the film.
+	*/
+	virtual int Width() const = 0;
+
+	/*!
+		Get the height of the film.
+		\retval Height of the film.
+	*/
+	virtual int Height() const = 0;
+
+	/*!
+		Save as image.
+		Saves the film as image.
+	*/
+	virtual bool Save() const = 0;
+
+	/*!
+		Record the contribution to the raster position.
+		This function records #contrb to the position specified by #rasterPos.
+		\param rasterPos Raster position.
+		\param contrb Contribution.
+	*/
+	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) = 0;
 
 };
 

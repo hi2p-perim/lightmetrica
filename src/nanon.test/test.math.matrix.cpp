@@ -25,8 +25,7 @@
 #include "pch.h"
 #include "base.math.h"
 
-using namespace nanon;
-
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
@@ -212,3 +211,4 @@ TYPED_TEST(MathMatrix4Test, Multiply)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

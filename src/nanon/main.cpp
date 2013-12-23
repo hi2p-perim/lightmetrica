@@ -275,7 +275,7 @@ bool NanonApplication::Run()
 
 	// Begin rendering
 	// TODO : Dispatch renderer in the another thread and poll progress
-	if (!renderer->Render() || !renderer->Save())
+	if (!renderer->Render(*scene))
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;

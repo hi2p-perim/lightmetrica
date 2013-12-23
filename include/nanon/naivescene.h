@@ -41,8 +41,8 @@ public:
 public:
 
 	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect);
-	virtual std::string Type();
+	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual std::string Type() const;
 
 private:
 

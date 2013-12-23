@@ -44,6 +44,7 @@ public:
 
 public:
 
+	static const T Zero;
 	static const T Pi;
 	static const T InvTwoPi;
 	static const T Inf;
@@ -52,6 +53,7 @@ public:
 
 };
 
+template <typename T> const T TConstants<T>::Zero = T(0);
 template <typename T> const T TConstants<T>::Pi = boost::math::constants::pi<T>();
 template <typename T> const T TConstants<T>::InvTwoPi = boost::math::constants::one_div_two_pi()<T>();
 template <typename T> const T TConstants<T>::Inf = std::numeric_limits<T>::infinity();

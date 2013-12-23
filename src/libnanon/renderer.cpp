@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <nanon/renderer.h>
 #include <nanon/config.h>
-#include <nanon/defaultassets.h>
+#include <nanon/assets.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
@@ -36,10 +36,6 @@ public:
 
 	Impl();
 	~Impl();
-
-public:
-
-	bool Configure(const pugi::xml_node& node, const DefaultAssets& assets);
 
 private:
 
@@ -57,11 +53,6 @@ Renderer::Impl::~Impl()
 
 }
 
-bool Renderer::Impl::Configure( const pugi::xml_node& node, const DefaultAssets& assets )
-{
-	return false;
-}
-
 // --------------------------------------------------------------------------------
 
 Renderer::Renderer()
@@ -75,14 +66,9 @@ Renderer::~Renderer()
 	NANON_SAFE_DELETE(p);
 }
 
-bool Renderer::Configure( const pugi::xml_node& node, const DefaultAssets& assets )
+bool Renderer::Configure( const NanonConfig& config, const Assets& assets )
 {
-	return p->Configure(node, assets);
-}
-
-bool Renderer::Configure( const NanonConfig& config, const DefaultAssets& assets )
-{
-	return p->Configure(config.RendererElement(), assets);
+	return Configure(config.RendererElement(), assets);
 }
 
 NANON_NAMESPACE_END

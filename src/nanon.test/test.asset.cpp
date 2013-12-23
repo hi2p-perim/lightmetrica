@@ -26,8 +26,7 @@
 #include "base.h"
 #include "stub.asset.h"
 
-using namespace nanon;
-
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class AssetTest : public TestBase {};
@@ -45,3 +44,4 @@ TEST_F(AssetTest, Create_Failed)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

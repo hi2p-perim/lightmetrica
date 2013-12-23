@@ -80,6 +80,11 @@ find_package(ASSIMP REQUIRED)
 include_directories(${ASSIMP_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${ASSIMP_LIBRARIES})
 
+# FreeImage
+find_package(FREEIMAGE REQUIRED)
+include_directories(${FREEIMAGE_INCLUDE_DIRS})
+list(APPEND LIBRARY_FILES ${FREEIMAGE_LIBRARIES})
+
 # Google test
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -131,6 +136,9 @@ endif()
 if (MSVC)
 	# Do not use list(APPEND ..)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
+	
+	# _SCL_SECURE_NO_WARNINGS 
+	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 # Enabling C++11 for gcc

@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 #include <pugixml.hpp>
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class TestBase : public ::testing::Test
@@ -67,5 +68,6 @@ private:
 };
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END
 
 #endif // __NANON_TEST_BASE_H__

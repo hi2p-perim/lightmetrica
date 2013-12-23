@@ -35,7 +35,8 @@ namespace pugi
 
 NANON_NAMESPACE_BEGIN
 
-class DefaultAssets;
+class Assets;
+class Scene;
 class NanonConfig;
 
 /*!
@@ -56,24 +57,36 @@ private:
 public:
 
 	/*!
+		Configure the renderer from XML element.
+		This function is used internally or testing.
+		\param node A XML element which consists of \a renderer element.
+		\retval true Succeeded to configure.
+		\retval false Failed to configure.
 	*/
-	bool Configure(const pugi::xml_node& node, const DefaultAssets& assets);
+	virtual bool Configure(const pugi::xml_node& node, const Assets& assets) = 0;
 
 	/*!
+		Configure the renderer from the configuration.
+		Get the \a renderer element from the configuration and configure the renderer.
+		\retval config Configuration.
+		\retval true Succeeded to configure.
+		\retval false Failed to configure.
 	*/
-	bool Configure(const NanonConfig& config, const DefaultAssets& assets);
+	bool Configure(const NanonConfig& config, const Assets& assets);
 
 	/*!
+		Get the scene type.
+		\return Scene type.
 	*/
-	virtual std::string Type() = 0;
+	virtual std::string Type() const = 0;
 
 	/*!
+		Start rendering.
+		The function starts to render the #scene according to the current configuration.
+		\param scene Scene.
+		\retval true Succeeded to render the scene.
 	*/
-	virtual bool Render() = 0;
-
-	/*!
-	*/
-	virtual bool Save() = 0;
+	virtual bool Render(const Scene& scene) = 0;
 
 private:
 

@@ -28,8 +28,6 @@
 #include "stub.assetfactory.h"
 #include <nanon/defaultassets.h>
 
-using namespace nanon;
-
 namespace
 {
 
@@ -66,6 +64,7 @@ namespace
 
 }
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class AssetsTest : public TestBase
@@ -129,3 +128,4 @@ TEST_F(AssetsTest, GetAssetByName_Failed)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

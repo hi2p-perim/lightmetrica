@@ -27,5 +27,6 @@
 
 #include "math.basic.h"
 #include "math.transform.h"
+#include "math.linalgebra.h"
 
 #endif // __LIB_NANON_MATH_FUNCTIONS_H__

@@ -26,13 +26,13 @@
 #include "base.h"
 #include "base.math.h"
 #include "stub.assetfactory.h"
+#include "stub.bsdf.h"
+#include "stub.trianglemesh.h"
 #include <nanon/scene.h>
 #include <nanon/assets.h>
 #include <nanon/trianglemesh.h>
 #include <nanon/bsdf.h>
 #include <nanon/primitive.h>
-
-using namespace nanon;
 
 namespace
 {
@@ -119,33 +119,8 @@ namespace
 
 }
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
-
-class StubTriangleMesh : public TriangleMesh
-{
-public:
-
-	StubTriangleMesh(const std::string& id) : TriangleMesh(id) {}
-	virtual bool Load(const pugi::xml_node& node) { return true; }
-	virtual std::string Type() const { return "stub"; }
-	virtual int NumVertices() const { return 0; }
-	virtual int NumFaces() const { return 0; }
-	virtual const Math::Vec3* Positions() const { return nullptr; }
-	virtual const Math::Vec3* Normals() const { return nullptr; }
-	virtual const Math::Vec2* TexCoords() const { return nullptr; }
-	virtual const Math::Vec3i* Faces() const { return nullptr; }
-
-};
-
-class StubBSDF : public BSDF
-{
-public:
-
-	StubBSDF(const std::string& id) : BSDF(id) {}
-	virtual bool Load(const pugi::xml_node& node) { return true; }
-	virtual std::string Type() const { return "stub"; }
-
-};
 
 class StubAssets : public Assets
 {
@@ -175,8 +150,8 @@ class StubScene : public Scene
 public:
 
 	virtual bool Build() { return true; }
-	virtual bool Intersect( Ray& ray, Intersection& isect )  { return false; }
-	virtual std::string Type() { return "stub"; }
+	virtual bool Intersect( Ray& ray, Intersection& isect ) const { return false; }
+	virtual std::string Type() const { return "stub"; }
 
 };
 
@@ -231,3 +206,4 @@ TEST_F(SceneTest, Load_Fail_MatrixInvalidNumberOfElements)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

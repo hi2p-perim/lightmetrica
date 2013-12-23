@@ -27,6 +27,8 @@
 #include <nanon/ray.h>
 #include <nanon/intersection.h>
 #include <nanon/primitive.h>
+#include <nanon/trianglemesh.h>
+#include <nanon/math.functions.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -194,19 +196,92 @@ bool NaiveScene::Impl::Build()
 	for (int i = 0; i < self->NumPrimitives(); i++)
 	{
 		const auto* primitive = self->PrimitiveByIndex(i);
-		if (primitive->mesh)
+		const auto* mesh = primitive->mesh;
+		if (mesh)
 		{
-			// TODO
-			
+			// Enumerate all triangles and create triaccels
+			const auto* positions = mesh->Positions();
+			const auto* faces = mesh->Faces();
+			for (int j = 0; j < mesh->NumFaces(); j++)
+			{
+				triAccels.push_back(TriAccel());
+				triAccels.back().shapeIndex = j;
+				triAccels.back().primIndex = i;
+				triAccels.back().Load(positions[faces[j][0]], positions[faces[j][1]], positions[faces[j][2]]);
+			}
 		}
 	}
 	
-	return false;
+	return true;
 }
 
 bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect )
 {
-	return false;
+	bool intersected = false;
+	size_t minTriAccelIdx = 0;
+	Math::Vec2 minB;
+
+	for (size_t i = 0; i < triAccels.size(); i++)
+	{
+		Math::Float t;
+		Math::Vec2 b;
+		if (triAccels[i].Intersect(ray, ray.minT, ray.maxT, b[0], b[1], t))
+		{
+			ray.maxT = t;
+			minTriAccelIdx = i;
+			minB = b;
+			intersected = true;
+		}
+	}
+
+	if (intersected)
+	{
+		// Store required data for the intersection structure
+		auto& triAccel = triAccels[minTriAccelIdx];
+
+		// Primitive
+		isect.primitiveIndex = triAccel.primIndex;
+		isect.triangleIndex = triAccel.shapeIndex;
+		isect.primitive = self->PrimitiveByIndex(triAccel.primIndex);
+
+		const auto* mesh = isect.primitive->mesh;
+		const auto* positions = mesh->Positions();
+		const auto* normals = mesh->Normals();
+		const auto* texcoords = mesh->TexCoords();
+		const auto* faces = mesh->Faces();
+
+		// Intersection point
+		isect.p = ray.o + ray.d * ray.maxT;
+
+		// Geometry normal
+		int v1 = faces[triAccel.shapeIndex][0];
+		int v2 = faces[triAccel.shapeIndex][1];
+		int v3 = faces[triAccel.shapeIndex][2];
+		auto& p1 = positions[v1];
+		auto& p2 = positions[v2];
+		auto& p3 = positions[v3];
+		isect.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+
+		// Shading normal
+		auto& n1 = normals[v1];
+		auto& n2 = normals[v2];
+		auto& n3 = normals[v3];
+		isect.sn = Math::Normalize(n1 * (Math::Float(1) - minB[0] - minB[1]) + n2 * minB[0] + n3 * minB[1]);
+		
+		// Texture coordinates
+		if (texcoords)
+		{
+			auto& uv1 = texcoords[v1];
+			auto& uv2 = texcoords[v2];
+			auto& uv3 = texcoords[v3];
+			isect.uv = uv1 * (Math::Float(1) - minB[0] - minB[1]) + uv2 * minB[0] + uv3 * minB[1];
+		}
+
+		// Tangent vectors
+		Math::OrthonormalBasis(isect.sn, isect.ss, isect.st);
+	}
+
+	return intersected;
 }
 
 // --------------------------------------------------------------------------------
@@ -227,12 +302,12 @@ bool NaiveScene::Build()
 	return p->Build();
 }
 
-bool NaiveScene::Intersect( Ray& ray, Intersection& isect )
+bool NaiveScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	return p->Intersect(ray, isect);
 }
 
-std::string NaiveScene::Type()
+std::string NaiveScene::Type() const
 {
 	return "naive";
 }

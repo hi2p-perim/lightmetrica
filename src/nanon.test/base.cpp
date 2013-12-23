@@ -26,9 +26,9 @@
 #include "base.h"
 #include <nanon/logger.h>
 
-using namespace nanon;
 namespace fs = boost::filesystem;
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 const long long TestBase::OutputProcessTimeout = 500;
@@ -75,3 +75,4 @@ std::string TemporaryFile::Path() const
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

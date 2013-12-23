@@ -29,6 +29,7 @@
 #include "math.matrix.h"
 #include "math.quat.h"
 #include "math.constants.h"
+#include "math.colors.h"
 
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN
@@ -51,6 +52,7 @@ typedef TVec4<Float> Vec4;
 typedef TMat3<Float> Mat3;
 typedef TMat4<Float> Mat4;
 typedef TConstants<Float> Constants;
+typedef TColors<Float> Colors;
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

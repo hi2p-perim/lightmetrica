@@ -284,22 +284,22 @@ int ObjMesh::NumFaces() const
 
 const Math::Vec3* ObjMesh::Positions() const
 {
-	return &p->positions[0];
+	return p->positions.empty() ? nullptr : &p->positions[0];
 }
 
 const Math::Vec3* ObjMesh::Normals() const
 {
-	return &p->normals[0];
+	return p->normals.empty() ? nullptr : &p->normals[0];
 }
 
 const Math::Vec2* ObjMesh::TexCoords() const
 {
-	return &p->texcoords[0];
+	return p->texcoords.empty() ? nullptr : &p->texcoords[0];
 }
 
 const Math::Vec3i* ObjMesh::Faces() const
 {
-	return &p->faces[0];
+	return p->faces.empty() ? nullptr : &p->faces[0];
 }
 
 NANON_NAMESPACE_END

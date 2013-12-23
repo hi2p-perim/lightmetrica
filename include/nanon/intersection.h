@@ -38,6 +38,8 @@ struct Intersection
 {
 
 	const Primitive* primitive;
+	unsigned int primitiveIndex;
+	unsigned int triangleIndex;
 
 	Math::Vec3 p;			//!< Intersection point
 	Math::Vec3 gn;			//!< Geometry normal

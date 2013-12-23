@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include <string>
+#include <vector>
 
 namespace pugi
 {
@@ -37,6 +38,7 @@ NANON_NAMESPACE_BEGIN
 
 class Assets;
 class NanonConfig;
+class Camera;
 struct Primitive;
 struct Ray;
 struct Intersection;
@@ -98,7 +100,7 @@ public:
 		\retval true Intersected with the scene.
 		\retval false Not intersected with the scene.
 	*/
-	virtual bool Intersect(Ray& ray, Intersection& isect) = 0;
+	virtual bool Intersect(Ray& ray, Intersection& isect) const = 0;
 
 	/*!
 		Reset the scene.
@@ -128,11 +130,27 @@ public:
 	const Primitive* PrimitiveByID(const std::string& id) const;
 
 	/*!
+		Get a main camera.
+		\return Main camera.
+	*/
+	const Camera* MainCamera() const;
+
+	/*!
 		Get the scene type.
 		\return Scene type.
 	*/
-	virtual std::string Type() = 0;
+	virtual std::string Type() const = 0;
 	
+public:
+
+	/*!
+		Load primitives.
+		This function is used internally for testing.
+		\param primitives List of primitives.
+		\retval true Succeeded to load the scene.
+		\retval false Failed to load the scene.
+	*/
+	bool LoadPrimitives(const std::vector<std::shared_ptr<Primitive>>& primitives);
 
 private:
 

@@ -26,7 +26,6 @@
 #include "base.h"
 #include <nanon/config.h>
 
-using namespace nanon;
 namespace fs = boost::filesystem;
 
 namespace
@@ -56,6 +55,7 @@ namespace
 	);
 }
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class NanonConfigTest : public TestBase
@@ -108,3 +108,4 @@ TEST_F(NanonConfigTest, LoadString_Failed)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

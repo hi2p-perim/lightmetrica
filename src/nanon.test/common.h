@@ -32,7 +32,7 @@
 //	#pragma comment(linker, "/ignore:4099")
 //#endif
 
-#define NANON_TEST_NAMESPACE_BEGIN namespace nanontest {
+#define NANON_TEST_NAMESPACE_BEGIN namespace test {
 #define NANON_TEST_NAMESPACE_END }
 
 #define NANON_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__

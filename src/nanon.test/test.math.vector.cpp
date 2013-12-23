@@ -25,8 +25,7 @@
 #include "pch.h"
 #include "base.math.h"
 
-using namespace nanon;
-
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 template <typename T>
@@ -91,6 +90,13 @@ TYPED_TEST(MathVector2Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectVec2Near(v1v2, v1 * v2));
 	EXPECT_TRUE(ExpectVec2Near(v1, v1s2 / T(2)));
 	EXPECT_TRUE(ExpectVec2Near(v1, v1v2 / v2));
+}
+
+TYPED_TEST(MathVector2Test, Unary)
+{
+	typedef TypeParam T;
+	Math::TVec2<T> expect(T(-1), T(-2));
+	EXPECT_TRUE(ExpectVec2Near(expect, -v1));
 }
 
 TYPED_TEST(MathVector2Test, Length)
@@ -183,6 +189,13 @@ TYPED_TEST(MathVector3Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectVec3Near(v1v2, v1 * v2));
 	EXPECT_TRUE(ExpectVec3Near(v1, v1s2 / T(2)));
 	EXPECT_TRUE(ExpectVec3Near(v1, v1v2 / v2));
+}
+
+TYPED_TEST(MathVector3Test, Unary)
+{
+	typedef TypeParam T;
+	Math::TVec3<T> expect(T(-1), T(-2), T(-3));
+	EXPECT_TRUE(ExpectVec3Near(expect, -v1));
 }
 
 TYPED_TEST(MathVector3Test, Length)
@@ -288,6 +301,13 @@ TYPED_TEST(MathVector4Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectVec4Near(v1, v1v2 / v2));
 }
 
+TYPED_TEST(MathVector4Test, Unary)
+{
+	typedef TypeParam T;
+	Math::TVec4<T> expect(T(-1), T(-2), T(-3), T(-4));
+	EXPECT_TRUE(ExpectVec4Near(expect, -v1));
+}
+
 TYPED_TEST(MathVector4Test, Length)
 {
 	typedef TypeParam T;
@@ -309,3 +329,4 @@ TYPED_TEST(MathVector4Test, Dot)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

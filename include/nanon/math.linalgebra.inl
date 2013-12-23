@@ -22,46 +22,20 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
-
-#include "common.h"
-#include <nanon/asset.h>
+#include "math.linalgebra.h"
+#include "math.basic.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
+template <typename T>
+NANON_FORCE_INLINE void OrthonormalBasis(const TVec3<T>& a, TVec3<T>& b, TVec3<T>& c)
 {
-public:
+	c = Math::Abs(a.x) > Math::Abs(a.y)
+		? Math::Normalize(Math::Vec3(a.z, T(0), -a.x))
+		: Math::Normalize(Math::Vec3(T(0), a.z, -a.y));
+	b = Math::Normalize(Math::Cross(c, a));
+}
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
-
-};
-
-class StubAsset_Success : public StubAsset
-{
-public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return true; }
-	virtual std::string Type() const { return "success"; }
-
-};
-
-class StubAsset_FailOnCreate : public StubAsset
-{
-public:
-
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
-
-};
-
-NANON_TEST_NAMESPACE_END
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
-
-#endif // __NANON_TEST_STUB_ASSET_H__

@@ -26,9 +26,12 @@
 #define __LIB_NANON_CAMERA_H__
 
 #include "asset.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
+class Film;
+struct Ray;
 struct Primitive;
 
 /*!
@@ -41,6 +44,21 @@ public:
 
 	Camera(const std::string& id);
 	virtual ~Camera();
+
+public:
+
+	/*!
+		Convert the raster position to a ray.
+		\param rasterPos Raster position in [0, 1]^2.
+		\param ray Ray.
+	*/
+	virtual void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const = 0;
+
+public:
+
+	/*!
+	*/
+	virtual const Film* Film() const = 0;
 
 public:
 	

@@ -28,16 +28,18 @@
 #include "common.h"
 #include <nanon/assetfactory.h>
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class StubAssetFactory : public nanon::AssetFactory
+class StubAssetFactory : public AssetFactory
 {
 public:
 
-	std::shared_ptr<nanon::Asset> Create(const std::string& id, const std::string& type);
+	std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
 
 };
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END
 
 #endif // __NANON_TEST_STUB_ASSET_FACTORY_H__

@@ -25,7 +25,7 @@
 include (PCHTargets)
 
 set(_HEADER_FILES_ROOT "Header Files")
-SET(_SOURCE_FILES_ROOT "Source Files")
+set(_SOURCE_FILES_ROOT "Source Files")
 set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon)
 set(
 	_HEADER_FILES
@@ -111,11 +111,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_LIGHTS_SOURCES})
 set(
 	_ASSETS_FILMS_HEADERS
 	"${_INCLUDE_DIR}/film.h"
+	"${_INCLUDE_DIR}/hdrfilm.h"
 	"${_INCLUDE_DIR}/filmfactory.h"
 )
 set(
 	_ASSETS_FILMS_SOURCES
 	"film.cpp"
+	"hdrfilm.cpp"
 	"filmfactory.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\films" FILES ${_ASSETS_FILMS_HEADERS})
@@ -196,6 +198,8 @@ set(
 	"${_INCLUDE_DIR}/math.basic.inl"
 	"${_INCLUDE_DIR}/math.transform.h"
 	"${_INCLUDE_DIR}/math.transform.inl"
+	"${_INCLUDE_DIR}/math.linalgebra.h"
+	"${_INCLUDE_DIR}/math.linalgebra.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
@@ -212,6 +216,7 @@ set(
 	"${_INCLUDE_DIR}/math.quat.h"
 	"${_INCLUDE_DIR}/math.quat.inl"
 	"${_INCLUDE_DIR}/math.constants.h"
+	"${_INCLUDE_DIR}/math.colors.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
@@ -285,7 +290,7 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 add_definitions(-DNANON_EXPORTS)
 
 pch_add_library(libnanon SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
-target_link_libraries(libnanon ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES})
+target_link_libraries(libnanon ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES})
 
 # Copy dynamic libaries as post-build events
 if(WIN32)

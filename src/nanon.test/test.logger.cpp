@@ -30,9 +30,9 @@
 #include <mutex>
 #include <condition_variable>
 
-using namespace nanon;
 namespace fs = boost::filesystem;
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class LoggerTest : public TestBase {};
@@ -222,3 +222,4 @@ TEST_F(LoggerTest, ImmediateMode)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

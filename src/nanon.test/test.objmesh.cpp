@@ -27,8 +27,6 @@
 #include "base.math.h"
 #include <nanon/objmesh.h>
 
-using namespace nanon;
-
 namespace
 {
 	
@@ -69,6 +67,7 @@ namespace
 
 }
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
 class ObjMeshTest : public TestBase
@@ -86,7 +85,7 @@ public:
 		return LoadXMLBuffer(boost::str(boost::format(ObjMeshNode_Template) % path));
 	}
 
-public:
+protected:
 
 	ObjMesh mesh;
 
@@ -115,3 +114,4 @@ TEST_F(ObjMeshTest, Load_Fail)
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

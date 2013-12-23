@@ -49,6 +49,11 @@ private:
 public:
 
 	/*!
+		Create a scene.
+		This function creates a scene with given #type.
+		If not supported nullptr is returned.
+		\param type Scene type.
+		\return Scene.
 	*/
 	std::shared_ptr<Scene> Create(const std::string& type);
 

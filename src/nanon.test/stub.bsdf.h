@@ -22,46 +22,26 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
+#ifndef __NANON_TEST_STUB_BSDF_H__
+#define __NANON_TEST_STUB_BSDF_H__
 
 #include "common.h"
-#include <nanon/asset.h>
+#include <nanon/bsdf.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
+class StubBSDF : public BSDF
 {
 public:
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
-
-};
-
-class StubAsset_Success : public StubAsset
-{
-public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return true; }
-	virtual std::string Type() const { return "success"; }
-
-};
-
-class StubAsset_FailOnCreate : public StubAsset
-{
-public:
-
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
+	StubBSDF(const std::string& id) : BSDF(id) {}
+	virtual bool Load(const pugi::xml_node& node) { return true; }
+	virtual std::string Type() const { return "stub"; }
 
 };
 
 NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_STUB_ASSET_H__
+#endif // __NANON_TEST_STUB_BSDF_H__

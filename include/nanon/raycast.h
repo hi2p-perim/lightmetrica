@@ -40,9 +40,9 @@ public:
 
 public:
 
-	virtual std::string Type();
-	virtual bool Render();
-	virtual bool Save();
+	virtual std::string Type() const { return "raycast"; }
+	virtual bool Configure(const pugi::xml_node& node, const Assets& assets);
+	virtual bool Render(const Scene& scene);	
 
 private:
 

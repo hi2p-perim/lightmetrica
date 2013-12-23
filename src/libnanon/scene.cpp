@@ -50,9 +50,11 @@ public:
 	
 	void Reset();
 	bool Load(const pugi::xml_node& node, Assets& assets);
+	bool LoadPrimitives(const std::vector<std::shared_ptr<Primitive>>& primitives);
 	int NumPrimitives() const;
 	const Primitive* PrimitiveByIndex(int index) const;
 	const Primitive* PrimitiveByID(const std::string& id) const;
+	const Camera* MainCamera() const { return mainCamera; }
 
 private:
 
@@ -135,6 +137,20 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
+
+	loaded = true;
+	return true;
+}
+
+bool Scene::Impl::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>& primitives )
+{
+	if (loaded)
+	{
+		NANON_LOG_ERROR("Already loaded");
+		return false;
+	}
+
+	this->primitives = primitives;
 
 	loaded = true;
 	return true;
@@ -474,6 +490,16 @@ const Primitive* Scene::PrimitiveByIndex( int index ) const
 const Primitive* Scene::PrimitiveByID( const std::string& id ) const
 {
 	return p->PrimitiveByID(id);
+}
+
+bool Scene::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>& primitives )
+{
+	return p->LoadPrimitives(primitives);
+}
+
+const Camera* Scene::MainCamera() const
+{
+	return p->MainCamera();
 }
 
 NANON_NAMESPACE_END

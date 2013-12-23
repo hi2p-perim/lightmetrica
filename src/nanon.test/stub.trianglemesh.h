@@ -22,46 +22,39 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
+#ifndef __NANON_TEST_STUB_TRIANGLE_MESH_H__
+#define __NANON_TEST_STUB_TRIANGLE_MESH_H__
 
 #include "common.h"
-#include <nanon/asset.h>
+#include <nanon/trianglemesh.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
+class StubTriangleMesh : public TriangleMesh
 {
 public:
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
-
-};
-
-class StubAsset_Success : public StubAsset
-{
-public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return true; }
-	virtual std::string Type() const { return "success"; }
-
-};
-
-class StubAsset_FailOnCreate : public StubAsset
-{
-public:
-
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
+	StubTriangleMesh(const std::string& id) : TriangleMesh(id) {}
+	virtual int NumVertices() const { return static_cast<int>(positions.size()); }
+	virtual int NumFaces() const { return static_cast<int>(faces.size()); }
+	virtual const Math::Vec3* Positions() const { return positions.empty() ? nullptr : &positions[0]; }
+	virtual const Math::Vec3* Normals() const { return normals.empty() ? nullptr : &normals[0]; }
+	virtual const Math::Vec2* TexCoords() const { return texcoords.empty() ? nullptr : &texcoords[0]; }
+	virtual const Math::Vec3i* Faces() const { return faces.empty() ? nullptr : &faces[0]; }
 	virtual bool Load( const pugi::xml_node& node ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
+	virtual std::string Type() const { return "stub"; }
+
+protected:
+
+	std::vector<Math::Vec3> positions;
+	std::vector<Math::Vec3> normals;
+	std::vector<Math::Vec2> texcoords;
+	std::vector<Math::Vec3i> faces;
 
 };
 
 NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_STUB_ASSET_H__
+#endif // __NANON_TEST_STUB_TRIANGLE_MESH_H__

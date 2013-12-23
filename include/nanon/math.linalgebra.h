@@ -22,46 +22,19 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
+#ifndef __LIB_NANON_LIN_ALGEBRA_H__
+#define __LIB_NANON_LIN_ALGEBRA_H__
 
-#include "common.h"
-#include <nanon/asset.h>
+#include "math.vector.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
-{
-public:
+template <typename T> NANON_FORCE_INLINE void OrthonormalBasis(const TVec3<T>& a, TVec3<T>& b, TVec3<T>& c);
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
-
-};
-
-class StubAsset_Success : public StubAsset
-{
-public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return true; }
-	virtual std::string Type() const { return "success"; }
-
-};
-
-class StubAsset_FailOnCreate : public StubAsset
-{
-public:
-
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
-
-};
-
-NANON_TEST_NAMESPACE_END
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_STUB_ASSET_H__
+#include "math.linalgebra.inl"
+
+#endif // __LIB_NANON_LIN_ALGEBRA_H__

@@ -27,9 +27,10 @@
 #include "stub.asset.h"
 #include <nanon/logger.h>
 
+NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-std::shared_ptr<nanon::Asset> StubAssetFactory::Create( const std::string& id, const std::string& type )
+std::shared_ptr<Asset> StubAssetFactory::Create( const std::string& id, const std::string& type )
 {
 	if (type == "success")
 	{
@@ -47,3 +48,4 @@ std::shared_ptr<nanon::Asset> StubAssetFactory::Create( const std::string& id, c
 }
 
 NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

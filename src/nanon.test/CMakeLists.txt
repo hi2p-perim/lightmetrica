@@ -33,13 +33,16 @@ set(
 	"stub.assetfactory.h"
 	"stub.assetfactory.cpp"
 	"stub.asset.h"
-	"stub.asset.cpp"
+	"stub.trianglemesh.h"
+	"stub.bsdf.h"
 	"test.logger.cpp"
 	"test.config.cpp"
 	"test.defaultassets.cpp"
 	"test.asset.cpp"
 	"test.scene.cpp"
+	"test.scene.intersection.cpp"
 	"test.objmesh.cpp"
+	"test.hdrfilm.cpp"
 	
 	# math
 	"test.math.vector.cpp"

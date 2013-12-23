@@ -24,6 +24,12 @@
 
 #include "pch.h"
 #include <nanon/raycast.h>
+#include <nanon/scene.h>
+#include <nanon/camera.h>
+#include <nanon/film.h>
+#include <nanon/ray.h>
+#include <nanon/intersection.h>
+#include <nanon/math.functions.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -31,9 +37,52 @@ class RaycastRenderer::Impl
 {
 public:
 
-	
+	bool Render(const Scene& scene);
+	bool Configure(const pugi::xml_node& node, const Assets& assets);
 
 };
+
+bool RaycastRenderer::Impl::Render(const Scene& scene)
+{
+	const auto* film = scene.MainCamera()->Film();
+
+	Ray ray;
+	Intersection isect;
+
+	for (int y = 0; y < film->Height(); y++)
+	{
+		for (int x = 0; x < film->Width(); x++)
+		{
+			// Raster position
+			Math::Vec2 rasterPos(
+				Math::Float(0.5) + Math::Float(x) / Math::Float(film->Width()),
+				Math::Float(0.5) + Math::Float(y) / Math::Float(film->Height()));
+
+			// Generate ray
+			scene.MainCamera()->RasterPosToRay(rasterPos, ray);
+
+			// Check intersection
+			if (scene.Intersect(ray, isect))
+			{
+				// Intersected : while color
+				//film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.gn, -ray.d))));
+			}
+			else
+			{
+				// Not intersected : black color
+				//film->RecordContribution(rasterPos, Math::Colors::Black);
+			}
+		}
+	}
+
+	return false;
+}
+
+bool RaycastRenderer::Impl::Configure( const pugi::xml_node& node, const Assets& assets )
+{
+	// Nothing!!
+	return true;
+}
 
 // --------------------------------------------------------------------------------
 
@@ -48,19 +97,14 @@ RaycastRenderer::~RaycastRenderer()
 	NANON_SAFE_DELETE(p);
 }
 
-std::string RaycastRenderer::Type()
+bool RaycastRenderer::Render(const Scene& scene)
 {
-	return "raycast";
+	return p->Render(scene);
 }
 
-bool RaycastRenderer::Render()
+bool RaycastRenderer::Configure( const pugi::xml_node& node, const Assets& assets )
 {
-	return false;
-}
-
-bool RaycastRenderer::Save()
-{
-	return false;
+	return p->Configure(node, assets);
 }
 
 NANON_NAMESPACE_END

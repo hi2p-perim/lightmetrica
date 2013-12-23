@@ -8,7 +8,7 @@
 # - ASSIMP_FOUND
 #
 # The following variables can be set as arguments for the module.
-# - ASSIMP_ROOT_DIR : Root library directory of GLFW
+# - ASSIMP_ROOT_DIR : Root library directory of Assimp
 #
 
 # Additional modules
@@ -55,7 +55,7 @@ else()
 			/sw/lib
 			/opt/local/lib
 			${ASSIMP_ROOT_DIR}/lib
-		DOC "The GLFW library")
+		DOC "The Assimp library")
 endif()
 
 # Handle REQUIRD argument, define *_FOUND variable

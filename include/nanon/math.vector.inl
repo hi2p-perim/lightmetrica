@@ -139,6 +139,12 @@ NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec2<T> operator-(const TVec2<T>& v)
+{
+	return TVec2<T>(-v.x, -v.y);
+}
+
+template <typename T>
 NANON_FORCE_INLINE T Length(const TVec2<T>& v)
 {
 	return Math::Sqrt(Math::Length2(v));
@@ -279,6 +285,12 @@ template <typename T>
 NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return TVec3<T>(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> operator-(const TVec3<T>& v)
+{
+	return TVec3<T>(-v.x, -v.y, -v.z);
 }
 
 template <typename T>
@@ -438,6 +450,12 @@ NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v1, const TVec4<T>& v2)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec4<T> operator-(const TVec4<T>& v)
+{
+	return TVec4<T>(-v.x, -v.y, -v.z, -v.w);
+}
+
+template <typename T>
 NANON_FORCE_INLINE T Length(const TVec4<T>& v)
 {
 	return Math::Sqrt(Math::Length2(v));
@@ -560,6 +578,13 @@ NANON_FORCE_INLINE Vec3f operator/(const Vec3f& v1, const Vec3f& v2)
 	Vec3f t(v2);
 	t._ = 1.0f;
 	return Vec3f(_mm_div_ps(v1.v, t.v));
+}
+
+
+template <>
+NANON_FORCE_INLINE Vec3f operator-(const Vec3f& v)
+{
+	return Vec3f(_mm_sub_ps(_mm_setzero_ps(), v.v));
 }
 
 template <>
@@ -713,6 +738,12 @@ NANON_FORCE_INLINE Vec4f operator/(const Vec4f& v1, const Vec4f& v2)
 }
 
 template <>
+NANON_FORCE_INLINE Vec4f operator-(const Vec4f& v)
+{
+	return Vec4f(_mm_sub_ps(_mm_setzero_ps(), v.v));
+}
+
+template <>
 NANON_FORCE_INLINE float Length(const Vec4f& v)
 {
 #ifdef NANON_USE_SSE4_1
@@ -853,6 +884,12 @@ NANON_FORCE_INLINE Vec3d operator/(const Vec3d& v1, const Vec3d& v2)
 	Vec3d t(v2);
 	t._ = 1.0f;
 	return Vec3d(_mm256_div_pd(v1.v, t.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec3d operator-(const Vec3d& v)
+{
+	return Vec3d(_mm256_sub_pd(_mm256_setzero_pd(), v.v));
 }
 
 template <>
@@ -1015,6 +1052,12 @@ template <>
 NANON_FORCE_INLINE Vec4d operator/(const Vec4d& v1, const Vec4d& v2)
 {
 	return Vec4d(_mm256_div_pd(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4d operator-(const Vec4d& v)
+{
+	return Vec4d(_mm256_sub_pd(_mm256_setzero_pd(), v.v));
 }
 
 template <>
