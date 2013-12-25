@@ -25,22 +25,30 @@
 #include "pch.h"
 #include "base.h"
 #include "stub.asset.h"
+#include "stub.assets.h"
+#include <nanon/defaultassets.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase {};
+class AssetTest : public TestBase
+{
+protected:
+
+	StubAssets assets;
+
+};
 
 TEST_F(AssetTest, Load)
 {
 	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(pugi::xml_node()));
+	EXPECT_TRUE(asset.Load(pugi::xml_node(), assets));
 }
 
 TEST_F(AssetTest, Create_Failed)
 {
 	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(pugi::xml_node()));
+	EXPECT_FALSE(asset.Load(pugi::xml_node(), assets));
 }
 
 NANON_TEST_NAMESPACE_END

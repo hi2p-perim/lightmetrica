@@ -268,6 +268,8 @@ TYPED_TEST(MathVector4Test, Conversion)
 	Math::TVec3<T> t2(T(1), T(2), T(3));
 	Math::TVec4<T> a2(T(1), T(2), T(3), T(0));
 	EXPECT_TRUE(ExpectVec4Near(a2, Math::TVec4<T>(t2)));
+
+	EXPECT_TRUE(ExpectVec4Near(v1, Math::TVec4<T>(t2, T(4))));
 }
 
 TYPED_TEST(MathVector4Test, Accessor)

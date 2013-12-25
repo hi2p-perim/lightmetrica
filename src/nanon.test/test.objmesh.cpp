@@ -25,6 +25,7 @@
 #include "pch.h"
 #include "base.h"
 #include "base.math.h"
+#include "stub.assets.h"
 #include <nanon/objmesh.h>
 
 namespace
@@ -88,6 +89,7 @@ public:
 protected:
 
 	ObjMesh mesh;
+	StubAssets assets;
 
 };
 
@@ -95,7 +97,7 @@ TEST_F(ObjMeshTest, Load_Success)
 {
 	TemporaryFile tmp1("tmp1.obj", ObjMesh_Triangle_Success);
 	TemporaryFile tmp2("tmp2.obj", ObjMesh_Polygon_Success);
-	EXPECT_TRUE(mesh.Load(GenerateNode(tmp1.Path())));
+	EXPECT_TRUE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 	ASSERT_EQ(2, mesh.NumFaces());
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), mesh.Positions()[mesh.Faces()[0][0]]));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), mesh.Positions()[mesh.Faces()[0][1]]));
@@ -103,14 +105,14 @@ TEST_F(ObjMeshTest, Load_Success)
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), mesh.Positions()[mesh.Faces()[1][0]]));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), mesh.Positions()[mesh.Faces()[1][1]]));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), mesh.Positions()[mesh.Faces()[1][2]]));
-	EXPECT_TRUE(mesh.Load(GenerateNode(tmp2.Path())));
+	EXPECT_TRUE(mesh.Load(GenerateNode(tmp2.Path()), assets));
 }
 
 TEST_F(ObjMeshTest, Load_Fail)
 {
 	TemporaryFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
-	EXPECT_FALSE(mesh.Load(LoadXMLBuffer(ObjMeshNode_Fail_MissingPathElement)));
-	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path())));
+	EXPECT_FALSE(mesh.Load(LoadXMLBuffer(ObjMeshNode_Fail_MissingPathElement), assets));
+	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 }
 
 NANON_TEST_NAMESPACE_END

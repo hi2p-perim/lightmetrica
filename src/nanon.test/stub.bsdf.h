@@ -36,7 +36,7 @@ class StubBSDF : public BSDF
 public:
 
 	StubBSDF(const std::string& id) : BSDF(id) {}
-	virtual bool Load(const pugi::xml_node& node) { return true; }
+	virtual bool Load(const pugi::xml_node& node, const Assets& assets) { return true; }
 	virtual std::string Type() const { return "stub"; }
 
 };

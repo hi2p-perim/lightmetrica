@@ -72,7 +72,7 @@ public:
 		The function is internally called.
 		\param primitive An instance of the primitive.
 	*/
-	virtual bool RegisterPrimitive(Primitive* primitive) = 0;
+	virtual void RegisterPrimitive(Primitive* primitive) = 0;
 
 };
 

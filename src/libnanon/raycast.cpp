@@ -44,7 +44,7 @@ public:
 
 bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
-	const auto* film = scene.MainCamera()->Film();
+	const auto* film = scene.MainCamera()->GetFilm();
 
 	Ray ray;
 	Intersection isect;

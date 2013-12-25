@@ -386,6 +386,16 @@ NANON_FORCE_INLINE TVec4<T>::TVec4(const T& x, const T& y, const T& z, const T& 
 }
 
 template <typename T>
+NANON_FORCE_INLINE TVec4<T>::TVec4(const TVec3<T>& v, const T& w)
+	: x(v.x)
+	, y(v.y)
+	, z(v.z)
+	, w(w)
+{
+	
+}
+
+template <typename T>
 NANON_FORCE_INLINE T& TVec4<T>::operator[](int i)
 {
 	return (&x)[i];
@@ -682,6 +692,12 @@ NANON_FORCE_INLINE Vec4f::TVec4(float x, float y, float z, float w)
 	: v(_mm_set_ps(w, z, y, x))
 {
 
+}
+
+NANON_FORCE_INLINE Vec4f::TVec4(const Vec3f& v, float w)
+{
+	this->v = v.v;
+	this->w = w;
 }
 
 NANON_FORCE_INLINE float Vec4f::operator[](int i) const
@@ -999,6 +1015,12 @@ NANON_FORCE_INLINE Vec4d::TVec4(double x, double y, double z, double w)
 	: v(_mm256_set_pd(w, z, y, x))
 {
 
+}
+
+NANON_FORCE_INLINE Vec4d::TVec4(const Vec3d& v, double w)
+{
+	this->v = v.v;
+	this->w = w;
 }
 
 NANON_FORCE_INLINE double Vec4d::operator[](int i) const

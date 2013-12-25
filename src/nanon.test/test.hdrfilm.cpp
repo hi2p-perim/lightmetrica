@@ -25,6 +25,7 @@
 #include "pch.h"
 #include "base.h"
 #include "base.math.h"
+#include "stub.assets.h"
 #include <nanon/hdrfilm.h>
 
 namespace
@@ -71,24 +72,25 @@ public:
 protected:
 
 	HDRBitmapFilm film;
+	StubAssets assets;
 
 };
 
 TEST_F(HDRBitmapFilmTest, Load)
 {
-	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success)));
+	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success), assets));
 	EXPECT_EQ(40, film.Width());
 	EXPECT_EQ(30, film.Height());
 }
 
 TEST_F(HDRBitmapFilmTest, Load_Fail)
 {
-	EXPECT_FALSE(film.Load(LoadXMLBuffer(FilmNode_Fail_MissingElement)));
+	EXPECT_FALSE(film.Load(LoadXMLBuffer(FilmNode_Fail_MissingElement), assets));
 }
 
 TEST_F(HDRBitmapFilmTest, RecordContribution)
 {
-	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success)));
+	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success), assets));
 
 	for (int y = 0; y < film.Height(); y++)
 	{

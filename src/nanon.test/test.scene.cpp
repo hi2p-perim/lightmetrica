@@ -28,6 +28,7 @@
 #include "stub.assetfactory.h"
 #include "stub.bsdf.h"
 #include "stub.trianglemesh.h"
+#include "stub.assets.h"
 #include <nanon/scene.h>
 #include <nanon/assets.h>
 #include <nanon/trianglemesh.h>
@@ -122,26 +123,17 @@ namespace
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class StubAssets : public Assets
+class StubAssets_SceneTest : public StubAssets
 {
 public:
 
-	StubAssets()
+	StubAssets_SceneTest()
 	{
 		assetInstanceMap["mesh1"] = std::make_shared<StubTriangleMesh>("mesh1");
 		assetInstanceMap["mesh2"] = std::make_shared<StubTriangleMesh>("mesh2");
 		assetInstanceMap["bsdf1"] = std::make_shared<StubBSDF>("bsdf1");
 		assetInstanceMap["bsdf2"] = std::make_shared<StubBSDF>("bsdf2");
 	}
-
-	virtual Asset* GetAssetByName(const std::string& name)
-	{
-		return assetInstanceMap[name].get();
-	}
-
-private:
-
-	boost::unordered_map<std::string, std::shared_ptr<Asset>> assetInstanceMap;
 
 };
 
@@ -161,7 +153,7 @@ class SceneTest : public TestBase
 {
 protected:
 
-	StubAssets assets;
+	StubAssets_SceneTest assets;
 	StubScene scene;
 
 };

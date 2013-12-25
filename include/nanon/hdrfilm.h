@@ -42,7 +42,7 @@ public:
 
 public:
 
-	virtual bool Load(const pugi::xml_node& node);
+	virtual bool Load(const pugi::xml_node& node, const Assets& assets);
 	virtual std::string Type() const { return "hdr"; }
 	
 public:

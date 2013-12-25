@@ -64,6 +64,7 @@ set(
 set(
 	_ASSETS_SOURCES
 	"asset.cpp"
+	"assets.cpp"
 	"defaultassets.cpp"
 	"assetfactory.cpp"
 )

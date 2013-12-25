@@ -49,7 +49,7 @@ public:
 
 	virtual void RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const;
 	virtual const Film* GetFilm() const;
-	virtual bool RegisterPrimitive( Primitive* primitive );
+	virtual void RegisterPrimitive( Primitive* primitive );
 
 private:
 

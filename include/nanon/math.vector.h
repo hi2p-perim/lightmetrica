@@ -139,6 +139,7 @@ struct TVec4
 	NANON_FORCE_INLINE TVec4(const TVec4<T>& v);
 	NANON_FORCE_INLINE TVec4(const T& v);
 	NANON_FORCE_INLINE TVec4(const T& x, const T& y, const T& z, const T& w);
+	NANON_FORCE_INLINE TVec4(const TVec3<T>& v, const T& w);
 	NANON_FORCE_INLINE T& operator[](int i);
 	NANON_FORCE_INLINE const T& operator[](int i) const;
 	NANON_FORCE_INLINE TVec4<T>& operator=(const TVec4<T>& v);
@@ -231,6 +232,7 @@ struct NANON_ALIGN_16 TVec4<float>
 	NANON_FORCE_INLINE TVec4(float v);
 	NANON_FORCE_INLINE TVec4(__m128 v);
 	NANON_FORCE_INLINE TVec4(float x, float y, float z, float w);
+	NANON_FORCE_INLINE TVec4(const Vec3f& v, float w);
 	NANON_FORCE_INLINE float operator[](int i) const;
 	NANON_FORCE_INLINE Vec4f& operator=(const Vec4f& v);
 
@@ -320,6 +322,7 @@ struct NANON_ALIGN_16 TVec4<double>
 	NANON_FORCE_INLINE TVec4(double v);
 	NANON_FORCE_INLINE TVec4(__m256d v);
 	NANON_FORCE_INLINE TVec4(double x, double y, double z, double w);
+	NANON_FORCE_INLINE TVec4(const Vec3d& v, double w);
 	NANON_FORCE_INLINE double operator[](int i) const;
 	NANON_FORCE_INLINE Vec4d& operator=(const Vec4d& v);
 

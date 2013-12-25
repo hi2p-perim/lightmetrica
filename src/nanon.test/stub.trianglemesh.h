@@ -42,7 +42,7 @@ public:
 	virtual const Math::Vec3* Normals() const { return normals.empty() ? nullptr : &normals[0]; }
 	virtual const Math::Vec2* TexCoords() const { return texcoords.empty() ? nullptr : &texcoords[0]; }
 	virtual const Math::Vec3i* Faces() const { return faces.empty() ? nullptr : &faces[0]; }
-	virtual bool Load( const pugi::xml_node& node ) { return false; }
+	virtual bool Load( const pugi::xml_node& node, const Assets& assets ) { return false; }
 	virtual std::string Type() const { return "stub"; }
 
 protected:

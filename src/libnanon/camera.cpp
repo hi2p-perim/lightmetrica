@@ -38,9 +38,4 @@ Camera::~Camera()
 
 }
 
-bool Camera::RegisterPrimitive( const Primitive* primitive )
-{
-	return false;
-}
-
 NANON_NAMESPACE_END

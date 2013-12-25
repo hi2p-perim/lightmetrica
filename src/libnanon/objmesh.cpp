@@ -74,7 +74,7 @@ class ObjMesh::Impl
 public:
 
 	Impl(ObjMesh* self);
-	bool Load(const pugi::xml_node& node);
+	bool Load(const pugi::xml_node& node, const Assets& assets);
 
 public:
 
@@ -92,7 +92,7 @@ ObjMesh::Impl::Impl( ObjMesh* self )
 
 }
 
-bool ObjMesh::Impl::Load( const pugi::xml_node& node )
+bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 {
 	// Check name and type
 	if (node.name() != self->Name())
@@ -267,9 +267,9 @@ ObjMesh::~ObjMesh()
 	NANON_SAFE_DELETE(p);
 }
 
-bool ObjMesh::Load( const pugi::xml_node& node )
+bool ObjMesh::Load( const pugi::xml_node& node, const Assets& assets )
 {
-	return p->Load(node);
+	return p->Load(node, assets);
 }
 
 int ObjMesh::NumVertices() const

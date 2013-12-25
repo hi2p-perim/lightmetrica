@@ -37,10 +37,10 @@ class DefaultAssets::Impl
 {
 public:
 
+	Impl(DefaultAssets* self);
 	bool Load(const pugi::xml_node& node);
 	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
-	Asset* GetAssetByName(const std::string& name);
-	Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
+	Asset* GetAssetByName(const std::string& name) const;
 
 private:
 
@@ -48,11 +48,18 @@ private:
 
 private:
 
+	DefaultAssets* self;
 	std::vector<AssetFactoryEntry> assetFactoryEntries;
 	boost::unordered_map<std::string, size_t> assetFactoryMap;
 	boost::unordered_map<std::string, std::shared_ptr<Asset>> assetInstanceMap;
 
 };
+
+DefaultAssets::Impl::Impl( DefaultAssets* self )
+	: self(self)
+{
+
+}
 
 bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
 {
@@ -150,7 +157,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 				}
 
 				// Load asset
-				if (!asset->Load(assetNode))
+				if (!asset->Load(assetNode, *self))
 				{
 					NANON_LOG_ERROR("Failed to load the asset.");
 					return false;
@@ -165,44 +172,15 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 	return true;
 }
 
-Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name )
+Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name ) const
 {
-	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap[name].get();
-}
-
-Asset* DefaultAssets::Impl::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name ) const
-{
-	// The element must have 'ref' attribute
-	auto refAttr = node.attribute("ref");
-	if (!refAttr)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-
-	// Find the light specified by 'ref'
-	auto* asset = GetAssetByName(refAttr.as_string());
-	if (!asset)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-	else if (asset->Name() != name)
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-		return nullptr;
-	}
-
-	return asset;
+	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap.at(name).get();
 }
 
 // --------------------------------------------------------------------------------
 
 DefaultAssets::DefaultAssets()
-	: p(new Impl)
+	: p(new Impl(this))
 {
 
 }
@@ -230,11 +208,6 @@ bool DefaultAssets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 Asset* DefaultAssets::GetAssetByName( const std::string& name ) const
 {
 	return p->GetAssetByName(name);
-}
-
-Asset* DefaultAssets::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name ) const
-{
-	return p->ResolveReferenceToAsset(node, name);
 }
 
 NANON_NAMESPACE_END

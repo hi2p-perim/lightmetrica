@@ -44,8 +44,8 @@ class NANON_PUBLIC_API Assets
 {
 public:
 
-	Assets() {}
-	virtual ~Assets() {}
+	Assets();
+	virtual ~Assets();
 
 private:
 
@@ -68,7 +68,7 @@ public:
 		\param node A XML element which consists of the \a ref attribute.
 		\param name Target asset type, e.g. triangle_mesh.
 	*/
-	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const = 0;
+	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
 
 };
 

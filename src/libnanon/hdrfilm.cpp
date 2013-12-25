@@ -41,7 +41,7 @@ class HDRBitmapFilm::Impl
 public:
 
 	Impl(HDRBitmapFilm* self);
-	bool Load(const pugi::xml_node& node);
+	bool Load(const pugi::xml_node& node, const Assets& assets);
 	int Width() const { return width; }
 	int Height() const { return height; }
 	bool Save();
@@ -69,7 +69,7 @@ HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
 	
 }
 
-bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node )
+bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 {
 	// Check name and type
 	if (node.name() != self->Name())
@@ -254,9 +254,9 @@ void HDRBitmapFilm::InternalData( std::vector<Math::Vec3>& dest )
 	p->InternalData(dest);
 }
 
-bool HDRBitmapFilm::Load( const pugi::xml_node& node )
+bool HDRBitmapFilm::Load( const pugi::xml_node& node, const Assets& assets )
 {
-	return p->Load(node);
+	return p->Load(node, assets);
 }
 
 int HDRBitmapFilm::Width() const

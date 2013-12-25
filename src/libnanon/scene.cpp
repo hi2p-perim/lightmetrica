@@ -277,21 +277,13 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		{
 			// Register the primitive to the camera
 			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, camera);
-			if (!camera->RegisterPrimitive(primitive.get()))
-			{
-				NANON_LOG_DEBUG_EMPTY();
-				return false;
-			}
+			camera->RegisterPrimitive(primitive.get());
 		}
 		else if (light)
 		{
 			// Register the primitive to the light
 			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, light);
-			if (!light->RegisterPrimitive(primitive.get()))
-			{
-				NANON_LOG_DEBUG_EMPTY();
-				return false;
-			}
+			light->RegisterPrimitive(primitive.get());
 		}
 		else
 		{

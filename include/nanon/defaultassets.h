@@ -70,7 +70,6 @@ public:
 public:
 
 	virtual Asset* GetAssetByName(const std::string& name) const;
-	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
 
 public:
 

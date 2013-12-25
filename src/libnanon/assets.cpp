@@ -22,46 +22,52 @@
 	THE SOFTWARE.
 */
 
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
-
-#include "common.h"
+#include "pch.h"
+#include <nanon/assets.h>
 #include <nanon/asset.h>
+#include <nanon/logger.h>
+#include <nanon/pugihelper.h>
+#include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
 
-class StubAsset : public Asset
+Assets::Assets()
 {
-public:
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
+}
 
-};
-
-class StubAsset_Success : public StubAsset
+Assets::~Assets()
 {
-public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets ) { return true; }
-	virtual std::string Type() const { return "success"; }
 
-};
+}
 
-class StubAsset_FailOnCreate : public StubAsset
+Asset* Assets::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name ) const
 {
-public:
+	// The element must have 'ref' attribute
+	auto refAttr = node.attribute("ref");
+	if (!refAttr)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
 
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
+	// Find the light specified by 'ref'
+	auto* asset = GetAssetByName(refAttr.as_string());
+	if (!asset)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
+	else if (asset->Name() != name)
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
+		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		return nullptr;
+	}
 
-};
+	return asset;
+}
 
-NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
-
-#endif // __NANON_TEST_STUB_ASSET_H__

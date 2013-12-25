@@ -29,6 +29,7 @@
 #include <nanon/primitive.h>
 #include <nanon/logger.h>
 #include <nanon/math.functions.h>
+#include <nanon/ray.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
@@ -41,7 +42,7 @@ public:
 	bool Load(const pugi::xml_node& node, const Assets& assets);
 	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
 	const Film* GetFilm() const { return film; }
-	bool RegisterPrimitive(Primitive* primitive) { this->primitive = primitive; }
+	void RegisterPrimitive(Primitive* primitive) { this->primitive = primitive; }
 
 private:
 
@@ -66,6 +67,7 @@ PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
 
 bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 {
+#if 0
 	// Check name and type
 	if (node.name() != self->Name())
 	{
@@ -122,11 +124,25 @@ bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& as
 	invA = 1.0 / A;
 
 	return true;
+#endif
+	return false;
 }
 
 void PerspectiveCamera::Impl::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const
 {
+#if 0
+	// Raster position in [-1, 1]^2
+	auto ndcRasterPos = Math::Vec3(pixelSample * 2.0 - 1.0, 0.0);
 
+	// Convert raster position to camera coordinates
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, 1.0);
+	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
+
+	ray.d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, 0.0)));
+	ray.o = position;
+	ray.minT = Math::Float(0);
+	ray.maxT = Math::Constants::Inf;
+#endif
 }
 
 // --------------------------------------------------------------------------------
@@ -153,7 +169,7 @@ const Film* PerspectiveCamera::GetFilm() const
 	return p->GetFilm();
 }
 
-bool PerspectiveCamera::RegisterPrimitive( Primitive* primitive )
+void PerspectiveCamera::RegisterPrimitive( Primitive* primitive )
 {
 	return p->RegisterPrimitive(primitive);
 }

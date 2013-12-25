@@ -33,6 +33,7 @@ set(
 	"stub.assetfactory.h"
 	"stub.assetfactory.cpp"
 	"stub.asset.h"
+	"stub.assets.h"
 	"stub.trianglemesh.h"
 	"stub.bsdf.h"
 	"test.logger.cpp"
