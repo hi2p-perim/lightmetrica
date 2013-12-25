@@ -24,7 +24,6 @@
 
 #include "pch.h"
 #include "base.math.h"
-#include <nanon/math.functions.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
@@ -72,10 +71,36 @@ TYPED_TEST(MathTransformTest, Scale)
 //
 //}
 
-//TYPED_TEST(MathTransformTest, Perspective)
-//{
-//
-//}
+TYPED_TEST(MathTransformTest, Perspective)
+{
+	typedef TypeParam T;
+
+	T fovy(90), aspect(1.5), zNear(1), zFar(1000);
+	auto P = Math::Perspective(fovy, aspect, zNear, zFar);
+
+	Math::TVec4<T> t;
+	Math::TVec3<T> expect;
+
+	// (0, 0, -1) -> (0, 0, -1) in NDC
+	t = P * Math::TVec4<T>(T(0), T(0), T(-1), T(1));
+	expect = Math::TVec3<T>(T(0), T(0), T(-1));
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::TVec3<T>(t) / t.w));
+
+	// (0, 0, -1000) -> (0, 0, 1) in NDC
+	t = P * Math::TVec4<T>(T(0), T(0), T(-1000), T(1));
+	expect = Math::TVec3<T>(T(0), T(0), T(1));
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::TVec3<T>(t) / t.w));
+	
+	// (1.5, 1, -1) -> (1, 1, -1) in NDC
+	t = P * Math::TVec4<T>(T(1.5), T(1), T(-1), T(1));
+	expect = Math::TVec3<T>(T(1), T(1), T(-1));
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::TVec3<T>(t) / t.w));
+
+	// (-1500, -1000, -1000) -> (-1, -1, 1) in NDC
+	t = P * Math::TVec4<T>(T(-1500), T(-1000), T(-1000), T(1));
+	expect = Math::TVec3<T>(T(-1), T(-1), T(1));
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::TVec3<T>(t) / t.w));
+}
 
 NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END

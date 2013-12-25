@@ -105,13 +105,29 @@ TYPED_TEST(MathMatrix3Test, Accessor)
 	}
 }
 
-TYPED_TEST(MathMatrix3Test, Multiply)
+TYPED_TEST(MathMatrix3Test, MultiplyDivideAssign)
+{
+	typedef TypeParam T;
+	Math::TMat3<T> t;
+
+	t = m1; t *= T(2);
+	EXPECT_TRUE(ExpectMat3Near(m1s2, t));
+
+	t = m1; t *= m2;
+	EXPECT_TRUE(ExpectMat3Near(m1m2, t));
+
+	t = m1s2; t /= T(2);
+	EXPECT_TRUE(ExpectMat3Near(m1, t));
+}
+
+TYPED_TEST(MathMatrix3Test, MultiplyDivide)
 {
 	typedef TypeParam T;
 	EXPECT_TRUE(ExpectMat3Near(m1s2, m1 * T(2)));
 	EXPECT_TRUE(ExpectMat3Near(m1s2, T(2) * m1));
 	EXPECT_TRUE(ExpectVec3Near(m1v1, m1 * v1));
 	EXPECT_TRUE(ExpectMat3Near(m1m2, m1 * m2));
+	EXPECT_TRUE(ExpectMat3Near(m1, m1s2 / T(2)));
 }
 
 // --------------------------------------------------------------------------------
@@ -201,13 +217,49 @@ TYPED_TEST(MathMatrix4Test, Accessor)
 	}
 }
 
-TYPED_TEST(MathMatrix4Test, Multiply)
+TYPED_TEST(MathMatrix4Test, MultiplyDivideAssign)
+{
+	typedef TypeParam T;
+	Math::TMat4<T> t;
+
+	t = m1; t *= T(2);
+	EXPECT_TRUE(ExpectMat4Near(m1s2, t));
+
+	t = m1; t *= m2;
+	EXPECT_TRUE(ExpectMat4Near(m1m2, t));
+
+	t = m1s2; t /= T(2);
+	EXPECT_TRUE(ExpectMat4Near(m1, t));
+}
+
+TYPED_TEST(MathMatrix4Test, MultiplyDivide)
 {
 	typedef TypeParam T;
 	EXPECT_TRUE(ExpectMat4Near(m1s2, m1 * T(2)));
 	EXPECT_TRUE(ExpectMat4Near(m1s2, T(2) * m1));
 	EXPECT_TRUE(ExpectVec4Near(m1v1, m1 * v1));
 	EXPECT_TRUE(ExpectMat4Near(m1m2, m1 * m2));
+	EXPECT_TRUE(ExpectMat4Near(m1, m1s2 / T(2)));
+}
+
+TYPED_TEST(MathMatrix4Test, Inverse)
+{
+	typedef TypeParam T;
+	
+	// The matrix is orthogonal, so A^-1 should be A^T
+	Math::TMat4<T> A(
+		T( 0.5), T( 0.5), T( 0.5), T(-0.5),
+		T(-0.5), T( 0.5), T( 0.5), T( 0.5),
+		T( 0.5), T(-0.5), T( 0.5), T( 0.5),
+		T( 0.5), T( 0.5), T(-0.5), T( 0.5));
+
+	Math::TMat4<T> AT(
+		T( 0.5), T(-0.5), T( 0.5), T( 0.5),
+		T( 0.5), T( 0.5), T(-0.5), T( 0.5),
+		T( 0.5), T( 0.5), T( 0.5), T(-0.5),
+		T(-0.5), T( 0.5), T( 0.5), T( 0.5));
+
+	EXPECT_TRUE(ExpectMat4Near(AT, Math::Inverse(A)));
 }
 
 NANON_TEST_NAMESPACE_END

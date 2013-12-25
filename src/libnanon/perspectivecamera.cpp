@@ -42,7 +42,7 @@ public:
 	bool Load(const pugi::xml_node& node, const Assets& assets);
 	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
 	const Film* GetFilm() const { return film; }
-	void RegisterPrimitive(Primitive* primitive) { this->primitive = primitive; }
+	void RegisterPrimitive(Primitive* primitive);
 
 private:
 
@@ -67,7 +67,6 @@ PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
 
 bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 {
-#if 0
 	// Check name and type
 	if (node.name() != self->Name())
 	{
@@ -96,16 +95,11 @@ bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& as
 		NANON_LOG_ERROR("Missing 'fovy' element");
 		return false;
 	}
-	Math::Float fovy(boost::lexical_cast<double>(fovyNode.child_value()));
-
-	// --------------------------------------------------------------------------------
+	Math::Float fovy = Math::Float(boost::lexical_cast<double>(fovyNode.child_value()));
 
 	// Projection matrix and its inverse
 	projectionMatrix = Math::Perspective(fovy, Math::Float(film->Width()) / Math::Float(film->Height()), Math::Float(1), Math::Float(1000));
 	invProjectionMatrix = Math::Inverse(projectionMatrix);
-
-	// Position of the camera (in world coordinates)
-	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 
 	// Calculate area of the sensor used for SampleAndEvaluate
 	auto ndcP1 = Math::Vec3(-1, -1, 0);
@@ -120,29 +114,37 @@ bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& as
 	camP1 /= Math::Vec3(camP1.z);
 	camP2 /= Math::Vec3(camP2.z);
 
-	double A = (camP2.x - camP1.x) * (camP2.y - camP1.y);
-	invA = 1.0 / A;
+	Math::Float A = (camP2.x - camP1.x) * (camP2.y - camP1.y);
+	invA = Math::Float(1) / A;
 
 	return true;
-#endif
-	return false;
 }
 
 void PerspectiveCamera::Impl::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const
 {
-#if 0
 	// Raster position in [-1, 1]^2
-	auto ndcRasterPos = Math::Vec3(pixelSample * 2.0 - 1.0, 0.0);
+	auto ndcRasterPos = Math::Vec3(rasterPos * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
 
 	// Convert raster position to camera coordinates
-	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, 1.0);
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
 	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
 
-	ray.d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, 0.0)));
+	ray.d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
 	ray.o = position;
 	ray.minT = Math::Float(0);
 	ray.maxT = Math::Constants::Inf;
-#endif
+}
+
+void PerspectiveCamera::Impl::RegisterPrimitive( Primitive* primitive )
+{
+	this->primitive = primitive;
+
+	// View matrix and its inverse
+	viewMatrix = primitive->transform;
+	invViewMatrix = Math::Inverse(viewMatrix);
+
+	// Position of the camera (in world coordinates)
+	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
 // --------------------------------------------------------------------------------

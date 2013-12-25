@@ -89,6 +89,19 @@ NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
 	return Scale(TMat4<T>::Identity(), v);
 }
 
+template <typename T>
+NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
+{
+	T radian = Radians(fovy);
+	T t = Math::Tan(T(radian / T(2)));	// Wrap by T for expression template type
+
+	return TMat4<T>(
+		TVec4<T>(T(1) / (aspect * t), T(0), T(0), T(0)),
+		TVec4<T>(T(0), T(1) / t, T(0), T(0)),
+		TVec4<T>(T(0), T(0), -(zFar + zNear) / (zFar - zNear), -T(1)),
+		TVec4<T>(T(0), T(0), -(T(2) * zFar * zNear) / (zFar - zNear), T(0)));
+}
+
 // --------------------------------------------------------------------------------
 
 #ifdef NANON_USE_SSE2
@@ -176,22 +189,6 @@ NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
 //	r[3][0] = -Dot(s, eye);
 //	r[3][1] = -Dot(u, eye);
 //	r[3][2] = Dot(f, eye);
-//
-//	return r;
-//}
-//
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
-//{
-//	T radian = Radians(fovy);
-//	T t = std::tan(radian / T(2));
-//
-//	TMat4<T> r;
-//	r[0][0] = T(1) / (aspect * t);
-//	r[1][1] = T(1) / t;
-//	r[2][2] = -(zFar + zNear) / (zFar - zNear);
-//	r[2][3] = -T(1);
-//	r[3][2] = -(T(2) * zFar * zNear) / (zFar - zNear);
 //
 //	return r;
 //}

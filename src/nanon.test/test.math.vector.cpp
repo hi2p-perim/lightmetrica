@@ -70,6 +70,40 @@ TYPED_TEST(MathVector2Test, Accessor)
 	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
 }
 
+TYPED_TEST(MathVector2Test, AddSubtractAssign)
+{
+	typedef TypeParam T;
+	Math::TVec2<T> t;
+	Math::TVec2<T> v1plusv2(T(5));
+	Math::TVec2<T> v1minusv2(T(-3), T(-1));
+
+	t = v1; t += v2;
+	EXPECT_TRUE(ExpectVec2Near(v1plusv2, t));
+
+	t = v1; t -= v2;
+	EXPECT_TRUE(ExpectVec2Near(v1minusv2, t));
+}
+
+TYPED_TEST(MathVector2Test, MultiplyDivideAssign)
+{
+	typedef TypeParam T;
+	Math::TVec2<T> t;
+	Math::TVec2<T> v1s2(T(2), T(4));
+	Math::TVec2<T> v1v2(T(4), T(6));
+
+	t = v1; t *= T(2);
+	EXPECT_TRUE(ExpectVec2Near(v1s2, t));
+
+	t = v1; t *= v2;
+	EXPECT_TRUE(ExpectVec2Near(v1v2, v1 * v2));
+
+	t = v1s2; t /= T(2);
+	EXPECT_TRUE(ExpectVec2Near(v1, v1s2 / T(2)));
+
+	t = v1v2; t /= v2;
+	EXPECT_TRUE(ExpectVec2Near(v1, v1v2 / v2));
+}
+
 TYPED_TEST(MathVector2Test, AddSubtract)
 {
 	typedef TypeParam T;
@@ -159,6 +193,8 @@ TYPED_TEST(MathVector3Test, Conversion)
 
 	Math::TVec4<T> t2(T(1), T(2), T(3), T(4));
 	EXPECT_TRUE(ExpectVec3Near(v1, Math::TVec3<T>(t2)));
+
+	EXPECT_TRUE(ExpectVec3Near(v1, Math::TVec3<T>(t1, T(3))));
 }
 
 TYPED_TEST(MathVector3Test, Accessor)
@@ -167,6 +203,40 @@ TYPED_TEST(MathVector3Test, Accessor)
 	EXPECT_TRUE(ExpectNear(T(1), v1[0]));
 	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
 	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
+}
+
+TYPED_TEST(MathVector3Test, AddSubtractAssign)
+{
+	typedef TypeParam T;
+	Math::TVec3<T> t;
+	Math::TVec3<T> v1plusv2(T(5));
+	Math::TVec3<T> v1minusv2(T(-3), T(-1), T(1));
+
+	t = v1; t += v2;
+	EXPECT_TRUE(ExpectVec3Near(v1plusv2, t));
+
+	t = v1; t -= v2;
+	EXPECT_TRUE(ExpectVec3Near(v1minusv2, t));
+}
+
+TYPED_TEST(MathVector3Test, MultiplyDivideAssign)
+{
+	typedef TypeParam T;
+	Math::TVec3<T> t;
+	Math::TVec3<T> v1s2(T(2), T(4), T(6));
+	Math::TVec3<T> v1v2(T(4), T(6), T(6));
+
+	t = v1; t *= T(2);
+	EXPECT_TRUE(ExpectVec3Near(v1s2, t));
+
+	t = v1; t *= v2;
+	EXPECT_TRUE(ExpectVec3Near(v1v2, v1 * v2));
+
+	t = v1s2; t /= T(2);
+	EXPECT_TRUE(ExpectVec3Near(v1, v1s2 / T(2)));
+
+	t = v1v2; t /= v2;
+	EXPECT_TRUE(ExpectVec3Near(v1, v1v2 / v2));
 }
 
 TYPED_TEST(MathVector3Test, AddSubtract)
@@ -279,6 +349,40 @@ TYPED_TEST(MathVector4Test, Accessor)
 	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
 	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
 	EXPECT_TRUE(ExpectNear(T(4), v1[3]));
+}
+
+TYPED_TEST(MathVector4Test, AddSubtractAssign)
+{
+	typedef TypeParam T;
+	Math::TVec4<T> t;
+	Math::TVec4<T> v1plusv2(T(5));
+	Math::TVec4<T> v1minusv2(T(-3), T(-1), T(1), T(3));
+
+	t = v1; t += v2;
+	EXPECT_TRUE(ExpectVec4Near(v1plusv2, t));
+
+	t = v1; t -= v2;
+	EXPECT_TRUE(ExpectVec4Near(v1minusv2, t));
+}
+
+TYPED_TEST(MathVector4Test, MultiplyDivideAssign)
+{
+	typedef TypeParam T;
+	Math::TVec4<T> t;
+	Math::TVec4<T> v1s2(T(2), T(4), T(6), T(8));
+	Math::TVec4<T> v1v2(T(4), T(6), T(6), T(4));
+
+	t = v1; t *= T(2);
+	EXPECT_TRUE(ExpectVec4Near(v1s2, t));
+
+	t = v1; t *= v2;
+	EXPECT_TRUE(ExpectVec4Near(v1v2, v1 * v2));
+
+	t = v1s2; t /= T(2);
+	EXPECT_TRUE(ExpectVec4Near(v1, v1s2 / T(2)));
+
+	t = v1v2; t /= v2;
+	EXPECT_TRUE(ExpectVec4Near(v1, v1v2 / v2));
 }
 
 TYPED_TEST(MathVector4Test, AddSubtract)

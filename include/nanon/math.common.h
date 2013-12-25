@@ -37,8 +37,8 @@
 #ifdef NANON_ENABLE_MULTIPRECISION
 	#include <boost/multiprecision/cpp_dec_float.hpp>
 	#ifndef NANON_PRECISION_NUM
-		// Default precision : 50 decimal digits
-		#define NANON_PRECISION_NUM 50
+		// Default precision : 100 decimal digits
+		#define NANON_PRECISION_NUM 100
 	#endif
 	NANON_NAMESPACE_BEGIN
 	NANON_MATH_NAMESPACE_BEGIN

@@ -55,6 +55,12 @@ struct TVec2
 	NANON_FORCE_INLINE T& operator[](int i);
 	NANON_FORCE_INLINE const T& operator[](int i) const;
 	NANON_FORCE_INLINE TVec2<T>& operator=(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2<T>& operator+=(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2<T>& operator-=(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2<T>& operator*=(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2<T>& operator*=(const T& s);
+	NANON_FORCE_INLINE TVec2<T>& operator/=(const TVec2<T>& v);
+	NANON_FORCE_INLINE TVec2<T>& operator/=(const T& s);
 
 };
 
@@ -95,9 +101,16 @@ struct TVec3
 	NANON_FORCE_INLINE TVec3(const TVec4<T>& v);
 	NANON_FORCE_INLINE TVec3(const T& v);
 	NANON_FORCE_INLINE TVec3(const T& x, const T& y, const T& z);
+	NANON_FORCE_INLINE TVec3(const TVec2<T>& v, const T& z);
 	NANON_FORCE_INLINE T& operator[](int i);
 	NANON_FORCE_INLINE const T& operator[](int i) const;
 	NANON_FORCE_INLINE TVec3<T>& operator=(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3<T>& operator+=(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3<T>& operator-=(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3<T>& operator*=(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3<T>& operator*=(const T& s);
+	NANON_FORCE_INLINE TVec3<T>& operator/=(const TVec3<T>& v);
+	NANON_FORCE_INLINE TVec3<T>& operator/=(const T& s);
 
 };
 
@@ -143,6 +156,12 @@ struct TVec4
 	NANON_FORCE_INLINE T& operator[](int i);
 	NANON_FORCE_INLINE const T& operator[](int i) const;
 	NANON_FORCE_INLINE TVec4<T>& operator=(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4<T>& operator+=(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4<T>& operator-=(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4<T>& operator*=(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4<T>& operator*=(const T& s);
+	NANON_FORCE_INLINE TVec4<T>& operator/=(const TVec4<T>& v);
+	NANON_FORCE_INLINE TVec4<T>& operator/=(const T& s);
 
 };
 
@@ -189,8 +208,15 @@ struct NANON_ALIGN_16 TVec3<float>
 	NANON_FORCE_INLINE TVec3(float v);
 	NANON_FORCE_INLINE TVec3(__m128 v);
 	NANON_FORCE_INLINE TVec3(float x, float y, float z);
+	NANON_FORCE_INLINE TVec3(const Vec2f& v, float z);
 	NANON_FORCE_INLINE float operator[](int i) const;
 	NANON_FORCE_INLINE Vec3f& operator=(const Vec3f& v);
+	NANON_FORCE_INLINE Vec3f& operator+=(const Vec3f& v);
+	NANON_FORCE_INLINE Vec3f& operator-=(const Vec3f& v);
+	NANON_FORCE_INLINE Vec3f& operator*=(const Vec3f& v);
+	NANON_FORCE_INLINE Vec3f& operator*=(float s);
+	NANON_FORCE_INLINE Vec3f& operator/=(const Vec3f& v);
+	NANON_FORCE_INLINE Vec3f& operator/=(float s);
 
 };
 
@@ -235,6 +261,12 @@ struct NANON_ALIGN_16 TVec4<float>
 	NANON_FORCE_INLINE TVec4(const Vec3f& v, float w);
 	NANON_FORCE_INLINE float operator[](int i) const;
 	NANON_FORCE_INLINE Vec4f& operator=(const Vec4f& v);
+	NANON_FORCE_INLINE Vec4f& operator+=(const Vec4f& v);
+	NANON_FORCE_INLINE Vec4f& operator-=(const Vec4f& v);
+	NANON_FORCE_INLINE Vec4f& operator*=(const Vec4f& v);
+	NANON_FORCE_INLINE Vec4f& operator*=(float s);
+	NANON_FORCE_INLINE Vec4f& operator/=(const Vec4f& v);
+	NANON_FORCE_INLINE Vec4f& operator/=(float s);
 
 };
 
@@ -279,8 +311,15 @@ struct NANON_ALIGN_16 TVec3<double>
 	NANON_FORCE_INLINE TVec3(double v);
 	NANON_FORCE_INLINE TVec3(__m256d v);
 	NANON_FORCE_INLINE TVec3(double x, double y, double z);
+	NANON_FORCE_INLINE TVec3(const Vec2d& v, double z);
 	NANON_FORCE_INLINE double operator[](int i) const;
 	NANON_FORCE_INLINE Vec3d& operator=(const Vec3d& v);
+	NANON_FORCE_INLINE Vec3d& operator+=(const Vec3d& v);
+	NANON_FORCE_INLINE Vec3d& operator-=(const Vec3d& v);
+	NANON_FORCE_INLINE Vec3d& operator*=(const Vec3d& v);
+	NANON_FORCE_INLINE Vec3d& operator*=(double s);
+	NANON_FORCE_INLINE Vec3d& operator/=(const Vec3d& v);
+	NANON_FORCE_INLINE Vec3d& operator/=(double s);
 
 };
 
@@ -325,6 +364,12 @@ struct NANON_ALIGN_16 TVec4<double>
 	NANON_FORCE_INLINE TVec4(const Vec3d& v, double w);
 	NANON_FORCE_INLINE double operator[](int i) const;
 	NANON_FORCE_INLINE Vec4d& operator=(const Vec4d& v);
+	NANON_FORCE_INLINE Vec4d& operator+=(const Vec4d& v);
+	NANON_FORCE_INLINE Vec4d& operator-=(const Vec4d& v);
+	NANON_FORCE_INLINE Vec4d& operator*=(const Vec4d& v);
+	NANON_FORCE_INLINE Vec4d& operator*=(double s);
+	NANON_FORCE_INLINE Vec4d& operator/=(const Vec4d& v);
+	NANON_FORCE_INLINE Vec4d& operator/=(double s);
 
 };
 
