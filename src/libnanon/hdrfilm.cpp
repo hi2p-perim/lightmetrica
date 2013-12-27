@@ -109,8 +109,8 @@ bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node, const Assets& assets
 	}
 
 	// Store values
-	width = boost::lexical_cast<int>(widthNode.child_value());
-	height = boost::lexical_cast<int>(heightNode.child_value());
+	width = std::stoi(widthNode.child_value());
+	height = std::stoi(heightNode.child_value());
 	path = heightNode.child_value();
 
 	// Find 'image_type' element (optional)

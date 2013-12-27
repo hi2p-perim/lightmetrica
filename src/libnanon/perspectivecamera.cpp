@@ -95,7 +95,7 @@ bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& as
 		NANON_LOG_ERROR("Missing 'fovy' element");
 		return false;
 	}
-	Math::Float fovy = Math::Float(boost::lexical_cast<double>(fovyNode.child_value()));
+	Math::Float fovy = Math::Float(std::stod(fovyNode.child_value()));
 
 	// Projection matrix and its inverse
 	projectionMatrix = Math::Perspective(fovy, Math::Float(film->Width()) / Math::Float(film->Height()), Math::Float(1), Math::Float(1000));

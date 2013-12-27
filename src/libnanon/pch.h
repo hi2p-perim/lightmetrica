@@ -33,7 +33,6 @@
 #include <boost/scoped_array.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals2.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <iostream>
 #include <sstream>

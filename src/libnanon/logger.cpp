@@ -229,7 +229,25 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 
 	if ((outputMode & Logger::LogOutputMode::Stdout) > 0)
 	{
+#ifdef NANON_PLATFORM_WINDOWS
+		HANDLE condoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		WORD colorFlag = 0;
+		if (entry->level == Logger::LogLevel::Error)
+			colorFlag = FOREGROUND_RED | FOREGROUND_INTENSITY;
+		else if (entry->level == Logger::LogLevel::Warning)
+			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+		else if (entry->level == Logger::LogLevel::Debug)
+			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+		else if (entry->level == Logger::LogLevel::Information)
+			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+		SetConsoleTextAttribute(condoleHandle, colorFlag);
+#endif
+
 		std::cout << line;
+
+#ifdef NANON_PLATFORM_WINDOWS
+		SetConsoleTextAttribute(condoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+#endif
 	}
 
 	if ((outputMode & Logger::LogOutputMode::Stderr) > 0)
