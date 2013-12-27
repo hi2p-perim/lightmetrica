@@ -101,6 +101,7 @@ NanonApplication::NanonApplication()
 void NanonApplication::SetAppInfo()
 {
 	appName = "Nanon Renderer";
+	//appName = "Nanon Renderer";
 	appNameShort = "nanon";
 	appDescription = boost::str(boost::format("%s - %s Version %s") % appNameShort % appName % Version::Formatted());
 	

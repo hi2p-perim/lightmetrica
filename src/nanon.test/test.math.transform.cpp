@@ -66,10 +66,33 @@ TYPED_TEST(MathTransformTest, Scale)
 	EXPECT_TRUE(ExpectVec4Near(expect, Math::Scale(scale) * v));
 }
 
-//TYPED_TEST(MathTransformTest, LookAt)
-//{
-//
-//}
+TYPED_TEST(MathTransformTest, LookAt)
+{
+	typedef TypeParam T;
+
+	auto V1 = Math::LookAt(
+		Math::TVec3<T>(T(0), T(1), T(0)),
+		Math::TVec3<T>(T(0)),
+		Math::TVec3<T>(T(0), T(0), T(1)));
+
+	auto V2 = Math::LookAt(
+		Math::TVec3<T>(T(1)),
+		Math::TVec3<T>(T(0)),
+		Math::TVec3<T>(T(0), T(0), T(1)));
+
+	Math::TVec4<T> t;
+	Math::TVec4<T> expect;
+
+	// (0, 0, 0) in world coords. -> (0, 0, -1) in eye coords.
+	t = V1 * Math::TVec4<T>(T(0), T(0), T(0), T(1));
+	expect = Math::TVec4<T>(T(0), T(0), T(-1), T(1));
+	EXPECT_TRUE(ExpectVec4Near(expect, t));
+
+	// (0, 0, 0) in world coords. -> (0, 0, -sqrt(3)) in eye coords.
+	t = V2 * Math::TVec4<T>(T(0), T(0), T(0), T(1));
+	expect = Math::TVec4<T>(T(0), T(0), -Math::Sqrt(T(3)), T(1));
+	EXPECT_TRUE(ExpectVec4Near(expect, t));
+}
 
 TYPED_TEST(MathTransformTest, Perspective)
 {

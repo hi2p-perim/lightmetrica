@@ -38,10 +38,8 @@ class StubAssets : public Assets
 {
 public:
 
-	virtual Asset* GetAssetByName(const std::string& name) const
-	{
-		return assetInstanceMap.at(name).get();
-	}
+	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
+	void Add(const std::string& id, const std::shared_ptr<Asset>& asset) { assetInstanceMap[id] = asset; }
 
 protected:
 

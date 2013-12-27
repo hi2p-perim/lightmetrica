@@ -691,7 +691,7 @@ NANON_FORCE_INLINE Vec3f::TVec3(const Vec4f& v)
 NANON_FORCE_INLINE Vec3f::TVec3(float v)
 	: v(_mm_set1_ps(v))
 {
-
+	_ = 0.0f;
 }
 
 NANON_FORCE_INLINE Vec3f::TVec3(__m128 v)
@@ -1084,7 +1084,7 @@ NANON_FORCE_INLINE Vec3d::TVec3(const Vec4d& v)
 NANON_FORCE_INLINE Vec3d::TVec3(double v)
 	: v(_mm256_set1_pd(v))
 {
-
+	_ = 0;
 }
 
 NANON_FORCE_INLINE Vec3d::TVec3(__m256d v)

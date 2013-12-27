@@ -90,6 +90,21 @@ NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up)
+{
+	auto f = Normalize(center - eye);
+	auto u = Normalize(up);
+	auto s = Normalize(Cross(f, u));
+	u = Cross(s, f);
+
+	return TMat4<T>(
+		s.x, u.x, -f.x, T(0),
+		s.y, u.y, -f.y, T(0),
+		s.z, u.z, -f.z, T(0),
+		-Dot(s, eye), -Dot(u, eye), Dot(f, eye), T(1));
+}
+
+template <typename T>
 NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
 {
 	T radian = Radians(fovy);
@@ -167,31 +182,6 @@ NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
 }
 
 #endif
-
-//template <typename T>
-//NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up)
-//{
-//	auto f = Normalize(center - eye);
-//	auto u = Normalize(up);
-//	auto s = Normalize(Cross(f, u));
-//	u = Cross(s, f);
-//
-//	auto r = TMat4<T>::Identity();
-//	r[0][0] = s.x;
-//	r[1][0] = s.y;
-//	r[2][0] = s.z;
-//	r[0][1] = u.x;
-//	r[1][1] = u.y;
-//	r[2][1] = u.z;
-//	r[0][2] = -f.x;
-//	r[1][2] = -f.y;
-//	r[2][2] = -f.z;
-//	r[3][0] = -Dot(s, eye);
-//	r[3][1] = -Dot(u, eye);
-//	r[3][2] = Dot(f, eye);
-//
-//	return r;
-//}
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
