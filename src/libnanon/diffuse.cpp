@@ -23,23 +23,24 @@
 */
 
 #include "pch.h"
-#include <nanon/filmfactory.h>
-#include <nanon/logger.h>
-#include <nanon/hdrfilm.h>
+#include <nanon/diffuse.h>
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> FilmFactory::Create( const std::string& id, const std::string& type )
+DiffuseBSDF::DiffuseBSDF( const std::string& id )
+	: BSDF(id)
 {
-	if (type == "hdr")
-	{
-		return std::make_shared<HDRBitmapFilm>(id);
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid film type '" + type + "'");
-		return nullptr;
-	}
+
+}
+
+DiffuseBSDF::~DiffuseBSDF()
+{
+
+}
+
+bool DiffuseBSDF::Load( const pugi::xml_node& node, const Assets& assets )
+{
+	return true;
 }
 
 NANON_NAMESPACE_END

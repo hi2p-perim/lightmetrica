@@ -24,13 +24,22 @@
 
 #include "pch.h"
 #include <nanon/bsdffactory.h>
-#include <nanon/bsdf.h>
+#include <nanon/logger.h>
+#include <nanon/diffuse.h>
 
 NANON_NAMESPACE_BEGIN
 
 std::shared_ptr<Asset> BSDFFactory::Create( const std::string& id, const std::string& type )
 {
-	return nullptr;
+	if (type == "diffuse")
+	{
+		return std::make_shared<DiffuseBSDF>(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid BSDF type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

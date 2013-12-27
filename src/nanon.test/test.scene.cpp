@@ -81,35 +81,17 @@ namespace
 		</scene>
 	);
 
-	// Specify transform
-	//const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
-	//	<scene type="stub">
-	//		<root>
-	//			<node id="node1">
-	//				<transform>
-	//					<translate>1 1 1</translate>
-	//					<rotate>1 0 0 1</rotate>
-	//					<scale>2 2 2</scale>
-	//				</transform>
-	//				<triangle_mesh ref="mesh1" />
-	//				<bsdf ref="bsdf1" />
-	//			</node>
-	//		</root>
-	//	</scene>
-	//);
-
-	// Invalid number of element in 'matrix'
-	const std::string SceneNode_Fail_MatrixInvalidNumberOfElements = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
 			<root>
 				<node id="node1">
 					<transform>
-						<matrix>
-							1 0 0 0
-							0 1 0 0
-							0 0 1 0
-							0 0 0
-						</matrix>
+						<translate>1 1 1</translate>
+						<rotate>
+							<angle>45</angle>
+							<axis>0 1 0</axis>
+						</rotate>
+						<scale>2 2 2</scale>
 					</transform>
 					<triangle_mesh ref="mesh1" />
 					<bsdf ref="bsdf1" />
@@ -192,9 +174,16 @@ TEST_F(SceneTest, Load_WithTransformByMatrix)
 	ASSERT_TRUE(ExpectMat4Near(expected, transform));
 }
 
-TEST_F(SceneTest, Load_Fail_MatrixInvalidNumberOfElements)
+TEST_F(SceneTest, Load_WithTransform)
 {
-	EXPECT_FALSE(scene.Load(LoadXMLBuffer(SceneNode_Fail_MatrixInvalidNumberOfElements), assets));
+	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransform), assets));
+
+	const auto* node1 = scene.PrimitiveByID("node1");
+	ASSERT_NE(nullptr, node1);
+
+	Math::Vec4 t = node1->transform * Math::Vec4(Math::Float(1));
+	Math::Vec4 expected(Math::Sqrt(Math::Float(2)) * Math::Float(2) + Math::Float(1), Math::Float(3), Math::Float(1), Math::Float(1));
+	ASSERT_TRUE(ExpectVec4Near(expected, t));
 }
 
 NANON_TEST_NAMESPACE_END

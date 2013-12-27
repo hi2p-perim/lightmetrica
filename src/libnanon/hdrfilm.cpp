@@ -111,7 +111,7 @@ bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node, const Assets& assets
 	// Store values
 	width = std::stoi(widthNode.child_value());
 	height = std::stoi(heightNode.child_value());
-	path = heightNode.child_value();
+	path = pathNode.child_value();
 
 	// Find 'image_type' element (optional)
 	auto imageTypeNode = node.child("imagetype");

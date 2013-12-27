@@ -38,9 +38,4 @@ BSDF::~BSDF()
 
 }
 
-std::string BSDF::Name() const
-{
-	return "bsdf";
-}
-
 NANON_NAMESPACE_END

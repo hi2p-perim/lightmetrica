@@ -40,7 +40,7 @@ public:
 
 public:
 
-	std::string Name() const;
+	std::string Name() const { return "bsdf"; }
 
 };
 

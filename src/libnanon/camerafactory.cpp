@@ -24,13 +24,22 @@
 
 #include "pch.h"
 #include <nanon/camerafactory.h>
-#include <nanon/camera.h>
+#include <nanon/logger.h>
+#include <nanon/perspectivecamera.h>
 
 NANON_NAMESPACE_BEGIN
 
 std::shared_ptr<Asset> CameraFactory::Create( const std::string& id, const std::string& type )
 {
-	return nullptr;
+	if (type == "perspective")
+	{
+		return std::make_shared<PerspectiveCamera>(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid camera type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

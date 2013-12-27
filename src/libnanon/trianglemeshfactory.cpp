@@ -24,13 +24,22 @@
 
 #include "pch.h"
 #include <nanon/trianglemeshfactory.h>
-#include <nanon/trianglemesh.h>
+#include <nanon/logger.h>
+#include <nanon/objmesh.h>
 
 NANON_NAMESPACE_BEGIN
 
 std::shared_ptr<Asset> TriangleMeshFactory::Create( const std::string& id, const std::string& type )
 {
-	return nullptr;
+	if (type == "obj")
+	{
+		return std::make_shared<ObjMesh>(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid triangle mesh type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

@@ -61,9 +61,10 @@ private:
 	// Traverse the scene and create primitives.
 	bool Traverse(const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform);
 
-	// Create transformation from the element 'transform'.
-	// The result is stored in the transform.
-	bool CreateTransform(const pugi::xml_node& transformNode, Math::Mat4& transform);
+	// Create transformation from the element 'transform'
+	Math::Mat4 CreateTransform(const pugi::xml_node& transformNode);
+	Math::Vec3 ParseVec3(const pugi::xml_node& node);
+	Math::Mat4 ParseMat4(const pugi::xml_node& node);
 
 private:
 
@@ -162,11 +163,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (transformNode)
 	{
 		// Create transform from the node
-		if (!CreateTransform(transformNode, localTransform))
-		{
-			NANON_LOG_DEBUG_EMPTY();
-			return false;
-		}
+		localTransform = CreateTransform(transformNode);
 	}
 	else
 	{
@@ -181,11 +178,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	{
 		// If the 'global_transform' node exists, use it as the transform of the node.
 		// Local transform is ignored.
-		if (!CreateTransform(globalTransformNode, transform))
-		{
-			NANON_LOG_DEBUG_EMPTY();
-			return false;
-		}
+		transform = CreateTransform(globalTransformNode);
 	}
 	else
 	{
@@ -334,61 +327,87 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	return true;
 }
 
-bool Scene::Impl::CreateTransform( const pugi::xml_node& transformNode, Math::Mat4& transform )
+Math::Mat4 Scene::Impl::CreateTransform( const pugi::xml_node& transformNode )
 {
 	// Default transform
-	transform = Math::Mat4::Identity();
+	auto transform = Math::Mat4::Identity();
 
 	// The element 'matrix' specifies column major, 4x4 matrix
 	auto matrixNode = transformNode.child("matrix");
 	if (matrixNode)
 	{
-		// Parse matrix elements (in double)
-		std::vector<double> m;
-		std::stringstream ss(matrixNode.child_value());
-
-		double v;
-		while (ss >> v) m.push_back(v);
-
-		// Check number of elements
-		if (m.size() != 16)
-		{
-			NANON_LOG_ERROR("Invalid number of elements in 'matrix'");
-			return false;
-		}
-
-		// Convert to Float and create matrix
-		std::vector<Math::Float> m2(16);
-		std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Math::Float(v); });
-		transform = Math::Mat4(&m2[0]);
+		transform = ParseMat4(matrixNode);
 	}
 	else
 	{
-		// If the 'matrix' element is not specified, use 'translate', 'rotate', 'scale' elements
-		auto translateNode = transformNode.child("translate");
-		auto rotate = transformNode.child("rotate");
-		auto scale = transformNode.child("scale");
-		
-		// 'translate' node 
-		if (translateNode)
+		// The element 'lookat' offers useful transform especially for the camera node
+		auto lookAtNode = transformNode.child("lookat");
+		if (lookAtNode)
 		{
-			throw std::exception("TODO");
-		}
+			// Position, center, up
+			auto position = ParseVec3(lookAtNode.child("position"));
+			auto center = ParseVec3(lookAtNode.child("center"));
+			auto up = ParseVec3(lookAtNode.child("up"));
 
-		// 'rotate' node
-		if (rotate)
-		{
-			throw std::exception("TODO");
+			// Create transform
+			transform = Math::LookAt(position, center, up);
 		}
-
-		// 'scale' node
-		if (scale)
+		else
 		{
-			throw std::exception("TODO");
+			// If the 'matrix' element is not specified, use 'translate', 'rotate', 'scale' elements
+			auto translateMat = Math::Mat4::Identity();
+			auto rotateMat = Math::Mat4::Identity();
+			auto scaleMat = Math::Mat4::Identity();
+
+			// 'translate' node 
+			auto translateNode = transformNode.child("translate");
+			if (translateNode)
+			{
+				translateMat = Math::Translate(ParseVec3(translateNode));
+			}
+
+			// 'rotate' node
+			auto rotateNode = transformNode.child("rotate");
+			if (rotateNode)
+			{
+				// 'matrix' node
+				auto matrixNode = rotateNode.child("matrix");
+				if (matrixNode)
+				{
+					rotateMat = ParseMat4(matrixNode);
+				}
+				else
+				{
+					// 'quat' node
+					auto quatNode = rotateNode.child("quat");
+					if (quatNode)
+					{
+						throw std::exception("not implemented");
+						//translateMat = ;
+					}
+					else
+					{
+						// 'angle' and 'axis'
+						auto angle = Math::Float(std::stod(rotateNode.child("angle").child_value()));
+						auto axis = ParseVec3(rotateNode.child("axis"));
+						rotateMat = Math::Rotate(angle, axis);
+					}
+				}
+			}
+
+			// 'scale' node
+			auto scaleNode = transformNode.child("scale");
+			if (scaleNode)
+			{
+				scaleMat = Math::Scale(ParseVec3(scaleNode));
+			}
+
+			// Create combined transform
+			transform = translateMat * rotateMat * scaleMat;
 		}
 	}
 
-	return true;
+	return transform;
 }
 
 int Scene::Impl::NumPrimitives() const
@@ -406,6 +425,44 @@ const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
 	return idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end()
 		? primitives[idPrimitiveIndexMap.at(id)].get()
 		: nullptr;
+}
+
+Math::Vec3 Scene::Impl::ParseVec3( const pugi::xml_node& node )
+{
+	// Parse vector elements (in double)
+	std::vector<double> v;
+	std::stringstream ss(node.child_value());
+
+	double t;
+	while (ss >> t) v.push_back(t);
+	if (v.size() != 3)
+	{
+		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		return Math::Vec3();
+	}
+
+	// Convert type and return
+	return Math::Vec3(Math::Float(v[0]), Math::Float(v[1]), Math::Float(v[2]));
+}
+
+Math::Mat4 Scene::Impl::ParseMat4( const pugi::xml_node& node )
+{
+	// Parse matrix elements (in double)
+	std::vector<double> m;
+	std::stringstream ss(node.child_value());
+
+	double t;
+	while (ss >> t) m.push_back(t);
+	if (m.size() != 16)
+	{
+		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		return Math::Mat4::Identity();
+	}
+
+	// Convert to Float and create matrix
+	std::vector<Math::Float> m2(16);
+	std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Math::Float(v); });
+	return Math::Mat4(&m2[0]);
 }
 
 // --------------------------------------------------------------------------------

@@ -63,7 +63,7 @@ public:
 		Returns the film referenced by the camera.
 		\param Film.
 	*/
-	virtual const Film* GetFilm() const = 0;
+	virtual Film* GetFilm() const = 0;
 	
 	/*!
 		Register an reference to the primitive.

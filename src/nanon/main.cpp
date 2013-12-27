@@ -218,17 +218,19 @@ bool NanonApplication::Run()
 
 	// Register default asset factories
 	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, std::make_shared<TextureFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("materials", "material", 1, std::make_shared<BSDFFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("bsdfs", "bsdf", 1, std::make_shared<BSDFFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, std::make_shared<TriangleMeshFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, std::make_shared<FilmFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, std::make_shared<CameraFactory>()));
 	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, std::make_shared<LightFactory>()));
 
+	NANON_LOG_INFO("Started ... Asset loading")
 	if (!assets.Load(config))
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
+	NANON_LOG_INFO("Finished ... Asset loading");
 
 	// --------------------------------------------------------------------------------
 
@@ -242,19 +244,23 @@ bool NanonApplication::Run()
 	}
 
 	// Load scene
-	if (scene->Load(config, assets))
+	NANON_LOG_INFO("Started ... Loading scene");
+	if (!scene->Load(config, assets))
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
+	NANON_LOG_INFO("Finished ... Loading scene");
 
 	// Build scene
 	// TODO : Do it on the another thread and poll progress
-	if (scene->Build())
+	NANON_LOG_INFO("Started ... Building scene");
+	if (!scene->Build())
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
+	NANON_LOG_INFO("Finished ... Building scene");
 
 	// --------------------------------------------------------------------------------
 
@@ -268,7 +274,7 @@ bool NanonApplication::Run()
 	}
 
 	// Configure renderer
-	if (renderer->Configure(config, assets))
+	if (!renderer->Configure(config, assets))
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
@@ -276,11 +282,13 @@ bool NanonApplication::Run()
 
 	// Begin rendering
 	// TODO : Dispatch renderer in the another thread and poll progress
+	NANON_LOG_INFO("Started ... Rendering");
 	if (!renderer->Render(*scene))
 	{
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
+	NANON_LOG_INFO("Finished ... Rendering");
 
 	// --------------------------------------------------------------------------------
 

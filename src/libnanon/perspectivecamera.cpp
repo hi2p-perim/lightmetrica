@@ -41,7 +41,7 @@ public:
 	Impl(PerspectiveCamera* self);
 	bool Load(const pugi::xml_node& node, const Assets& assets);
 	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
-	const Film* GetFilm() const { return film; }
+	Film* GetFilm() const { return film; }
 	void RegisterPrimitive(Primitive* primitive);
 
 private:
@@ -166,7 +166,7 @@ void PerspectiveCamera::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) 
 	p->RasterPosToRay(rasterPos, ray);
 }
 
-const Film* PerspectiveCamera::GetFilm() const
+Film* PerspectiveCamera::GetFilm() const
 {
 	return p->GetFilm();
 }

@@ -30,6 +30,7 @@
 #include <nanon/ray.h>
 #include <nanon/intersection.h>
 #include <nanon/math.functions.h>
+#include <nanon/logger.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -44,7 +45,7 @@ public:
 
 bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
-	const auto* film = scene.MainCamera()->GetFilm();
+	auto* film = scene.MainCamera()->GetFilm();
 
 	Ray ray;
 	Intersection isect;
@@ -55,8 +56,8 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 		{
 			// Raster position
 			Math::Vec2 rasterPos(
-				Math::Float(0.5) + Math::Float(x) / Math::Float(film->Width()),
-				Math::Float(0.5) + Math::Float(y) / Math::Float(film->Height()));
+				(Math::Float(0.5) + Math::Float(x)) / Math::Float(film->Width()),
+				(Math::Float(0.5) + Math::Float(y)) / Math::Float(film->Height()));
 
 			// Generate ray
 			scene.MainCamera()->RasterPosToRay(rasterPos, ray);
@@ -65,17 +66,23 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 			if (scene.Intersect(ray, isect))
 			{
 				// Intersected : while color
-				//film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.gn, -ray.d))));
+				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.gn, -ray.d))));
 			}
 			else
 			{
 				// Not intersected : black color
-				//film->RecordContribution(rasterPos, Math::Colors::Black);
+				film->RecordContribution(rasterPos, Math::Colors::Black);
 			}
 		}
 	}
 
-	return false;
+	if (!film->Save())
+	{
+		NANON_LOG_DEBUG_EMPTY();
+		return false;
+	}
+
+	return true;
 }
 
 bool RaycastRenderer::Impl::Configure( const pugi::xml_node& node, const Assets& assets )
