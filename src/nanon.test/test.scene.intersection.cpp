@@ -151,14 +151,16 @@ public:
 
 protected:
 
-	std::shared_ptr<Scene> CreateAndSetupScene(const std::string& type, const TriangleMesh* mesh)
+	std::shared_ptr<Scene> CreateAndSetupScene(const std::string& type, TriangleMesh* mesh)
 	{
 		// Create scene
 		auto scene = factory.Create(type);
 
 		// Primitives for this test
 		std::vector<std::shared_ptr<Primitive>> primitives;
-		primitives.push_back(std::make_shared<Primitive>(Math::Mat4::Identity(), mesh, bsdf));
+		primitives.push_back(std::make_shared<Primitive>(Math::Mat4::Identity()));
+		primitives.back()->mesh = mesh;
+		primitives.back()->bsdf = bsdf;
 
 		// Load & build
 		EXPECT_TRUE(scene->LoadPrimitives(primitives));

@@ -62,7 +62,7 @@ private:
 	bool Traverse(const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform);
 
 	// Create transformation from the element 'transform'
-	Math::Mat4 CreateTransform(const pugi::xml_node& transformNode);
+	Math::Mat4 ParseTransform(const pugi::xml_node& transformNode);
 	Math::Vec3 ParseVec3(const pugi::xml_node& node);
 	Math::Mat4 ParseMat4(const pugi::xml_node& node);
 
@@ -155,7 +155,9 @@ bool Scene::Impl::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>&
 
 bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform )
 {
+	//
 	// Process transform
+	//
 
 	// Local transform
 	Math::Mat4 localTransform;
@@ -163,7 +165,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (transformNode)
 	{
 		// Create transform from the node
-		localTransform = CreateTransform(transformNode);
+		localTransform = ParseTransform(transformNode);
 	}
 	else
 	{
@@ -178,7 +180,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	{
 		// If the 'global_transform' node exists, use it as the transform of the node.
 		// Local transform is ignored.
-		transform = CreateTransform(globalTransformNode);
+		transform = ParseTransform(globalTransformNode);
 	}
 	else
 	{
@@ -188,8 +190,12 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	// --------------------------------------------------------------------------------
 
-	Light* light = nullptr;
-	Camera* camera = nullptr;
+	//
+	// Create primitive
+	//
+
+	// Transform must be specified beforehand
+	auto primitive = std::make_shared<Primitive>(transform);
 
 	auto cameraNode = node.child("camera");
 	auto lightNode = node.child("light");
@@ -206,15 +212,15 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (lightNode)
 	{
 		// Resolve the reference to the light
-		light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
-		if (!light)
+		primitive->light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
+		if (!primitive->light)
 		{
 			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
 		// Register the light to the scene
-		lights.push_back(light);
+		lights.push_back(primitive->light);
 	}	
 
 	// Process camera
@@ -222,19 +228,17 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	if (cameraNode && !mainCamera)
 	{
 		// Resolve the reference to the camera
-		camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
-		if (!camera)
+		primitive->camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
+		if (!primitive->camera)
 		{
 			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
 		// Register the camera to the scene
-		mainCamera = camera;
+		mainCamera = primitive->camera;
 	}
 
-	// --------------------------------------------------------------------------------
-	
 	// Process triangle mesh
 	auto triangleMeshNode = node.child("triangle_mesh");
 	if (triangleMeshNode)
@@ -249,40 +253,36 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		}
 
 		// Resolve the reference to the triangle mesh
-		auto* triangleMesh = dynamic_cast<TriangleMesh*>(assets.ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh"));
-		if (!triangleMesh)
+		primitive->mesh = dynamic_cast<TriangleMesh*>(assets.ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh"));
+		if (!primitive->mesh)
 		{
 			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
 		// Resolve the reference to the bsdf
-		auto* bsdf = dynamic_cast<BSDF*>(assets.ResolveReferenceToAsset(bsdfNode, "bsdf"));
-		if (!bsdf)
+		primitive->bsdf = dynamic_cast<BSDF*>(assets.ResolveReferenceToAsset(bsdfNode, "bsdf"));
+		if (!primitive->bsdf)
 		{
 			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
+	}
 
-		// Create primitive
-		std::shared_ptr<Primitive> primitive;
-		if (camera)
+	if (primitive->camera || primitive->light || primitive->mesh)
+	{
+		// Register the primitive to light or camera
+		// Note that the registration step must be called after creating triangle mesh,
+		// for some implementation of lights or cameras could need its reference.
+		if (primitive->camera)
 		{
-			// Register the primitive to the camera
-			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, camera);
-			camera->RegisterPrimitive(primitive.get());
+			primitive->camera->RegisterPrimitive(primitive.get());
 		}
-		else if (light)
+		if (primitive->light)
 		{
-			// Register the primitive to the light
-			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf, light);
-			light->RegisterPrimitive(primitive.get());
+			primitive->light->RegisterPrimitive(primitive.get());
 		}
-		else
-		{
-			primitive = std::make_shared<Primitive>(transform, triangleMesh, bsdf);
-		}
-		
+
 		// Register the primitive to the scene
 		primitives.push_back(primitive);
 
@@ -304,6 +304,10 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	}
 
 	// --------------------------------------------------------------------------------
+
+	//
+	// Process children
+	//
 
 	// Leaf node cannot have children
 	bool isLeaf = lightNode || cameraNode || triangleMeshNode;
@@ -327,7 +331,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	return true;
 }
 
-Math::Mat4 Scene::Impl::CreateTransform( const pugi::xml_node& transformNode )
+Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 {
 	// Default transform
 	auto transform = Math::Mat4::Identity();

@@ -318,6 +318,16 @@ protected:
 
 TYPED_TEST_CASE(MathVector4Test, MathTestTypes);
 
+TYPED_TEST(MathVector4Test, Constructor_0)
+{
+	typedef TypeParam T;
+	Math::TVec4<T> v(T(1), T(2), T(3), T(4));
+	EXPECT_TRUE(ExpectNear(T(1), v.x));
+	EXPECT_TRUE(ExpectNear(T(2), v.y));
+	EXPECT_TRUE(ExpectNear(T(3), v.z));
+	EXPECT_TRUE(ExpectNear(T(4), v.w));
+}
+
 TYPED_TEST(MathVector4Test, Constructor)
 {
 	typedef TypeParam T;

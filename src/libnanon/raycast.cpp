@@ -47,11 +47,12 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
 	auto* film = scene.MainCamera()->GetFilm();
 
-	Ray ray;
-	Intersection isect;
-
+	#pragma omp parallel for
 	for (int y = 0; y < film->Height(); y++)
 	{
+		Ray ray;
+		Intersection isect;
+
 		for (int x = 0; x < film->Width(); x++)
 		{
 			// Raster position
@@ -66,7 +67,7 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 			if (scene.Intersect(ray, isect))
 			{
 				// Intersected : while color
-				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.gn, -ray.d))));
+				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.sn, -ray.d))));
 			}
 			else
 			{

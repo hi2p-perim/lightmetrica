@@ -51,6 +51,12 @@ endif()
 
 # External libraries
 
+# OpenMP
+find_package(OpenMP REQUIRED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+
 # Boost
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.49 REQUIRED COMPONENTS "program_options" "filesystem" "system" "regex")
@@ -153,8 +159,8 @@ endif()
 # Output directories
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
 
 #
 
@@ -211,18 +217,18 @@ if (NOT NANON_FORCE_NO_SIMD)
 	# Add compiler options
 	if (MSVC)
 		if (NANON_USE_AVX)
-			add_definitions("/arch:AVX")
-			#list(APPEND CMAKE_CXX_FLAGS "/arch:AVX")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
+			#add_definitions("/arch:AVX")
 		elseif (NANON_USE_SSE2)
-			add_definitions("/arch:SSE2")
-			#list(APPEND CMAKE_CXX_FLAGS "/arch:SSE2")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+			#add_definitions("/arch:SSE2")
 		elseif (NANON_USE_SSE)
-			add_definitions("/arch:SSE")
-			#list(APPEND CMAKE_CXX_FLAGS "/arch:SSE")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
+			#add_definitions("/arch:SSE")
 		endif()
 	elseif (CMAKE_COMPILER_IS_GNUCXX)
-		add_definitions("-march=native")
-		#list(APPEND CMAKE_CXX_FLAGS "-march=native")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+		#add_definitions("-march=native")
 	endif()
 endif()
 

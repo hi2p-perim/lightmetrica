@@ -37,49 +37,27 @@ class Light;
 
 /*!
 	Primitive.
-	Primitive is an element of the scene used for managing ray-intersectable objects,
-	i.e., an object which associated with a triangle mesh.
-	We note that some cameras or lights are associated with triangle mesh.
+	Primitive is an element of the scene used for managing transformable objects.
 	A primitive corresponds to a node in the scene.
 */
 struct Primitive
 {
 
-	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf)
+	Primitive(const Math::Mat4& transform)
 		: transform(transform)
-		, mesh(mesh)
-		, bsdf(bsdf)
+		, mesh(nullptr)
+		, bsdf(nullptr)
 		, camera(nullptr)
 		, light(nullptr)
 	{
 
 	}
 
-	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Camera* camera)
-		: transform(transform)
-		, mesh(mesh)
-		, bsdf(bsdf)
-		, camera(camera)
-		, light(nullptr)
-	{
-
-	}
-
-	Primitive(const Math::Mat4& transform, const TriangleMesh* mesh, const BSDF* bsdf, const Light* light)
-		: transform(transform)
-		, mesh(mesh)
-		, bsdf(bsdf)
-		, camera(nullptr)
-		, light(light)
-	{
-
-	}
-
-	const Math::Mat4 transform;
-	const TriangleMesh* mesh;
-	const BSDF* bsdf;
-	const Camera* camera;
-	const Light* light;
+	Math::Mat4 transform;
+	TriangleMesh* mesh;
+	BSDF* bsdf;
+	Camera* camera;
+	Light* light;
 
 };
 

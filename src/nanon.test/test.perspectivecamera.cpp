@@ -112,7 +112,7 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 	Ray ray;
 
 	// Primitive 1
-	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity(), nullptr, nullptr));
+	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
 	camera.RegisterPrimitive(primitive1.get());
 
 	// Raster position (0.5, 0.5)
@@ -128,7 +128,7 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), ray.d));
 
 	// Primitive 2
-	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1)), nullptr, nullptr));
+	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
 	camera.RegisterPrimitive(primitive2.get());
 	
 	// Raster position (0.5, 0.5)
