@@ -97,8 +97,8 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 		for (int x = 0; x < film.Width(); x++)
 		{
 			Math::Vec2 rasterPos(
-				Math::Float(x) / Math::Float(film.Width()),
-				Math::Float(y) / Math::Float(film.Height()));
+				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film.Width()),
+				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film.Height()));
 			film.RecordContribution(rasterPos, (x + y) % 2 == 0 ? Math::Colors::Green : Math::Colors::Red);
 		}
 	}

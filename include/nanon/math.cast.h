@@ -38,12 +38,16 @@ NANON_FORCE_INLINE Dest Cast(const Src& v)
 	return static_cast<Dest>(v);
 }
 
+#ifdef NANON_ENABLE_MULTI_PRECISION
+
 template <typename Dest>
 NANON_FORCE_INLINE Dest Cast(const BigFloat& v)
 {
 	// For BigFloat type, use convert_to function
 	return v.convert_to<Dest>();
 }
+
+#endif
 
 NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END

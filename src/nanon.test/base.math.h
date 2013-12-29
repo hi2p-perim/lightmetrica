@@ -27,7 +27,9 @@
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
+#ifndef NANON_ENABLE_MULTI_PRECISION
 #define NANON_ENABLE_MULTI_PRECISION
+#endif
 #include <nanon/math.h>
 #include <nanon/align.h>
 
