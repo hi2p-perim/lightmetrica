@@ -239,8 +239,8 @@ protected:
 		auto scene = factory.Create(type);
 
 		// Primitives for this test
-		std::vector<std::shared_ptr<Primitive>> primitives;
-		primitives.push_back(std::make_shared<Primitive>(Math::Mat4::Identity()));
+		std::vector<Primitive*> primitives;
+		primitives.push_back(new Primitive(Math::Mat4::Identity()));
 		primitives.back()->mesh = mesh;
 		primitives.back()->bsdf = bsdf;
 

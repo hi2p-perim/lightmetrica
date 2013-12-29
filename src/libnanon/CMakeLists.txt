@@ -226,6 +226,7 @@ set(
 	"${_INCLUDE_DIR}/math.quat.inl"
 	"${_INCLUDE_DIR}/math.constants.h"
 	"${_INCLUDE_DIR}/math.colors.h"
+	"${_INCLUDE_DIR}/math.cast.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})

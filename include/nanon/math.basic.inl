@@ -38,7 +38,7 @@ template <typename T> NANON_FORCE_INLINE T Sqrt(const T& v) { return std::sqrt(v
 template <typename T> NANON_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
 template <typename T> NANON_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
 
-#ifdef NANON_ENABLE_MULTIPRECISION
+#ifdef NANON_ENABLE_MULTI_PRECISION
 
 template <> NANON_FORCE_INLINE BigFloat Cos(const BigFloat& v) { return boost::multiprecision::cos(v); }
 template <> NANON_FORCE_INLINE BigFloat Sin(const BigFloat& v) { return boost::multiprecision::sin(v); }

@@ -162,8 +162,8 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 {
 	// Convert raster position to pixel position
 	Math::Vec2i pixelPos(
-		static_cast<int>(rasterPos.x * Math::Float(width)),
-		static_cast<int>(rasterPos.y * Math::Float(height)));
+		Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))),
+		Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))));
 
 	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
 	{
@@ -197,9 +197,9 @@ bool HDRBitmapFilm::Impl::Save()
 		for (int x = 0; x < width; x++)
 		{
 			int idx = y * width + x;
-			bits[x].red		= static_cast<float>(data[3 * idx    ]);
-			bits[x].green	= static_cast<float>(data[3 * idx + 1]);
-			bits[x].blue	= static_cast<float>(data[3 * idx + 2]);
+			bits[x].red		= Math::Cast<float>(data[3 * idx    ]);
+			bits[x].green	= Math::Cast<float>(data[3 * idx + 1]);
+			bits[x].blue	= Math::Cast<float>(data[3 * idx + 2]);
 		}
 	}
 

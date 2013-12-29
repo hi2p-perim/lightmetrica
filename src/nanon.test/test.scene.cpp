@@ -111,10 +111,7 @@ public:
 
 	StubAssets_SceneTest()
 	{
-		assetInstanceMap["mesh1"] = std::make_shared<StubTriangleMesh>("mesh1");
-		assetInstanceMap["mesh2"] = std::make_shared<StubTriangleMesh>("mesh2");
-		assetInstanceMap["bsdf1"] = std::make_shared<StubBSDF>("bsdf1");
-		assetInstanceMap["bsdf2"] = std::make_shared<StubBSDF>("bsdf2");
+		
 	}
 
 };
@@ -133,6 +130,16 @@ public:
 
 class SceneTest : public TestBase
 {
+public:
+
+	SceneTest()
+	{
+		assets.Add("mesh1", new StubTriangleMesh("mesh1"));
+		assets.Add("mesh2", new StubTriangleMesh("mesh2"));
+		assets.Add("bsdf1", new StubBSDF("bsdf1"));
+		assets.Add("bsdf2", new StubBSDF("bsdf2"));
+	}
+
 protected:
 
 	StubAssets_SceneTest assets;

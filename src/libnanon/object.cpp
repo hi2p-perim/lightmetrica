@@ -33,7 +33,7 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc)
 {
 #if defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_SSE2)
 	void* p = aligned_malloc(size, 16);
-#elif defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_AVX)
+#elif defined(NANON_DOUBLE_PRECISION) && defined(NANON_USE_AVX)
 	void* p = aligned_malloc(size, 32);
 #else
 	void* p = malloc(size);
@@ -44,7 +44,11 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc)
 
 void Object::operator delete(void* p)
 {
+#if (defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_SSE2)) || (defined(NANON_DOUBLE_PRECISION) && defined(NANON_USE_AVX))
 	aligned_free(p);
+#else
+	free(p);
+#endif
 }
 
 NANON_NAMESPACE_END

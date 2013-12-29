@@ -31,6 +31,7 @@
 #include "math.quat.h"
 #include "math.constants.h"
 #include "math.colors.h"
+#include "math.cast.h"
 
 NANON_NAMESPACE_BEGIN
 NANON_MATH_NAMESPACE_BEGIN

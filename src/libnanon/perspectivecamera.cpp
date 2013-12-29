@@ -96,9 +96,10 @@ bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& as
 		return false;
 	}
 	Math::Float fovy = Math::Float(std::stod(fovyNode.child_value()));
+	Math::Float aspect = Math::Float(film->Width()) / Math::Float(film->Height());
 
 	// Projection matrix and its inverse
-	projectionMatrix = Math::Perspective(fovy, Math::Float(film->Width()) / Math::Float(film->Height()), Math::Float(1), Math::Float(1000));
+	projectionMatrix = Math::Perspective(fovy, aspect, Math::Float(1), Math::Float(1000));
 	invProjectionMatrix = Math::Inverse(projectionMatrix);
 
 	// Calculate area of the sensor used for SampleAndEvaluate

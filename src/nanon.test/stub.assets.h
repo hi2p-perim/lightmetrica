@@ -40,11 +40,11 @@ class StubAssets : public Assets
 public:
 
 	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
-	void Add(const std::string& id, const std::shared_ptr<Asset>& asset) { assetInstanceMap[id] = asset; }
+	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
 
 protected:
 
-	boost::unordered_map<std::string, std::shared_ptr<Asset>> assetInstanceMap;
+	boost::unordered_map<std::string, std::unique_ptr<Asset>> assetInstanceMap;
 
 };
 

@@ -151,7 +151,7 @@ public:
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
 	*/
-	bool LoadPrimitives(const std::vector<std::shared_ptr<Primitive>>& primitives);
+	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
 
 private:
 

@@ -23,31 +23,29 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_COMMON_H__
-#define __LIB_NANON_MATH_COMMON_H__
+#ifndef __LIB_NANON_MATH_CAST_H__
+#define __LIB_NANON_MATH_CAST_H__
 
-#include "common.h"
-#include <cmath>
+#include "math.common.h"
 
-#define NANON_MATH_NAMESPACE_BEGIN namespace Math {
-#define NANON_MATH_NAMESPACE_END }
+NANON_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
-// Multiprecision support
-// Note that the multiprecision support can be enabled irrelevant to 
-// the macro NANON_MULTI_PRECISION for testing.
-#ifdef NANON_ENABLE_MULTI_PRECISION
-	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
-		// Default precision : 100 decimal digits
-		#define NANON_PRECISION_NUM 100
-	#endif
-	NANON_NAMESPACE_BEGIN
-	NANON_MATH_NAMESPACE_BEGIN
-		#ifdef NANON_ENABLE_MULTI_PRECISION
-			typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PRECISION_NUM>> BigFloat;
-		#endif
-	NANON_MATH_NAMESPACE_END
-	NANON_NAMESPACE_END
-#endif
+template <typename Dest, typename Src>
+NANON_FORCE_INLINE Dest Cast(const Src& v)
+{
+	// In the default, use static_cast operator
+	return static_cast<Dest>(v);
+}
 
-#endif // __LIB_NANON_MATH_COMMON_H__
+template <typename Dest>
+NANON_FORCE_INLINE Dest Cast(const BigFloat& v)
+{
+	// For BigFloat type, use convert_to function
+	return v.convert_to<Dest>();
+}
+
+NANON_MATH_NAMESPACE_END
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_MATH_CAST_H__

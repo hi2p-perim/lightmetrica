@@ -50,7 +50,7 @@ public:
 	
 	void Reset();
 	bool Load(const pugi::xml_node& node, Assets& assets);
-	bool LoadPrimitives(const std::vector<std::shared_ptr<Primitive>>& primitives);
+	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
 	int NumPrimitives() const;
 	const Primitive* PrimitiveByIndex(int index) const;
 	const Primitive* PrimitiveByID(const std::string& id) const;
@@ -74,7 +74,7 @@ private:
 	// Scene components
 	Camera* mainCamera;
 	std::vector<Light*> lights;
-	std::vector<std::shared_ptr<Primitive>> primitives;
+	std::vector<std::unique_ptr<Primitive>> primitives;
 	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;
 
 };
@@ -139,7 +139,7 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	return true;
 }
 
-bool Scene::Impl::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>& primitives )
+bool Scene::Impl::LoadPrimitives( const std::vector<Primitive*>& primitives )
 {
 	if (loaded)
 	{
@@ -147,7 +147,10 @@ bool Scene::Impl::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>&
 		return false;
 	}
 
-	this->primitives = primitives;
+	for (auto* p : primitives)
+	{
+		this->primitives.push_back(std::unique_ptr<Primitive>(p));
+	}
 
 	loaded = true;
 	return true;
@@ -195,7 +198,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	//
 
 	// Transform must be specified beforehand
-	auto primitive = std::make_shared<Primitive>(transform);
+	std::unique_ptr<Primitive> primitive(new Primitive(transform));
 
 	auto cameraNode = node.child("camera");
 	auto lightNode = node.child("light");
@@ -284,7 +287,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		}
 
 		// Register the primitive to the scene
-		primitives.push_back(primitive);
+		primitives.push_back(std::move(primitive));
 
 		// Optionally, register ID for the primitive, if 'id' attribute exists
 		auto idAttr = node.attribute("id");
@@ -512,7 +515,7 @@ const Primitive* Scene::PrimitiveByID( const std::string& id ) const
 	return p->PrimitiveByID(id);
 }
 
-bool Scene::LoadPrimitives( const std::vector<std::shared_ptr<Primitive>>& primitives )
+bool Scene::LoadPrimitives( const std::vector<Primitive*>& primitives )
 {
 	return p->LoadPrimitives(primitives);
 }

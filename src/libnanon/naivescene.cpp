@@ -272,7 +272,7 @@ bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect )
 		auto& n1 = Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
 		auto& n2 = Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
 		auto& n3 = Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
-		isect.sn = Math::Normalize(n1 * (Math::Float(1) - minB[0] - minB[1]) + n2 * minB[0] + n3 * minB[1]);
+		isect.sn = Math::Normalize(n1 * Math::Float(Math::Float(1) - minB[0] - minB[1]) + n2 * minB[0] + n3 * minB[1]);
 		
 		// Texture coordinates
 		if (texcoords)
@@ -280,7 +280,7 @@ bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect )
 			auto& uv1 = Math::Vec2(texcoords[2*v1], texcoords[2*v1+1]);
 			auto& uv2 = Math::Vec2(texcoords[2*v2], texcoords[2*v2+1]);
 			auto& uv3 = Math::Vec2(texcoords[2*v3], texcoords[2*v3+1]);
-			isect.uv = uv1 * (Math::Float(1) - minB[0] - minB[1]) + uv2 * minB[0] + uv3 * minB[1];
+			isect.uv = uv1 * Math::Float(Math::Float(1) - minB[0] - minB[1]) + uv2 * minB[0] + uv3 * minB[1];
 		}
 
 		// Tangent vectors

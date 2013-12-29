@@ -83,7 +83,7 @@ public:
 		: camera("test")
 	{
 		// Add assets
-		assets.Add("stub", std::make_shared<StubFilm>("stub"));
+		assets.Add("stub", new StubFilm("stub"));
 	}
 
 protected:
