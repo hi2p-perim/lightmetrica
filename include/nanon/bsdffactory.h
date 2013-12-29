@@ -38,7 +38,7 @@ class NANON_PUBLIC_API BSDFFactory : public AssetFactory
 {
 public:
 
-	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
+	virtual Asset* Create(const std::string& id, const std::string& type) const;
 
 };
 

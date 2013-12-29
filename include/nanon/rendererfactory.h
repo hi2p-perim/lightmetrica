@@ -51,12 +51,7 @@ public:
 
 	/*!
 	*/
-	std::shared_ptr<Renderer> Create(const std::string& type);
-
-private:
-
-	class Impl;
-	Impl* p;
+	Renderer* Create(const std::string& type) const;
 
 };
 

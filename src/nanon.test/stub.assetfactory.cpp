@@ -30,15 +30,15 @@
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> StubAssetFactory::Create( const std::string& id, const std::string& type )
+Asset* StubAssetFactory::Create( const std::string& id, const std::string& type ) const
 {
 	if (type == "success")
 	{
-		return std::make_shared<StubAsset_Success>(id);
+		return new StubAsset_Success(id);
 	}
 	else if (type == "fail_on_create")
 	{
-		return std::make_shared<StubAsset_FailOnCreate>(id);
+		return new StubAsset_FailOnCreate(id);
 	}
 	else
 	{

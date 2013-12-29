@@ -82,20 +82,20 @@ protected:
 void AssetsTest::SetUp()
 {
 	TestBase::SetUp();
-	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("stub_assetfactory", "asset", 0, std::make_shared<StubAssetFactory>())));
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("stub_assetfactory", "asset", 0, new StubAssetFactory)));
 }
 
 // --------------------------------------------------------------------------------
 
 TEST_F(AssetsTest, RegisterAssetFactory)
 {
-	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, std::make_shared<StubAssetFactory>())));
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
 }
 
 TEST_F(AssetsTest, RegisterAssetFactory_Failed)
 {
-	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, std::make_shared<StubAssetFactory>())));
-	EXPECT_FALSE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, std::make_shared<StubAssetFactory>())));
+	EXPECT_TRUE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
+	EXPECT_FALSE(assets.RegisterAssetFactory(AssetFactoryEntry("test", "asset", 0, new StubAssetFactory)));
 }
 
 TEST_F(AssetsTest, Load)

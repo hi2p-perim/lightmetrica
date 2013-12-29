@@ -248,7 +248,7 @@ protected:
 		EXPECT_TRUE(scene->LoadPrimitives(primitives));
 		EXPECT_TRUE(scene->Build());
 
-		return scene;
+		return std::shared_ptr<Scene>(scene);
 	}
 
 protected:

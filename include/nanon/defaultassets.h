@@ -43,17 +43,17 @@ struct AssetFactoryEntry
 {
 
 	AssetFactoryEntry() {}
-	AssetFactoryEntry(const std::string& name, const std::string& child, int priority, const std::shared_ptr<AssetFactory>& factory)
+	AssetFactoryEntry(const std::string& name, const std::string& child, int priority, const AssetFactory* factory)
 		: name(name)
 		, child(child)
 		, priority(priority)
 		, factory(factory)
 	{}
 
-	std::string name;						//!< Name of the asset corresponding to the element name under 'assets'.
-	std::string child;						//!< Name of the child element of #name.
-	int priority;							//!< Priority (smaller is better).
-	std::shared_ptr<AssetFactory> factory;	//!< Instance of the asset factory.
+	std::string name;					//!< Name of the asset corresponding to the element name under 'assets'.
+	std::string child;					//!< Name of the child element of #name.
+	int priority;						//!< Priority (smaller is better).
+	const AssetFactory* factory;		//!< Instance of the asset factory.
 
 };
 

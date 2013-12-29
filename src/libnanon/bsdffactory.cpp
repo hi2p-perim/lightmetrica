@@ -29,11 +29,11 @@
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> BSDFFactory::Create( const std::string& id, const std::string& type )
+Asset* BSDFFactory::Create( const std::string& id, const std::string& type ) const
 {
 	if (type == "diffuse")
 	{
-		return std::make_shared<DiffuseBSDF>(id);
+		return new DiffuseBSDF(id);
 	}
 	else
 	{

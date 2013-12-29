@@ -36,7 +36,7 @@ class StubAssetFactory : public AssetFactory
 {
 public:
 
-	std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
+	Asset* Create(const std::string& id, const std::string& type) const;
 
 };
 

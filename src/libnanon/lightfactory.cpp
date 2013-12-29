@@ -28,7 +28,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> LightFactory::Create( const std::string& id, const std::string& type )
+Asset* LightFactory::Create( const std::string& id, const std::string& type ) const
 {
 	return nullptr;
 }

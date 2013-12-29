@@ -38,6 +38,7 @@ class DefaultAssets::Impl : public Object
 public:
 
 	Impl(DefaultAssets* self);
+	~Impl();
 	bool Load(const pugi::xml_node& node);
 	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 	Asset* GetAssetByName(const std::string& name) const;
@@ -51,7 +52,7 @@ private:
 	DefaultAssets* self;
 	std::vector<AssetFactoryEntry> assetFactoryEntries;
 	boost::unordered_map<std::string, size_t> assetFactoryMap;
-	boost::unordered_map<std::string, std::shared_ptr<Asset>> assetInstanceMap;
+	boost::unordered_map<std::string, Asset*> assetInstanceMap;
 
 };
 
@@ -59,6 +60,14 @@ DefaultAssets::Impl::Impl( DefaultAssets* self )
 	: self(self)
 {
 
+}
+
+DefaultAssets::Impl::~Impl()
+{
+	for (auto& v : assetFactoryEntries)
+		NANON_SAFE_DELETE(v.factory);
+	for (auto& kv : assetInstanceMap)
+		NANON_SAFE_DELETE(kv.second);
 }
 
 bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
@@ -149,7 +158,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 					return false;
 				}
 
-				auto asset = factoryEntry.factory->Create(id, typeAttribute.value());
+				auto* asset = factoryEntry.factory->Create(id, typeAttribute.value());
 				if (asset == nullptr)
 				{
 					NANON_LOG_ERROR("Failed to create the asset.");
@@ -174,7 +183,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 
 Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name ) const
 {
-	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap.at(name).get();
+	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap.at(name);
 }
 
 // --------------------------------------------------------------------------------

@@ -40,7 +40,7 @@ public:
 
 	FilmFactory() {}
 	virtual ~FilmFactory() {}
-	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type);
+	virtual Asset* Create(const std::string& id, const std::string& type) const;
 
 };
 

@@ -29,11 +29,11 @@
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> CameraFactory::Create( const std::string& id, const std::string& type )
+Asset* CameraFactory::Create( const std::string& id, const std::string& type ) const
 {
 	if (type == "perspective")
 	{
-		return std::make_shared<PerspectiveCamera>(id);
+		return new PerspectiveCamera(id);
 	}
 	else
 	{

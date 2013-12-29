@@ -29,11 +29,11 @@
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> FilmFactory::Create( const std::string& id, const std::string& type )
+Asset* FilmFactory::Create( const std::string& id, const std::string& type ) const
 {
 	if (type == "hdr")
 	{
-		return std::make_shared<HDRBitmapFilm>(id);
+		return new HDRBitmapFilm(id);
 	}
 	else
 	{

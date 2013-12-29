@@ -60,7 +60,7 @@ public:
 		\param type Type of the asset.
 		\return An instance of the asset.
 	*/
-	virtual std::shared_ptr<Asset> Create(const std::string& id, const std::string& type) = 0;
+	virtual Asset* Create(const std::string& id, const std::string& type) const = 0;
 
 };
 

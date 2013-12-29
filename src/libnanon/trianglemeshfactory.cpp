@@ -29,11 +29,11 @@
 
 NANON_NAMESPACE_BEGIN
 
-std::shared_ptr<Asset> TriangleMeshFactory::Create( const std::string& id, const std::string& type )
+Asset* TriangleMeshFactory::Create( const std::string& id, const std::string& type ) const
 {
 	if (type == "obj")
 	{
-		return std::make_shared<ObjMesh>(id);
+		return new ObjMesh(id);
 	}
 	else
 	{

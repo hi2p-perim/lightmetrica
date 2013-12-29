@@ -217,12 +217,12 @@ bool NanonApplication::Run()
 	DefaultAssets assets;
 
 	// Register default asset factories
-	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, std::make_shared<TextureFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("bsdfs", "bsdf", 1, std::make_shared<BSDFFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, std::make_shared<TriangleMeshFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, std::make_shared<FilmFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, std::make_shared<CameraFactory>()));
-	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, std::make_shared<LightFactory>()));
+	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("bsdfs", "bsdf", 1, new BSDFFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
+	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 
 	NANON_LOG_INFO("Started ... Asset loading")
 	if (!assets.Load(config))
@@ -236,7 +236,7 @@ bool NanonApplication::Run()
 
 	// Create scene
 	SceneFactory sceneFactory;
-	auto scene = sceneFactory.Create(config.SceneType());
+	std::unique_ptr<Scene> scene(sceneFactory.Create(config.SceneType()));
 	if (scene == nullptr)
 	{
 		NANON_LOG_DEBUG_EMPTY();
@@ -266,7 +266,7 @@ bool NanonApplication::Run()
 
 	// Create renderer
 	RendererFactory rendererFactory;
-	auto renderer = rendererFactory.Create(config.RendererType());
+	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.RendererType()));
 	if (renderer == nullptr)
 	{
 		NANON_LOG_DEBUG_EMPTY();

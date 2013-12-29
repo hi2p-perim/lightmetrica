@@ -29,47 +29,27 @@
 
 NANON_NAMESPACE_BEGIN
 
-class RendererFactory::Impl : public Object
-{
-public:
-
-	std::shared_ptr<Renderer> Create(const std::string& type);
-
-private:
-
-	
-
-};
-
-std::shared_ptr<Renderer> RendererFactory::Impl::Create( const std::string& type )
-{
-	if (type == "raycast")
-	{
-		return std::make_shared<RaycastRenderer>();
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
-		return nullptr;
-	}
-}
-
-// --------------------------------------------------------------------------------
-
 RendererFactory::RendererFactory()
-	: p(new Impl)
 {
 
 }
 
 RendererFactory::~RendererFactory()
 {
-	NANON_SAFE_DELETE(p);
+
 }
 
-std::shared_ptr<Renderer> RendererFactory::Create( const std::string& type )
+Renderer* RendererFactory::Create( const std::string& type ) const
 {
-	return p->Create(type);
+	if (type == "raycast")
+	{
+		return new RaycastRenderer();
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

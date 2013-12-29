@@ -29,47 +29,27 @@
 
 NANON_NAMESPACE_BEGIN
 
-class SceneFactory::Impl : public Object
-{
-public:
-
-	std::shared_ptr<Scene> Create(const std::string& type);
-
-private:
-
-	
-
-};
-
-std::shared_ptr<Scene> SceneFactory::Impl::Create( const std::string& type )
-{
-	if (type == "naive")
-	{
-		return std::make_shared<NaiveScene>();
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
-		return nullptr;
-	}
-}
-
-// --------------------------------------------------------------------------------
-
 SceneFactory::SceneFactory()
-	: p(new Impl)
 {
 
 }
 
 SceneFactory::~SceneFactory()
 {
-	NANON_SAFE_DELETE(p);
+
 }
 
-std::shared_ptr<Scene> SceneFactory::Create( const std::string& type )
+Scene* SceneFactory::Create( const std::string& type ) const
 {
-	return p->Create(type);
+	if (type == "naive")
+	{
+		return new NaiveScene();
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

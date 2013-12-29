@@ -56,12 +56,7 @@ public:
 		\param type Scene type.
 		\return Scene.
 	*/
-	std::shared_ptr<Scene> Create(const std::string& type);
-
-private:
-
-	class Impl;
-	Impl* p;
+	Scene* Create(const std::string& type) const;
 
 };
 
