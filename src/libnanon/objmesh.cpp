@@ -69,7 +69,7 @@ private:
 
 };
 
-class ObjMesh::Impl
+class ObjMesh::Impl : public Object
 {
 public:
 
@@ -79,10 +79,10 @@ public:
 public:
 
 	ObjMesh* self;
-	std::vector<Math::Vec3> positions;
-	std::vector<Math::Vec3> normals;
-	std::vector<Math::Vec2> texcoords;
-	std::vector<Math::Vec3i> faces;
+	std::vector<Math::Float> positions;
+	std::vector<Math::Float> normals;
+	std::vector<Math::Float> texcoords;
+	std::vector<unsigned int> faces;
 
 };
 
@@ -160,8 +160,12 @@ bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 		{
 			auto& p = mesh->mVertices[i];
 			auto& n = mesh->mNormals[i];
-			positions.push_back(Math::Vec3(Math::Float(p.x), Math::Float(p.y), Math::Float(p.z)));
-			normals.push_back(Math::Vec3(Math::Float(n.x), Math::Float(n.y), Math::Float(n.z)));
+			positions.push_back(Math::Float(p.x));
+			positions.push_back(Math::Float(p.y));
+			positions.push_back(Math::Float(p.z));
+			normals.push_back(Math::Float(n.x));
+			normals.push_back(Math::Float(n.y));
+			normals.push_back(Math::Float(n.z));
 		}
 
 		// Texture coordinates
@@ -170,7 +174,8 @@ bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 			{
 				auto& uv = mesh->mTextureCoords[0][i];
-				texcoords.push_back(Math::Vec2(Math::Float(uv.x), Math::Float(uv.y)));
+				texcoords.push_back(Math::Float(uv.x));
+				texcoords.push_back(Math::Float(uv.y));
 			}
 		}
 
@@ -179,7 +184,9 @@ bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 		{
 			// The mesh is already triangulated
 			auto& f = mesh->mFaces[i];
-			faces.push_back(Math::Vec3i(lastNumFaces + f.mIndices[0], lastNumFaces + f.mIndices[1], lastNumFaces + f.mIndices[2]));
+			faces.push_back(lastNumFaces + f.mIndices[0]);
+			faces.push_back(lastNumFaces + f.mIndices[1]);
+			faces.push_back(lastNumFaces + f.mIndices[2]);
 		}
 
 		lastNumFaces += mesh->mNumFaces;
@@ -188,69 +195,6 @@ bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
 	Assimp::DefaultLogger::kill();
 
 	return true;
-
-	// --
-
-	// Load obj file
-	//std::string path = pathNode.child_value();
-	//std::vector<tinyobj::shape_t> shapes;
-
-	//auto error = tinyobj::LoadObj(shapes, path.c_str());
-	//if (!error.empty())
-	//{
-	//	NANON_LOG_ERROR(error);
-	//	return false;
-	//}
-
-	//NANON_LOG_INFO(boost::str(boost::format("Loaded obj file : %s") % path));
-
-	//// Clear current data
-	//positions.clear();
-	//normals.clear();
-	//texcoords.clear();
-
-	//// Load shapes
-	//// Polygons are automatically triangulated
-	//auto convToFloat = [](float v){ return Math::Float(v); };
-	//for (const auto& shape : shapes)
-	//{
-	//	const auto& p = shape.mesh.positions;
-	//	const auto& n = shape.mesh.normals;
-	//	const auto& t = shape.mesh.texcoords;
-
-	//	if (p.empty())
-	//	{
-	//		NANON_LOG_ERROR("Position array is empty");
-	//		return false;
-	//	}
-	//	else
-	//	{
-	//		for (size_t i = 0; i < p.size(); i+=3)
-	//		{
-	//			positions.push_back(Math::Vec3(
-	//				Math::Float(p[i]),
-	//				Math::Float(p[i+1]),
-	//				Math::Float(p[i+2])));
-	//		}
-
-	//		for (size_t i = 0; i < n.size(); i++)
-	//		{
-	//			normals.push_back(Math::Vec3(
-	//				Math::Float(n[i]),
-	//				Math::Float(n[i+1]),
-	//				Math::Float(n[i+2])));
-	//		}
-
-	//		for (size_t i = 0; i < n.size(); i++)
-	//		{
-	//			texcoords.push_back(Math::Vec2(
-	//				Math::Float(t[i]),
-	//				Math::Float(t[i+1])));
-	//		}
-	//	}
-	//}
-
-	//return true;
 }
 
 // --------------------------------------------------------------------------------
@@ -282,22 +226,22 @@ int ObjMesh::NumFaces() const
 	return static_cast<int>(p->faces.size());
 }
 
-const Math::Vec3* ObjMesh::Positions() const
+const Math::Float* ObjMesh::Positions() const
 {
 	return p->positions.empty() ? nullptr : &p->positions[0];
 }
 
-const Math::Vec3* ObjMesh::Normals() const
+const Math::Float* ObjMesh::Normals() const
 {
 	return p->normals.empty() ? nullptr : &p->normals[0];
 }
 
-const Math::Vec2* ObjMesh::TexCoords() const
+const Math::Float* ObjMesh::TexCoords() const
 {
 	return p->texcoords.empty() ? nullptr : &p->texcoords[0];
 }
 
-const Math::Vec3i* ObjMesh::Faces() const
+const unsigned int* ObjMesh::Faces() const
 {
 	return p->faces.empty() ? nullptr : &p->faces[0];
 }

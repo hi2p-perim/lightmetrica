@@ -39,7 +39,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class Scene::Impl
+class Scene::Impl : public Object
 {
 public:
 

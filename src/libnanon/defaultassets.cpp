@@ -33,7 +33,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class DefaultAssets::Impl
+class DefaultAssets::Impl : public Object
 {
 public:
 

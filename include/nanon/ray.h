@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_RAY_H__
 #define __LIB_NANON_RAY_H__
 
@@ -30,6 +31,10 @@
 
 NANON_NAMESPACE_BEGIN
 
+/*!
+	Ray.
+	A ray structure used for the intersection query.
+*/
 struct Ray
 {
 

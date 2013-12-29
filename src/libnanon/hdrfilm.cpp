@@ -36,7 +36,7 @@ enum class ImageType
 	OpenEXR			// OpenEXR
 };
 
-class HDRBitmapFilm::Impl
+class HDRBitmapFilm::Impl : public Object
 {
 public:
 
@@ -46,7 +46,7 @@ public:
 	int Height() const { return height; }
 	bool Save();
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	void InternalData(std::vector<Math::Vec3>& dest);
+	void InternalData(std::vector<Math::Float>& dest);
 
 public:
 
@@ -59,7 +59,7 @@ private:
 	int height;
 	std::string path;				// Path to the image to be saved
 	ImageType type;					// Type of the image to be saved
-	std::vector<Math::Vec3> data;	// Image data
+	std::vector<Math::Float> data;	// Image data
 
 };
 
@@ -140,7 +140,7 @@ bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node, const Assets& assets
 	}
 
 	// Initialize image data
-	data.assign(width * height, Math::Vec3());
+	data.assign(width * height * 3, Math::Float(0));
 
 	// Error handing of FreeImage
 	FreeImage_SetOutputMessage(FreeImageErrorCallback);
@@ -172,7 +172,10 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 	}
 
 	// Record contribution
-	data[pixelPos.y * width + pixelPos.x] = contrb;
+	size_t idx = pixelPos.y * width + pixelPos.x;
+	data[3 * idx    ] = contrb[0];
+	data[3 * idx + 1] = contrb[1];
+	data[3 * idx + 2] = contrb[2];
 }
 
 bool HDRBitmapFilm::Impl::Save()
@@ -194,9 +197,9 @@ bool HDRBitmapFilm::Impl::Save()
 		for (int x = 0; x < width; x++)
 		{
 			int idx = y * width + x;
-			bits[x].red		= static_cast<float>(data[idx][0]);
-			bits[x].green	= static_cast<float>(data[idx][1]);
-			bits[x].blue	= static_cast<float>(data[idx][2]);
+			bits[x].red		= static_cast<float>(data[3 * idx    ]);
+			bits[x].green	= static_cast<float>(data[3 * idx + 1]);
+			bits[x].blue	= static_cast<float>(data[3 * idx + 2]);
 		}
 	}
 
@@ -223,7 +226,7 @@ bool HDRBitmapFilm::Impl::Save()
 	return true;
 }
 
-void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Vec3>& dest )
+void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Float>& dest )
 {
 	dest.clear();
 	dest.resize(data.size());
@@ -249,7 +252,7 @@ bool HDRBitmapFilm::Save() const
 	return p->Save();
 }
 
-void HDRBitmapFilm::InternalData( std::vector<Math::Vec3>& dest )
+void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest )
 {
 	p->InternalData(dest);
 }

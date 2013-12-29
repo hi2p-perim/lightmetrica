@@ -22,6 +22,10 @@
 	THE SOFTWARE.
 */
 
+#pragma once
+#ifndef __LIB_NANON_VERSION_H__
+#define __LIB_NANON_VERSION_H__
+
 #include "common.h"
 #include <string>
 
@@ -94,3 +98,5 @@ public:
 };
 
 NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_VERSION_H__

@@ -23,11 +23,37 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_FUNCTIONS_H__
-#define __LIB_NANON_MATH_FUNCTIONS_H__
+#ifndef __LIB_NANON_OBJECT_H__
+#define __LIB_NANON_OBJECT_H__
 
-#include "math.basic.h"
-#include "math.transform.h"
-#include "math.linalgebra.h"
+#include "common.h"
+#include <cstddef>
+#include <exception>
 
-#endif // __LIB_NANON_MATH_FUNCTIONS_H__
+NANON_NAMESPACE_BEGIN
+
+/*!
+	Object.
+	The base class of the all classes.
+	The class offers:
+	- Reference counting
+	- Operator overriding for new and delete
+	  - Aligned allocation for SIMD data types
+	  - Enables to call new and delete from the outside library across the DLL boundary 
+*/
+class NANON_PUBLIC_API Object
+{
+public:
+
+	virtual ~Object() {}
+
+public:
+
+	void* operator new(std::size_t size) throw (std::bad_alloc);
+	void operator delete(void* p);
+
+};
+
+NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_OBJECT_H__

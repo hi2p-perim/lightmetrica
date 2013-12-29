@@ -34,7 +34,7 @@ namespace
 
 NANON_NAMESPACE_BEGIN
 
-class NanonConfig::Impl
+class NanonConfig::Impl : public Object
 {
 public:
 

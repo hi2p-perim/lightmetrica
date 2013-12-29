@@ -30,7 +30,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class Renderer::Impl
+class Renderer::Impl : public Object
 {
 public:
 

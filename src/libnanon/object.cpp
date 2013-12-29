@@ -22,12 +22,29 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_NANON_MATH_FUNCTIONS_H__
-#define __LIB_NANON_MATH_FUNCTIONS_H__
+#include "pch.h"
+#include "simdsupport.h"
+#include <nanon/object.h>
+#include <nanon/align.h>
 
-#include "math.basic.h"
-#include "math.transform.h"
-#include "math.linalgebra.h"
+NANON_NAMESPACE_BEGIN
 
-#endif // __LIB_NANON_MATH_FUNCTIONS_H__
+void* Object::operator new(std::size_t size) throw (std::bad_alloc) 
+{
+#if defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_SSE2)
+	void* p = aligned_malloc(size, 16);
+#elif defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_AVX)
+	void* p = aligned_malloc(size, 32);
+#else
+	void* p = malloc(size);
+#endif
+	if (!p) throw std::bad_alloc();
+	return p;
+}
+
+void Object::operator delete(void* p)
+{
+	aligned_free(p);
+}
+
+NANON_NAMESPACE_END

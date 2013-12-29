@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_HDR_FILM_H__
 #define __LIB_NANON_HDR_FILM_H__
 
@@ -60,7 +61,7 @@ public:
 		This function is used internally for testing.
 		\param dest An array to store internal data.
 	*/
-	void InternalData(std::vector<Math::Vec3>& dest);
+	void InternalData(std::vector<Math::Float>& dest);
 
 private:
 

@@ -22,12 +22,14 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __NANON_TEST_BASE_MATH_H__
 #define __NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
 #define NANON_ENABLE_MULTIPRECISION
 #include <nanon/math.h>
+#include <nanon/align.h>
 
 namespace mp = boost::multiprecision;
 

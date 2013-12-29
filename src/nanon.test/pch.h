@@ -22,8 +22,9 @@
 	THE SOFTWARE.
 */
 
-#ifndef __RF_TEST_RF_CORE_PCH_H__
-#define __RF_TEST_RF_CORE_PCH_H__
+#pragma once
+#ifndef __NANON_TEST_PCH_H__
+#define __NANON_TEST_PCH_H__
 
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
@@ -48,7 +49,8 @@
 #include <ctime>
 #include <iomanip>
 #include <limits>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
-#endif // __RF_TEST_RF_CORE_PCH_H__
+#endif // __NANON_TEST_PCH_H__

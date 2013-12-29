@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_OBJ_MESH_H__
 #define __LIB_NANON_OBJ_MESH_H__
 
@@ -50,10 +51,10 @@ public:
 
 	virtual int NumVertices() const;
 	virtual int NumFaces() const;
-	virtual const Math::Vec3* Positions() const;
-	virtual const Math::Vec3* Normals() const;
-	virtual const Math::Vec2* TexCoords() const;
-	virtual const Math::Vec3i* Faces() const;
+	virtual const Math::Float* Positions() const;
+	virtual const Math::Float* Normals() const;
+	virtual const Math::Float* TexCoords() const;
+	virtual const unsigned int* Faces() const;
 
 private:
 

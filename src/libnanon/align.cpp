@@ -22,12 +22,44 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_NANON_MATH_FUNCTIONS_H__
-#define __LIB_NANON_MATH_FUNCTIONS_H__
+#include "pch.h"
+#include <nanon/align.h>
 
-#include "math.basic.h"
-#include "math.transform.h"
-#include "math.linalgebra.h"
+NANON_NAMESPACE_BEGIN
 
-#endif // __LIB_NANON_MATH_FUNCTIONS_H__
+void* aligned_malloc( size_t size, size_t align )
+{
+	void* p;
+#ifdef NANON_PLATFORM_WINDOWS
+	p = _aligned_malloc(size, align);
+#elif defined(NANON_PLATFORM_LINUX)
+	if (posix_memalign(&p, align, size)) p = nullptr;
+#else
+	// cf.
+	// http://www.songho.ca/misc/alignment/dataalign.html
+	// http://stackoverflow.com/questions/227897/solve-the-memory-alignment-in-c-interview-question-that-stumped-me
+	// http://cottonvibes.blogspot.jp/2011/01/dynamically-allocate-aligned-memory.html
+	uintptr_t r = (uintptr_t)malloc(size + --align + sizeof(uintptr_t));
+	uintptr_t t = r + sizeof(uintptr_t);
+	uintptr_t o = (t + align) & ~(uintptr_t)align;
+	if (!r) return nullptr;
+	((uintptr_t*)o)[-1] = r;
+	p = (void*)o;
+#endif
+	return p;
+}
+
+void aligned_free( void* p )
+{
+#ifdef NANON_PLATFORM_WINDOWS
+	_aligned_free(p);
+#elif defined(NANON_PLATFORM_LINUX)
+	free(p);
+#else
+	if (!p) return;
+	free((void*)(((uintptr_t*)p)[-1]));
+#endif
+}
+
+NANON_NAMESPACE_END
+

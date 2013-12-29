@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_DEFAULT_ASSETS_H__
 #define __LIB_NANON_DEFAULT_ASSETS_H__
 

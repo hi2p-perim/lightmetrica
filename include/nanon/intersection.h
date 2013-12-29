@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_INTERSECTION_H__
 #define __LIB_NANON_INTERSECTION_H__
 
@@ -33,6 +34,10 @@ NANON_NAMESPACE_BEGIN
 struct Primitive;
 
 /*!
+	Intersection.
+	Intermediate structure for managing intersection data.
+	When intersection query is succeeded, information on the intersected point
+	is returned with the structure.
 */
 struct Intersection
 {

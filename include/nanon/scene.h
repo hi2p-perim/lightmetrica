@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_SCENE_H__
 #define __LIB_NANON_SCENE_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 #include <vector>
 
@@ -47,7 +48,7 @@ struct Intersection;
 	Scene class.
 	A base class of the scene.
 */
-class NANON_PUBLIC_API Scene
+class NANON_PUBLIC_API Scene : public Object
 {
 public:
 

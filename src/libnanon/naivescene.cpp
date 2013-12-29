@@ -167,7 +167,7 @@ NANON_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Ma
 
 // --------------------------------------------------------------------------------
 
-class NaiveScene::Impl
+class NaiveScene::Impl : public Object
 {
 public:
 
@@ -202,12 +202,18 @@ bool NaiveScene::Impl::Build()
 			// Enumerate all triangles and create triaccels
 			const auto* positions = mesh->Positions();
 			const auto* faces = mesh->Faces();
-			for (int j = 0; j < mesh->NumFaces(); j++)
+			for (int j = 0; j < mesh->NumFaces() / 3; j++)
 			{
 				triAccels.push_back(TriAccel());
 				triAccels.back().shapeIndex = j;
 				triAccels.back().primIndex = i;
-				triAccels.back().Load(positions[faces[j][0]], positions[faces[j][1]], positions[faces[j][2]]);
+				unsigned int i1 = faces[3*j  ];
+				unsigned int i2 = faces[3*j+1];
+				unsigned int i3 = faces[3*j+2];
+				triAccels.back().Load(
+					Math::Vec3(positions[3*i1], positions[3*i1+1], positions[3*i1+2]),
+					Math::Vec3(positions[3*i2], positions[3*i2+1], positions[3*i2+2]),
+					Math::Vec3(positions[3*i3], positions[3*i3+1], positions[3*i3+2]));
 			}
 		}
 	}
@@ -254,26 +260,26 @@ bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect )
 		isect.p = ray.o + ray.d * ray.maxT;
 
 		// Geometry normal
-		int v1 = faces[triAccel.shapeIndex][0];
-		int v2 = faces[triAccel.shapeIndex][1];
-		int v3 = faces[triAccel.shapeIndex][2];
-		auto& p1 = positions[v1];
-		auto& p2 = positions[v2];
-		auto& p3 = positions[v3];
+		int v1 = faces[3*triAccel.shapeIndex  ];
+		int v2 = faces[3*triAccel.shapeIndex+1];
+		int v3 = faces[3*triAccel.shapeIndex+2];
+		auto& p1 = Math::Vec3(positions[3*v1], positions[3*v1+1], positions[3*v1+2]);
+		auto& p2 = Math::Vec3(positions[3*v2], positions[3*v2+1], positions[3*v2+2]);
+		auto& p3 = Math::Vec3(positions[3*v3], positions[3*v3+1], positions[3*v3+2]);
 		isect.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
 
 		// Shading normal
-		auto& n1 = normals[v1];
-		auto& n2 = normals[v2];
-		auto& n3 = normals[v3];
+		auto& n1 = Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
+		auto& n2 = Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
+		auto& n3 = Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
 		isect.sn = Math::Normalize(n1 * (Math::Float(1) - minB[0] - minB[1]) + n2 * minB[0] + n3 * minB[1]);
 		
 		// Texture coordinates
 		if (texcoords)
 		{
-			auto& uv1 = texcoords[v1];
-			auto& uv2 = texcoords[v2];
-			auto& uv3 = texcoords[v3];
+			auto& uv1 = Math::Vec2(texcoords[2*v1], texcoords[2*v1+1]);
+			auto& uv2 = Math::Vec2(texcoords[2*v2], texcoords[2*v2+1]);
+			auto& uv3 = Math::Vec2(texcoords[2*v3], texcoords[2*v3+1]);
 			isect.uv = uv1 * (Math::Float(1) - minB[0] - minB[1]) + uv2 * minB[0] + uv3 * minB[1];
 		}
 

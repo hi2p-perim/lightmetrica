@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_RENDERER_H__
 #define __LIB_NANON_RENDERER_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 
 namespace pugi
@@ -43,7 +44,7 @@ class NanonConfig;
 	Renderer class.
 	A base class of the renderer.
 */
-class NANON_PUBLIC_API Renderer
+class NANON_PUBLIC_API Renderer : public Object
 {
 public:
 

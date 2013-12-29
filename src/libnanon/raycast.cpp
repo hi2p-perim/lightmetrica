@@ -34,7 +34,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class RaycastRenderer::Impl
+class RaycastRenderer::Impl : public Object
 {
 public:
 

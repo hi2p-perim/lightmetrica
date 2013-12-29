@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_VECTOR_H__
 #define __LIB_NANON_VECTOR_H__
 
@@ -295,7 +296,7 @@ template <> NANON_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2);
 	Specialized version of TVec3 optimized by AVX.
 */
 template <>
-struct NANON_ALIGN_16 TVec3<double>
+struct NANON_ALIGN_32 TVec3<double>
 {
 
 	union
@@ -345,9 +346,11 @@ template <> NANON_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2);
 	Specialized version of TVec4 optimized by AVX.
 */
 template <>
-struct NANON_ALIGN_16 TVec4<double>
+struct NANON_ALIGN_32 TVec4<double>
 {
 
+	// Be careful: direct manipulation of the x to w components could incur a performance penalty.
+	// http://www.gamedev.net/topic/434059-accessing-sse-__m128-vectors-fields/
 	union
 	{
 		__m256d v;

@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __NANON_TEST_STUB_ASSETS_H__
 #define __NANON_TEST_STUB_ASSETS_H__
 

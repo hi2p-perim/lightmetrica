@@ -104,19 +104,23 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 	}
 
 	// Check data
-	std::vector<Math::Vec3> data;
+	std::vector<Math::Float> data;
 	film.InternalData(data);
-	for (size_t i = 0; i < data.size(); i++)
+	for (size_t i = 0; i < data.size() / 3; i+=3)
 	{
 		size_t x = i % film.Width();
 		size_t y = i / film.Width();
 		if ((x + y) % 2 == 0)
 		{
-			EXPECT_TRUE(ExpectVec3Near(Math::Colors::Green, data[i]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green[0], data[3*i  ]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green[1], data[3*i+1]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green[2], data[3*i+2]));
 		}
 		else
 		{
-			EXPECT_TRUE(ExpectVec3Near(Math::Colors::Red, data[i]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red[0], data[3*i  ]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red[1], data[3*i+1]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red[2], data[3*i+2]));
 		}
 	}
 }

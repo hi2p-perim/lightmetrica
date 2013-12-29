@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_ASSET_FACTORY_H__
 #define __LIB_NANON_ASSET_FACTORY_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 #include <memory>
 
@@ -39,7 +40,7 @@ class Asset;
 	The class is used for generating assets under the 'assets' elements
 	in the configuration file.
 */
-class NANON_PUBLIC_API AssetFactory
+class NANON_PUBLIC_API AssetFactory : public Object
 {
 public:
 

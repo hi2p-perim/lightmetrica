@@ -29,7 +29,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class SceneFactory::Impl
+class SceneFactory::Impl : public Object
 {
 public:
 

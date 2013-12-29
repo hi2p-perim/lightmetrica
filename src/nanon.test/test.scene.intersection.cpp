@@ -46,26 +46,68 @@ public:
 	StubTriangleMesh_Simple()
 		: StubTriangleMesh("simple")
 	{
-		positions.push_back(Math::Vec3(0, 0, 0));
-		positions.push_back(Math::Vec3(1, 0, 0));
-		positions.push_back(Math::Vec3(1, 1, 0));
-		positions.push_back(Math::Vec3(0, 1, 0));
-		positions.push_back(Math::Vec3(0, 0, -1));
-		positions.push_back(Math::Vec3(1, 0, -1));
-		positions.push_back(Math::Vec3(1, 1, -1));
-		positions.push_back(Math::Vec3(0, 1, -1));
-		for (int i = 0; i < 8; i++) normals.push_back(Math::Vec3(0, 0, 1));
-		for (int i = 0; i < 2; i++)
+		const double ps[] =
 		{
-			texcoords.push_back(Math::Vec2(0, 0));
-			texcoords.push_back(Math::Vec2(1, 0));
-			texcoords.push_back(Math::Vec2(1, 1));
-			texcoords.push_back(Math::Vec2(0, 1));
+			0, 0, 0,
+			1, 0, 0,
+			1, 1, 0,
+			0, 1, 0,
+			0, 0, -1,
+			1, 0, -1,
+			1, 1, -1,
+			0, 1, -1
+		};
+
+		const double ns[] =
+		{
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1,
+			0, 0, 1
+		};
+
+		const double ts[] =
+		{
+			0, 0,
+			1, 0,
+			1, 1,
+			0, 1,
+			0, 0,
+			1, 0,
+			1, 1,
+			0, 1
+		};
+
+		const unsigned int fs[] =
+		{
+			0, 1, 2,
+			0, 2, 3,
+			4, 5, 6,
+			4, 6, 7
+		};
+
+		for (int i = 0; i < 8; i++)
+		{
+			positions.push_back(Math::Float(ps[3*i  ]));
+			positions.push_back(Math::Float(ps[3*i+1]));
+			positions.push_back(Math::Float(ps[3*i+2]));
+			normals.push_back(Math::Float(ns[3*i  ]));
+			normals.push_back(Math::Float(ns[3*i+1]));
+			normals.push_back(Math::Float(ns[3*i+2]));
+			texcoords.push_back(Math::Float(ts[2*i  ]));
+			texcoords.push_back(Math::Float(ts[2*i+1]));
 		}
-		faces.push_back(Math::Vec3i(0, 1, 2));
-		faces.push_back(Math::Vec3i(0, 2, 3));
-		faces.push_back(Math::Vec3i(4, 5, 6));
-		faces.push_back(Math::Vec3i(4, 6, 7));
+
+		for (int i = 0; i < 4; i++)
+		{
+			faces.push_back(fs[3*i]);
+			faces.push_back(fs[3*i+1]);
+			faces.push_back(fs[3*i+2]);
+		}
 	}
 
 };
@@ -78,21 +120,48 @@ public:
 	StubTriangleMesh_Simple2()
 		: StubTriangleMesh("simple2")
 	{
-		positions.push_back(Math::Vec3(0, 0, 0));
-		positions.push_back(Math::Vec3(1, 0, -1));
-		positions.push_back(Math::Vec3(1, 1, -1));
-		positions.push_back(Math::Vec3(0, 1, 0));
-		normals.push_back(Math::Normalize(Math::Vec3(1, 0, 1)));
-		for (int i = 0; i < 3; i++) normals.push_back(normals[0]);
+		const double ps[] =
+		{
+			0, 0, 0,
+			1, 0, -1,
+			1, 1, -1,
+			0, 1, 0
+		};
+
+		const double ts[] =
+		{
+			0, 0,
+			1, 0,
+			1, 1,
+			0, 1
+		};
+
+		const unsigned int fs[] =
+		{
+			0, 1, 2,
+			0, 2, 3
+		};
+
+		auto n = Math::Normalize(Math::Vec3(1, 0, 1));
+
+		for (int i = 0; i < 4; i++)
+		{
+			positions.push_back(Math::Float(ps[3*i  ]));
+			positions.push_back(Math::Float(ps[3*i+1]));
+			positions.push_back(Math::Float(ps[3*i+2]));
+			normals.push_back(n[0]);
+			normals.push_back(n[1]);
+			normals.push_back(n[2]);
+			texcoords.push_back(Math::Float(ts[2*i  ]));
+			texcoords.push_back(Math::Float(ts[2*i+1]));
+		}
+
 		for (int i = 0; i < 2; i++)
 		{
-			texcoords.push_back(Math::Vec2(0, 0));
-			texcoords.push_back(Math::Vec2(1, 0));
-			texcoords.push_back(Math::Vec2(1, 1));
-			texcoords.push_back(Math::Vec2(0, 1));
+			faces.push_back(fs[3*i]);
+			faces.push_back(fs[3*i+1]);
+			faces.push_back(fs[3*i+2]);
 		}
-		faces.push_back(Math::Vec3i(0, 1, 2));
-		faces.push_back(Math::Vec3i(0, 2, 3));
 	}
 
 };
@@ -116,14 +185,27 @@ public:
 			auto p2 = Math::Vec3(Math::Float(dist(gen)), Math::Float(dist(gen)), Math::Float(dist(gen)));
 			auto p3 = Math::Vec3(Math::Float(dist(gen)), Math::Float(dist(gen)), Math::Float(dist(gen)));
 
-			positions.push_back(p1);
-			positions.push_back(p2);
-			positions.push_back(p3);
+			positions.push_back(p1[0]);
+			positions.push_back(p1[1]);
+			positions.push_back(p1[2]);
+			positions.push_back(p2[0]);
+			positions.push_back(p2[1]);
+			positions.push_back(p2[2]);
+			positions.push_back(p3[0]);
+			positions.push_back(p3[1]);
+			positions.push_back(p3[2]);
 
 			auto n = Math::Cross(p2 - p1, p3 - p1);
-			for (int j = 0; j < 3; j++) normals.push_back(n);
+			for (int j = 0; j < 3; j++)
+			{
+				normals.push_back(n[0]);
+				normals.push_back(n[1]);
+				normals.push_back(n[2]);
+			}
 
-			faces.push_back(Math::Vec3i(3*i, 3*i+1, 3*i+2));
+			faces.push_back(3*i);
+			faces.push_back(3*i+1);
+			faces.push_back(3*i+2);
 		}
 	}
 

@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_SCENE_FACTORY_H__
 #define __LIB_NANON_SCENE_FACTORY_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 #include <memory>
 
@@ -35,7 +36,7 @@ class Scene;
 
 /*!
 */
-class NANON_PUBLIC_API SceneFactory
+class NANON_PUBLIC_API SceneFactory : public Object
 {
 public:
 

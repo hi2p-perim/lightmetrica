@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_PRIMITIVE_H__
 #define __LIB_NANON_PRIMITIVE_H__
 
-#include "common.h"
+#include "object.h"
 #include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
@@ -40,7 +41,7 @@ class Light;
 	Primitive is an element of the scene used for managing transformable objects.
 	A primitive corresponds to a node in the scene.
 */
-struct Primitive
+struct Primitive : public Object
 {
 
 	Primitive(const Math::Mat4& transform)

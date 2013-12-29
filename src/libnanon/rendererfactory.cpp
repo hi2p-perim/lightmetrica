@@ -29,7 +29,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class RendererFactory::Impl
+class RendererFactory::Impl : public Object
 {
 public:
 

@@ -34,7 +34,7 @@
 
 NANON_NAMESPACE_BEGIN
 
-class PerspectiveCamera::Impl
+class PerspectiveCamera::Impl : public Object
 {
 public:
 

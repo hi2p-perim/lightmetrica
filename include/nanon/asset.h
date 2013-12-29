@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_ASSET_H__
 #define __LIB_NANON_ASSET_H__
 
-#include "common.h"
+#include "object.h"
 
 namespace pugi
 {
@@ -40,7 +41,7 @@ class Assets;
 	Asset.
 	A base class for assets.
 */
-class NANON_PUBLIC_API Asset
+class NANON_PUBLIC_API Asset : public Object
 {
 public:
 

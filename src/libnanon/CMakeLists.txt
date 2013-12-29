@@ -30,6 +30,8 @@ set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon)
 set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"
+	"${_INCLUDE_DIR}/object.h"
+	"${_INCLUDE_DIR}/align.h"
 	"${_INCLUDE_DIR}/config.h"
 	"${_INCLUDE_DIR}/logger.h"
 	"${_INCLUDE_DIR}/version.h"
@@ -43,6 +45,8 @@ set(
 )
 set(
 	_SOURCE_FILES
+	"object.cpp"
+	"align.cpp"
 	"config.cpp"
 	"logger.cpp"
 	"version.cpp"

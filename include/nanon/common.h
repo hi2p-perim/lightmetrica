@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_COMMON_H__
 #define __LIB_NANON_COMMON_H__
 
@@ -49,10 +50,9 @@
 #ifdef NANON_PLATFORM_WINDOWS
 	#define NOMINMAX
 	#define WIN32_LEAN_AND_MEAN
-
-	// _SCL_SECURE_NO_WARNINGS
-	#pragma warning(disable:4996)
-	#pragma warning(disable:4819)
+	#pragma warning(disable:4996)	// _SCL_SECURE_NO_WARNINGS
+	#pragma warning(disable:4819)	// Character that cannot be represented
+	#pragma warning(disable:4290)	// Exception specification ignored
 #endif
 
 // Compiler and architecture

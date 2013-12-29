@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_TRIANGLE_MESH_H__
 #define __LIB_NANON_TRIANGLE_MESH_H__
 
@@ -64,25 +65,25 @@ public:
 		Get the position array.
 		\return The position array.
 	*/
-	virtual const Math::Vec3* Positions() const = 0;
+	virtual const Math::Float* Positions() const = 0;
 
 	/*!
 		Get the normal array.
 		\return The normal array.
 	*/
-	virtual const Math::Vec3* Normals() const = 0;
+	virtual const Math::Float* Normals() const = 0;
 
 	/*!
 		Get the texture coordinates array.
 		\return The texture coordinates array.
 	*/
-	virtual const Math::Vec2* TexCoords() const = 0;
+	virtual const Math::Float* TexCoords() const = 0;
 
 	/*!
 		Get the face array.
 		\return The face array.
 	*/
-	virtual const Math::Vec3i* Faces() const = 0;
+	virtual const unsigned int* Faces() const = 0;
 
 };
 

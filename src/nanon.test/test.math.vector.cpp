@@ -156,31 +156,47 @@ TYPED_TEST(MathVector2Test, Dot)
 // --------------------------------------------------------------------------------
 
 template <typename T>
-class MathVector3Test : public MathTestBase<T>
+struct MathVector3Test_Data : public Aligned<std::alignment_of<Math::TVec3<T>>::value>
 {
-public:
 
-	MathVector3Test()
+	MathVector3Test_Data()
 	{
 		v1 = Math::TVec3<T>(T(1), T(2), T(3));
 		v2 = Math::TVec3<T>(T(4), T(3), T(2));
 		v3 = Math::TVec3<T>(T(2), T(2), T(1));
 	}
 
+	Math::TVec3<T> v1, v2, v3;
+
+};
+
+template <typename T>
+class MathVector3Test : public MathTestBase<T>
+{
+public:
+
+	MathVector3Test() { d = new MathVector3Test_Data<T>(); }
+	virtual ~MathVector3Test() { NANON_SAFE_DELETE(d); }
+
 protected:
 
-	Math::TVec3<T> v1, v2, v3;
+	MathVector3Test_Data<T>* d;
 
 };
 
 TYPED_TEST_CASE(MathVector3Test, MathTestTypes);
 
+TYPED_TEST(MathVector3Test, Alignment)
+{
+	EXPECT_TRUE(is_aligned(d, std::alignment_of<MathVector3Test_Data<TypeParam>>::value));
+}
+
 TYPED_TEST(MathVector3Test, Constructor)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(1), v1.x));
-	EXPECT_TRUE(ExpectNear(T(2), v1.y));
-	EXPECT_TRUE(ExpectNear(T(3), v1.z));
+	EXPECT_TRUE(ExpectNear(T(1), d->v1.x));
+	EXPECT_TRUE(ExpectNear(T(2), d->v1.y));
+	EXPECT_TRUE(ExpectNear(T(3), d->v1.z));
 }
 
 TYPED_TEST(MathVector3Test, Conversion)
@@ -192,17 +208,17 @@ TYPED_TEST(MathVector3Test, Conversion)
 	EXPECT_TRUE(ExpectVec3Near(a1, Math::TVec3<T>(t1)));
 
 	Math::TVec4<T> t2(T(1), T(2), T(3), T(4));
-	EXPECT_TRUE(ExpectVec3Near(v1, Math::TVec3<T>(t2)));
+	EXPECT_TRUE(ExpectVec3Near(d->v1, Math::TVec3<T>(t2)));
 
-	EXPECT_TRUE(ExpectVec3Near(v1, Math::TVec3<T>(t1, T(3))));
+	EXPECT_TRUE(ExpectVec3Near(d->v1, Math::TVec3<T>(t1, T(3))));
 }
 
 TYPED_TEST(MathVector3Test, Accessor)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(1), v1[0]));
-	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
-	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
+	EXPECT_TRUE(ExpectNear(T(1), d->v1[0]));
+	EXPECT_TRUE(ExpectNear(T(2), d->v1[1]));
+	EXPECT_TRUE(ExpectNear(T(3), d->v1[2]));
 }
 
 TYPED_TEST(MathVector3Test, AddSubtractAssign)
@@ -212,10 +228,10 @@ TYPED_TEST(MathVector3Test, AddSubtractAssign)
 	Math::TVec3<T> v1plusv2(T(5));
 	Math::TVec3<T> v1minusv2(T(-3), T(-1), T(1));
 
-	t = v1; t += v2;
+	t = d->v1; t += d->v2;
 	EXPECT_TRUE(ExpectVec3Near(v1plusv2, t));
 
-	t = v1; t -= v2;
+	t = d->v1; t -= d->v2;
 	EXPECT_TRUE(ExpectVec3Near(v1minusv2, t));
 }
 
@@ -226,17 +242,17 @@ TYPED_TEST(MathVector3Test, MultiplyDivideAssign)
 	Math::TVec3<T> v1s2(T(2), T(4), T(6));
 	Math::TVec3<T> v1v2(T(4), T(6), T(6));
 
-	t = v1; t *= T(2);
+	t = d->v1; t *= T(2);
 	EXPECT_TRUE(ExpectVec3Near(v1s2, t));
 
-	t = v1; t *= v2;
-	EXPECT_TRUE(ExpectVec3Near(v1v2, v1 * v2));
+	t = d->v1; t *= d->v2;
+	EXPECT_TRUE(ExpectVec3Near(v1v2, d->v1 * d->v2));
 
 	t = v1s2; t /= T(2);
-	EXPECT_TRUE(ExpectVec3Near(v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec3Near(d->v1, v1s2 / T(2)));
 
-	t = v1v2; t /= v2;
-	EXPECT_TRUE(ExpectVec3Near(v1, v1v2 / v2));
+	t = v1v2; t /= d->v2;
+	EXPECT_TRUE(ExpectVec3Near(d->v1, v1v2 / d->v2));
 }
 
 TYPED_TEST(MathVector3Test, AddSubtract)
@@ -244,9 +260,9 @@ TYPED_TEST(MathVector3Test, AddSubtract)
 	typedef TypeParam T;
 	Math::TVec3<T> v1plusv2(T(5));
 	Math::TVec3<T> v1minusv2(T(-3), T(-1), T(1));
-	EXPECT_TRUE(ExpectVec3Near(v1plusv2, v1 + v2));
-	EXPECT_TRUE(ExpectVec3Near(v1plusv2, v2 + v1));
-	EXPECT_TRUE(ExpectVec3Near(v1minusv2, v1 - v2));
+	EXPECT_TRUE(ExpectVec3Near(v1plusv2, d->v1 + d->v2));
+	EXPECT_TRUE(ExpectVec3Near(v1plusv2, d->v2 + d->v1));
+	EXPECT_TRUE(ExpectVec3Near(v1minusv2, d->v1 - d->v2));
 }
 
 TYPED_TEST(MathVector3Test, MultiplyDivide)
@@ -254,87 +270,92 @@ TYPED_TEST(MathVector3Test, MultiplyDivide)
 	typedef TypeParam T;
 	Math::TVec3<T> v1s2(T(2), T(4), T(6));
 	Math::TVec3<T> v1v2(T(4), T(6), T(6));
-	EXPECT_TRUE(ExpectVec3Near(v1s2, v1 * T(2)));
-	EXPECT_TRUE(ExpectVec3Near(v1s2, T(2) * v1));
-	EXPECT_TRUE(ExpectVec3Near(v1v2, v1 * v2));
-	EXPECT_TRUE(ExpectVec3Near(v1, v1s2 / T(2)));
-	EXPECT_TRUE(ExpectVec3Near(v1, v1v2 / v2));
+	EXPECT_TRUE(ExpectVec3Near(v1s2, d->v1 * T(2)));
+	EXPECT_TRUE(ExpectVec3Near(v1s2, T(2) * d->v1));
+	EXPECT_TRUE(ExpectVec3Near(v1v2, d->v1 * d->v2));
+	EXPECT_TRUE(ExpectVec3Near(d->v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec3Near(d->v1, v1v2 / d->v2));
 }
 
 TYPED_TEST(MathVector3Test, Unary)
 {
 	typedef TypeParam T;
 	Math::TVec3<T> expect(T(-1), T(-2), T(-3));
-	EXPECT_TRUE(ExpectVec3Near(expect, -v1));
+	EXPECT_TRUE(ExpectVec3Near(expect, -d->v1));
 }
 
 TYPED_TEST(MathVector3Test, Length)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(3), Math::Length(v3)));
-	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(v3)));
+	EXPECT_TRUE(ExpectNear(T(3), Math::Length(d->v3)));
+	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(d->v3)));
 }
 
 TYPED_TEST(MathVector3Test, Normalize)
 {
 	typedef TypeParam T;
-	Math::TVec3<T> expect = v3 / T(3);
-	EXPECT_TRUE(ExpectVec3Near(expect, Math::Normalize(v3)));
+	Math::TVec3<T> expect = d->v3 / T(3);
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::Normalize(d->v3)));
 }
 
 TYPED_TEST(MathVector3Test, Dot)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(16), Math::Dot(v1, v2)));
+	EXPECT_TRUE(ExpectNear(T(16), Math::Dot(d->v1, d->v2)));
 }
 
 TYPED_TEST(MathVector3Test, Cross)
 {
 	typedef TypeParam T;
 	Math::TVec3<T> expect(T(-5), T(10), T(-5));
-	EXPECT_TRUE(ExpectVec3Near(expect, Math::Cross(v1, v2)));
+	EXPECT_TRUE(ExpectVec3Near(expect, Math::Cross(d->v1, d->v2)));
 }
-
 
 // --------------------------------------------------------------------------------
 
 template <typename T>
-class MathVector4Test : public MathTestBase<T>
+struct MathVector4Test_Data : public Aligned<std::alignment_of<Math::TVec4<T>>::value>
 {
-public:
 
-	MathVector4Test()
+	MathVector4Test_Data()
 	{
 		v1 = Math::TVec4<T>(T(1), T(2), T(3), T(4));
 		v2 = Math::TVec4<T>(T(4), T(3), T(2), T(1));
 		v3 = Math::TVec4<T>(T(1), T(2), T(0), T(2));
 	}
 
+	Math::TVec4<T> v1, v2, v3;
+
+};
+
+template <typename T>
+class MathVector4Test : public MathTestBase<T>
+{
+public:
+
+	MathVector4Test() { d = new MathVector4Test_Data<T>(); }
+	virtual ~MathVector4Test() { NANON_SAFE_DELETE(d); }
+
 protected:
 
-	Math::TVec4<T> v1, v2, v3;
+	MathVector4Test_Data<T>* d;
 
 };
 
 TYPED_TEST_CASE(MathVector4Test, MathTestTypes);
 
-TYPED_TEST(MathVector4Test, Constructor_0)
+TYPED_TEST(MathVector4Test, Alignment)
 {
-	typedef TypeParam T;
-	Math::TVec4<T> v(T(1), T(2), T(3), T(4));
-	EXPECT_TRUE(ExpectNear(T(1), v.x));
-	EXPECT_TRUE(ExpectNear(T(2), v.y));
-	EXPECT_TRUE(ExpectNear(T(3), v.z));
-	EXPECT_TRUE(ExpectNear(T(4), v.w));
+	EXPECT_TRUE(is_aligned(d, std::alignment_of<MathVector4Test_Data<TypeParam>>::value));
 }
 
 TYPED_TEST(MathVector4Test, Constructor)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(1), v1.x));
-	EXPECT_TRUE(ExpectNear(T(2), v1.y));
-	EXPECT_TRUE(ExpectNear(T(3), v1.z));
-	EXPECT_TRUE(ExpectNear(T(4), v1.w));
+	EXPECT_TRUE(ExpectNear(T(1), d->v1.x));
+	EXPECT_TRUE(ExpectNear(T(2), d->v1.y));
+	EXPECT_TRUE(ExpectNear(T(3), d->v1.z));
+	EXPECT_TRUE(ExpectNear(T(4), d->v1.w));
 }
 
 TYPED_TEST(MathVector4Test, Conversion)
@@ -349,16 +370,16 @@ TYPED_TEST(MathVector4Test, Conversion)
 	Math::TVec4<T> a2(T(1), T(2), T(3), T(0));
 	EXPECT_TRUE(ExpectVec4Near(a2, Math::TVec4<T>(t2)));
 
-	EXPECT_TRUE(ExpectVec4Near(v1, Math::TVec4<T>(t2, T(4))));
+	EXPECT_TRUE(ExpectVec4Near(d->v1, Math::TVec4<T>(t2, T(4))));
 }
 
 TYPED_TEST(MathVector4Test, Accessor)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(1), v1[0]));
-	EXPECT_TRUE(ExpectNear(T(2), v1[1]));
-	EXPECT_TRUE(ExpectNear(T(3), v1[2]));
-	EXPECT_TRUE(ExpectNear(T(4), v1[3]));
+	EXPECT_TRUE(ExpectNear(T(1), d->v1[0]));
+	EXPECT_TRUE(ExpectNear(T(2), d->v1[1]));
+	EXPECT_TRUE(ExpectNear(T(3), d->v1[2]));
+	EXPECT_TRUE(ExpectNear(T(4), d->v1[3]));
 }
 
 TYPED_TEST(MathVector4Test, AddSubtractAssign)
@@ -368,10 +389,10 @@ TYPED_TEST(MathVector4Test, AddSubtractAssign)
 	Math::TVec4<T> v1plusv2(T(5));
 	Math::TVec4<T> v1minusv2(T(-3), T(-1), T(1), T(3));
 
-	t = v1; t += v2;
+	t = d->v1; t += d->v2;
 	EXPECT_TRUE(ExpectVec4Near(v1plusv2, t));
 
-	t = v1; t -= v2;
+	t = d->v1; t -= d->v2;
 	EXPECT_TRUE(ExpectVec4Near(v1minusv2, t));
 }
 
@@ -382,17 +403,17 @@ TYPED_TEST(MathVector4Test, MultiplyDivideAssign)
 	Math::TVec4<T> v1s2(T(2), T(4), T(6), T(8));
 	Math::TVec4<T> v1v2(T(4), T(6), T(6), T(4));
 
-	t = v1; t *= T(2);
+	t = d->v1; t *= T(2);
 	EXPECT_TRUE(ExpectVec4Near(v1s2, t));
 
-	t = v1; t *= v2;
-	EXPECT_TRUE(ExpectVec4Near(v1v2, v1 * v2));
+	t = d->v1; t *= d->v2;
+	EXPECT_TRUE(ExpectVec4Near(v1v2, d->v1 * d->v2));
 
 	t = v1s2; t /= T(2);
-	EXPECT_TRUE(ExpectVec4Near(v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec4Near(d->v1, v1s2 / T(2)));
 
-	t = v1v2; t /= v2;
-	EXPECT_TRUE(ExpectVec4Near(v1, v1v2 / v2));
+	t = v1v2; t /= d->v2;
+	EXPECT_TRUE(ExpectVec4Near(d->v1, v1v2 / d->v2));
 }
 
 TYPED_TEST(MathVector4Test, AddSubtract)
@@ -400,9 +421,9 @@ TYPED_TEST(MathVector4Test, AddSubtract)
 	typedef TypeParam T;
 	Math::TVec4<T> v1plusv2(T(5));
 	Math::TVec4<T> v1minusv2(T(-3), T(-1), T(1), T(3));
-	EXPECT_TRUE(ExpectVec4Near(v1plusv2, v1 + v2));
-	EXPECT_TRUE(ExpectVec4Near(v1plusv2, v2 + v1));
-	EXPECT_TRUE(ExpectVec4Near(v1minusv2, v1 - v2));
+	EXPECT_TRUE(ExpectVec4Near(v1plusv2, d->v1 + d->v2));
+	EXPECT_TRUE(ExpectVec4Near(v1plusv2, d->v2 + d->v1));
+	EXPECT_TRUE(ExpectVec4Near(v1minusv2, d->v1 - d->v2));
 }
 
 TYPED_TEST(MathVector4Test, MultiplyDivide)
@@ -410,38 +431,38 @@ TYPED_TEST(MathVector4Test, MultiplyDivide)
 	typedef TypeParam T;
 	Math::TVec4<T> v1s2(T(2), T(4), T(6), T(8));
 	Math::TVec4<T> v1v2(T(4), T(6), T(6), T(4));
-	EXPECT_TRUE(ExpectVec4Near(v1s2, v1 * T(2)));
-	EXPECT_TRUE(ExpectVec4Near(v1s2, T(2) * v1));
-	EXPECT_TRUE(ExpectVec4Near(v1v2, v1 * v2));
-	EXPECT_TRUE(ExpectVec4Near(v1, v1s2 / T(2)));
-	EXPECT_TRUE(ExpectVec4Near(v1, v1v2 / v2));
+	EXPECT_TRUE(ExpectVec4Near(v1s2, d->v1 * T(2)));
+	EXPECT_TRUE(ExpectVec4Near(v1s2, T(2) * d->v1));
+	EXPECT_TRUE(ExpectVec4Near(v1v2, d->v1 * d->v2));
+	EXPECT_TRUE(ExpectVec4Near(d->v1, v1s2 / T(2)));
+	EXPECT_TRUE(ExpectVec4Near(d->v1, v1v2 / d->v2));
 }
 
 TYPED_TEST(MathVector4Test, Unary)
 {
 	typedef TypeParam T;
 	Math::TVec4<T> expect(T(-1), T(-2), T(-3), T(-4));
-	EXPECT_TRUE(ExpectVec4Near(expect, -v1));
+	EXPECT_TRUE(ExpectVec4Near(expect, -d->v1));
 }
 
 TYPED_TEST(MathVector4Test, Length)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(3), Math::Length(v3)));
-	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(v3)));
+	EXPECT_TRUE(ExpectNear(T(3), Math::Length(d->v3)));
+	EXPECT_TRUE(ExpectNear(T(9), Math::Length2(d->v3)));
 }
 
 TYPED_TEST(MathVector4Test, Normalize)
 {
 	typedef TypeParam T;
-	Math::TVec4<T> expect = v3 / T(3);
-	EXPECT_TRUE(ExpectVec4Near(expect, Math::Normalize(v3)));
+	Math::TVec4<T> expect = d->v3 / T(3);
+	EXPECT_TRUE(ExpectVec4Near(expect, Math::Normalize(d->v3)));
 }
 
 TYPED_TEST(MathVector4Test, Dot)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectNear(T(20), Math::Dot(v1, v2)));
+	EXPECT_TRUE(ExpectNear(T(20), Math::Dot(d->v1, d->v2)));
 }
 
 NANON_TEST_NAMESPACE_END

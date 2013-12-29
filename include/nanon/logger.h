@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __NANON_CORE_LOGGER_H__
 #define __NANON_CORE_LOGGER_H__
 

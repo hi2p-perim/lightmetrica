@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_RENDERER_FACTORY_H__
 #define __LIB_NANON_RENDERER_FACTORY_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 #include <memory>
 
@@ -35,7 +36,7 @@ class Renderer;
 
 /*!
 */
-class NANON_PUBLIC_API RendererFactory
+class NANON_PUBLIC_API RendererFactory : public Object
 {
 public:
 

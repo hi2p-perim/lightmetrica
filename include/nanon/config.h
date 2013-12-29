@@ -22,10 +22,11 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_CONFIG_H__
 #define __LIB_NANON_CONFIG_H__
 
-#include "common.h"
+#include "object.h"
 #include <string>
 
 namespace pugi
@@ -40,7 +41,7 @@ NANON_NAMESPACE_BEGIN
 	The nanon renderer is configured by the XML document named nanon file (*.nanon).
 	All configuration needed for rendering is contained the document.
 */
-class NANON_PUBLIC_API NanonConfig
+class NANON_PUBLIC_API NanonConfig : public Object
 {
 public:
 

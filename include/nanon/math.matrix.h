@@ -22,6 +22,7 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __LIB_NANON_MATH_MATRIX_H__
 #define __LIB_NANON_MATH_MATRIX_H__
 
@@ -237,15 +238,15 @@ template <> NANON_FORCE_INLINE Mat4f Inverse(const Mat4f& m);
 
 #ifdef NANON_USE_AVX
 
-template <> struct NANON_ALIGN_16 TMat3<double>;
-template <> struct NANON_ALIGN_16 TMat4<double>;
+template <> struct NANON_ALIGN_32 TMat3<double>;
+template <> struct NANON_ALIGN_32 TMat4<double>;
 
 /*!
 	AVX optimized 3x3 matrix.
 	Specialized version of TMat3 optimized by AVX.
 */
 template <>
-struct NANON_ALIGN_16 TMat3<double>
+struct NANON_ALIGN_32 TMat3<double>
 {
 	
 	Vec3d v[3];
@@ -287,7 +288,7 @@ template <> NANON_FORCE_INLINE Mat3d operator/(const Mat3d& m, const double& s);
 	Specialized version of TMat4 optimized by AVX.
 */
 template <>
-struct NANON_ALIGN_16 TMat4<double>
+struct NANON_ALIGN_32 TMat4<double>
 {
 	
 	Vec4d v[4];

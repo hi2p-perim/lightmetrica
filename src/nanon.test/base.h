@@ -22,10 +22,12 @@
 	THE SOFTWARE.
 */
 
+#pragma once
 #ifndef __NANON_TEST_BASE_H__
 #define __NANON_TEST_BASE_H__
 
 #include "common.h"
+#include <nanon/object.h>
 #include <gtest/gtest.h>
 #include <pugixml.hpp>
 
