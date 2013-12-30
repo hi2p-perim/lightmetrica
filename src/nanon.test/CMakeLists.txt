@@ -41,5 +41,5 @@ set(
 )
 
 pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(nanon.test libnanon libnanon.test ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(nanon.test libnanon libnanon.test)
 add_dependencies(nanon.test libnanon libnanon.test)

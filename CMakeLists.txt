@@ -96,8 +96,10 @@ include_directories(${FREEIMAGE_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${FREEIMAGE_LIBRARIES})
 
 # Google test
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+#find_package(GTest REQUIRED)
+#include_directories(${GTEST_INCLUDE_DIRS})
+include_directories("${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0")
+include_directories("${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0/include")
 if(MSVC AND MSVC_VERSION EQUAL 1700)
 	# Workaround for VS2012
 	add_definitions(-D_VARIADIC_MAX=10)

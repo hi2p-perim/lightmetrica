@@ -41,6 +41,10 @@ set(
 	"base.cpp"
 	"stub.assetfactory.cpp"
 	
+	# gtest
+	"${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0/src/gtest-all.cc"
+	"${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0/src/gtest_main.cc"
+
 	# pugixml
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
