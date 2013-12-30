@@ -65,29 +65,33 @@ include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND COMMON_LIBRARY_FILES ${Boost_LIBRARIES})
 
 # GLM
-find_package(GLM REQUIRED)
-include_directories(${GLM_INCLUDE_DIRS})
+#find_package(GLM REQUIRED)
+#include_directories(${GLM_INCLUDE_DIRS})
 
 # GLEW
 #set(GLEW_USE_STATIC_LIBS ON)
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIRS})
-add_definitions(${GLEW_DEFINITIONS})
-list(APPEND LIBRARY_FILES ${GLEW_LIBRARIES})
+find_package(GLEW)
+if (GLEW_FOUND)
+	include_directories(${GLEW_INCLUDE_DIRS})
+	add_definitions(${GLEW_DEFINITIONS})
+	list(APPEND LIBRARY_FILES ${GLEW_LIBRARIES})
+endif()
 
 # GLFW
 #set(GLFW_USE_STATIC_LIBS ON)
-find_package(GLFW REQUIRED)
-include_directories(${GLFW_INCLUDE_DIRS})
-list(APPEND LIBRARY_FILES ${GLFW_LIBRARIES})
+find_package(GLFW)
+if (GLFW_FOUND)
+	include_directories(${GLFW_INCLUDE_DIRS})
+	list(APPEND LIBRARY_FILES ${GLFW_LIBRARIES})
+endif()
 
 # Assimp
-find_package(ASSIMP REQUIRED)
+find_package(Assimp REQUIRED)
 include_directories(${ASSIMP_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${ASSIMP_LIBRARIES})
 
 # FreeImage
-find_package(FREEIMAGE REQUIRED)
+find_package(FreeImage REQUIRED)
 include_directories(${FREEIMAGE_INCLUDE_DIRS})
 list(APPEND LIBRARY_FILES ${FREEIMAGE_LIBRARIES})
 
@@ -240,7 +244,9 @@ include_directories("include")
 # Add projects
 add_subdirectory("src/libnanon")
 add_subdirectory("src/libnanon.test")
-add_subdirectory("src/nanon")
-add_subdirectory("src/nanon.gui")
 add_subdirectory("src/nanon.test")
 add_subdirectory("src/nanon.perf")
+add_subdirectory("src/nanon")
+if (GLEW_FOUND AND GLFW_FOUND)
+	add_subdirectory("src/nanon.gui")
+endif()
