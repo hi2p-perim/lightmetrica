@@ -22,39 +22,39 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon/scenefactory.h>
-#include <nanon/logger.h>
-#include <nanon/naivescene.h>
-#include <nanon/bvhscene.h>
+#pragma once
+#ifndef __LIB_NANON_BVH_SCENE_H__
+#define __LIB_NANON_BVH_SCENE_H__
+
+#include "scene.h"
 
 NANON_NAMESPACE_BEGIN
 
-SceneFactory::SceneFactory()
+/*!
+	BVH scene.
+	Naive bounding volume hierarchy implementation.
+	Based on pbrt's BVH implementation.
+*/
+class NANON_PUBLIC_API BVHScene : public Scene
 {
+public:
 
-}
+	BVHScene();
+	virtual ~BVHScene();
 
-SceneFactory::~SceneFactory()
-{
+public:
 
-}
+	virtual bool Build();
+	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual std::string Type() const { return "bvh"; }
 
-Scene* SceneFactory::Create( const std::string& type ) const
-{
-	if (type == "naive")
-	{
-		return new NaiveScene();
-	}
-	else if (type == "bvh")
-	{
-		return new BVHScene();
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
-		return nullptr;
-	}
-}
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_BVH_SCENE_H__

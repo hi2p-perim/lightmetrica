@@ -339,6 +339,16 @@ NANON_FORCE_INLINE TMat4<T> operator/(const TMat4<T>& m, const T& s)
 }
 
 template <typename T>
+NANON_FORCE_INLINE TMat4<T> Transpose(const TMat4<T>& m)
+{
+	return TMat4<T>(
+		m[0][0], m[1][0], m[2][0], m[3][0],
+		m[0][1], m[1][1], m[2][1], m[3][1],
+		m[0][2], m[1][2], m[2][2], m[3][2],
+		m[0][3], m[1][3], m[2][3], m[3][3]);
+}
+
+template <typename T>
 NANON_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
 {
 	T c00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
@@ -360,28 +370,28 @@ NANON_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
 	T c22 = m[1][0] * m[3][1] - m[3][0] * m[1][1];
 	T c23 = m[1][0] * m[2][1] - m[2][0] * m[1][1];
 
-	Math::TVec4<T> f0(c00, c00, c02, c03);
-	Math::TVec4<T> f1(c04, c04, c06, c07);
-	Math::TVec4<T> f2(c08, c08, c10, c11);
-	Math::TVec4<T> f3(c12, c12, c14, c15);
-	Math::TVec4<T> f4(c16, c16, c18, c19);
-	Math::TVec4<T> f5(c20, c20, c22, c23);
+	TVec4<T> f0(c00, c00, c02, c03);
+	TVec4<T> f1(c04, c04, c06, c07);
+	TVec4<T> f2(c08, c08, c10, c11);
+	TVec4<T> f3(c12, c12, c14, c15);
+	TVec4<T> f4(c16, c16, c18, c19);
+	TVec4<T> f5(c20, c20, c22, c23);
 
-	Math::TVec4<T> v0(m[1][0], m[0][0], m[0][0], m[0][0]);
-	Math::TVec4<T> v1(m[1][1], m[0][1], m[0][1], m[0][1]);
-	Math::TVec4<T> v2(m[1][2], m[0][2], m[0][2], m[0][2]);
-	Math::TVec4<T> v3(m[1][3], m[0][3], m[0][3], m[0][3]);
+	TVec4<T> v0(m[1][0], m[0][0], m[0][0], m[0][0]);
+	TVec4<T> v1(m[1][1], m[0][1], m[0][1], m[0][1]);
+	TVec4<T> v2(m[1][2], m[0][2], m[0][2], m[0][2]);
+	TVec4<T> v3(m[1][3], m[0][3], m[0][3], m[0][3]);
 
-	const Math::TVec4<T> sA(T(+1), T(-1), T(+1), T(-1));
-	const Math::TVec4<T> sB(T(-1), T(+1), T(-1), T(+1));
+	const TVec4<T> sA(T(+1), T(-1), T(+1), T(-1));
+	const TVec4<T> sB(T(-1), T(+1), T(-1), T(+1));
 
 	auto inv_v0 = sA * (v1 * f0 - v2 * f1 + v3 * f2);
 	auto inv_v1 = sB * (v0 * f0 - v2 * f3 + v3 * f4);
 	auto inv_v2 = sA * (v0 * f1 - v1 * f3 + v3 * f5);
 	auto inv_v3 = sB * (v0 * f2 - v1 * f4 + v2 * f5);
 
-	Math::TMat4<T> inv(inv_v0, inv_v1, inv_v2, inv_v3);
-	T det = Math::Dot(m[0], Math::TVec4<T>(inv[0][0], inv[1][0], inv[2][0], inv[3][0]));
+	TMat4<T> inv(inv_v0, inv_v1, inv_v2, inv_v3);
+	T det = Dot(m[0], TVec4<T>(inv[0][0], inv[1][0], inv[2][0], inv[3][0]));
 
 	return inv / det;
 }
@@ -674,6 +684,21 @@ template <>
 NANON_FORCE_INLINE Mat4f operator/(const Mat4f& m, const float& s)
 {
 	return Mat4f(m[0] / s, m[1] / s, m[2] / s, m[3] / s);
+}
+
+// http://www.randombit.net/bitbashing/2009/10/08/integer_matrix_transpose_in_sse2.html
+template <>
+NANON_FORCE_INLINE Mat4f Transpose(const Mat4f& m)
+{
+	__m128 t0 = _mm_unpacklo_ps(m[0].v, m[1].v);
+	__m128 t2 = _mm_unpacklo_ps(m[2].v, m[3].v);
+	__m128 t1 = _mm_unpackhi_ps(m[0].v, m[1].v);
+	__m128 t3 = _mm_unpackhi_ps(m[2].v, m[3].v);
+	return Mat4f(
+		_mm_movelh_ps(t0, t2),
+		_mm_movehl_ps(t2, t0),
+		_mm_movelh_ps(t1, t3),
+		_mm_movehl_ps(t3, t1));
 }
 
 // References

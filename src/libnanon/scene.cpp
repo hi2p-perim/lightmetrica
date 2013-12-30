@@ -35,6 +35,8 @@
 #include <nanon/math.h>
 #include <nanon/pugihelper.h>
 #include <nanon/primitive.h>
+#include <nanon/ray.h>
+#include <nanon/intersection.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
@@ -55,6 +57,7 @@ public:
 	const Primitive* PrimitiveByIndex(int index) const;
 	const Primitive* PrimitiveByID(const std::string& id) const;
 	const Camera* MainCamera() const { return mainCamera; }
+	void StoreIntersectionFromBarycentricCoords(unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect);
 
 private:
 
@@ -472,6 +475,54 @@ Math::Mat4 Scene::Impl::ParseMat4( const pugi::xml_node& node )
 	return Math::Mat4(&m2[0]);
 }
 
+void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
+{
+	// Primitive
+	isect.primitiveIndex = primitiveIndex;
+	isect.triangleIndex = triangleIndex;
+	isect.primitive = self->PrimitiveByIndex(primitiveIndex);
+
+	const auto* mesh = isect.primitive->mesh;
+	const auto* positions = mesh->Positions();
+	const auto* normals = mesh->Normals();
+	const auto* texcoords = mesh->TexCoords();
+	const auto* faces = mesh->Faces();
+
+	// Intersection point
+	isect.p = ray.o + ray.d * ray.maxT;
+
+	// Geometry normal
+	int v1 = faces[3*triangleIndex  ];
+	int v2 = faces[3*triangleIndex+1];
+	int v3 = faces[3*triangleIndex+2];
+	auto& p1 = Math::Vec3(positions[3*v1], positions[3*v1+1], positions[3*v1+2]);
+	auto& p2 = Math::Vec3(positions[3*v2], positions[3*v2+1], positions[3*v2+2]);
+	auto& p3 = Math::Vec3(positions[3*v3], positions[3*v3+1], positions[3*v3+2]);
+	isect.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+
+	// Shading normal
+	auto& n1 = Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
+	auto& n2 = Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
+	auto& n3 = Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
+	isect.sn = Math::Normalize(n1 * Math::Float(Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
+
+	// Texture coordinates
+	if (texcoords)
+	{
+		auto& uv1 = Math::Vec2(texcoords[2*v1], texcoords[2*v1+1]);
+		auto& uv2 = Math::Vec2(texcoords[2*v2], texcoords[2*v2+1]);
+		auto& uv3 = Math::Vec2(texcoords[2*v3], texcoords[2*v3+1]);
+		isect.uv = uv1 * Math::Float(Math::Float(1) - b[0] - b[1]) + uv2 * b[0] + uv3 * b[1];
+	}
+
+	// Tangent vectors
+	Math::OrthonormalBasis(isect.sn, isect.ss, isect.st);
+
+	// Shading coordinates conversion
+	//isect.worldToShading = Math::Transpose(Math::Mat3(isect.ss, isect.st, isect.sn));
+	//isect.shadingToWorld = Math::Inverse(isect.worldToShading);
+}
+
 // --------------------------------------------------------------------------------
 
 Scene::Scene()
@@ -523,6 +574,11 @@ bool Scene::LoadPrimitives( const std::vector<Primitive*>& primitives )
 const Camera* Scene::MainCamera() const
 {
 	return p->MainCamera();
+}
+
+void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
+{
+	p->StoreIntersectionFromBarycentricCoords(primitiveIndex, triangleIndex, ray, b, isect);
 }
 
 NANON_NAMESPACE_END

@@ -27,6 +27,7 @@
 #define __LIB_NANON_SCENE_H__
 
 #include "object.h"
+#include "math.types.h"
 #include <string>
 #include <vector>
 
@@ -152,6 +153,22 @@ public:
 		\retval false Failed to load the scene.
 	*/
 	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
+
+protected:
+
+	/*!
+		Store intersection data using barycentric coordinates.
+		Reconstruct intersection information from some information.
+		The function is used internally.
+		\param primitiveIndex A index of the primitive.
+		\param triangleIndex A index of the triangle of the primitive specified by #primitiveIndex.
+		\param ray Intersected ray.
+		\param b Barycentric coordinates of the intersection point.
+		\param isect Intersection structure to store data.
+	*/
+	void StoreIntersectionFromBarycentricCoords(
+		unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray,
+		const Math::Vec2& b, Intersection& isect);
 
 private:
 

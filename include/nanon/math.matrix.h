@@ -134,6 +134,7 @@ template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TMat4<T>& m, c
 template <typename T> NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m1, const TMat4<T>& m2);
 template <typename T> NANON_FORCE_INLINE TMat4<T> operator/(const TMat4<T>& m, const T& s);
 
+template <typename T> NANON_FORCE_INLINE TMat4<T> Transpose(const TMat4<T>& m);
 template <typename T> NANON_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m);
 
 typedef TMat4<float> Mat4f;
@@ -230,6 +231,7 @@ template <> NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v);
 template <> NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m1, const Mat4f& m2);
 template <> NANON_FORCE_INLINE Mat4f operator/(const Mat4f& m, const float& s);
 
+template <> NANON_FORCE_INLINE Mat4f Transpose(const Mat4f& m);
 template <> NANON_FORCE_INLINE Mat4f Inverse(const Mat4f& m);
 
 #endif

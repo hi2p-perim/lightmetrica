@@ -265,6 +265,11 @@ TYPED_TEST(MathMatrix4Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectMat4Near(d->m1, d->m1s2 / T(2)));
 }
 
+TYPED_TEST(MathMatrix4Test, Transpose)
+{
+	EXPECT_TRUE(ExpectMat4Near(d->m2, Math::Transpose(d->m1)));
+}
+
 TYPED_TEST(MathMatrix4Test, Inverse)
 {
 	typedef TypeParam T;

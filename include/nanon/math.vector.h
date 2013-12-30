@@ -79,6 +79,9 @@ template <typename T> NANON_FORCE_INLINE T Length2(const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec2<T> Normalize(const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE T Dot(const TVec2<T>& v1, const TVec2<T>& v2);
 
+template <typename T> NANON_FORCE_INLINE TVec2<T> Min(const TVec2<T>& v1, const TVec2<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec2<T> Max(const TVec2<T>& v1, const TVec2<T>& v2);
+
 typedef TVec2<float> Vec2f;
 typedef TVec2<double> Vec2d;
 typedef TVec2<int> Vec2i;
@@ -130,6 +133,9 @@ template <typename T> NANON_FORCE_INLINE TVec3<T> Normalize(const TVec3<T>& v);
 template <typename T> NANON_FORCE_INLINE T Dot(const TVec3<T>& v1, const TVec3<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, const TVec3<T>& v2);
 
+template <typename T> NANON_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVec3<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2);
+
 typedef TVec3<float> Vec3f;
 typedef TVec3<double> Vec3d;
 typedef TVec3<int> Vec3i;
@@ -179,6 +185,9 @@ template <typename T> NANON_FORCE_INLINE T Length(const TVec4<T>& v);
 template <typename T> NANON_FORCE_INLINE T Length2(const TVec4<T>& v);
 template <typename T> NANON_FORCE_INLINE TVec4<T> Normalize(const TVec4<T>& v);
 template <typename T> NANON_FORCE_INLINE T Dot(const TVec4<T>& v1, const TVec4<T>& v2);
+
+template <typename T> NANON_FORCE_INLINE TVec4<T> Min(const TVec4<T>& v1, const TVec4<T>& v2);
+template <typename T> NANON_FORCE_INLINE TVec4<T> Max(const TVec4<T>& v1, const TVec4<T>& v2);
 
 typedef TVec4<float> Vec4f;
 typedef TVec4<double> Vec4d;
@@ -236,6 +245,9 @@ template <> NANON_FORCE_INLINE Vec3f Normalize(const Vec3f& v);
 template <> NANON_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2);
 template <> NANON_FORCE_INLINE Vec3f Cross(const Vec3f& v1, const Vec3f& v2);
 
+template <> NANON_FORCE_INLINE Vec3f Min(const Vec3f& v1, const Vec3f& v2);
+template <> NANON_FORCE_INLINE Vec3f Max(const Vec3f& v1, const Vec3f& v2);
+
 // --------------------------------------------------------------------------------
 
 /*!
@@ -284,6 +296,9 @@ template <> NANON_FORCE_INLINE float Length(const Vec4f& v);
 template <> NANON_FORCE_INLINE float Length2(const Vec4f& v);
 template <> NANON_FORCE_INLINE Vec4f Normalize(const Vec4f& v);
 template <> NANON_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2);
+
+template <> NANON_FORCE_INLINE Vec4f Min(const Vec4f& v1, const Vec4f& v2);
+template <> NANON_FORCE_INLINE Vec4f Max(const Vec4f& v1, const Vec4f& v2);
 
 #endif
 
@@ -339,6 +354,9 @@ template <> NANON_FORCE_INLINE Vec3d Normalize(const Vec3d& v);
 template <> NANON_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2);
 template <> NANON_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2);
 
+template <> NANON_FORCE_INLINE Vec3d Min(const Vec3d& v1, const Vec3d& v2);
+template <> NANON_FORCE_INLINE Vec3d Max(const Vec3d& v1, const Vec3d& v2);
+
 // --------------------------------------------------------------------------------
 
 /*!
@@ -389,6 +407,9 @@ template <> NANON_FORCE_INLINE double Length(const Vec4d& v);
 template <> NANON_FORCE_INLINE double Length2(const Vec4d& v);
 template <> NANON_FORCE_INLINE Vec4d Normalize(const Vec4d& v);
 template <> NANON_FORCE_INLINE double Dot(const Vec4d& v1, const Vec4d& v2);
+
+template <> NANON_FORCE_INLINE Vec4d Min(const Vec4d& v1, const Vec4d& v2);
+template <> NANON_FORCE_INLINE Vec4d Max(const Vec4d& v1, const Vec4d& v2);
 
 #endif
 

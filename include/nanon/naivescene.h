@@ -43,7 +43,7 @@ public:
 
 	virtual bool Build();
 	virtual bool Intersect(Ray& ray, Intersection& isect) const;
-	virtual std::string Type() const;
+	virtual std::string Type() const { return "naive"; }
 
 private:
 

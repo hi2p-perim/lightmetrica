@@ -216,6 +216,18 @@ NANON_FORCE_INLINE T Dot(const TVec2<T>& v1, const TVec2<T>& v2)
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
+template <typename T>
+NANON_FORCE_INLINE TVec2<T> Min(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return TVec2<T>(Min(v1.x, v2.x), Min(v1.y, v2.y));
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec2<T> Max(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return TVec2<T>(Max(v1.x, v2.x), Max(v1.y, v2.y));
+}
+
 // --------------------------------------------------------------------------------
 
 template <typename T>
@@ -432,6 +444,18 @@ template <typename T>
 NANON_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return TVec3<T>(v1.y * v2.z - v2.y * v1.z, v1.z * v2.x - v2.z * v1.x, v1.x * v2.y - v2.x * v1.y);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(Min(v1.x, v2.x), Min(v1.y, v2.y), Min(v1.z, v2.z));
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return TVec3<T>(Max(v1.x, v2.x), Max(v1.y, v2.y), Max(v1.z, v2.z));
 }
 
 // --------------------------------------------------------------------------------
@@ -660,6 +684,18 @@ NANON_FORCE_INLINE T Dot(const TVec4<T>& v1, const TVec4<T>& v2)
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> Min(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return TVec4<T>(Min(v1.x, v2.x), Min(v1.y, v2.y), Min(v1.z, v2.z), Min(v1.w, v2.w));
+}
+
+template <typename T>
+NANON_FORCE_INLINE TVec4<T> Max(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return TVec4<T>(Max(v1.x, v2.x), Max(v1.y, v2.y), Max(v1.z, v2.z), Max(v1.w, v2.w));
+}
+
 // --------------------------------------------------------------------------------
 
 #ifdef NANON_USE_SSE2
@@ -866,6 +902,18 @@ NANON_FORCE_INLINE Vec3f Cross(const Vec3f& v1, const Vec3f& v2)
 				_mm_shuffle_ps(v2.v, v2.v, _MM_SHUFFLE(3, 0, 2, 1)))));
 }
 
+template <>
+NANON_FORCE_INLINE Vec3f Min(const Vec3f& v1, const Vec3f& v2)
+{
+	return Vec3f(_mm_min_ps(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec3f Max(const Vec3f& v1, const Vec3f& v2)
+{
+	return Vec3f(_mm_max_ps(v1.v, v2.v));
+}
+
 // --------------------------------------------------------------------------------
 
 NANON_FORCE_INLINE Vec4f::TVec4()
@@ -1049,6 +1097,18 @@ NANON_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2)
 #else
 #error "TODO"
 #endif
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f Min(const Vec4f& v1, const Vec4f& v2)
+{
+	return Vec4f(_mm_min_ps(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4f Max(const Vec4f& v1, const Vec4f& v2)
+{
+	return Vec4f(_mm_max_ps(v1.v, v2.v));
 }
 
 #endif
@@ -1271,6 +1331,18 @@ NANON_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2)
 #endif
 }
 
+template <>
+NANON_FORCE_INLINE Vec3d Min(const Vec3d& v1, const Vec3d& v2)
+{
+	return Vec3d(_mm256_min_pd(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec3d Max(const Vec3d& v1, const Vec3d& v2)
+{
+	return Vec3d(_mm256_max_pd(v1.v, v2.v));
+}
+
 // --------------------------------------------------------------------------------
 
 NANON_FORCE_INLINE Vec4d::TVec4()
@@ -1443,6 +1515,18 @@ NANON_FORCE_INLINE double Dot(const Vec4d& v1, const Vec4d& v2)
 	__m128d t4 = _mm256_castpd256_pd128(t2);	// t4 = [ v1.z * v2.z + v1.w * v2.w, _ ]
 	__m128d result = _mm_add_pd(t3, t4);		// result = [ v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w, _ ]
 	return Vec4d(_mm256_castpd128_pd256(result)).x;
+}
+
+template <>
+NANON_FORCE_INLINE Vec4d Min(const Vec4d& v1, const Vec4d& v2)
+{
+	return Vec4d(_mm256_min_pd(v1.v, v2.v));
+}
+
+template <>
+NANON_FORCE_INLINE Vec4d Max(const Vec4d& v1, const Vec4d& v2)
+{
+	return Vec4d(_mm256_max_pd(v1.v, v2.v));
 }
 
 #endif

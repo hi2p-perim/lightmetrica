@@ -153,6 +153,13 @@ TYPED_TEST(MathVector2Test, Dot)
 	EXPECT_TRUE(ExpectNear(T(10), Math::Dot(v1, v2)));
 }
 
+TYPED_TEST(MathVector2Test, MinMax)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectVec2Near(v1, Math::Min(v1, v2)));
+	EXPECT_TRUE(ExpectVec2Near(v2, Math::Max(v1, v2)));
+}
+
 // --------------------------------------------------------------------------------
 
 template <typename T>
@@ -311,6 +318,13 @@ TYPED_TEST(MathVector3Test, Cross)
 	EXPECT_TRUE(ExpectVec3Near(expect, Math::Cross(d->v1, d->v2)));
 }
 
+TYPED_TEST(MathVector3Test, MinMax)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectVec3Near(Math::TVec3<T>(T(1), T(2), T(2)), Math::Min(d->v1, d->v2)));
+	EXPECT_TRUE(ExpectVec3Near(Math::TVec3<T>(T(4), T(3), T(3)), Math::Max(d->v1, d->v2)));
+}
+
 // --------------------------------------------------------------------------------
 
 template <typename T>
@@ -463,6 +477,13 @@ TYPED_TEST(MathVector4Test, Dot)
 {
 	typedef TypeParam T;
 	EXPECT_TRUE(ExpectNear(T(20), Math::Dot(d->v1, d->v2)));
+}
+
+TYPED_TEST(MathVector4Test, MinMax)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectVec4Near(Math::TVec4<T>(T(1), T(2), T(2), T(1)), Math::Min(d->v1, d->v2)));
+	EXPECT_TRUE(ExpectVec4Near(Math::TVec4<T>(T(4), T(3), T(3), T(4)), Math::Max(d->v1, d->v2)));
 }
 
 NANON_TEST_NAMESPACE_END
