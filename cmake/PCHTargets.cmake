@@ -229,7 +229,7 @@ function (PVT_ADD_PCH_RULE pch_header_filename out_generated_files
     list(APPEND pch_args "-x" "c++-header")
   endif ()
   
-  message("----------- ${pch_args}")
+  #message("----------- ${pch_args}")
   
   set (pch_generated "")
   
@@ -354,7 +354,7 @@ macro (PVT_PCH_USE pch_header_filename pch_filename target_name srcs_var
     message (AUTHOR_WARNING "Unknown PCH environment")
   endif ()
   
-  message("---------------- ${pch_flags}")
+  #message("---------------- ${pch_flags}")
 
   # If all sources are C++, set the property for the target, otherwise set
   # it in each file separately
