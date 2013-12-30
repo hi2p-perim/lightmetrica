@@ -229,6 +229,7 @@ function (PVT_ADD_PCH_RULE pch_header_filename out_generated_files
     list(APPEND pch_args "-x" "c++-header")
   endif ()
   
+  message("----------- ${pch_args}")
   
   set (pch_generated "")
   
@@ -345,14 +346,16 @@ macro (PVT_PCH_USE pch_header_filename pch_filename target_name srcs_var
       pvt_get_pch_count (pch_count)
       set(pch_subdir "pch.${pch_count}")
     endif()
-    set (pch_flags
-      "-include \"${pch_subdir}/${CMAKE_CFG_INTDIR}/${pch_header}\"")
+    #set (pch_flags
+    #  "-include \"${pch_subdir}/${CMAKE_CFG_INTDIR}/${pch_header}\"")
   elseif (PCH_INTEL)
     set (pch_flags "-pch-use \"${pch_filename}\"")
   else ()
     message (AUTHOR_WARNING "Unknown PCH environment")
   endif ()
   
+  message("---------------- ${pch_flags}")
+
   # If all sources are C++, set the property for the target, otherwise set
   # it in each file separately
   if (has_only_cxx_sources)
@@ -423,7 +426,7 @@ function (pch_add_library _libname)
   
   if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND 
       (PCH_GCC OR PCH_CLANG OR PCH_INTEL))
-    set (pch_extra_compile_flags "-fPIC")
+    set (pch_extra_compile_flags "-fPIC" "-std=c++11")
   endif ()
   string(REPLACE " " "_" _pch_subdir "${_libname}_pch")
   PVT_PCH_SOURCES_GROUP ("${_pch_PCH_HEADER}" "PCH Sources"
@@ -465,10 +468,15 @@ function (pch_add_executable _exename)
   if (_pch_WIN32 AND _pch_MACOSX_BUNDLE)
     message (AUTHOR_WARNING "Both WIN32 and MACOSX_BUNDLE selected. Using \"${_pch_exetype}\".")
   endif ()
-  
+
+  if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND 
+      (PCH_GCC OR PCH_CLANG OR PCH_INTEL))
+    set (pch_extra_compile_flags "-std=c++11")
+  endif ()
+ 
   string(REPLACE " " "_" _pch_subdir "${_exename}_pch")
   PVT_PCH_SOURCES_GROUP ("${_pch_PCH_HEADER}" "PCH Sources"
-       _pch_srcs _pch_filename "" ${_pch_subdir})
+       _pch_srcs _pch_filename "${pch_extra_compile_flags}" ${_pch_subdir})
   add_executable (${_exename} ${_pch_exetype} ${_pch_exclude}
     ${_exesrcs} ${_pch_srcs})
   PVT_PCH_USE ("${_pch_PCH_HEADER}" "${_pch_filename}" ${_exename}

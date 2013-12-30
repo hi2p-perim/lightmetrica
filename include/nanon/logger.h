@@ -260,7 +260,7 @@ NANON_NAMESPACE_END
 	#ifdef NANON_COMPILER_MSVC
 		#define NANON_LOG_DEBUG(message) \
 			nanon::Logger::Debug(nanon::Logger::FormattedDebugInfo(__FILE__, __FUNCTION__, __LINE__) + message);
-	#elif NANON_COMPILER_GCC
+	#elif defined(NANON_COMPILER_GCC)
 		#define NANON_LOG_DEBUG(message) \
 			nanon::Logger::Debug(nanon::Logger::FormattedDebugInfo(__FILE__, __PRETTY_FUNCTION__ , __LINE__) + message);
 	#else

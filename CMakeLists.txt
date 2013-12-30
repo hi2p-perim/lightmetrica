@@ -155,7 +155,8 @@ endif()
 
 # Enabling C++11 for gcc
 if(CMAKE_COMPILER_IS_GNUCXX)
-	list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	add_definitions(-std=c++11)
 	# If the build type is Debug, define macro
 	if (CMAKE_BUILD_TYPE STREQUAL Debug)
 		add_definitions(-D_DEBUG)
@@ -188,7 +189,7 @@ execute_process(
 # Current date
 if (WIN32)
 	execute_process(COMMAND "cmd" "/C date /T" OUTPUT_VARIABLE NANON_CURRENT_DATE)
-elseif()
+else()
 	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE NANON_CURRENT_DATE)
 endif()
 string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})

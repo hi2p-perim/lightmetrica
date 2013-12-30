@@ -66,7 +66,7 @@ std::string Version::Platform()
 {
 #ifdef NANON_PLATFORM_WINDOWS
 	return "Windows";
-#elif NANON_PLATFORM_LINUX
+#elif defined(NANON_PLATFORM_LINUX)
 	return "Linux";
 #endif
 }
@@ -75,7 +75,7 @@ std::string Version::Archtecture()
 {
 #ifdef NANON_ARCH_X64
 	return "x64";
-#elif NANON_ARCH_X86
+#elif defined(NANON_ARCH_X86)
 	return "x86";
 #endif
 }
