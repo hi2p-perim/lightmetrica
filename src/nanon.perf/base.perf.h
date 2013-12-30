@@ -23,24 +23,9 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TEST_STUB_ASSET_FACTORY_H__
-#define __LIB_NANON_TEST_STUB_ASSET_FACTORY_H__
+#ifndef __NANON_PERF_BASE_PERF_H__
+#define __NANON_PERF_BASE_PERF_H__
 
-#include "common.h"
-#include <nanon/assetfactory.h>
+#include <nanon.test/base.h>
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
-
-class StubAssetFactory : public AssetFactory
-{
-public:
-
-	Asset* Create(const std::string& id, const std::string& type) const;
-
-};
-
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
-
-#endif // __LIB_NANON_TEST_STUB_ASSET_FACTORY_H__
+#endif // __NANON_PERF_BASE_PERF_H__

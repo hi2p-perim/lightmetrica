@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __NANON_TEST_BASE_MATH_H__
-#define __NANON_TEST_BASE_MATH_H__
+#ifndef __LIB_NANON_TEST_BASE_MATH_H__
+#define __LIB_NANON_TEST_BASE_MATH_H__
 
 #include "base.h"
 #ifndef NANON_ENABLE_MULTI_PRECISION
@@ -157,4 +157,4 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T
 NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_BASE_MATH_H__
+#endif // __LIB_NANON_TEST_BASE_MATH_H__

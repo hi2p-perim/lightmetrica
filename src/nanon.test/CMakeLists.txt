@@ -35,16 +35,9 @@ set(
 	"test.objmesh.cpp"
 	"test.hdrfilm.cpp"
 	"test.perspectivecamera.cpp"
-	
-	# math
 	"test.math.vector.cpp"
 	"test.math.matrix.cpp"
 	"test.math.transform.cpp"
-	
-	# pugixml
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
 )
 
 pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})

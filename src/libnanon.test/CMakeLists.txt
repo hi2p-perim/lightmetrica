@@ -40,6 +40,11 @@ set(
 	_SOURCE_FILES
 	"base.cpp"
 	"stub.assetfactory.cpp"
+	
+	# pugixml
+	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
+	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
+	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
 )
 
 pch_add_library(libnanon.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})

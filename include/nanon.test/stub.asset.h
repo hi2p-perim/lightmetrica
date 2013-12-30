@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __NANON_TEST_STUB_ASSET_H__
-#define __NANON_TEST_STUB_ASSET_H__
+#ifndef __LIB_NANON_TEST_STUB_ASSET_H__
+#define __LIB_NANON_TEST_STUB_ASSET_H__
 
 #include "common.h"
 #include <nanon/asset.h>
@@ -65,4 +65,4 @@ public:
 NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END
 
-#endif // __NANON_TEST_STUB_ASSET_H__
+#endif // __LIB_NANON_TEST_STUB_ASSET_H__

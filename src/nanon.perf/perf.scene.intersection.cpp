@@ -22,9 +22,16 @@
 	THE SOFTWARE.
 */
 
-int main(int argc, char** argv)
-{
-	
+#include "pch.h"
+#include "base.perf.h"
 
-	return 0;
-}
+NANON_NAMESPACE_BEGIN
+NANON_TEST_NAMESPACE_BEGIN
+
+class SceneIntersectionPerfTest : public TestBase
+{
+
+};
+
+NANON_TEST_NAMESPACE_END
+NANON_NAMESPACE_END

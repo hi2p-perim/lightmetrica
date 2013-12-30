@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __NANON_TEST_COMMON_H__
-#define __NANON_TEST_COMMON_H__
+#ifndef __LIB_NANON_TEST_COMMON_H__
+#define __LIB_NANON_TEST_COMMON_H__
 
 #include <nanon/common.h>
 
@@ -38,4 +38,4 @@
 
 #define NANON_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__
 
-#endif // __NANON_TEST_COMMON_H__
+#endif // __LIB_NANON_TEST_COMMON_H__
