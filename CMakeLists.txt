@@ -239,6 +239,8 @@ include_directories("include")
 
 # Add projects
 add_subdirectory("src/libnanon")
-add_subdirectory("src/nanon.test")
+add_subdirectory("src/libnanon.test")
 add_subdirectory("src/nanon")
 add_subdirectory("src/nanon.gui")
+add_subdirectory("src/nanon.test")
+add_subdirectory("src/nanon.perf")

@@ -26,20 +26,7 @@ include (PCHTargets)
 
 set(
 	_SOURCE_FILES
-	"test.logger.cpp"
-	"test.config.cpp"
-	"test.defaultassets.cpp"
-	"test.asset.cpp"
-	"test.scene.cpp"
-	"test.scene.intersection.cpp"
-	"test.objmesh.cpp"
-	"test.hdrfilm.cpp"
-	"test.perspectivecamera.cpp"
-	
-	# math
-	"test.math.vector.cpp"
-	"test.math.matrix.cpp"
-	"test.math.transform.cpp"
+	"perf.scene.intersection.cpp"
 	
 	# pugixml
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -47,6 +34,6 @@ set(
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
 )
 
-pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(nanon.test libnanon libnanon.test ${GTEST_BOTH_LIBRARIES})
+pch_add_executable(nanon.perf PCH_HEADER "pch.h" ${_SOURCE_FILES})
+target_link_libraries(nanon.perf libnanon libnanon.test ${GTEST_BOTH_LIBRARIES})
 add_dependencies(nanon.test libnanon libnanon.test)

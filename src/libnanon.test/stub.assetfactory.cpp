@@ -23,32 +23,28 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
+#include <nanon.test/stub.assetfactory.h>
 #include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
+#include <nanon/logger.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase
+Asset* StubAssetFactory::Create( const std::string& id, const std::string& type ) const
 {
-protected:
-
-	StubAssets assets;
-
-};
-
-TEST_F(AssetTest, Load)
-{
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(pugi::xml_node(), assets));
-}
-
-TEST_F(AssetTest, Create_Failed)
-{
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(pugi::xml_node(), assets));
+	if (type == "success")
+	{
+		return new StubAsset_Success(id);
+	}
+	else if (type == "fail_on_create")
+	{
+		return new StubAsset_FailOnCreate(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_TEST_NAMESPACE_END

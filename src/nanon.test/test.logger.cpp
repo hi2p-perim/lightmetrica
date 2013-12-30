@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include "base.h"
+#include <nanon.test/base.h>
 #include <nanon/logger.h>
 #include <regex>
 #include <thread>

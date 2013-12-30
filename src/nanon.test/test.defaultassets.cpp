@@ -23,9 +23,9 @@
 */
 
 #include "pch.h"
-#include "base.h"
-#include "stub.asset.h"
-#include "stub.assetfactory.h"
+#include <nanon.test/base.h>
+#include <nanon.test/stub.asset.h>
+#include <nanon.test/stub.assetfactory.h>
 #include <nanon/defaultassets.h>
 
 namespace

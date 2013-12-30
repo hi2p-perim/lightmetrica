@@ -22,34 +22,33 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
+#pragma once
+#ifndef __NANON_PERF_PCH_H__
+#define __NANON_PERF_PCH_H__
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+#include <boost/format.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/foreach.hpp>
+#include <boost/scoped_array.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/signals2.hpp>
+#include <boost/filesystem.hpp>
 
-class AssetTest : public TestBase
-{
-protected:
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <queue>
+#include <deque>
+#include <functional>
+#include <mutex>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <limits>
+#include <type_traits>
 
-	StubAssets assets;
-
-};
-
-TEST_F(AssetTest, Load)
-{
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(pugi::xml_node(), assets));
-}
-
-TEST_F(AssetTest, Create_Failed)
-{
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(pugi::xml_node(), assets));
-}
-
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+#endif // __NANON_PERF_PCH_H__

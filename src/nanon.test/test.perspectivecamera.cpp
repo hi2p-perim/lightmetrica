@@ -23,9 +23,9 @@
 */
 
 #include "pch.h"
-#include "base.h"
-#include "base.math.h"
-#include "stub.assets.h"
+#include <nanon.test/base.h>
+#include <nanon.test/base.math.h>
+#include <nanon.test/stub.assets.h>
 #include <nanon/perspectivecamera.h>
 #include <nanon/film.h>
 #include <nanon/primitive.h>

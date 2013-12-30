@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include "base.math.h"
+#include <nanon.test/base.math.h>
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN

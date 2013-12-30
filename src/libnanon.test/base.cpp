@@ -23,28 +23,55 @@
 */
 
 #include "pch.h"
-#include "stub.assetfactory.h"
-#include "stub.asset.h"
+#include <nanon.test/base.h>
 #include <nanon/logger.h>
+
+namespace fs = boost::filesystem;
 
 NANON_NAMESPACE_BEGIN
 NANON_TEST_NAMESPACE_BEGIN
 
-Asset* StubAssetFactory::Create( const std::string& id, const std::string& type ) const
+const long long TestBase::OutputProcessTimeout = 500;
+
+void TestBase::SetUp()
 {
-	if (type == "success")
+	Logger::Reset();
+	Logger::SetOutputMode(Logger::LogOutputMode::Stderr);
+	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
+}
+
+void TestBase::TearDown()
+{
+	
+}
+
+pugi::xml_node TestBase::LoadXMLBuffer( const std::string& data )
+{
+	doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
+	return doc.first_child();
+}
+
+// --------------------------------------------------------------------------------
+
+TemporaryFile::TemporaryFile( const std::string& filename, const std::string& content )
+{
+	path = (fs::temp_directory_path() / filename).string();
+	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+	EXPECT_TRUE(ofs.is_open());
+	ofs << content;
+}
+
+TemporaryFile::~TemporaryFile()
+{
+	if (fs::exists(path))
 	{
-		return new StubAsset_Success(id);
+		EXPECT_TRUE(fs::remove(path));
 	}
-	else if (type == "fail_on_create")
-	{
-		return new StubAsset_FailOnCreate(id);
-	}
-	else
-	{
-		NANON_LOG_ERROR("Invalid type '" + type + "'");
-		return nullptr;
-	}
+}
+
+std::string TemporaryFile::Path() const
+{
+	return path;
 }
 
 NANON_TEST_NAMESPACE_END

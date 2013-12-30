@@ -24,29 +24,22 @@
 
 include (PCHTargets)
 
+set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon.test)
+set(
+	_HEADER_FILES
+	"${_INCLUDE_DIR}/common.h"
+	"${_INCLUDE_DIR}/base.h"
+	"${_INCLUDE_DIR}/base.math.h"
+	"${_INCLUDE_DIR}/stub.asset.h"
+	"${_INCLUDE_DIR}/stub.assetfactory.h"
+	"${_INCLUDE_DIR}/stub.assets.h"
+	"${_INCLUDE_DIR}/stub.trianglemesh.h"
+	"${_INCLUDE_DIR}/stub.bsdf.h"
+)
 set(
 	_SOURCE_FILES
-	"test.logger.cpp"
-	"test.config.cpp"
-	"test.defaultassets.cpp"
-	"test.asset.cpp"
-	"test.scene.cpp"
-	"test.scene.intersection.cpp"
-	"test.objmesh.cpp"
-	"test.hdrfilm.cpp"
-	"test.perspectivecamera.cpp"
-	
-	# math
-	"test.math.vector.cpp"
-	"test.math.matrix.cpp"
-	"test.math.transform.cpp"
-	
-	# pugixml
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
+	"base.cpp"
+	"stub.assetfactory.cpp"
 )
 
-pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(nanon.test libnanon libnanon.test ${GTEST_BOTH_LIBRARIES})
-add_dependencies(nanon.test libnanon libnanon.test)
+pch_add_library(libnanon.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})

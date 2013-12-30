@@ -23,12 +23,12 @@
 */
 
 #include "pch.h"
-#include "base.h"
-#include "base.math.h"
-#include "stub.assetfactory.h"
-#include "stub.bsdf.h"
-#include "stub.trianglemesh.h"
-#include "stub.assets.h"
+#include <nanon.test/base.h>
+#include <nanon.test/base.math.h>
+#include <nanon.test/stub.assetfactory.h>
+#include <nanon.test/stub.bsdf.h>
+#include <nanon.test/stub.trianglemesh.h>
+#include <nanon.test/stub.assets.h>
 #include <nanon/scene.h>
 #include <nanon/assets.h>
 #include <nanon/trianglemesh.h>

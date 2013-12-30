@@ -22,12 +22,35 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include "stub.asset.h"
-#include <pugixml.hpp>
+#pragma once
+#ifndef __LIB_NANON_TEST_PCH_H__
+#define __LIB_NANON_TEST_PCH_H__
 
-NANON_TEST_NAMESPACE_BEGIN
+#include <boost/format.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/foreach.hpp>
+#include <boost/scoped_array.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/signals2.hpp>
+#include <boost/filesystem.hpp>
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <queue>
+#include <deque>
+#include <functional>
+#include <mutex>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <limits>
+#include <type_traits>
 
+#include <gtest/gtest.h>
 
-NANON_TEST_NAMESPACE_END
+#endif // __LIB_NANON_TEST_PCH_H__

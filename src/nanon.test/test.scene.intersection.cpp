@@ -23,10 +23,10 @@
 */
 
 #include "pch.h"
-#include "base.h"
-#include "base.math.h"
-#include "stub.bsdf.h"
-#include "stub.trianglemesh.h"
+#include <nanon.test/base.h>
+#include <nanon.test/base.math.h>
+#include <nanon.test/stub.bsdf.h>
+#include <nanon.test/stub.trianglemesh.h>
 #include <nanon/scenefactory.h>
 #include <nanon/naivescene.h>
 #include <nanon/primitive.h>

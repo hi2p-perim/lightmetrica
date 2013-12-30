@@ -22,57 +22,9 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include "base.h"
-#include <nanon/logger.h>
-
-namespace fs = boost::filesystem;
-
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
-
-const long long TestBase::OutputProcessTimeout = 500;
-
-void TestBase::SetUp()
-{
-	Logger::Reset();
-	Logger::SetOutputMode(Logger::LogOutputMode::Stderr);
-	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
-}
-
-void TestBase::TearDown()
+int main(int argc, char** argv)
 {
 	
+
+	return 0;
 }
-
-pugi::xml_node TestBase::LoadXMLBuffer( const std::string& data )
-{
-	doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
-	return doc.first_child();
-}
-
-// --------------------------------------------------------------------------------
-
-TemporaryFile::TemporaryFile( const std::string& filename, const std::string& content )
-{
-	path = (fs::temp_directory_path() / filename).string();
-	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
-	EXPECT_TRUE(ofs.is_open());
-	ofs << content;
-}
-
-TemporaryFile::~TemporaryFile()
-{
-	if (fs::exists(path))
-	{
-		EXPECT_TRUE(fs::remove(path));
-	}
-}
-
-std::string TemporaryFile::Path() const
-{
-	return path;
-}
-
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
