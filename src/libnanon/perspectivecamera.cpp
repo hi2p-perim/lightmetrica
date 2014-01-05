@@ -39,16 +39,15 @@ class PerspectiveCamera::Impl : public Object
 public:
 
 	Impl(PerspectiveCamera* self);
-	bool Load(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
 	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
 	Film* GetFilm() const { return film; }
-	void RegisterPrimitive(Primitive* primitive);
+	void RegisterPrimitive(const Primitive* primitive);
 
 private:
 
 	PerspectiveCamera* self;
 	Film* film;
-	Primitive* primitive;
 
 	Math::Float invA;
 	Math::Vec3 position;
@@ -65,7 +64,7 @@ PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
 
 }
 
-bool PerspectiveCamera::Impl::Load( const pugi::xml_node& node, const Assets& assets )
+bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
 	// Check name and type
 	if (node.name() != self->Name())
@@ -136,10 +135,8 @@ void PerspectiveCamera::Impl::RasterPosToRay( const Math::Vec2& rasterPos, Ray& 
 	ray.maxT = Math::Constants::Inf;
 }
 
-void PerspectiveCamera::Impl::RegisterPrimitive( Primitive* primitive )
+void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
 {
-	this->primitive = primitive;
-
 	// View matrix and its inverse
 	viewMatrix = primitive->transform;
 	invViewMatrix = Math::Inverse(viewMatrix);
@@ -172,14 +169,14 @@ Film* PerspectiveCamera::GetFilm() const
 	return p->GetFilm();
 }
 
-void PerspectiveCamera::RegisterPrimitive( Primitive* primitive )
+void PerspectiveCamera::RegisterPrimitive( const Primitive* primitive )
 {
 	return p->RegisterPrimitive(primitive);
 }
 
-bool PerspectiveCamera::Load( const pugi::xml_node& node, const Assets& assets )
+bool PerspectiveCamera::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
-	return p->Load(node, assets);
+	return p->LoadAsset(node, assets);
 }
 
 NANON_NAMESPACE_END

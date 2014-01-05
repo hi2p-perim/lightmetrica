@@ -75,9 +75,9 @@ bool NaiveScene::Impl::Build()
 				unsigned int i1 = faces[3*j  ];
 				unsigned int i2 = faces[3*j+1];
 				unsigned int i3 = faces[3*j+2];
-				Math::Vec3 p1(positions[3*i1], positions[3*i1+1], positions[3*i1+2]);
-				Math::Vec3 p2(positions[3*i2], positions[3*i2+1], positions[3*i2+2]);
-				Math::Vec3 p3(positions[3*i3], positions[3*i3+1], positions[3*i3+2]);
+				Math::Vec3 p1(primitive->transform * Math::Vec4(positions[3*i1], positions[3*i1+1], positions[3*i1+2], Math::Float(1)));
+				Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
+				Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
 				triAccels.back().Load(p1, p2, p3);
 			}
 		}

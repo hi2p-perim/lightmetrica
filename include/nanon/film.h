@@ -75,6 +75,14 @@ public:
 	*/
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) = 0;
 
+	/*!
+		Accumulate the contribution to the raster position.
+		This function accumulates #contrb to the position specified by #rasterPos.
+		\param rasterPos Raster position.
+		\param contrb Contribution.
+	*/
+	virtual void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) = 0;
+
 };
 
 NANON_NAMESPACE_END

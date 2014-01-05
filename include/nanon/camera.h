@@ -71,9 +71,9 @@ public:
 		Some implementation of camera needs transformed mesh information for sampling.
 		The function registers the reference to the primitive.
 		The function is internally called.
-		\param primitive An instance of the primitive.
+		\param primitives An instances of the primitive.
 	*/
-	virtual void RegisterPrimitive(Primitive* primitive) = 0;
+	virtual void RegisterPrimitive(const Primitive* primitive) = 0;
 
 };
 

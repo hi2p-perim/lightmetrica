@@ -33,6 +33,7 @@ set(
 	"test.scene.cpp"
 	"test.scene.intersection.cpp"
 	"test.objmesh.cpp"
+	"test.rawmesh.cpp"
 	"test.hdrfilm.cpp"
 	"test.perspectivecamera.cpp"
 	"test.math.vector.cpp"

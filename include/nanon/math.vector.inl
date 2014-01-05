@@ -193,6 +193,18 @@ NANON_FORCE_INLINE TVec2<T> operator-(const TVec2<T>& v)
 }
 
 template <typename T>
+NANON_FORCE_INLINE bool operator==(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return v1.x == v2.x && v1.y == v2.y;
+}
+
+template <typename T>
+NANON_FORCE_INLINE bool operator!=(const TVec2<T>& v1, const TVec2<T>& v2)
+{
+	return v1.x != v2.x || v1.y != v2.y;
+}
+
+template <typename T>
 NANON_FORCE_INLINE T Length(const TVec2<T>& v)
 {
 	return Math::Sqrt(Math::Length2(v));
@@ -417,6 +429,18 @@ NANON_FORCE_INLINE TVec3<T> operator-(const TVec3<T>& v)
 }
 
 template <typename T>
+NANON_FORCE_INLINE bool operator==(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+}
+
+template <typename T>
+NANON_FORCE_INLINE bool operator!=(const TVec3<T>& v1, const TVec3<T>& v2)
+{
+	return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z;
+}
+
+template <typename T>
 NANON_FORCE_INLINE T Length(const TVec3<T>& v)
 {
 	return Math::Sqrt(Math::Length2(v));
@@ -456,6 +480,34 @@ template <typename T>
 NANON_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return TVec3<T>(Max(v1.x, v2.x), Max(v1.y, v2.y), Max(v1.z, v2.z));
+}
+
+template <typename T>
+NANON_FORCE_INLINE T Luminance(const TVec3<T>& v)
+{
+	return
+		Math::Float(0.212671) * v[0] +
+		Math::Float(0.715160) * v[1] +
+		Math::Float(0.072169) * v[2];
+}
+
+template <typename T>
+NANON_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v)
+{
+	return v.z;
+}
+
+template <typename T>
+NANON_FORCE_INLINE T SinTheta2ZUp(const TVec3<T>& v)
+{
+	return T(1) - v.z - v.z;
+}
+
+template <typename T>
+NANON_FORCE_INLINE T TanThetaZUp(const TVec3<T>& v)
+{
+	T t = 1 - v.z * v.z;
+	return t <= 0 ? 0 : Math::Sqrt(t) / v.z;
 }
 
 // --------------------------------------------------------------------------------
@@ -658,6 +710,18 @@ template <typename T>
 NANON_FORCE_INLINE TVec4<T> operator-(const TVec4<T>& v)
 {
 	return TVec4<T>(-v.x, -v.y, -v.z, -v.w);
+}
+
+template <typename T>
+NANON_FORCE_INLINE bool operator==(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
+}
+
+template <typename T>
+NANON_FORCE_INLINE bool operator!=(const TVec4<T>& v1, const TVec4<T>& v2)
+{
+	return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z || v1.w != v2.w;
 }
 
 template <typename T>

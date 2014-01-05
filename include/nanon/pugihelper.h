@@ -27,6 +27,7 @@
 #define __LIB_NANON_PUGI_HELPER_H__
 
 #include "common.h"
+#include "math.types.h"
 #include <string>
 
 namespace pugi
@@ -53,15 +54,27 @@ public:
 
 	/*!
 		Get the XML element in string.
-		\param node XML element.
+		\param node A XML node.
 	*/
 	static std::string ElementInString(const pugi::xml_node& node);
 
 	/*!
 		Get the start element of the given XML element in string.
-		\param node XML element.
+		\param node A XML node.
 	*/
 	static std::string StartElementInString(const pugi::xml_node& node);
+
+	/*!
+		Parse Math::Vec3.
+		\param node A XML node.
+	*/
+	static Math::Vec3 ParseVec3(const pugi::xml_node& node);
+
+	/*!
+		Parse Math::Mat4.
+		\param node A XML node.
+	*/
+	static Math::Mat4 ParseMat4(const pugi::xml_node& node);
 
 };
 

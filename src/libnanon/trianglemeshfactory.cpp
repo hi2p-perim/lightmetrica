@@ -26,6 +26,7 @@
 #include <nanon/trianglemeshfactory.h>
 #include <nanon/logger.h>
 #include <nanon/objmesh.h>
+#include <nanon/rawmesh.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -34,6 +35,10 @@ Asset* TriangleMeshFactory::Create( const std::string& id, const std::string& ty
 	if (type == "obj")
 	{
 		return new ObjMesh(id);
+	}
+	else if (type == "raw")
+	{
+		return new RawMesh(id);
 	}
 	else
 	{

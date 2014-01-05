@@ -43,7 +43,7 @@ public:
 
 public:
 
-	virtual bool Load(const pugi::xml_node& node, const Assets& assets);
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
 	virtual std::string Type() const { return "hdr"; }
 	
 public:
@@ -52,6 +52,7 @@ public:
 	virtual int Height() const;
 	virtual bool Save() const;
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
+	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
 
 public:
 

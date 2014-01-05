@@ -24,13 +24,22 @@
 
 #include "pch.h"
 #include <nanon/lightfactory.h>
-#include <nanon/light.h>
+#include <nanon/arealight.h>
+#include <nanon/logger.h>
 
 NANON_NAMESPACE_BEGIN
 
 Asset* LightFactory::Create( const std::string& id, const std::string& type ) const
 {
-	return nullptr;
+	if (type == "area")
+	{
+		return new AreaLight(id);
+	}
+	else
+	{
+		NANON_LOG_ERROR("Invalid Light type '" + type + "'");
+		return nullptr;
+	}
 }
 
 NANON_NAMESPACE_END

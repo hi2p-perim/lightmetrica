@@ -38,9 +38,4 @@ Light::~Light()
 
 }
 
-bool Light::RegisterPrimitive( const Primitive* primitive )
-{
-	return false;
-}
-
 NANON_NAMESPACE_END

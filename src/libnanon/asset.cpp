@@ -24,6 +24,8 @@
 
 #include "pch.h"
 #include <nanon/asset.h>
+#include <nanon/logger.h>
+#include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
 
@@ -71,6 +73,25 @@ Asset::~Asset()
 std::string Asset::ID() const
 {
 	return p->ID();
+}
+
+bool Asset::Load( const pugi::xml_node& node, const Assets& assets )
+{
+	// Check name and type
+	if (node.name() != Name())
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		return false;
+	}
+
+	if (node.attribute("type").as_string() != Type())
+	{
+		NANON_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
+		return false;
+	}
+
+	// Call implementation detail load function
+	return LoadAsset(node, assets);
 }
 
 NANON_NAMESPACE_END

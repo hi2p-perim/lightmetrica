@@ -24,6 +24,11 @@
 
 #include "pch.h"
 #include <nanon/diffuse.h>
+#include <nanon/pdf.h>
+#include <nanon/logger.h>
+#include <nanon/pugihelper.h>
+#include <nanon/math.stats.h>
+#include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
 
@@ -38,8 +43,74 @@ DiffuseBSDF::~DiffuseBSDF()
 
 }
 
-bool DiffuseBSDF::Load( const pugi::xml_node& node, const Assets& assets )
+bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
+	// 'diffuse_reflectance'
+	auto diffuseReflectanceNode = node.child("diffuse_reflectance");
+	if (!diffuseReflectanceNode)
+	{
+		diffuseReflectance = Math::Vec3(Math::Float(1));
+		NANON_LOG_WARN("Using default value for 'diffuse_reflectance'");
+	}
+	else
+	{
+		// 'rgb'
+		auto rgbNode = diffuseReflectanceNode.child("rgb");
+		if (!rgbNode)
+		{
+			NANON_LOG_ERROR("Missing 'rgb'");
+			return false;
+		}
+
+		diffuseReflectance = PugiHelper::ParseVec3(rgbNode);
+	}
+
+	return true;
+}
+
+Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+{
+	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
+	{
+		return Math::Vec3();
+	}
+
+	Math::Float sf = ShadingNormalCorrectionFactor(query, isect);
+	if (sf == 0.0)
+	{
+		return Math::Vec3();
+	}
+
+	return diffuseReflectance * Math::Constants::InvPi * Math::CosThetaZUp(query.wo) * sf;
+}
+
+nanon::PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
+{
+	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
+	{
+		return PDF();
+	}
+
+	return PDF(
+		Math::CosThetaZUp(query.wo) * Math::Constants::InvPi,
+		ProbabilityMeasure::SolidAngle);
+}
+
+bool DiffuseBSDF::SampleWo( const BSDFSampleQuery& query, BSDFSampledData& sampled ) const
+{
+	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0)
+	{
+		return false;
+	}
+
+	sampled.wo = Math::CosineSampleHemisphere(query.u);
+	sampled.sampledType = BSDFType::DiffuseReflection;
+	sampled.pdf = Pdf(BSDFEvaluateQuery(query, sampled));
+	if (sampled.pdf.v == Math::Float(0))
+	{
+		return false;
+	}
+
 	return true;
 }
 

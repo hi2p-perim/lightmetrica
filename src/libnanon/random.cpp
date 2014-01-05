@@ -23,46 +23,60 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
-
-namespace
-{
-
-	const std::string Asset_Success = NANON_TEST_MULTILINE_LITERAL(
-		<asset id="test_1" type="success" />
-	);
-
-	const std::string Asset_FailOnCreate = NANON_TEST_MULTILINE_LITERAL(
-		<Asset id="test_2" type="fail_on_create" />	
-	);
-
-}
+#include <nanon/random.h>
+#include <random>
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase
+class Random::Impl
 {
-protected:
+public:
 
-	StubAssets assets;
+	Impl() {}
+	Impl(unsigned int seed) { SetSeed(seed); }
+	Math::Float Next() { return Math::Float(uniformReal(engine)); }
+	void SetSeed(unsigned int seed);
+
+private:
+
+	std::mt19937 engine;
+	std::uniform_real_distribution<double> uniformReal;
 
 };
 
-TEST_F(AssetTest, Load)
+void Random::Impl::SetSeed( unsigned int seed )
 {
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(LoadXMLBuffer(Asset_Success), assets));
+	engine.seed(seed);
+	uniformReal.reset();
 }
 
-TEST_F(AssetTest, Create_Failed)
+// --------------------------------------------------------------------------------
+
+Random::Random()
+	: p(new Impl)
 {
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
+
 }
 
-NANON_TEST_NAMESPACE_END
+Random::Random( unsigned int seed )
+	: p(new Impl(seed))
+{
+
+}
+
+Random::~Random()
+{
+	NANON_SAFE_DELETE(p);
+}
+
+Math::Float Random::Next()
+{
+	return p->Next();
+}
+
+void Random::SetSeed( unsigned int seed )
+{
+	p->SetSeed(seed);
+}
+
 NANON_NAMESPACE_END

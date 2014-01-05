@@ -22,47 +22,31 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
-
-namespace
-{
-
-	const std::string Asset_Success = NANON_TEST_MULTILINE_LITERAL(
-		<asset id="test_1" type="success" />
-	);
-
-	const std::string Asset_FailOnCreate = NANON_TEST_MULTILINE_LITERAL(
-		<Asset id="test_2" type="fail_on_create" />	
-	);
-
-}
+#include "common.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase
+/*!
+*/
+class NANON_PUBLIC_API Random
 {
-protected:
+public:
 
-	StubAssets assets;
+	Random();
+	Random(unsigned int seed);
+	~Random();
+
+public:
+
+	Math::Float Next();
+	void SetSeed(unsigned int seed);
+
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 
-TEST_F(AssetTest, Load)
-{
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(LoadXMLBuffer(Asset_Success), assets));
-}
-
-TEST_F(AssetTest, Create_Failed)
-{
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
-}
-
-NANON_TEST_NAMESPACE_END
 NANON_NAMESPACE_END

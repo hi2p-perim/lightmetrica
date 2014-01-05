@@ -44,7 +44,7 @@ public:
 	virtual const Math::Float* Normals() const { return normals.empty() ? nullptr : &normals[0]; }
 	virtual const Math::Float* TexCoords() const { return texcoords.empty() ? nullptr : &texcoords[0]; }
 	virtual const unsigned int* Faces() const { return faces.empty() ? nullptr : &faces[0]; }
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets ) { return false; }
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return false; }
 	virtual std::string Type() const { return "stub"; }
 
 protected:

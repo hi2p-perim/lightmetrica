@@ -133,6 +133,13 @@ TYPED_TEST(MathVector2Test, Unary)
 	EXPECT_TRUE(ExpectVec2Near(expect, -v1));
 }
 
+TYPED_TEST(MathVector2Test, BinaryOperator)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(v1 == v1);
+	EXPECT_TRUE(v1 != v2);
+}
+
 TYPED_TEST(MathVector2Test, Length)
 {
 	typedef TypeParam T;
@@ -289,6 +296,13 @@ TYPED_TEST(MathVector3Test, Unary)
 	typedef TypeParam T;
 	Math::TVec3<T> expect(T(-1), T(-2), T(-3));
 	EXPECT_TRUE(ExpectVec3Near(expect, -d->v1));
+}
+
+TYPED_TEST(MathVector3Test, BinaryOperator)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(d->v1 == d->v1);
+	EXPECT_TRUE(d->v1 != d->v2);
 }
 
 TYPED_TEST(MathVector3Test, Length)
@@ -457,6 +471,13 @@ TYPED_TEST(MathVector4Test, Unary)
 	typedef TypeParam T;
 	Math::TVec4<T> expect(T(-1), T(-2), T(-3), T(-4));
 	EXPECT_TRUE(ExpectVec4Near(expect, -d->v1));
+}
+
+TYPED_TEST(MathVector4Test, BinaryOperator)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(d->v1 == d->v1);
+	EXPECT_TRUE(d->v1 != d->v2);
 }
 
 TYPED_TEST(MathVector4Test, Length)

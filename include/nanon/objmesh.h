@@ -44,7 +44,7 @@ public:
 
 public:
 
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets );
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
 	virtual std::string Type() const { return "obj"; }
 
 public:

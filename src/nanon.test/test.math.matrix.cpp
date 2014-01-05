@@ -141,6 +141,29 @@ TYPED_TEST(MathMatrix3Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectMat3Near(d->m1, d->m1s2 / T(2)));
 }
 
+TYPED_TEST(MathMatrix3Test, Transpose)
+{
+	EXPECT_TRUE(ExpectMat3Near(d->m2, Math::Transpose(d->m1)));
+}
+
+TYPED_TEST(MathMatrix3Test, Inverse)
+{
+	typedef TypeParam T;
+
+	// The matrix is orthogonal, so A^-1 should be A^T
+	Math::TMat3<T> A(
+		T(1) / T(3), T(2) / T(3), T(-2) / T(3),
+		T(2) / T(3), T(-2) / T(3), T(-1) / T(3),
+		T(2) / T(3), T(1) / T(3), T(2) / T(3));
+
+	Math::TMat3<T> AT(
+		T(1) / T(3), T(2) / T(3), T(2) / T(3), 
+		T(2) / T(3), T(-2) / T(3), T(1) / T(3),
+		T(-2) / T(3), T(-1) / T(3), T(2) / T(3));
+
+	EXPECT_TRUE(ExpectMat3Near(AT, Math::Inverse(A)));
+}
+
 // --------------------------------------------------------------------------------
 
 

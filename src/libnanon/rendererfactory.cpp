@@ -26,6 +26,7 @@
 #include <nanon/rendererfactory.h>
 #include <nanon/logger.h>
 #include <nanon/raycast.h>
+#include <nanon/pathtrace.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -45,9 +46,13 @@ Renderer* RendererFactory::Create( const std::string& type ) const
 	{
 		return new RaycastRenderer();
 	}
+	else if (type == "pathtrace")
+	{
+		return new PathtraceRenderer();
+	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		NANON_LOG_ERROR("Invalid renderer type '" + type + "'");
 		return nullptr;
 	}
 }

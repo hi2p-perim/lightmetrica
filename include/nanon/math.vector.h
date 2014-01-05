@@ -73,6 +73,8 @@ template <typename T> NANON_FORCE_INLINE TVec2<T> operator*(const TVec2<T>& v1, 
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator/(const TVec2<T>& v1, const TVec2<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec2<T> operator-(const TVec2<T>& v);
+template <typename T> NANON_FORCE_INLINE bool operator==(const TVec2<T>& v1, const TVec2<T>& v2);
+template <typename T> NANON_FORCE_INLINE bool operator!=(const TVec2<T>& v1, const TVec2<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec2<T>& v);
 template <typename T> NANON_FORCE_INLINE T Length2(const TVec2<T>& v);
@@ -126,6 +128,8 @@ template <typename T> NANON_FORCE_INLINE TVec3<T> operator*(const TVec3<T>& v1, 
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator/(const TVec3<T>& v1, const TVec3<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec3<T> operator-(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE bool operator==(const TVec3<T>& v1, const TVec3<T>& v2);
+template <typename T> NANON_FORCE_INLINE bool operator!=(const TVec3<T>& v1, const TVec3<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec3<T>& v);
 template <typename T> NANON_FORCE_INLINE T Length2(const TVec3<T>& v);
@@ -135,6 +139,14 @@ template <typename T> NANON_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, cons
 
 template <typename T> NANON_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVec3<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2);
+
+template <typename T> NANON_FORCE_INLINE T Luminance(const TVec3<T>& v);
+
+// Useful trigonometric functions for shading coordinates.
+// Theta is the angle between z axis and the given vector.
+template <typename T> NANON_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE T SinTheta2ZUp(const TVec3<T>& v);
+template <typename T> NANON_FORCE_INLINE T TanThetaZUp(const TVec3<T>& v);
 
 typedef TVec3<float> Vec3f;
 typedef TVec3<double> Vec3d;
@@ -180,6 +192,8 @@ template <typename T> NANON_FORCE_INLINE TVec4<T> operator*(const TVec4<T>& v1, 
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v, const T& s);
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator/(const TVec4<T>& v1, const TVec4<T>& v2);
 template <typename T> NANON_FORCE_INLINE TVec4<T> operator-(const TVec4<T>& v);
+template <typename T> NANON_FORCE_INLINE bool operator==(const TVec4<T>& v1, const TVec4<T>& v2);
+template <typename T> NANON_FORCE_INLINE bool operator!=(const TVec4<T>& v1, const TVec4<T>& v2);
 
 template <typename T> NANON_FORCE_INLINE T Length(const TVec4<T>& v);
 template <typename T> NANON_FORCE_INLINE T Length2(const TVec4<T>& v);

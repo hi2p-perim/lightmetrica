@@ -66,8 +66,6 @@ private:
 
 	// Create transformation from the element 'transform'
 	Math::Mat4 ParseTransform(const pugi::xml_node& transformNode);
-	Math::Vec3 ParseVec3(const pugi::xml_node& node);
-	Math::Mat4 ParseMat4(const pugi::xml_node& node);
 
 private:
 
@@ -136,6 +134,45 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 		Reset();
 		NANON_LOG_DEBUG_EMPTY();
 		return false;
+	}
+
+	// Register the primitive to light or camera
+	// Note that the registration step must be called after creating triangle mesh,
+	// for some implementation of lights or cameras could need its reference.
+
+	// Camera
+	if (!mainCamera)
+	{
+		NANON_LOG_WARN("Missing 'camera' in the scene");
+	}
+	else
+	{
+		for (auto& primitive : primitives)
+		{
+			if (primitive->camera == mainCamera)
+			{
+				mainCamera->RegisterPrimitive(primitive.get());
+				break;
+			}
+		}
+	}
+	
+	// Light
+	std::vector<Primitive*> referencedPrimitives;
+	for (auto* light : lights)
+	{
+		for (auto& primitive : primitives)
+		{
+			if (primitive->light == light)
+			{
+				referencedPrimitives.push_back(primitive.get());
+			}
+		}
+		light->RegisterPrimitives(referencedPrimitives);
+	}
+	if (referencedPrimitives.empty())
+	{
+		NANON_LOG_WARN("Missing 'light' in the scene");
 	}
 
 	loaded = true;
@@ -277,18 +314,6 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	if (primitive->camera || primitive->light || primitive->mesh)
 	{
-		// Register the primitive to light or camera
-		// Note that the registration step must be called after creating triangle mesh,
-		// for some implementation of lights or cameras could need its reference.
-		if (primitive->camera)
-		{
-			primitive->camera->RegisterPrimitive(primitive.get());
-		}
-		if (primitive->light)
-		{
-			primitive->light->RegisterPrimitive(primitive.get());
-		}
-
 		// Register the primitive to the scene
 		primitives.push_back(std::move(primitive));
 
@@ -346,7 +371,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 	auto matrixNode = transformNode.child("matrix");
 	if (matrixNode)
 	{
-		transform = ParseMat4(matrixNode);
+		transform = PugiHelper::ParseMat4(matrixNode);
 	}
 	else
 	{
@@ -355,9 +380,9 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 		if (lookAtNode)
 		{
 			// Position, center, up
-			auto position = ParseVec3(lookAtNode.child("position"));
-			auto center = ParseVec3(lookAtNode.child("center"));
-			auto up = ParseVec3(lookAtNode.child("up"));
+			auto position = PugiHelper::ParseVec3(lookAtNode.child("position"));
+			auto center = PugiHelper::ParseVec3(lookAtNode.child("center"));
+			auto up = PugiHelper::ParseVec3(lookAtNode.child("up"));
 
 			// Create transform
 			transform = Math::LookAt(position, center, up);
@@ -373,7 +398,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 			auto translateNode = transformNode.child("translate");
 			if (translateNode)
 			{
-				translateMat = Math::Translate(ParseVec3(translateNode));
+				translateMat = Math::Translate(PugiHelper::ParseVec3(translateNode));
 			}
 
 			// 'rotate' node
@@ -384,7 +409,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 				auto matrixNode = rotateNode.child("matrix");
 				if (matrixNode)
 				{
-					rotateMat = ParseMat4(matrixNode);
+					rotateMat = PugiHelper::ParseMat4(matrixNode);
 				}
 				else
 				{
@@ -399,7 +424,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 					{
 						// 'angle' and 'axis'
 						auto angle = Math::Float(std::stod(rotateNode.child("angle").child_value()));
-						auto axis = ParseVec3(rotateNode.child("axis"));
+						auto axis = PugiHelper::ParseVec3(rotateNode.child("axis"));
 						rotateMat = Math::Rotate(angle, axis);
 					}
 				}
@@ -409,7 +434,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 			auto scaleNode = transformNode.child("scale");
 			if (scaleNode)
 			{
-				scaleMat = Math::Scale(ParseVec3(scaleNode));
+				scaleMat = Math::Scale(PugiHelper::ParseVec3(scaleNode));
 			}
 
 			// Create combined transform
@@ -437,44 +462,6 @@ const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
 		: nullptr;
 }
 
-Math::Vec3 Scene::Impl::ParseVec3( const pugi::xml_node& node )
-{
-	// Parse vector elements (in double)
-	std::vector<double> v;
-	std::stringstream ss(node.child_value());
-
-	double t;
-	while (ss >> t) v.push_back(t);
-	if (v.size() != 3)
-	{
-		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
-		return Math::Vec3();
-	}
-
-	// Convert type and return
-	return Math::Vec3(Math::Float(v[0]), Math::Float(v[1]), Math::Float(v[2]));
-}
-
-Math::Mat4 Scene::Impl::ParseMat4( const pugi::xml_node& node )
-{
-	// Parse matrix elements (in double)
-	std::vector<double> m;
-	std::stringstream ss(node.child_value());
-
-	double t;
-	while (ss >> t) m.push_back(t);
-	if (m.size() != 16)
-	{
-		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
-		return Math::Mat4::Identity();
-	}
-
-	// Convert to Float and create matrix
-	std::vector<Math::Float> m2(16);
-	std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Math::Float(v); });
-	return Math::Mat4(&m2[0]);
-}
-
 void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
 {
 	// Primitive
@@ -495,15 +482,16 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	int v1 = faces[3*triangleIndex  ];
 	int v2 = faces[3*triangleIndex+1];
 	int v3 = faces[3*triangleIndex+2];
-	auto& p1 = Math::Vec3(positions[3*v1], positions[3*v1+1], positions[3*v1+2]);
-	auto& p2 = Math::Vec3(positions[3*v2], positions[3*v2+1], positions[3*v2+2]);
-	auto& p3 = Math::Vec3(positions[3*v3], positions[3*v3+1], positions[3*v3+2]);
+	Math::Vec3 p1(isect.primitive->transform * Math::Vec4(positions[3*v1], positions[3*v1+1], positions[3*v1+2], Math::Float(1)));
+	Math::Vec3 p2(isect.primitive->transform * Math::Vec4(positions[3*v2], positions[3*v2+1], positions[3*v2+2], Math::Float(1)));
+	Math::Vec3 p3(isect.primitive->transform * Math::Vec4(positions[3*v3], positions[3*v3+1], positions[3*v3+2], Math::Float(1)));
 	isect.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
 
 	// Shading normal
-	auto& n1 = Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
-	auto& n2 = Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
-	auto& n3 = Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
+	Math::Mat3 normalTransform(Math::Transpose(Math::Inverse(isect.primitive->transform)));
+	Math::Vec3 n1 = normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
+	Math::Vec3 n2 = normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
+	Math::Vec3 n3 = normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
 	isect.sn = Math::Normalize(n1 * Math::Float(Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
 
 	// Texture coordinates
@@ -519,8 +507,8 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	Math::OrthonormalBasis(isect.sn, isect.ss, isect.st);
 
 	// Shading coordinates conversion
-	//isect.worldToShading = Math::Transpose(Math::Mat3(isect.ss, isect.st, isect.sn));
-	//isect.shadingToWorld = Math::Inverse(isect.worldToShading);
+	isect.worldToShading = Math::Transpose(Math::Mat3(isect.ss, isect.st, isect.sn));
+	isect.shadingToWorld = Math::Inverse(isect.worldToShading);
 }
 
 // --------------------------------------------------------------------------------

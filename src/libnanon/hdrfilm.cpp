@@ -41,11 +41,12 @@ class HDRBitmapFilm::Impl : public Object
 public:
 
 	Impl(HDRBitmapFilm* self);
-	bool Load(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
 	int Width() const { return width; }
 	int Height() const { return height; }
 	bool Save();
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
+	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void InternalData(std::vector<Math::Float>& dest);
 
 public:
@@ -69,7 +70,7 @@ HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
 	
 }
 
-bool HDRBitmapFilm::Impl::Load( const pugi::xml_node& node, const Assets& assets )
+bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
 	// Check name and type
 	if (node.name() != self->Name())
@@ -178,6 +179,26 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 	data[3 * idx + 2] = contrb[2];
 }
 
+void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+{
+	// Convert raster position to pixel position
+	Math::Vec2i pixelPos(
+		Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))),
+		Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))));
+
+	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
+	{
+		NANON_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
+		return;
+	}
+
+	// Accumulate contribution
+	size_t idx = pixelPos.y * width + pixelPos.x;
+	data[3 * idx    ] += contrb[0];
+	data[3 * idx + 1] += contrb[1];
+	data[3 * idx + 2] += contrb[2];
+}
+
 bool HDRBitmapFilm::Impl::Save()
 {
 	// Create bitmap
@@ -257,11 +278,6 @@ void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest )
 	p->InternalData(dest);
 }
 
-bool HDRBitmapFilm::Load( const pugi::xml_node& node, const Assets& assets )
-{
-	return p->Load(node, assets);
-}
-
 int HDRBitmapFilm::Width() const
 {
 	return p->Width();
@@ -275,6 +291,16 @@ int HDRBitmapFilm::Height() const
 void HDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
 	p->RecordContribution(rasterPos, contrb);
+}
+
+void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+{
+	p->AccumulateContribution(rasterPos, contrb);
+}
+
+bool HDRBitmapFilm::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+{
+	return p->LoadAsset(node, assets);
 }
 
 NANON_NAMESPACE_END

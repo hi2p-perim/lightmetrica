@@ -38,6 +38,8 @@ set(
 	"${_INCLUDE_DIR}/pugihelper.h"
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
+	"${_INCLUDE_DIR}/random.h"
+	"${_INCLUDE_DIR}/pdf.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -51,6 +53,7 @@ set(
 	"logger.cpp"
 	"version.cpp"
 	"pugihelper.cpp"
+	"random.cpp"
 	
 	# pugixml sources
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
@@ -101,11 +104,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_CAMERAS_SOURCES})
 set(
 	_ASSETS_LIGHTS_HEADERS
 	"${_INCLUDE_DIR}/light.h"
+	"${_INCLUDE_DIR}/arealight.h"
 	"${_INCLUDE_DIR}/lightfactory.h"
 )
 set(
 	_ASSETS_LIGHTS_SOURCES
 	"light.cpp"
+	"arealight.cpp"
 	"lightfactory.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_HEADERS})
@@ -158,12 +163,14 @@ set(
 	"${_INCLUDE_DIR}/trianglemesh.h"
 	"${_INCLUDE_DIR}/trianglemeshfactory.h"
 	"${_INCLUDE_DIR}/objmesh.h"
+	"${_INCLUDE_DIR}/rawmesh.h"
 )
 set(
 	_ASSETS_TRIANGLE_MESHES_SOURCES
 	"trianglemesh.cpp"
 	"trianglemeshfactory.cpp"
 	"objmesh.cpp"
+	"rawmesh.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
@@ -209,6 +216,8 @@ set(
 	"${_INCLUDE_DIR}/math.transform.inl"
 	"${_INCLUDE_DIR}/math.linalgebra.h"
 	"${_INCLUDE_DIR}/math.linalgebra.inl"
+	"${_INCLUDE_DIR}/math.stats.h"
+	"${_INCLUDE_DIR}/math.stats.inl"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
@@ -238,12 +247,14 @@ set(
 	"${_INCLUDE_DIR}/renderer.h"
 	"${_INCLUDE_DIR}/rendererfactory.h"
 	"${_INCLUDE_DIR}/raycast.h"
+	"${_INCLUDE_DIR}/pathtrace.h"
 )
 set(
 	_RENDERER_SOURCES
 	"renderer.cpp"
 	"rendererfactory.cpp"
 	"raycast.cpp"
+	"pathtrace.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})

@@ -68,7 +68,15 @@ public:
 		\param node XML node for the configuration.
 		\param assets Asset manager.
 	*/
-	virtual bool Load(const pugi::xml_node& node, const Assets& assets) = 0;
+	bool Load(const pugi::xml_node& node, const Assets& assets);
+
+	/*!
+		Get ID of the asset.
+		\return ID of the asset.
+	*/
+	std::string ID() const;
+
+public:
 
 	/*!
 		Get the name of the asset.
@@ -82,11 +90,14 @@ public:
 	*/
 	virtual std::string Type() const = 0;
 
+protected:
+
 	/*!
-		Get ID of the asset.
-		\return ID of the asset.
+		Implementation specific load function.
+		\param node XML node for the configuration.
+		\param assets Asset manager.
 	*/
-	std::string ID() const;
+	virtual bool LoadAsset(const pugi::xml_node& node, const Assets& assets) = 0;
 
 private:
 

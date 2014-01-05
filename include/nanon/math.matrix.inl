@@ -176,6 +176,34 @@ NANON_FORCE_INLINE TMat3<T> operator/(const TMat3<T>& m, const T& s)
 	return TMat3<T>(m[0] / s, m[1] / s, m[2] / s);
 }
 
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> Transpose(const TMat3<T>& m)
+{
+	return TMat3<T>(
+		m[0][0], m[1][0], m[2][0],
+		m[0][1], m[1][1], m[2][1],
+		m[0][2], m[1][2], m[2][2]);
+}
+
+template <typename T>
+NANON_FORCE_INLINE TMat3<T> Inverse(const TMat3<T>& m)
+{
+	T det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2])
+		- m[1][0] * (m[0][1] * m[2][2] - m[2][1] * m[0][2])
+		+ m[2][0] * (m[0][1] * m[1][2] - m[1][1] * m[0][2]);
+
+	return TMat3<T>(
+		+(m[1][1] * m[2][2] - m[2][1] * m[1][2]),
+		-(m[0][1] * m[2][2] - m[2][1] * m[0][2]),
+		+(m[0][1] * m[1][2] - m[1][1] * m[0][2]),
+		-(m[1][0] * m[2][2] - m[2][0] * m[1][2]),
+		+(m[0][0] * m[2][2] - m[2][0] * m[0][2]),
+		-(m[0][0] * m[1][2] - m[1][0] * m[0][2]),
+		+(m[1][0] * m[2][1] - m[2][0] * m[1][1]),
+		-(m[0][0] * m[2][1] - m[2][0] * m[0][1]),
+		+(m[0][0] * m[1][1] - m[1][0] * m[0][1])) / det;
+}
+
 // --------------------------------------------------------------------------------
 
 template <typename T>
@@ -535,6 +563,12 @@ template <>
 NANON_FORCE_INLINE Mat3f operator/(const Mat3f& m, const float& s)
 {
 	return Mat3f(m[0] / s, m[1] / s, m[2] / s);
+}
+
+template <>
+NANON_FORCE_INLINE Mat3f Transpose(const Mat3f& m)
+{
+	return Mat3f(Transpose(Mat4f(m)));
 }
 
 // --------------------------------------------------------------------------------

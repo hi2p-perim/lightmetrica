@@ -68,7 +68,8 @@ public:
 	virtual int Height() const { return 100; }
 	virtual bool Save() const { return true; }
 	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets ) { return true; }
+	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return true; }
 	virtual std::string Type() const { return "stub"; }
 
 };

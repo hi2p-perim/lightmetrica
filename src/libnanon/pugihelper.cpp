@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <nanon/pugihelper.h>
+#include <nanon/logger.h>
 #include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
@@ -42,6 +43,44 @@ std::string PugiHelper::StartElementInString( const pugi::xml_node& node )
 	std::string line;
 	std::getline(ss, line);
 	return line;
+}
+
+Math::Vec3 PugiHelper::ParseVec3( const pugi::xml_node& node )
+{
+	// Parse vector elements (in double)
+	std::vector<double> v;
+	std::stringstream ss(node.child_value());
+
+	double t;
+	while (ss >> t) v.push_back(t);
+	if (v.size() != 3)
+	{
+		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		return Math::Vec3();
+	}
+
+	// Convert type and return
+	return Math::Vec3(Math::Float(v[0]), Math::Float(v[1]), Math::Float(v[2]));
+}
+
+Math::Mat4 PugiHelper::ParseMat4( const pugi::xml_node& node )
+{
+	// Parse matrix elements (in double)
+	std::vector<double> m;
+	std::stringstream ss(node.child_value());
+
+	double t;
+	while (ss >> t) m.push_back(t);
+	if (m.size() != 16)
+	{
+		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		return Math::Mat4::Identity();
+	}
+
+	// Convert to Float and create matrix
+	std::vector<Math::Float> m2(16);
+	std::transform(m.begin(), m.end(), m2.begin(), [](double v){ return Math::Float(v); });
+	return Math::Mat4(&m2[0]);
 }
 
 NANON_NAMESPACE_END

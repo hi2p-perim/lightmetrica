@@ -22,47 +22,49 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
+#pragma once
+#ifndef __LIB_NANON_PDF_H__
+#define __LIB_NANON_PDF_H__
 
-namespace
-{
-
-	const std::string Asset_Success = NANON_TEST_MULTILINE_LITERAL(
-		<asset id="test_1" type="success" />
-	);
-
-	const std::string Asset_FailOnCreate = NANON_TEST_MULTILINE_LITERAL(
-		<Asset id="test_2" type="fail_on_create" />	
-	);
-
-}
+#include "common.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase
+/*!
+*/
+enum class ProbabilityMeasure
 {
-protected:
-
-	StubAssets assets;
+	/*!
+		Solid angle measure.
+		P_\sigma(x\to y).
+	*/
+	SolidAngle,
+	
+	/*!
+		Area measure.
+		P_A(x).
+	*/
+	Area,
 
 };
 
-TEST_F(AssetTest, Load)
+/*!
+*/
+struct PDF
 {
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(LoadXMLBuffer(Asset_Success), assets));
-}
 
-TEST_F(AssetTest, Create_Failed)
-{
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
-}
+	PDF() {}
+	PDF(const Math::Float& v, ProbabilityMeasure measure)
+		: v(v)
+		, measure(measure)
+	{}
 
-NANON_TEST_NAMESPACE_END
+	Math::Float v;					//!< Value of the PDF.
+	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.
+
+};
+
 NANON_NAMESPACE_END
+
+#endif // __LIB_NANON_PDF_H__

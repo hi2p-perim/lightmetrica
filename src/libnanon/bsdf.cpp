@@ -24,6 +24,9 @@
 
 #include "pch.h"
 #include <nanon/bsdf.h>
+#include <nanon/logger.h>
+#include <nanon/intersection.h>
+#include <pugixml.hpp>
 
 NANON_NAMESPACE_BEGIN
 
@@ -36,6 +39,32 @@ BSDF::BSDF(const std::string& id)
 BSDF::~BSDF()
 {
 
+}
+
+Math::Float BSDF::ShadingNormalCorrectionFactor( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+{
+	// Prevent light leak
+	// In some cases wi and wo are same side according to the shading normal
+	// but opposite side according to the geometry normal.
+	auto worldWi = isect.shadingToWorld * query.wi;
+	auto worldWo = isect.shadingToWorld * query.wo;
+	Math::Float wiDotNg = Math::Dot(worldWi, isect.gn);
+	Math::Float woDotNg = Math::Dot(worldWo, isect.gn);
+	if (wiDotNg * Math::CosThetaZUp(query.wi) <= 0 || woDotNg * Math::CosThetaZUp(query.wo) <= 0)
+	{
+		return Math::Float(0);
+	}
+
+	// Special handling for adjoint case
+	// Be careful of the difference of the notation between Veach's thesis;
+	// in the framework, wo is always the propagating direction.
+	if (query.transportDir == TransportDirection::LightToCamera)
+	{
+		// |w_i, N_s| * |w_o, N_g| / |w_i, N_g| / |w_o, N_s| 
+		return Math::CosThetaZUp(query.wi) * woDotNg / (Math::CosThetaZUp(query.wo) * wiDotNg);
+	}
+
+	return Math::Float(1);
 }
 
 NANON_NAMESPACE_END

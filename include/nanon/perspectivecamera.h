@@ -43,21 +43,21 @@ public:
 
 public:
 
-	virtual bool Load( const pugi::xml_node& node, const Assets& assets );
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
 	virtual std::string Type() const { return "perspective"; }
 
 public:
 
 	virtual void RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const;
 	virtual Film* GetFilm() const;
-	virtual void RegisterPrimitive( Primitive* primitive );
+	virtual void RegisterPrimitive( const Primitive* primitive );
 
 private:
 
 	class Impl;
 	Impl* p;
 
-};
+};	
 
 NANON_NAMESPACE_END
 

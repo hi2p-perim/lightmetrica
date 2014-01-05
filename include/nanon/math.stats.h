@@ -22,47 +22,24 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
+#pragma once
+#ifndef __LIB_NANON_MATH_STATS_H__
+#define __LIB_NANON_MATH_STATS_H__
 
-namespace
-{
-
-	const std::string Asset_Success = NANON_TEST_MULTILINE_LITERAL(
-		<asset id="test_1" type="success" />
-	);
-
-	const std::string Asset_FailOnCreate = NANON_TEST_MULTILINE_LITERAL(
-		<Asset id="test_2" type="fail_on_create" />	
-	);
-
-}
+#include "math.vector.h"
 
 NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+NANON_MATH_NAMESPACE_BEGIN
 
-class AssetTest : public TestBase
-{
-protected:
+template <typename T> NANON_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u);
+template <typename T> NANON_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u);
+template <typename T> NANON_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u);
+template <typename T> NANON_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u);
+template <typename T> NANON_FORCE_INLINE TVec2<T> UniformSampleTriangle(const TVec2<T>& u);
 
-	StubAssets assets;
-
-};
-
-TEST_F(AssetTest, Load)
-{
-	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(LoadXMLBuffer(Asset_Success), assets));
-}
-
-TEST_F(AssetTest, Create_Failed)
-{
-	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
-}
-
-NANON_TEST_NAMESPACE_END
+NANON_MATH_NAMESPACE_END
 NANON_NAMESPACE_END
+
+#include "math.stats.inl"
+
+#endif // __LIB_NANON_MATH_STATS_H__

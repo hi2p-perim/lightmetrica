@@ -47,19 +47,23 @@ public:
 
 	virtual void write( const char* message )
 	{
+		// Remove new line
+		std::string str(message);
+		str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
 		switch (level)
 		{
 			case Logger::LogLevel::Debug:
-				NANON_LOG_DEBUG(message);
+				NANON_LOG_DEBUG(str);
 				break;
 			case Logger::LogLevel::Warning:
-				NANON_LOG_WARN(message);
+				NANON_LOG_WARN(str);
 				break;
 			case Logger::LogLevel::Error:
-				NANON_LOG_ERROR(message);
+				NANON_LOG_ERROR(str);
 				break;
 			default:
-				NANON_LOG_INFO(message);
+				NANON_LOG_INFO(str);
 		}
 	}
 
@@ -74,7 +78,7 @@ class ObjMesh::Impl : public Object
 public:
 
 	Impl(ObjMesh* self);
-	bool Load(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
 
 public:
 
@@ -92,21 +96,8 @@ ObjMesh::Impl::Impl( ObjMesh* self )
 
 }
 
-bool ObjMesh::Impl::Load( const pugi::xml_node& node, const Assets& assets )
+bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
-	// Check name and type
-	if (node.name() != self->Name())
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
-		return false;
-	}
-
-	if (node.attribute("type").as_string() != self->Type())
-	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid triangle mesh type '%s'") % node.attribute("type").as_string()));
-		return false;
-	}
-
 	// Find 'path' element
 	auto pathNode = node.child("path");
 	if (!pathNode)
@@ -211,9 +202,9 @@ ObjMesh::~ObjMesh()
 	NANON_SAFE_DELETE(p);
 }
 
-bool ObjMesh::Load( const pugi::xml_node& node, const Assets& assets )
+bool ObjMesh::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
-	return p->Load(node, assets);
+	return p->LoadAsset(node, assets);
 }
 
 int ObjMesh::NumVertices() const

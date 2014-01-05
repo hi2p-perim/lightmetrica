@@ -27,10 +27,12 @@
 #define __LIB_NANON_LIGHT_H__
 
 #include "asset.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
 struct Primitive;
+struct Intersection;
 
 /*!
 	Light.
@@ -45,14 +47,25 @@ public:
 
 public:
 
+	virtual std::string Name() const { return "light"; }
+
+public:
+
+	/*!
+		Evaluate L_e(x_n\to x_{n-1}).
+		\param d Outgoing direction x_n\to x_{n-1}.
+		\param isect Intersection data.
+	*/
+	virtual Math::Vec3 EvaluateLe(const Math::Vec3& d, const Intersection& isect) const = 0;
+	
 	/*!
 		Register an reference to the primitive.
-		Some implementation of light needs transformed mesh information for sampling.
+		Some implementation of camera needs transformed mesh information for sampling.
 		The function registers the reference to the primitive.
 		The function is internally called.
-		\param primitive An instance of the primitive.
+		\param primitives An list instances of the primitive.
 	*/
-	virtual bool RegisterPrimitive(const Primitive* primitive);
+	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) = 0;
 
 };
 

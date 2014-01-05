@@ -68,6 +68,7 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 			{
 				// Intersected : while color
 				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.sn, -ray.d))));
+				//film->RecordContribution(rasterPos, Math::Colors::White);
 			}
 			else
 			{
