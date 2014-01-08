@@ -205,11 +205,16 @@ bool NanonApplication::Run()
 
 	// Load input file
 	NanonConfig config;
-	if (!config.Load(inputFile))
+	NANON_LOG_INFO("Entering : Configuration loading");
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		if (!config.Load(inputFile))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
+	NANON_LOG_INFO("Leaving : Configuration loading");
 
 	// --------------------------------------------------------------------------------
 
@@ -224,13 +229,16 @@ bool NanonApplication::Run()
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
 	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 
-	NANON_LOG_INFO("Started ... Asset loading")
-	if (!assets.Load(config))
+	NANON_LOG_INFO("Entering : Asset loading")
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		if (!assets.Load(config))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Finished ... Asset loading");
+	NANON_LOG_INFO("Leaving : Asset loading");
 
 	// --------------------------------------------------------------------------------
 
@@ -239,28 +247,34 @@ bool NanonApplication::Run()
 	std::unique_ptr<Scene> scene(sceneFactory.Create(config.SceneType()));
 	if (scene == nullptr)
 	{
-		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
 	// Load scene
-	NANON_LOG_INFO("Started ... Loading scene");
-	if (!scene->Load(config, assets))
+	NANON_LOG_INFO("Entering : Scene loading");
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		if (!scene->Load(config, assets))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Finished ... Loading scene");
+	NANON_LOG_INFO("Leaving : Scene loading");
 
 	// Build scene
 	// TODO : Do it on the another thread and poll progress
-	NANON_LOG_INFO("Started ... Building scene");
-	if (!scene->Build())
+	NANON_LOG_INFO("Entering : Scene building");
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		NANON_LOG_INFO("Scene type : '" + scene->Type() + "'");
+		if (!scene->Build())
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Finished ... Building scene");
+	NANON_LOG_INFO("Leaving : Scene building");
 
 	// --------------------------------------------------------------------------------
 
@@ -269,26 +283,34 @@ bool NanonApplication::Run()
 	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.RendererType()));
 	if (renderer == nullptr)
 	{
-		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
 	// Configure renderer
-	if (!renderer->Configure(config, assets))
+	NANON_LOG_INFO("Entering : Renderer configuration");
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		NANON_LOG_INFO("Renderer type : '" + renderer->Type() + "'");
+		if (!renderer->Configure(config, assets))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
+	NANON_LOG_INFO("Leaving : Renderer configuration");
 
 	// Begin rendering
 	// TODO : Dispatch renderer in the another thread and poll progress
-	NANON_LOG_INFO("Started ... Rendering");
-	if (!renderer->Render(*scene))
+	NANON_LOG_INFO("Entering : Render");
 	{
-		NANON_LOG_DEBUG_EMPTY();
-		return false;
+		NANON_LOG_INDENTER();
+		if (!renderer->Render(*scene))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Finished ... Rendering");
+	NANON_LOG_INFO("Leaving : Render");
 
 	// --------------------------------------------------------------------------------
 

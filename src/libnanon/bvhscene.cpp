@@ -29,6 +29,7 @@
 #include <nanon/triaccel.h>
 #include <nanon/ray.h>
 #include <nanon/intersection.h>
+#include <nanon/logger.h>
 
 NANON_NAMESPACE_BEGIN
 
@@ -265,46 +266,61 @@ bool BVHScene::Impl::Build()
 {
 	BVHBuildData data;
 
-	for (int i = 0; i < self->NumPrimitives(); i++)
+	NANON_LOG_INFO("Creating triaccels");
 	{
-		const auto* primitive = self->PrimitiveByIndex(i);
-		const auto* mesh = primitive->mesh;
-		if (mesh)
+		NANON_LOG_INDENTER();
+		for (int i = 0; i < self->NumPrimitives(); i++)
 		{
-			// Enumerate all triangles and create triaccels
-			const auto* positions = mesh->Positions();
-			const auto* faces = mesh->Faces();
-			for (int j = 0; j < mesh->NumFaces() / 3; j++)
+			const auto* primitive = self->PrimitiveByIndex(i);
+			const auto* mesh = primitive->mesh;
+			if (mesh)
 			{
-				int triIdx = static_cast<int>(triAccels.size());
+				// Enumerate all triangles and create triaccels
+				const auto* positions = mesh->Positions();
+				const auto* faces = mesh->Faces();
+				for (int j = 0; j < mesh->NumFaces() / 3; j++)
+				{
+					int triIdx = static_cast<int>(triAccels.size());
 
-				// Create triaccel
-				triAccels.push_back(TriAccel());
-				triAccels.back().shapeIndex = j;
-				triAccels.back().primIndex = i;
-				unsigned int i1 = faces[3*j  ];
-				unsigned int i2 = faces[3*j+1];
-				unsigned int i3 = faces[3*j+2];
-				Math::Vec3 p1(primitive->transform * Math::Vec4(positions[3*i1], positions[3*i1+1], positions[3*i1+2], Math::Float(1)));
-				Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
-				Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
-				triAccels.back().Load(p1, p2, p3);
+					// Create triaccel
+					triAccels.push_back(TriAccel());
+					triAccels.back().shapeIndex = j;
+					triAccels.back().primIndex = i;
+					unsigned int i1 = faces[3*j  ];
+					unsigned int i2 = faces[3*j+1];
+					unsigned int i3 = faces[3*j+2];
+					Math::Vec3 p1(primitive->transform * Math::Vec4(positions[3*i1], positions[3*i1+1], positions[3*i1+2], Math::Float(1)));
+					Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
+					Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
+					triAccels.back().Load(p1, p2, p3);
 
-				// Initial index
-				bvhTriIndices.push_back(triIdx);
+					// Initial index
+					bvhTriIndices.push_back(triIdx);
 
-				// Create primitive bound from points
-				AABB triBound(p1, p2);
-				triBound = triBound.Union(p3);
+					// Create primitive bound from points
+					AABB triBound(p1, p2);
+					triBound = triBound.Union(p3);
 
-				data.triBounds.push_back(triBound);
-				data.triBoundCentroids.push_back((triBound.min + triBound.max) * Math::Float(0.5));
+					data.triBounds.push_back(triBound);
+					data.triBoundCentroids.push_back((triBound.min + triBound.max) * Math::Float(0.5));
+				}
 			}
 		}
+		NANON_LOG_INFO("Successfully created " + std::to_string(triAccels.size()) + " triaccels");
 	}
 
 	// Build BVH
-	root = Build(data, 0, static_cast<int>(triAccels.size()));
+	NANON_LOG_INFO("Building BVH");
+	{
+		namespace ch = std::chrono;
+		NANON_LOG_INDENTER();
+		auto start = ch::high_resolution_clock::now();
+		root = Build(data, 0, static_cast<int>(triAccels.size()));
+		auto end = ch::high_resolution_clock::now();
+		double elapsed = static_cast<double>(ch::duration_cast<ch::milliseconds>(end - start).count()) / 1000.0;
+		NANON_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
+	}
+
 	return true;
 }
 

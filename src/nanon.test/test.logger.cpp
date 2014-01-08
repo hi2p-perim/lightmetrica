@@ -59,10 +59,10 @@ TEST_F(LoggerTest, LogMessagesWithVariousLevels)
 				emitted_debug = true;
 		});
 
-	Logger::Error("error");
-	Logger::Warn("warning");
-	Logger::Info("info");
-	Logger::Debug("debug");
+	Logger::Error("error", "");
+	Logger::Warn("warning", "");
+	Logger::Info("info", "");
+	Logger::Debug("debug", "");
 
 	long long elapsed = 0;
 	auto start = std::chrono::high_resolution_clock::now();
@@ -89,7 +89,7 @@ TEST_F(LoggerTest, OutputToStdoutOrStderr)
 	std::streambuf* coutBufferOld = std::cout.rdbuf(coutSS.rdbuf());
 	std::streambuf* cerrBufferOld = std::cerr.rdbuf(cerrSS.rdbuf());
 
-	Logger::Error("hello");
+	Logger::Error("hello", "");
 
 	long long elapsed = 0;
 	auto start = std::chrono::high_resolution_clock::now();
@@ -106,7 +106,7 @@ TEST_F(LoggerTest, OutputToStdoutOrStderr)
 	EXPECT_TRUE(elapsed < OutputProcessTimeout);
 
 	// Check if output messages contain 'hello'
-	std::regex r("^\\[ ERROR .+ \\] hello");
+	std::regex r("^\\| ERROR .+ \\| hello");
 	EXPECT_TRUE(std::regex_search(coutSS.str(), r));
 	EXPECT_TRUE(std::regex_search(cerrSS.str(), r));
 }
@@ -145,7 +145,7 @@ TEST_F(LoggerTest, OutputToFile)
 
 	std::string s;
 	std::getline(ifs, s);
-	std::regex r("^\\[ INFO .+ \\] hello");
+	std::regex r("^\\| INFO .+ \\| hello");
 	EXPECT_TRUE(std::regex_search(s, r)) << s;
 
 	// Clean up

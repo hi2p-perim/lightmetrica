@@ -132,7 +132,6 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	if (!Traverse(rootNode, assets, Math::Mat4::Identity()))
 	{
 		Reset();
-		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
@@ -174,6 +173,8 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	{
 		NANON_LOG_WARN("Missing 'light' in the scene");
 	}
+
+	NANON_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
 
 	loaded = true;
 	return true;
@@ -258,7 +259,6 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		primitive->light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
 		if (!primitive->light)
 		{
-			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
@@ -274,7 +274,6 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		primitive->camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
 		if (!primitive->camera)
 		{
-			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
@@ -299,7 +298,6 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		primitive->mesh = dynamic_cast<TriangleMesh*>(assets.ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh"));
 		if (!primitive->mesh)
 		{
-			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 
@@ -307,30 +305,44 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		primitive->bsdf = dynamic_cast<BSDF*>(assets.ResolveReferenceToAsset(bsdfNode, "bsdf"));
 		if (!primitive->bsdf)
 		{
-			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 	}
 
 	if (primitive->camera || primitive->light || primitive->mesh)
 	{
-		// Register the primitive to the scene
-		primitives.push_back(std::move(primitive));
-
-		// Optionally, register ID for the primitive, if 'id' attribute exists
 		auto idAttr = node.attribute("id");
-		if (idAttr)
-		{
-			// Check if already exists
-			std::string id = idAttr.as_string();
-			if (idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end())
-			{
-				NANON_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
-				NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
-				return false;
-			}
+		std::string id = idAttr.as_string();
 
-			idPrimitiveIndexMap[id] = primitives.size() - 1;
+		NANON_LOG_INFO("Creating primitive (id : '" + id + "')");
+		{
+			NANON_LOG_INDENTER();
+
+			if (primitive->camera)
+				NANON_LOG_INFO("Reference to camera '" + primitive->camera->ID() + "'");
+			if (primitive->light)
+				NANON_LOG_INFO("Reference to light '" + primitive->light->ID() + "'");
+			if (primitive->mesh)
+				NANON_LOG_INFO("Reference to triangle mesh '" + primitive->mesh->ID() + "'");
+			if (primitive->bsdf)
+				NANON_LOG_INFO("Reference to BSDF '" + primitive->bsdf->ID() + "'");
+
+			// Register the primitive to the scene
+			primitives.push_back(std::move(primitive));
+
+			// Optionally, register ID for the primitive, if 'id' attribute exists
+			if (idAttr)
+			{
+				// Check if already exists
+				if (idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end())
+				{
+					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
+					NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+					return false;
+				}
+
+				idPrimitiveIndexMap[id] = primitives.size() - 1;
+			}
 		}
 	}
 
@@ -354,7 +366,6 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	{
 		if (!Traverse(child, assets, transform))
 		{
-			NANON_LOG_DEBUG_EMPTY();
 			return false;
 		}
 	}

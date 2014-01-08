@@ -83,7 +83,6 @@ bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Asset
 	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.child("film"), "film"));
 	if (!film)
 	{
-		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 

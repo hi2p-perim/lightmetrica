@@ -121,62 +121,70 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 		if (assetGroupNode)
 		{
 			NANON_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
-
-			// For each child of the node, create an instance of the asset
-			for (auto assetNode : assetGroupNode.children())
 			{
-				// Check asset name
-				auto name = assetNode.name();
-				if (name != factoryEntry.child)
+				NANON_LOG_INDENTER();
+
+				// For each child of the node, create an instance of the asset
+				for (auto assetNode : assetGroupNode.children())
 				{
-					NANON_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
-					return false;
+					// Check asset name
+					auto name = assetNode.name();
+					if (name != factoryEntry.child)
+					{
+						NANON_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
+						return false;
+					}
+
+					// Type of the asset
+					auto typeAttribute = assetNode.attribute("type");
+					if (!typeAttribute)
+					{
+						NANON_LOG_ERROR("Missing attribute 'type'.");
+						return false;
+					}
+
+					auto idAttribute = assetNode.attribute("id");
+					if (!idAttribute)
+					{
+						NANON_LOG_ERROR("Missing attribute 'id'.");
+						return false;
+					}
+
+					NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
+					{
+						NANON_LOG_INDENTER();
+
+						// Check if the 'id' is already registered
+						std::string id = idAttribute.value();
+						if (assetInstanceMap.find(id) != assetInstanceMap.end())
+						{
+							NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
+							return false;
+						}
+
+						auto* asset = factoryEntry.factory->Create(id, typeAttribute.value());
+						if (asset == nullptr)
+						{
+							NANON_LOG_ERROR("Failed to create the asset.");
+							return false;
+						}
+
+						// Load asset
+						if (!asset->Load(assetNode, *self))
+						{
+							NANON_LOG_ERROR("Failed to load the asset.");
+							return false;
+						}
+
+						// Register the instance
+						assetInstanceMap[id] = asset;
+					}
 				}
-
-				// Type of the asset
-				auto typeAttribute = assetNode.attribute("type");
-				if (!typeAttribute)
-				{
-					NANON_LOG_ERROR("Missing attribute 'type'.");
-					return false;
-				}
-
-				auto idAttribute = assetNode.attribute("id");
-				if (!idAttribute)
-				{
-					NANON_LOG_ERROR("Missing attribute 'id'.");
-					return false;
-				}
-
-				NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
-
-				// Check if the 'id' is already registered
-				std::string id = idAttribute.value();
-				if (assetInstanceMap.find(id) != assetInstanceMap.end())
-				{
-					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
-					return false;
-				}
-
-				auto* asset = factoryEntry.factory->Create(id, typeAttribute.value());
-				if (asset == nullptr)
-				{
-					NANON_LOG_ERROR("Failed to create the asset.");
-					return false;
-				}
-
-				// Load asset
-				if (!asset->Load(assetNode, *self))
-				{
-					NANON_LOG_ERROR("Failed to load the asset.");
-					return false;
-				}
-
-				// Register the instance
-				assetInstanceMap[id] = asset;
 			}
 		}
 	}
+
+	NANON_LOG_INFO("Successfully loaded " + std::to_string(assetInstanceMap.size()) + " assets");
 
 	return true;
 }

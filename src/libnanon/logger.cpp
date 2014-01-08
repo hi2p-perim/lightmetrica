@@ -27,13 +27,14 @@
 #ifdef NANON_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
+#include <boost/filesystem.hpp>
 
 namespace bs = boost::signals2;
 namespace ch = std::chrono;
 
 namespace
 {
-	const std::string LogFormat = "[ %-5s %s ] %s\n";
+	const std::string LogFormat = "| %-5s %s | %s\n";
 }
 
 NANON_NAMESPACE_BEGIN
@@ -55,7 +56,7 @@ public:
 public:
 
 	void SetOutputMode(int mode);
-	void AddLogEntry(Logger::LogLevel level, const std::string& message);
+	void AddLogEntry(Logger::LogLevel level, const std::string& message, const std::string& prefix);
 	void ProcessOutput();
 	void SetOutputFrequency(int freq);
 	void SetOutputFrequencyForFileOutput(int freq);
@@ -65,6 +66,8 @@ public:
 	void SetOutputFileName(const std::string& fileName);
 	void SetUpdateMode(Logger::LogUpdateMode mode);
 	bool Empty();
+	unsigned int Indentation() { return indentation; }
+	void SetIndentation(unsigned int indentation);
 
 private:
 
@@ -84,6 +87,8 @@ private:
 	int outputMode;
 	std::string outputFileName;
 	Logger::LogUpdateMode updateMode;
+	unsigned int indentation;
+	std::string indentationStr;
 
 public:
 
@@ -96,7 +101,7 @@ LoggerImpl::LoggerImpl()
 	Reset();
 }
 
-void LoggerImpl::AddLogEntry( Logger::LogLevel level, const std::string& message )
+void LoggerImpl::AddLogEntry( Logger::LogLevel level, const std::string& message, const std::string& prefix )
 {
 	// Current time
 	auto now = ch::high_resolution_clock::now();
@@ -108,7 +113,7 @@ void LoggerImpl::AddLogEntry( Logger::LogLevel level, const std::string& message
 		auto entry = std::make_shared<Logger::LogEntry>();
 		entry->level = level;
 		entry->time = boost::str(boost::format("%.3lf") % elapsed);
-		entry->message = message;
+		entry->message = (prefix.empty() ? "" : prefix + " ") + indentationStr + message;
 
 		if (updateMode == Logger::LogUpdateMode::Manual)
 		{
@@ -309,6 +314,8 @@ void LoggerImpl::Reset()
 	begin = lastOutputTime = ch::high_resolution_clock::now();
 	outputFileName = "nanon.log";
 	updateMode = Logger::LogUpdateMode::Manual;
+	indentation = 0;
+	indentationStr = "";
 }
 
 void LoggerImpl::SetOutputFileName( const std::string& fileName )
@@ -327,6 +334,22 @@ bool LoggerImpl::Empty()
 	return entries.empty() && entriesForFileIO.empty();
 }
 
+void LoggerImpl::SetIndentation( unsigned int indentation )
+{
+	this->indentation = indentation;
+
+	// Update indentation string
+	if (indentation > 0)
+	{
+		indentationStr = std::string(4 * indentation, '.') + " ";
+	}
+	else
+	{
+		indentationStr = "";
+	}
+	
+}
+
 // --------------------------------------------------------------------------------
 
 boost::signals2::connection Logger::Connect_LogUpdate( const std::function<void (LogEntry*)>& func )
@@ -335,33 +358,35 @@ boost::signals2::connection Logger::Connect_LogUpdate( const std::function<void 
 	return p.signal_LogUpdate.connect(func);
 }
 
-void Logger::Error( const std::string& message )
+void Logger::Error( const std::string& message, const std::string& prefix )
 {
 	auto& p = LoggerImpl::Instance();
-	p.AddLogEntry(LogLevel::Error, message);
+	p.AddLogEntry(LogLevel::Error, message, prefix);
 }
 
-void Logger::Warn( const std::string& message )
+void Logger::Warn( const std::string& message, const std::string& prefix )
 {
 	auto& p = LoggerImpl::Instance();
-	p.AddLogEntry(LogLevel::Warning, message);
+	p.AddLogEntry(LogLevel::Warning, message, prefix);
 }
 
-void Logger::Info( const std::string& message )
+void Logger::Info( const std::string& message, const std::string& prefix )
 {
 	auto& p = LoggerImpl::Instance();
-	p.AddLogEntry(LogLevel::Information, message);
+	p.AddLogEntry(LogLevel::Information, message, prefix);
 }
 
-void Logger::Debug( const std::string& message )
+void Logger::Debug( const std::string& message, const std::string& prefix )
 {
 	auto& p = LoggerImpl::Instance();
-	p.AddLogEntry(LogLevel::Debug, message);
+	p.AddLogEntry(LogLevel::Debug, message, prefix);
 }
 
-std::string Logger::FormattedDebugInfo( const char* fileName, const char* funcName, int line )
+std::string Logger::FormattedDebugInfo( const char* fileName, int line )
 {
-	return boost::str(boost::format("[ %s, %s, %d ] ") % fileName % funcName % line);
+	namespace fs = boost::filesystem;
+	auto file = fs::path(fileName).filename().string();
+	return boost::str(boost::format("%-5.5s~@%4d |") % file % line);
 }
 
 void Logger::SetOutputMode( int mode )
@@ -422,6 +447,18 @@ bool Logger::Empty()
 {
 	auto& p = LoggerImpl::Instance();
 	return p.Empty();
+}
+
+unsigned int Logger::Indentation()
+{
+	auto& p = LoggerImpl::Instance();
+	return p.Indentation();
+}
+
+void Logger::SetIndentation( unsigned int indentation )
+{
+	auto& p = LoggerImpl::Instance();
+	p.SetIndentation(indentation);
 }
 
 NANON_NAMESPACE_END

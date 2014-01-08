@@ -120,26 +120,30 @@ public:
 	/*!
 		Add an error log message.
 		\param message Log message.
+		\param prefix Prefix message (inserted before indentation).
 	*/
-	static void Error(const std::string& message);
+	static void Error(const std::string& message, const std::string& prefix);
 
 	/*!
 		Add a warning log message.
 		\param message Log message.
+		\param prefix Prefix message (inserted before indentation).
 	*/
-	static void Warn(const std::string& message);
+	static void Warn(const std::string& message, const std::string& prefix);
 
 	/*!
 		Add an information log message.
 		\param message Log message.
+		\param prefix Prefix message (inserted before indentation).
 	*/
-	static void Info(const std::string& message);
+	static void Info(const std::string& message, const std::string& prefix);
 
 	/*!
 		Add a debug log message.
 		\param message Log message.
+		\param prefix Prefix message (inserted before indentation).
 	*/
-	static void Debug(const std::string& message);
+	static void Debug(const std::string& message, const std::string& prefix);
 
 	/*!
 		Get number of log entries for the mode NoFileOutput.
@@ -194,11 +198,10 @@ public:
 	/*!
 		Helper function to output formatted debug message.
 		\param fileName File name.
-		\param funcName Function name.
 		\param line Line number.
 		\return Formatted log message.
 	*/
-	static std::string FormattedDebugInfo(const char* fileName, const char* funcName, int line);
+	static std::string FormattedDebugInfo(const char* fileName, int line);
 
 	/*!
 		Process logger.
@@ -213,6 +216,35 @@ public:
 		\retval false The queue is not empty.
 	*/ 
 	static bool Empty();
+
+	/*!
+		Get current indentation size.
+		\return Indentation.
+	*/
+	static unsigned int Indentation();
+
+	/*!
+		Set the indentation size.
+		\param indentation Indentation.
+	*/
+	static void SetIndentation(unsigned int indentation);
+
+};
+
+/*!
+	Log indenter.
+	The class automatically increase or decrease an indentation in the current scope.
+*/
+class LogIndenter
+{
+public:
+
+	LogIndenter() { Logger::SetIndentation(Logger::Indentation() + 1); }
+	~LogIndenter() { Logger::SetIndentation(Logger::Indentation() - 1); }
+
+private:
+
+	NANON_DISABLE_COPY_AND_MOVE(LogIndenter);
 
 };
 
@@ -244,31 +276,21 @@ NANON_NAMESPACE_END
 */
 
 /*!
-	\def NANON_LOG_DEBUG_EMPTY()
-	Add an debug log with an empty message.
-*/
-
-/*!
 	\def NANON_LOG_INDENT()
 	Helper macro to add a indentation to the log message in the same scope.
 */
 
-#define NANON_LOG_ERROR(message) nanon::Logger::Error(message);
-#define NANON_LOG_WARN(message) nanon::Logger::Warn(message);
-#define NANON_LOG_INFO(message) nanon::Logger::Info(message);
 #ifdef NANON_DEBUG_MODE
-	#ifdef NANON_COMPILER_MSVC
-		#define NANON_LOG_DEBUG(message) \
-			nanon::Logger::Debug(nanon::Logger::FormattedDebugInfo(__FILE__, __FUNCTION__, __LINE__) + message);
-	#elif defined(NANON_COMPILER_GCC)
-		#define NANON_LOG_DEBUG(message) \
-			nanon::Logger::Debug(nanon::Logger::FormattedDebugInfo(__FILE__, __PRETTY_FUNCTION__ , __LINE__) + message);
-	#else
-		#define NANON_LOG_DEBUG(message)
-	#endif
+	#define NANON_LOG_ERROR(message) nanon::Logger::Error(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define NANON_LOG_WARN(message) nanon::Logger::Warn(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define NANON_LOG_INFO(message) nanon::Logger::Info(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define NANON_LOG_DEBUG(message) nanon::Logger::Debug(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
 #else
-	#define NANON_LOG_DEBUG(message)
+	#define NANON_LOG_ERROR(message) nanon::Logger::Error(message, "");
+	#define NANON_LOG_WARN(message) nanon::Logger::Warn(message, "");
+	#define NANON_LOG_INFO(message) nanon::Logger::Info(message, "");
+	#define NANON_LOG_DEBUG(message) nanon::Logger::Debug(message, "");
 #endif
-#define NANON_LOG_DEBUG_EMPTY() NANON_LOG_DEBUG("");
+#define NANON_LOG_INDENTER() nanon::LogIndenter _logIndenter;
 
 #endif // __NANON_CORE_LOGGER_H__

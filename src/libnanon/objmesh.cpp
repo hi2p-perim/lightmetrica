@@ -32,6 +32,7 @@
 #include <assimp/LogStream.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <regex>
 
 NANON_NAMESPACE_BEGIN
 
@@ -50,6 +51,10 @@ public:
 		// Remove new line
 		std::string str(message);
 		str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+		// Remove initial string
+		std::regex re("[a-zA-Z]+, +T[0-9]+: (.*)");
+		str = std::regex_replace(str, re, "$1");
 
 		switch (level)
 		{

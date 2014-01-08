@@ -226,7 +226,6 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 	if (!film->Save())
 	{
-		NANON_LOG_DEBUG_EMPTY();
 		return false;
 	}
 
