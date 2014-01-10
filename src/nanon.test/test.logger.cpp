@@ -162,7 +162,7 @@ TEST_F(LoggerTest, AddLogFromAnotherThread)
 	Logger::Connect_LogUpdate(
 		[&](Logger::LogEntry* entry)
 		{
-			if (entry->level == Logger::LogLevel::Information && entry->message == "hello")
+			if (entry->level == Logger::LogLevel::Information && boost::algorithm::ends_with(entry->message, "hello"))
 				count++;
 		});
 
@@ -213,7 +213,7 @@ TEST_F(LoggerTest, ImmediateMode)
 	Logger::Connect_LogUpdate(
 		[&](Logger::LogEntry* entry)
 		{
-			if (entry->level == Logger::LogLevel::Information && entry->message == "hello")
+			if (entry->level == Logger::LogLevel::Information && boost::algorithm::ends_with(entry->message, "hello"))
 				emitted = true;
 		});
 

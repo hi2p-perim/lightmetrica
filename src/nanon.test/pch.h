@@ -33,6 +33,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <iostream>
 #include <sstream>
