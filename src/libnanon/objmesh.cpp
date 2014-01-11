@@ -129,7 +129,7 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	std::string path = pathNode.child_value();
 	const aiScene* scene = importer.ReadFile(path.c_str(),
 		aiProcess_GenNormals |
-		aiProcess_CalcTangentSpace |
+		//aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices);
 

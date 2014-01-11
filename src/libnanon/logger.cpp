@@ -112,7 +112,7 @@ void LoggerImpl::AddLogEntry( Logger::LogLevel level, const std::string& message
 		std::unique_lock<std::mutex> lock(mutex);
 		auto entry = std::make_shared<Logger::LogEntry>();
 		entry->level = level;
-		entry->time = boost::str(boost::format("%.3lf") % elapsed);
+		entry->time = boost::str(boost::format("%.3f") % elapsed);
 		entry->message = (prefix.empty() ? "" : prefix + " ") + indentationStr + message;
 
 		if (updateMode == Logger::LogUpdateMode::Manual)
@@ -235,7 +235,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 	if ((outputMode & Logger::LogOutputMode::Stdout) > 0)
 	{
 #ifdef NANON_PLATFORM_WINDOWS
-		HANDLE condoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		WORD colorFlag = 0;
 		if (entry->level == Logger::LogLevel::Error)
 			colorFlag = FOREGROUND_RED | FOREGROUND_INTENSITY;
@@ -245,13 +245,13 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		else if (entry->level == Logger::LogLevel::Information)
 			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-		SetConsoleTextAttribute(condoleHandle, colorFlag);
+		SetConsoleTextAttribute(consoleHandle, colorFlag);
 #endif
 
 		std::cout << line;
 
 #ifdef NANON_PLATFORM_WINDOWS
-		SetConsoleTextAttribute(condoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+		SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 #endif
 	}
 

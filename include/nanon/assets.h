@@ -27,6 +27,8 @@
 #define __LIB_NANON_ASSETS_H__
 
 #include "object.h"
+#include <functional>
+#include <boost/signals2.hpp>
 
 namespace pugi
 {
@@ -70,6 +72,15 @@ public:
 		\param name Target asset type, e.g. triangle_mesh.
 	*/
 	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
+
+public:
+
+	/*!
+		Connect to ReportProgress signal.
+		The signal is emitted when the progress of asset loading is changed.
+		\param func Slot function.
+	*/
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
 
 };
 

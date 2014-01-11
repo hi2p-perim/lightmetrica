@@ -30,6 +30,7 @@
 #include <nanon/ray.h>
 #include <nanon/intersection.h>
 #include <nanon/logger.h>
+#include <thread>
 
 NANON_NAMESPACE_BEGIN
 
@@ -237,6 +238,7 @@ public:
 	Impl(BVHScene* self);
 	bool Build();
 	bool Intersect(Ray& ray, Intersection& isect) const;
+	boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
 
 private:
 
@@ -244,6 +246,11 @@ private:
 	bool Intersect(const AABB& bound, BVHTraversalData& data) const;
 	std::shared_ptr<BVHNode> Build(const BVHBuildData& data, int begin, int end);
 	void LoadPrimitives(const std::string& scenePath);
+	
+	// The function is called when a leaf node is created
+	// report progress w.r.t. # of triangles fixed as leafs
+	void ReportProgress(int begin, int end);
+	void ResetProgress();
 
 private:
 
@@ -252,6 +259,8 @@ private:
 	std::vector<int> bvhTriIndices;
 	std::shared_ptr<BVHNode> root;
 	std::vector<TriAccel> triAccels;
+	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
+	int numProcessedTris;
 
 };
 
@@ -266,9 +275,10 @@ bool BVHScene::Impl::Build()
 {
 	BVHBuildData data;
 
-	NANON_LOG_INFO("Creating triaccels");
 	{
+		NANON_LOG_INFO("Creating triaccels");
 		NANON_LOG_INDENTER();
+
 		for (int i = 0; i < self->NumPrimitives(); i++)
 		{
 			const auto* primitive = self->PrimitiveByIndex(i);
@@ -306,18 +316,22 @@ bool BVHScene::Impl::Build()
 				}
 			}
 		}
+
 		NANON_LOG_INFO("Successfully created " + std::to_string(triAccels.size()) + " triaccels");
 	}
 
 	// Build BVH
-	NANON_LOG_INFO("Building BVH");
 	{
-		namespace ch = std::chrono;
+		NANON_LOG_INFO("Building BVH");
 		NANON_LOG_INDENTER();
-		auto start = ch::high_resolution_clock::now();
+
+		ResetProgress();
+
+		auto start = std::chrono::high_resolution_clock::now();
 		root = Build(data, 0, static_cast<int>(triAccels.size()));
-		auto end = ch::high_resolution_clock::now();
-		double elapsed = static_cast<double>(ch::duration_cast<ch::milliseconds>(end - start).count()) / 1000.0;
+		auto end = std::chrono::high_resolution_clock::now();
+
+		double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0;
 		NANON_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
 	}
 
@@ -341,6 +355,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 	{
 		// Leaf node
 		node = std::make_shared<BVHNode>(begin, end, bound);
+		ReportProgress(begin, end);
 	}
 	else
 	{
@@ -360,6 +375,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 		if (centroidBound.min[splitAxis] == centroidBound.max[splitAxis])
 		{
 			node = std::make_shared<BVHNode>(begin, end, bound);
+			ReportProgress(begin, end);
 		}
 		else
 		{
@@ -434,6 +450,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 			{
 				// Otherwise make leaf node
 				node = std::make_shared<BVHNode>(begin, end, bound);
+				ReportProgress(begin, end);
 			}
 		}
 	}
@@ -527,6 +544,18 @@ bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) cons
 	return (tmin < ray.maxT) && (tmax > ray.minT);
 }
 
+void BVHScene::Impl::ReportProgress( int begin, int end )
+{
+	numProcessedTris += end - begin;
+	signal_ReportBuildProgress(static_cast<double>(numProcessedTris) / triAccels.size(), numProcessedTris == triAccels.size());
+}
+
+void BVHScene::Impl::ResetProgress()
+{
+	numProcessedTris = 0;
+	signal_ReportBuildProgress(0, false);
+}
+
 // --------------------------------------------------------------------------------
 
 BVHScene::BVHScene()
@@ -548,6 +577,11 @@ bool BVHScene::Build()
 bool BVHScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	return p->Intersect(ray, isect);
+}
+
+boost::signals2::connection BVHScene::Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func )
+{
+	return p->Connect_ReportBuildProgress(func);
 }
 
 NANON_NAMESPACE_END

@@ -30,6 +30,8 @@
 #include "math.types.h"
 #include <string>
 #include <vector>
+#include <functional>
+#include <boost/signals2.hpp>
 
 namespace pugi
 {
@@ -143,6 +145,15 @@ public:
 	*/
 	virtual std::string Type() const = 0;
 	
+public:
+
+	/*!
+		Connect to ReportBuildProgress signal.
+		The signal is emitted when the progress of asset loading is changed.
+		\param func Slot function.
+	*/
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) = 0;
+
 public:
 
 	/*!

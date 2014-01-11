@@ -30,6 +30,7 @@
 #include <nanon/logger.h>
 #include <nanon/pugihelper.h>
 #include <pugixml.hpp>
+#include <thread>
 
 NANON_NAMESPACE_BEGIN
 
@@ -42,6 +43,7 @@ public:
 	bool Load(const pugi::xml_node& node);
 	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 	Asset* GetAssetByName(const std::string& name) const;
+	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func);
 
 private:
 
@@ -52,7 +54,12 @@ private:
 	DefaultAssets* self;
 	std::vector<AssetFactoryEntry> assetFactoryEntries;
 	boost::unordered_map<std::string, size_t> assetFactoryMap;
-	boost::unordered_map<std::string, Asset*> assetInstanceMap;
+
+	std::vector<Asset*> assetInstances;
+	std::vector<pugi::xml_node> assetInstanceNodes;
+	boost::unordered_map<std::string, size_t> assetIndexMap;
+
+	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 };
 
@@ -66,8 +73,8 @@ DefaultAssets::Impl::~Impl()
 {
 	for (auto& v : assetFactoryEntries)
 		NANON_SAFE_DELETE(v.factory);
-	for (auto& kv : assetInstanceMap)
-		NANON_SAFE_DELETE(kv.second);
+	for (auto& v : assetInstances)
+		NANON_SAFE_DELETE(v);
 }
 
 bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
@@ -112,16 +119,19 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 		return false;
 	}
 
-	// By priority, find the child element under 'assets', and
-	// find corresponding asset factory and create asset instances.
-	for (auto& factoryEntry : assetFactoryEntries)
 	{
-		// Find the element under 'assets'
-		auto assetGroupNode = node.child(factoryEntry.name.c_str());
-		if (assetGroupNode)
+		NANON_LOG_INFO("Stage : Finding assets");
+		NANON_LOG_INDENTER();
+
+		// By priority, find the child element under 'assets', and
+		// find corresponding asset factory and create asset instances.
+		for (auto& factoryEntry : assetFactoryEntries)
 		{
-			NANON_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
+			// Find the element under 'assets'
+			auto assetGroupNode = node.child(factoryEntry.name.c_str());
+			if (assetGroupNode)
 			{
+				NANON_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
 				NANON_LOG_INDENTER();
 
 				// For each child of the node, create an instance of the asset
@@ -150,13 +160,13 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 						return false;
 					}
 
-					NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
 					{
+						NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
 						NANON_LOG_INDENTER();
 
 						// Check if the 'id' is already registered
 						std::string id = idAttribute.value();
-						if (assetInstanceMap.find(id) != assetInstanceMap.end())
+						if (assetIndexMap.find(id) != assetIndexMap.end())
 						{
 							NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
 							return false;
@@ -169,29 +179,56 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 							return false;
 						}
 
-						// Load asset
-						if (!asset->Load(assetNode, *self))
-						{
-							NANON_LOG_ERROR("Failed to load the asset.");
-							return false;
-						}
-
 						// Register the instance
-						assetInstanceMap[id] = asset;
+						assetIndexMap[id] = assetInstances.size();
+						assetInstances.push_back(asset);
+						assetInstanceNodes.push_back(assetNode);
 					}
 				}
 			}
 		}
+
+		NANON_LOG_INFO("Successfully found " + std::to_string(assetInstances.size()) + " assets");
 	}
 
-	NANON_LOG_INFO("Successfully loaded " + std::to_string(assetInstanceMap.size()) + " assets");
+	{
+		NANON_LOG_INFO("Stage : Loading assets");
+		NANON_LOG_INDENTER();
+
+		signal_ReportProgress(0, false);
+
+		for (size_t i = 0; i < assetInstances.size(); i++)
+		{
+			auto* asset = assetInstances[i];
+
+			NANON_LOG_INFO(boost::str(boost::format("Loading asset (id : '%s', type : '%s')") % asset->ID() % asset->Type()));
+			NANON_LOG_INDENTER();
+
+			// Load
+			if (!asset->Load(assetInstanceNodes[i], *self))
+			{
+				NANON_LOG_ERROR("Failed to load the asset.");
+				return false;
+			}
+
+			// Update progress
+			signal_ReportProgress(static_cast<double>(i+1) / assetInstances.size(), i+1 == assetInstances.size());
+		}
+
+		NANON_LOG_INFO("Successfully loaded " + std::to_string(assetInstances.size()) + " assets");
+	}
 
 	return true;
 }
 
 Asset* DefaultAssets::Impl::GetAssetByName( const std::string& name ) const
 {
-	return assetInstanceMap.find(name) == assetInstanceMap.end() ? nullptr : assetInstanceMap.at(name);
+	return assetIndexMap.find(name) == assetIndexMap.end() ? nullptr : assetInstances[assetIndexMap.at(name)];
+}
+
+boost::signals2::connection DefaultAssets::Impl::Connect_ReportProgress( const std::function<void (double, bool)>& func )
+{
+	return signal_ReportProgress.connect(func);
 }
 
 // --------------------------------------------------------------------------------
@@ -225,6 +262,11 @@ bool DefaultAssets::RegisterAssetFactory( const AssetFactoryEntry& entry )
 Asset* DefaultAssets::GetAssetByName( const std::string& name ) const
 {
 	return p->GetAssetByName(name);
+}
+
+boost::signals2::connection DefaultAssets::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
+{
+	return p->Connect_ReportProgress(func);
 }
 
 NANON_NAMESPACE_END

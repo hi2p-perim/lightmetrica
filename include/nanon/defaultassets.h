@@ -71,6 +71,7 @@ public:
 public:
 
 	virtual Asset* GetAssetByName(const std::string& name) const;
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 
 public:
 

@@ -39,11 +39,13 @@ public:
 	Impl(NaiveScene* self);
 	bool Build();
 	bool Intersect(Ray& ray, Intersection& isect) const;
+	boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
 
 private:
 
 	NaiveScene* self;
 	std::vector<TriAccel> triAccels;
+	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 
 };
 
@@ -58,7 +60,10 @@ bool NaiveScene::Impl::Build()
 	// Almost do nothing; simply creates a list of triangles from the primitives
 	// as data structure, we used Wald's TriAccel.
 	
-	for (int i = 0; i < self->NumPrimitives(); i++)
+	signal_ReportBuildProgress(0, false);
+
+	int numPrimitives = self->NumPrimitives();
+	for (int i = 0; i < numPrimitives; i++)
 	{
 		const auto* primitive = self->PrimitiveByIndex(i);
 		const auto* mesh = primitive->mesh;
@@ -81,6 +86,8 @@ bool NaiveScene::Impl::Build()
 				triAccels.back().Load(p1, p2, p3);
 			}
 		}
+
+		signal_ReportBuildProgress(static_cast<double>(i) / numPrimitives, i == numPrimitives-1);
 	}
 	
 	return true;
@@ -136,6 +143,11 @@ bool NaiveScene::Build()
 bool NaiveScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	return p->Intersect(ray, isect);
+}
+
+boost::signals2::connection NaiveScene::Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func )
+{
+	return p->Connect_ReportBuildProgress(func);
 }
 
 NANON_NAMESPACE_END

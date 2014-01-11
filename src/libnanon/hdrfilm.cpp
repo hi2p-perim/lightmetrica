@@ -243,6 +243,8 @@ bool HDRBitmapFilm::Impl::Save()
 		return false;
 	}
 
+	NANON_LOG_INFO("Successfully saved to " + path);
+
 	FreeImage_Unload(bitmap);
 	return true;
 }

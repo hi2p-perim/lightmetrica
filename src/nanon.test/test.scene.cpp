@@ -123,6 +123,7 @@ public:
 	virtual bool Build() { return true; }
 	virtual bool Intersect( Ray& ray, Intersection& isect ) const { return false; }
 	virtual std::string Type() const { return "stub"; }
+	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
 
 };
 

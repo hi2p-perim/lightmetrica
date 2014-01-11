@@ -38,11 +38,14 @@
 #include <nanon/texturefactory.h>
 #include <nanon/trianglemeshfactory.h>
 #include <nanon/math.h>
+#include <nanon/camera.h>
+#include <nanon/film.h>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <exception>
 #include <thread>
+#include <condition_variable>
 #include <future>
 #include <atomic>
 #include <chrono>
@@ -50,9 +53,26 @@
 #include <ctime>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#ifdef NANON_PLATFORM_WINDOWS
+#include <windows.h>
+#endif
 
 using namespace nanon;
 namespace po = boost::program_options;
+
+template <typename BoolType>
+class scoped_enable
+{
+public:
+
+	scoped_enable(BoolType& f) : flag(f) { flag = true; }
+	~scoped_enable() { flag = false; }
+
+private:
+
+	BoolType& flag;
+
+};
 
 class NanonApplication
 {
@@ -74,6 +94,8 @@ private:
 	void PrintStartMessage();
 	void PrintFinishMessage();
 	std::string CurrentTime();
+	void OnReportProgress(double progress, bool done);
+	void ResetProgress(const std::string& taskName);
 
 private:
 
@@ -89,6 +111,16 @@ private:
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
 	std::future<void> logResult;
+
+	// Progress bar
+	std::atomic<bool> enableProgressBar;
+	std::atomic<bool> requiresProgressUpdate;
+	bool progressPrintDone;
+	bool progressDone;
+	double progress;
+	std::mutex progressMutex;
+	std::string progressTaskName;
+	std::condition_variable progressDoneCond;
 
 };
 
@@ -231,12 +263,21 @@ bool NanonApplication::Run()
 
 	NANON_LOG_INFO("Entering : Asset loading")
 	{
+		ResetProgress("LOADING ASSETS");
+		scoped_enable<std::atomic<bool>> _(enableProgressBar);
+		auto conn = assets.Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		
 		NANON_LOG_INDENTER();
 		if (!assets.Load(config))
 		{
 			return false;
 		}
 		NANON_LOG_INFO("Completed");
+
+		{
+			std::unique_lock<std::mutex> lock(progressMutex);
+			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
+		}
 	}
 	NANON_LOG_INFO("Leaving : Asset loading");
 
@@ -263,9 +304,12 @@ bool NanonApplication::Run()
 	NANON_LOG_INFO("Leaving : Scene loading");
 
 	// Build scene
-	// TODO : Do it on the another thread and poll progress
 	NANON_LOG_INFO("Entering : Scene building");
 	{
+		ResetProgress("BUILDING SCENE");
+		scoped_enable<std::atomic<bool>> _(enableProgressBar);
+		auto conn = scene->Connect_ReportBuildProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		
 		NANON_LOG_INDENTER();
 		NANON_LOG_INFO("Scene type : '" + scene->Type() + "'");
 		if (!scene->Build())
@@ -273,6 +317,11 @@ bool NanonApplication::Run()
 			return false;
 		}
 		NANON_LOG_INFO("Completed");
+
+		{
+			std::unique_lock<std::mutex> lock(progressMutex);
+			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
+		}
 	}
 	NANON_LOG_INFO("Leaving : Scene building");
 
@@ -300,17 +349,40 @@ bool NanonApplication::Run()
 	NANON_LOG_INFO("Leaving : Renderer configuration");
 
 	// Begin rendering
-	// TODO : Dispatch renderer in the another thread and poll progress
 	NANON_LOG_INFO("Entering : Render");
 	{
+		ResetProgress("RENDERING");
+		scoped_enable<std::atomic<bool>> _(enableProgressBar);
+		auto conn = renderer->Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+
 		NANON_LOG_INDENTER();
 		if (!renderer->Render(*scene))
 		{
 			return false;
 		}
 		NANON_LOG_INFO("Completed");
+
+		{
+			std::unique_lock<std::mutex> lock(progressMutex);
+			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
+		}
 	}
 	NANON_LOG_INFO("Leaving : Render");
+
+	// --------------------------------------------------------------------------------
+
+	// Save rendered image
+	NANON_LOG_INFO("Entering : Save rendered image");
+	{
+		NANON_LOG_INDENTER();
+		auto* film = scene->MainCamera()->GetFilm();
+		if (!film->Save())
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
+	}
+	NANON_LOG_INFO("Leaving : Save rendered image");
 
 	// --------------------------------------------------------------------------------
 
@@ -330,10 +402,80 @@ void NanonApplication::StartLogging()
 		std::launch::async,
 		[this]()
 		{
+			// Console info
+			int consoleWidth;
+#ifdef NANON_PLATFORM_WINDOWS
+			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+			CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
+			GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
+			consoleWidth = screenBufferInfo.dwSize.X-1;
+#else
+			consoleWidth = 70;
+#endif
+
+			std::string spaces(consoleWidth, ' ');
+
 			// Event loop for logger process
 			while (!logThreadDone || !Logger::Empty())
 			{
-				Logger::ProcessOutput();
+				// Process log output
+				// Overwrite a line with spaces
+				if (!Logger::Empty())
+				{
+					std::cout << spaces << "\r";
+					Logger::ProcessOutput();
+					requiresProgressUpdate = true;
+				}
+				
+				// Process progress bar
+				if (enableProgressBar && requiresProgressUpdate && !progressPrintDone)
+				{
+					double currentProgress;
+					bool currentProgressDone;
+
+					{
+						std::unique_lock<std::mutex> lock(progressMutex);
+						currentProgress = progress;
+						currentProgressDone = progressDone;
+						requiresProgressUpdate = false;
+					}
+
+					std::string line = boost::str(boost::format("| %s [] %.1f%%") % progressTaskName % (static_cast<double>(currentProgress) * 100.0));
+					std::string bar;
+
+					// Bar width
+					int barWidth = consoleWidth - static_cast<int>(line.size());
+					int p =  static_cast<int>(currentProgress * barWidth);
+					for (int j = 0; j < barWidth; j++)
+					{
+						bar += j <= p ? "=" : " ";
+					}
+
+					std::cout << boost::format("| %s [") % progressTaskName;
+#ifdef NANON_PLATFORM_WINDOWS
+					SetConsoleTextAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+#endif
+					std::cout << bar;
+#ifdef NANON_PLATFORM_WINDOWS
+					SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+#endif
+					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
+					
+					// If the progress is done, the line is not removed
+					if (currentProgressDone)
+					{
+						std::cout << std::endl;
+						progressPrintDone = true;
+						progressDoneCond.notify_all();
+					}
+					else
+					{
+						std::cout << "\r";
+						std::cout.flush();
+						progressPrintDone = false;
+					}
+				}
+
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 		});
@@ -348,24 +490,23 @@ void NanonApplication::FinishLogging()
 
 void NanonApplication::PrintStartMessage()
 {
-	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("");
 	NANON_LOG_INFO(appDescription);
-	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("");
 	NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
 	NANON_LOG_INFO("The software is distributed under the MIT license.");
 	NANON_LOG_INFO("For detail see the LICENSE file along with the software.");
-	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("");
 	NANON_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
 	NANON_LOG_INFO("PLATFORM     | " + Version::Platform() + " " + Version::Archtecture());
 	NANON_LOG_INFO("OPTIMIZATION | " + appSSESupport);
 	NANON_LOG_INFO("CURRENT TIME | " + CurrentTime());
-	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("");
 }
 
 void NanonApplication::PrintFinishMessage()
 {
-	NANON_LOG_INFO("Finished");
-	NANON_LOG_INFO("------------------------------------------------------------");
+	NANON_LOG_INFO("Completed");
 }
 
 std::string NanonApplication::CurrentTime()
@@ -381,6 +522,27 @@ std::string NanonApplication::CurrentTime()
 	ss << std::put_time(std::localtime(&time), "%Y.%m.%d.%H.%M.%S");
 #endif
 	return ss.str();
+}
+
+void NanonApplication::OnReportProgress( double progress, bool done )
+{
+	if (!progressDone)
+	{
+		std::unique_lock<std::mutex> lock(progressMutex);
+		this->progress = progress;
+		requiresProgressUpdate = true;
+		progressDone = done;
+	}
+}
+
+void NanonApplication::ResetProgress(const std::string& taskName)
+{
+	std::unique_lock<std::mutex> lock(progressMutex);
+	progress = 0;
+	progressTaskName = taskName;
+	progressDone = false;
+	requiresProgressUpdate = true;
+	progressPrintDone = false;
 }
 
 int main(int argc, char** argv)
@@ -401,7 +563,7 @@ int main(int argc, char** argv)
 		}
 		catch (const std::exception& e)
 		{
-			NANON_LOG_ERROR(boost::str(boost::format("[ EXCEPTION ] %s") % e.what()));
+			NANON_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
 			result = EXIT_FAILURE;
 		}
 

@@ -31,6 +31,7 @@
 #include <nanon/intersection.h>
 #include <nanon/math.functions.h>
 #include <nanon/logger.h>
+#include <atomic>
 
 NANON_NAMESPACE_BEGIN
 
@@ -40,12 +41,20 @@ public:
 
 	bool Render(const Scene& scene);
 	bool Configure(const pugi::xml_node& node, const Assets& assets);
+	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+
+private:
+
+	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 };
 
 bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
 	auto* film = scene.MainCamera()->GetFilm();
+	std::atomic<int> processedLines;
+
+	signal_ReportProgress(0, false);
 
 	#pragma omp parallel for
 	for (int y = 0; y < film->Height(); y++)
@@ -76,11 +85,9 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 				film->RecordContribution(rasterPos, Math::Colors::Black);
 			}
 		}
-	}
 
-	if (!film->Save())
-	{
-		return false;
+		processedLines++;
+		signal_ReportProgress(static_cast<double>(processedLines) / film->Height(), processedLines == film->Height());
 	}
 
 	return true;
@@ -113,6 +120,11 @@ bool RaycastRenderer::Render(const Scene& scene)
 bool RaycastRenderer::Configure( const pugi::xml_node& node, const Assets& assets )
 {
 	return p->Configure(node, assets);
+}
+
+boost::signals2::connection RaycastRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
+{
+	return p->Connect_ReportProgress(func);
 }
 
 NANON_NAMESPACE_END

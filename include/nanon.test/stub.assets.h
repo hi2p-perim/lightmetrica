@@ -41,6 +41,7 @@ public:
 
 	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
 	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
 
 protected:
 

@@ -38,6 +38,7 @@
 #include <pugixml.hpp>
 #include <thread>
 #include <omp.h>
+#include <atomic>
 
 NANON_NAMESPACE_BEGIN
 
@@ -51,10 +52,12 @@ public:
 
 	bool Configure( const pugi::xml_node& node, const Assets& assets );
 	bool Render( const Scene& scene );
+	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
 	PathtraceRenderer* self;
+	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	int numSamples;		// Number of samples
 	int rrDepth;		// Depth of beginning RR
@@ -123,6 +126,9 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 bool PathtraceRenderer::Impl::Render( const Scene& scene )
 {
 	auto* film = scene.MainCamera()->GetFilm();
+	std::atomic<int> processedLines;
+
+	signal_ReportProgress(0, false);
 
 	// Set number of threads
 	omp_set_num_threads(numThreads);
@@ -222,11 +228,9 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 				film->AccumulateContribution(rasterPos, L / Math::Float(numSamples));
 			}
 		}
-	}
 
-	if (!film->Save())
-	{
-		return false;
+		processedLines++;
+		signal_ReportProgress(static_cast<double>(processedLines) / film->Height(), processedLines == film->Height());
 	}
 
 	return true;
@@ -253,6 +257,11 @@ bool PathtraceRenderer::Configure( const pugi::xml_node& node, const Assets& ass
 bool PathtraceRenderer::Render( const Scene& scene )
 {
 	return p->Render(scene);
+}
+
+boost::signals2::connection PathtraceRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
+{
+	return p->Connect_ReportProgress(func);
 }
 
 NANON_NAMESPACE_END

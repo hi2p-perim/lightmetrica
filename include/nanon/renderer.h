@@ -28,6 +28,8 @@
 
 #include "object.h"
 #include <string>
+#include <functional>
+#include <boost/signals2.hpp>
 
 namespace pugi
 {
@@ -86,8 +88,18 @@ public:
 		The function starts to render the #scene according to the current configuration.
 		\param scene Scene.
 		\retval true Succeeded to render the scene.
+		\retval true Failed to render the scene.
 	*/
 	virtual bool Render(const Scene& scene) = 0;
+
+public:
+
+	/*!
+		Connect to ReportProgress signal.
+		The signal is emitted when the progress of asset loading is changed.
+		\param func Slot function.
+	*/
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
 
 private:
 
