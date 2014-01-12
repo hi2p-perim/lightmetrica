@@ -269,6 +269,7 @@ set(
 	"${_INCLUDE_DIR}/scenefactory.h"
 	"${_INCLUDE_DIR}/naivescene.h"
 	"${_INCLUDE_DIR}/bvhscene.h"
+	"${_INCLUDE_DIR}/qbvhscene.h"
 	"${_INCLUDE_DIR}/primitive.h"
 	"${_INCLUDE_DIR}/triaccel.h"
 )
@@ -278,6 +279,7 @@ set(
 	"scenefactory.cpp"
 	"naivescene.cpp"
 	"bvhscene.cpp"
+	"qbvhscene.cpp"
 	"primitive.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\scene" FILES ${_SCENE_HEADERS})
