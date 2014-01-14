@@ -272,6 +272,8 @@ set(
 	"${_INCLUDE_DIR}/qbvhscene.h"
 	"${_INCLUDE_DIR}/primitive.h"
 	"${_INCLUDE_DIR}/triaccel.h"
+	"${_INCLUDE_DIR}/aabb.h"
+	"${_INCLUDE_DIR}/aabb.inl"
 )
 set(
 	_SCENE_SOURCES

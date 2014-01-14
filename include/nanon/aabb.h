@@ -23,44 +23,39 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_QBVH_SCENE_H__
-#define __LIB_NANON_QBVH_SCENE_H__
+#ifndef __LIB_NANON_AABB_H__
+#define __LIB_NANON_AABB_H__
 
-#include "scene.h"
+#include "math.types.h"
 
 NANON_NAMESPACE_BEGIN
 
 /*!
-	QBVH scene.
-	An implementation of Quad-BVH (QBVH).
-	Reference:
-		Dammertz, H., Shallow Bounding Volume Hierarchies for Fast SIMD Ray Tracing of Incoherent Rays,
-		EGSR'08 Proceedings, 2008.
-	Partially based on the implementation of
-	- LuxRender's QBVHAccel
-	- http://d.hatena.ne.jp/ototoi/20090925/p1
 */
-class NANON_PUBLIC_API QBVHScene : public Scene
+struct AABB
 {
-public:
 
-	QBVHScene();
-	virtual ~QBVHScene();
+	Math::Vec3 min, max;
 
-public:
+	NANON_FORCE_INLINE AABB();
+	NANON_FORCE_INLINE AABB(const Math::Vec3& p);
+	NANON_FORCE_INLINE AABB(const Math::Vec3& p1, const Math::Vec3& p2);
 
-	virtual bool Build();
-	virtual bool Intersect( Ray& ray, Intersection& isect ) const;
-	virtual std::string Type() const { return "qbvh"; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func);
+	NANON_FORCE_INLINE bool Intersect(const AABB& b) const;
+	NANON_FORCE_INLINE bool Contain(const Math::Vec3& p) const;
+	NANON_FORCE_INLINE double SurfaceArea() const;
+	NANON_FORCE_INLINE double Volume() const;
+	NANON_FORCE_INLINE int LongestAxis() const;
+	NANON_FORCE_INLINE AABB Union(const AABB& b) const;
+	NANON_FORCE_INLINE AABB Union(const Math::Vec3& p) const;
 
-private:
-
-	class Impl;
-	Impl* p;
+	//bool operator==(const AABB& b) const { return min == b.min && max == b.max; }
+	//bool operator!=(const AABB& b) const { return min != b.min || max != b.max; }
+	NANON_FORCE_INLINE const Math::Vec3& operator[](int i) const { return (&min)[i]; }
+	NANON_FORCE_INLINE Math::Vec3& operator[](int i) { return (&min)[i]; }
 
 };
 
 NANON_NAMESPACE_END
 
-#endif // __LIB_NANON_QBVH_SCENE_H__
+#endif // __LIB_NANON_AABB_H__

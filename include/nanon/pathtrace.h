@@ -31,6 +31,11 @@
 NANON_NAMESPACE_BEGIN
 
 /*!
+	Path trace renderer.
+	An implementation of path tracing.
+	Reference:
+		Kajiya, J. T., The rendering equation,
+		Proceedings of the 13th annual conference on Computer graphics and interactive techniques, 1986,
 */
 class NANON_PUBLIC_API PathtraceRenderer : public Renderer
 {

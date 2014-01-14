@@ -30,96 +30,10 @@
 #include <nanon/ray.h>
 #include <nanon/intersection.h>
 #include <nanon/logger.h>
+#include <nanon/aabb.h>
 #include <thread>
 
 NANON_NAMESPACE_BEGIN
-
-struct AABB
-{
-
-	AABB()
-		: min(Math::Constants::Inf)
-		, max(-Math::Constants::Inf)
-	{
-
-	}
-
-	AABB(const Math::Vec3& p)
-		: min(p)
-		, max(p)
-	{
-
-	}
-
-	AABB(const Math::Vec3& p1, const Math::Vec3& p2)
-		: min(Math::Min(p1, p2))
-		, max(Math::Max(p1, p2))
-	{
-
-	}
-
-	bool Intersect(const AABB& b) const
-	{
-		bool x = (max.x >= b.min.x) && (min.x <= b.max.x);
-		bool y = (max.y >= b.min.y) && (min.y <= b.max.y);
-		bool z = (max.z >= b.min.z) && (min.z <= b.max.z);
-		return x && y && z;
-	}
-
-	bool Contain(const Math::Vec3& p) const
-	{
-		return
-			p.x >= min.x && p.x <= max.x &&
-			p.y >= min.y && p.y <= max.y &&
-			p.z >= min.z && p.z <= max.z;
-	}
-
-	double SurfaceArea() const
-	{
-		auto d = max - min;
-		return 2.0 * (d.x * d.y + d.y * d.z + d.z * d.x);
-	}
-
-	double Volume() const
-	{
-		Math::Vec3 d = max - min;
-		return d.x * d.y * d.z;
-	}
-
-	int LongestAxis() const
-	{
-		auto d = max - min;
-		return d.x > d.y && d.x > d.z ? 0 : d.y > d.z ? 1 : 2;
-	}
-
-	AABB Union(const AABB& b) const
-	{
-		AABB r;
-		r.min = Math::Min(min, b.min);
-		r.max = Math::Max(max, b.max);
-		return r;
-	}
-
-	AABB Union(const Math::Vec3& p) const
-	{
-		AABB r;
-		r.min = Math::Min(min, p);
-		r.max = Math::Max(max, p);
-		return r;
-	}
-
-	//bool operator==(const AABB& b) const { return min == b.min && max == b.max; }
-	//bool operator!=(const AABB& b) const { return min != b.min || max != b.max; }
-	const Math::Vec3& operator[](int i) const { return (&min)[i]; }
-	Math::Vec3& operator[](int i) { return (&min)[i]; }
-
-public:
-
-	Math::Vec3 min, max;
-
-};
-
-// --------------------------------------------------------------------------------
 
 struct BVHNode
 {
@@ -164,7 +78,7 @@ struct BVHNode
 struct BVHBuildData
 {
 	std::vector<AABB> triBounds;					// Bounds of the triangles
-	std::vector<Math::Vec3> triBoundCentroids;		// Centroid of the bounds of the triangles
+	std::vector<Math::Vec3> triBoundCentroids;		// Centroids of the bounds of the triangles
 };
 
 class CompareToBucket
@@ -247,6 +161,8 @@ private:
 	std::shared_ptr<BVHNode> Build(const BVHBuildData& data, int begin, int end);
 	void LoadPrimitives(const std::string& scenePath);
 	
+private:
+
 	// The function is called when a leaf node is created
 	// report progress w.r.t. # of triangles fixed as leafs
 	void ReportProgress(int begin, int end);

@@ -27,6 +27,9 @@
 #include <nanon/logger.h>
 #include <nanon/naivescene.h>
 #include <nanon/bvhscene.h>
+#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
+#include <nanon/qbvhscene.h>
+#endif
 
 NANON_NAMESPACE_BEGIN
 
@@ -49,6 +52,15 @@ Scene* SceneFactory::Create( const std::string& type ) const
 	else if (type == "bvh")
 	{
 		return new BVHScene();
+	}
+	else if (type == "qbvh")
+	{
+#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
+		return new QBVHScene();
+#else
+		NANON_LOG_ERROR("QBVH implementation requires SSE2 support and single precision mode");
+		return nullptr;
+#endif
 	}
 	else
 	{
