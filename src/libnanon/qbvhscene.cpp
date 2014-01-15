@@ -34,8 +34,56 @@
 
 NANON_NAMESPACE_BEGIN
 
+// QBVH node (128 bytes)
 struct QBVHNode
 {
+	
+	// Constant which indicates a empty leaf node
+	static const int EmptyLeafNode = 0xffffffff;
+
+	// Bounds for 4 nodes in SOA structure
+	AABB bounds[2];
+	//__m128 bounds[2][3];
+
+	/*
+		Child nodes
+		If the node is a leaf, the reference to the primitive is encoded to
+		 - [31:31] : 1
+		 - [30:27] : # of triangles in the leaf
+		 - [26: 0] : An index of the first quad triangles
+		If the node is a intermediate node, 
+		 - [31:31] : 0
+		 - [30: 0] : An index of the child node
+	*/
+	int children[4];
+
+	NANON_FORCE_INLINE QBVHNode()
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			bounds[0][i] = _mm_set1_ps(Math::Constants::Inf);
+			bounds[1][i] = _mm_set1_ps(-Math::Constants::Inf);
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			children[i] = EmptyLeafNode;
+		}
+	}
+
+	/*
+		Set bounds to the node.
+		\param i Child index.
+		\param bound A bound to be set
+	*/
+	NANON_FORCE_INLINE void SetBound(int i, const AABB& bound)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			
+		}
+	}
+
+	
 
 };
 
@@ -273,7 +321,7 @@ void QBVHScene::Impl::PartitionPrimitives( const QBVHBuildData& data, unsigned i
 void QBVHScene::Impl::CreateLeafNode( int parent, int child, unsigned int begin, unsigned int end, const AABB& bound )
 {
 	// If the #parent is -1 the root is a leaf node
-	// Note that in the case the node is yet to be created
+	// Note that in the case the root node is yet to be created
 	if (parent < 0)
 	{
 		// Create node
@@ -283,7 +331,7 @@ void QBVHScene::Impl::CreateLeafNode( int parent, int child, unsigned int begin,
 
 	// Set the value to the node
 	auto& node = nodes[parent];
-	
+	node->SetAABB();
 }
 
 void QBVHScene::Impl::CreateIntermediateNode( int parent, int child, const AABB& bound )
