@@ -168,6 +168,13 @@ public:
 protected:
 
 	/*!
+		Implementation specific load function.
+		\param node XML node for the configuration.
+		\param assets Asset manager.
+	*/
+	virtual bool LoadImpl(const pugi::xml_node& node, const Assets& assets) = 0;
+
+	/*!
 		Store intersection data using barycentric coordinates.
 		Reconstruct intersection information from some information.
 		The function is used internally.

@@ -144,13 +144,15 @@ endif()
 
 #
 
-# Ignore linker warnings in VS
 if (MSVC)
+	# Ignore linker warnings in VS
 	# Do not use list(APPEND ..)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
-	
 	# _SCL_SECURE_NO_WARNINGS 
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+	
+	# Increase stack size to 10MB
+	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000")
 endif()
 
 # Enabling C++11 for gcc

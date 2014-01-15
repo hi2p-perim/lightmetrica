@@ -63,13 +63,13 @@ NANON_FORCE_INLINE bool AABB::Contain(const Math::Vec3& p) const
 		p.z >= min.z && p.z <= max.z;
 }
 
-NANON_FORCE_INLINE double AABB::SurfaceArea() const
+NANON_FORCE_INLINE Math::Float AABB::SurfaceArea() const
 {
 	auto d = max - min;
-	return 2.0 * (d.x * d.y + d.y * d.z + d.z * d.x);
+	return Math::Float(2) * (d.x * d.y + d.y * d.z + d.z * d.x);
 }
 
-NANON_FORCE_INLINE double AABB::Volume() const
+NANON_FORCE_INLINE Math::Float AABB::Volume() const
 {
 	Math::Vec3 d = max - min;
 	return d.x * d.y * d.z;

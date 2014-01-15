@@ -178,7 +178,7 @@ public:
 		std::mt19937 gen(42);
 		std::uniform_real_distribution<double> dist;
 
-		const int FaceCount = 100;
+		const int FaceCount = 1000;
 		for (int i = 0; i < FaceCount; i++)
 		{
 			auto p1 = Math::Vec3(Math::Float(dist(gen)), Math::Float(dist(gen)), Math::Float(dist(gen)));
@@ -222,6 +222,9 @@ public:
 		// List of scene types to be tested
 		sceneTypes.push_back("naive");
 		sceneTypes.push_back("bvh");
+#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
+		sceneTypes.push_back("qbvh");
+#endif
 
 		// BSDF
 		bsdf = new StubBSDF("test");

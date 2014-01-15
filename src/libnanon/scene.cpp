@@ -176,6 +176,14 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 
 	NANON_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
 
+	// Implementation specific load function
+	{
+		NANON_LOG_INFO("Configuring '" + self->Type() + "'");
+		NANON_LOG_INDENTER();
+		self->LoadImpl(node, assets);
+		NANON_LOG_INFO("Completed");
+	}
+	
 	loaded = true;
 	return true;
 }
