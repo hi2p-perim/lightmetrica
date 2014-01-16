@@ -32,6 +32,7 @@ set(
 	"test.asset.cpp"
 	"test.scene.cpp"
 	"test.scene.intersection.cpp"
+	"test.qbvhscene.cpp"
 	"test.objmesh.cpp"
 	"test.rawmesh.cpp"
 	"test.hdrfilm.cpp"

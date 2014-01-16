@@ -839,18 +839,18 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	rayDirSign[2] = ray.d.z < 0.0f;
 
 	// Stack for traversal
-	std::vector<int> stack;
-	stack.reserve(64);
+	// Note : do not use dynamic allocation (like std::vector)
+	const int StackSize = 64;
+	int stack[StackSize];
+	int stackIndex = 0;
 
 	// Initial state
-	stack.push_back(0);
+	stack[0] = 0;
 
 	// Depth first traversal of QBVH
-	while (!stack.empty())
+	while (stackIndex >= 0)
 	{
-		int data = stack.back();
-		stack.pop_back();
-
+		int data = stack[stackIndex--];
 		if (data < 0)
 		{
 			// Leaf node
@@ -898,10 +898,10 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 			// Check intersection to 4 bounds simultaneously
 			auto* node = nodes[data];
 			int mask = node->Intersect(ray4, invRayDir, rayDirSign);
-			if (mask & 0x1) stack.push_back(node->children[0]);
-			if (mask & 0x2) stack.push_back(node->children[1]);
-			if (mask & 0x4) stack.push_back(node->children[2]);
-			if (mask & 0x8) stack.push_back(node->children[3]);
+			if (mask & 0x1) stack[++stackIndex] = node->children[0];
+			if (mask & 0x2) stack[++stackIndex] = node->children[1];
+			if (mask & 0x4) stack[++stackIndex] = node->children[2];
+			if (mask & 0x8) stack[++stackIndex] = node->children[3];
 		}
 	}
 
