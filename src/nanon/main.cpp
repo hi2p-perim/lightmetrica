@@ -303,6 +303,19 @@ bool NanonApplication::Run()
 	}
 	NANON_LOG_INFO("Leaving : Scene loading");
 
+	// Configure scene
+	NANON_LOG_INFO("Entering : Scene configuration");
+	{
+		NANON_LOG_INDENTER();
+		NANON_LOG_INFO("Scene type : '" + scene->Type() + "'");
+		if (!scene->Configure(config))
+		{
+			return false;
+		}
+		NANON_LOG_INFO("Completed");
+	}
+	NANON_LOG_INFO("Leaving : Scene configuration");
+
 	// Build scene
 	NANON_LOG_INFO("Entering : Scene building");
 	{
@@ -311,7 +324,6 @@ bool NanonApplication::Run()
 		auto conn = scene->Connect_ReportBuildProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
 		NANON_LOG_INDENTER();
-		NANON_LOG_INFO("Scene type : '" + scene->Type() + "'");
 		if (!scene->Build())
 		{
 			return false;

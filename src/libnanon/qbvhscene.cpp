@@ -58,15 +58,15 @@ struct NANON_ALIGN_16 Ray4
 };
 
 // Quad triangle structure for SSE optimized triangle intersection
-struct QuadTriangle : public Object
+struct NANON_ALIGN_16 QuadTriangle
 {
 
 	__m128 origx, origy, origz;
 	__m128 edge1x, edge1y, edge1z;
 	__m128 edge2x, edge2y, edge2z;
 
-	int elementIndex;
-	int primitiveIndex[4];
+	// Index of a triangle reference for each triangle
+	unsigned int triRefIndex[4];
 
 	/*
 		Load triangles.
@@ -78,7 +78,7 @@ struct QuadTriangle : public Object
 		{
 			const auto& p1 = positions[i*3  ];
 			const auto& p2 = positions[i*3+1];
-			const auto& p3 = positions[i*3*2];
+			const auto& p3 = positions[i*3+2];
 			reinterpret_cast<float*>(&origx)[i] = p1.x;
 			reinterpret_cast<float*>(&origy)[i] = p1.y;
 			reinterpret_cast<float*>(&origz)[i] = p1.z;
@@ -96,7 +96,7 @@ struct QuadTriangle : public Object
 		\param ray4 Quad ray structure.
 		\param ray Ray structure.
 	*/
-	NANON_FORCE_INLINE bool Intersect(Ray4& ray4, Ray& ray, Math::Vec2& resultB)
+	NANON_FORCE_INLINE bool Intersect(Ray4& ray4, Ray& ray, Math::Vec2& resultB, unsigned int& resultOffset)
 	{
 		// Check 4 intersections simultaneously
 		const __m128 zero = _mm_set1_ps(0.f);
@@ -139,11 +139,31 @@ struct QuadTriangle : public Object
 		ray4.maxT = _mm_set1_ps(ray.maxT);
 
 		// Store information needed to fill an intersection structure
+		resultOffset = hit;
 		resultB = Math::Vec2(
 			reinterpret_cast<const float*>(&b1)[hit],
-			reinterpret_cast<const float *>(&b2)[hit]);
+			reinterpret_cast<const float*>(&b2)[hit]);
 
 		return true;
+	}
+
+};
+
+/*
+	Reference to triangle information.
+	The structure is used as intermediate data for QBVH construction.
+	A entry of the structure points to a triangle in a mesh in one of a primitives.
+*/
+struct TriangleRef
+{
+
+	int primitiveIndex;		// Index of a primitive. -1 specifies no reference
+	int faceIndex;			// Index of a face in the primitive
+
+	NANON_FORCE_INLINE TriangleRef()
+		: primitiveIndex(-1)
+	{
+
 	}
 
 };
@@ -305,24 +325,33 @@ public:
 	bool Build();
 	bool Intersect( Ray& ray, Intersection& isect ) const;
 	boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
-	bool LoadImpl( const pugi::xml_node& node, const Assets& assets );
+	bool Configure( const pugi::xml_node& node );
+	void ResetScene();
 
 private:
 
-	// Build a part of QBVH.
-	// [begin, end) is the range of primitive indices.
-	// #parent indicates the index of the parent node (specify -1 for building root node)
-	// and #child indicates the index of the child node relative to the node specified by #parent.
+	/*
+		Build a part of QBVH.
+		[begin, end) is the range of primitive indices.
+		#parent indicates the index of the parent node (specify -1 for building root node)
+		and #child indicates the index of the child node relative to the node specified by #parent.
+	*/
 	void Build(const QBVHBuildData& data, unsigned int begin, unsigned int end, int parent, int child, int depth);
+	void PostBuild(const QBVHBuildData& data, unsigned int nodeIndex);
 
-	// Determine the split axis and the position
-	// Returns false if the split is failed because the primitive bound is degenerated
+	/*
+		Determine the split axis and the position
+		Returns false if the split is failed because the primitive bound is degenerated
+	*/
 	bool SplitAxisAndPosition(const QBVHBuildData& data, unsigned int begin, unsigned int end, int& axis, Math::Float& splitPosition);
 
-	// Rearrange primitives by partition according to the split axis and position
-	// splitTriIndex is the boundary primitive index
+	/*
+		Rearrange primitives by partition according to the split axis and position
+		splitTriIndex is the boundary primitive index
+	*/
 	void PartitionPrimitives(const QBVHBuildData& data, unsigned int begin, unsigned int end, int axis, Math::Float splitPosition, unsigned int& splitTriIndex);
 
+	// Create leaf and intermediate nodes
 	void CreateLeafNode(unsigned int begin, unsigned int end, int parent, int child, const AABB& bound);
 	void CreateIntermediateNode(int parent, int child, const AABB& bound, unsigned int& createdNodeIndex);
 
@@ -333,10 +362,11 @@ private:
 	int numProcessedTris;
 
 	IntersectionMode mode;					// Triangle intersection mode
-	unsigned int maxElementsInLeaf;			// Maximum # of triangle in a node (4 bit : 64 triangles)
+	unsigned int maxElementsInLeaf;			// Maximum # of triangle in a node
 
+	std::vector<TriangleRef> triRefs;		// List of triangle references
 	std::vector<TriAccel> triAccels;		// List of triaccels
-	std::vector<QuadTriangle> quadTris;		// List of quad triangles
+	std::vector<QuadTriangle*> quadTris;	// List of quad triangles
 	std::vector<unsigned int> triIndices;	// List of triangle indices. The list is rearranged through build process.
 	std::vector<QBVHNode*> nodes;			// List of QBVH nodes
 
@@ -344,21 +374,30 @@ private:
 
 QBVHScene::Impl::Impl( QBVHScene* self )
 	: self(self)
-	, mode(IntersectionMode::SSE)
-	, maxElementsInLeaf(64)
 {
 
 }
 
 QBVHScene::Impl::~Impl()
 {
-	for (auto* node : nodes)
-	{
-		NANON_SAFE_DELETE(node);
-	}
+	ResetScene();
 }
 
-bool QBVHScene::Impl::LoadImpl( const pugi::xml_node& node, const Assets& assets )
+void QBVHScene::Impl::ResetScene()
+{
+	for (auto* node : nodes)
+		NANON_SAFE_DELETE(node);
+	for (auto* quad : quadTris)
+		NANON_SAFE_DELETE(quad);
+
+	triRefs.clear();
+	triAccels.clear();
+	quadTris.clear();
+	triIndices.clear();
+	nodes.clear();
+}
+
+bool QBVHScene::Impl::Configure( const pugi::xml_node& node )
 {
 	auto intersectionModeNode = node.child("intersection_mode");
 	if (!intersectionModeNode)
@@ -384,12 +423,12 @@ bool QBVHScene::Impl::LoadImpl( const pugi::xml_node& node, const Assets& assets
 	}
 	if (mode == IntersectionMode::SSE)
 	{
-		// 2^4 = 16
+		// 2^4 * 4 = 64
 		maxElementsInLeaf = 64;
 	}
 	else
 	{
-		// 2^4 * 4 = 64
+		// 2^4 = 16
 		maxElementsInLeaf = 16;
 	}
 
@@ -400,15 +439,12 @@ bool QBVHScene::Impl::Build()
 {
 	QBVHBuildData data;
 
+	signal_ReportBuildProgress(0, false);
+
 	{
 		// TODO : replace triaccel with SSE optimized quad triangle intersection
-		NANON_LOG_INFO("Creating triangle elements (mode : '" + (mode == IntersectionMode::SSE : "sse" ? "triaccel") + "'");
+		NANON_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == IntersectionMode::SSE ? "sse" : "triaccel")));
 		NANON_LOG_INDENTER();
-
-		// TODO
-		//// Process 4 triangles in a batch
-		//Math::Vec3 triPositions[12];
-		//int triPrimitiveIndex[4];
 
 		for (int i = 0; i < self->NumPrimitives(); i++)
 		{
@@ -416,33 +452,30 @@ bool QBVHScene::Impl::Build()
 			const auto* mesh = primitive->mesh;
 			if (mesh)
 			{
-				// Enumerate all triangles and create triaccels
+				// Enumerate all triangles and create triangle references
 				const auto* positions = mesh->Positions();
 				const auto* faces = mesh->Faces();
 				for (int j = 0; j < mesh->NumFaces() / 3; j++)
 				{
-					unsigned int triIdx = static_cast<unsigned int>(triAccels.size());
+					unsigned int triRefIdx = static_cast<unsigned int>(triRefs.size());
 				
-					// Create triaccel
-					triAccels.push_back(TriAccel());
-					triAccels.back().shapeIndex = j;
-					triAccels.back().primIndex = i;
+					// Create a triangle reference
+					triRefs.push_back(TriangleRef());
+					triRefs.back().primitiveIndex = i;
+					triRefs.back().faceIndex = j;
+
+					// Initial index
+					triIndices.push_back(triRefIdx);
+
+					// Create primitive bound from points
 					unsigned int i1 = faces[3*j  ];
 					unsigned int i2 = faces[3*j+1];
 					unsigned int i3 = faces[3*j+2];
 					Math::Vec3 p1(primitive->transform * Math::Vec4(positions[3*i1], positions[3*i1+1], positions[3*i1+2], Math::Float(1)));
 					Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
 					Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
-					
-					triAccels.back().Load(p1, p2, p3);
-
-					// Initial index
-					triIndices.push_back(triIdx);
-
-					// Create primitive bound from points
 					AABB triBound(p1, p2);
 					triBound = triBound.Union(p3);
-
 					data.triBounds.push_back(triBound);
 					data.triBoundCentroids.push_back((triBound.min + triBound.max) * Math::Float(0.5));
 				}
@@ -458,12 +491,15 @@ bool QBVHScene::Impl::Build()
 		//ResetProgress();
 
 		auto start = std::chrono::high_resolution_clock::now();
-		Build(data, 0, static_cast<int>(triAccels.size()), -1, 0, 0);
+		Build(data, 0, static_cast<int>(triRefs.size()), -1, 0, 0);
+		PostBuild(data, 0);
 		auto end = std::chrono::high_resolution_clock::now();
 
 		double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0;
 		NANON_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
 	}
+
+	signal_ReportBuildProgress(1, true);
 
 	return true;
 }
@@ -536,6 +572,110 @@ void QBVHScene::Impl::Build( const QBVHBuildData& data, unsigned int begin, unsi
 	// Process recursively
 	Build(data, begin, splitTriIndex, current, left, depth + 1);
 	Build(data, splitTriIndex, end, current, right, depth + 1);
+}
+
+void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeIndex )
+{
+	for (int i = 0; i < 4; i++)
+	{
+		auto* node = nodes[nodeIndex];
+		int childData = node->children[i];
+		if (childData < 0)
+		{
+			// Empty node
+			if (childData == QBVHNode::EmptyLeafNode)
+			{
+				continue;
+			}
+
+			// Leaf node
+			unsigned int size, offset;
+			QBVHNode::ExtractLeafData(childData, size, offset);
+
+			// Recreate triangle elements we actually uses for the intersection query
+			if (mode == IntersectionMode::SSE)
+			{
+				unsigned int quadOffset = static_cast<unsigned int>(quadTris.size());
+
+				for (unsigned int j = 0; j < size; j++)
+				{
+					int endK = 0;
+					Math::Vec3 tempPositions[12];
+					auto* quad = new QuadTriangle();
+
+					for (int k = 0; k < 4; k++)
+					{
+						// Possibly some triangles overlap -> no problem
+						unsigned int triIndex = offset + 4*j+k;
+						if (triIndex < triIndices.size())
+						{
+							endK = k;
+							unsigned int triRefIndex = triIndices[triIndex];
+							quad->triRefIndex[k] = triRefIndex;
+							const auto& triRef = triRefs[triRefIndex];
+							const auto* primitive = self->PrimitiveByIndex(triRef.primitiveIndex);
+							const auto* mesh = primitive->mesh;
+							const auto* ps = mesh->Positions();
+							const auto* fs = mesh->Faces();
+							unsigned int i1 = fs[3*triRef.faceIndex  ];
+							unsigned int i2 = fs[3*triRef.faceIndex+1];
+							unsigned int i3 = fs[3*triRef.faceIndex+2];
+							tempPositions[3*k  ] = Math::Vec3(primitive->transform * Math::Vec4(ps[3*i1], ps[3*i1+1], ps[3*i1+2], Math::Float(1)));
+							tempPositions[3*k+1] = Math::Vec3(primitive->transform * Math::Vec4(ps[3*i2], ps[3*i2+1], ps[3*i2+2], Math::Float(1)));
+							tempPositions[3*k+2] = Math::Vec3(primitive->transform * Math::Vec4(ps[3*i3], ps[3*i3+1], ps[3*i3+2], Math::Float(1)));
+						}
+					}
+
+					// Pad some triangles if size % 4 != 0
+					for (int k = endK + 1; k < 4; k++)
+					{
+						// Duplicates endK-th info
+						// Note that always endK >= 0
+						tempPositions[3*k  ] = tempPositions[3*endK  ];
+						tempPositions[3*k+1] = tempPositions[3*endK+1];
+						tempPositions[3*k+2] = tempPositions[3*endK+2];
+					}
+
+					quad->Load(tempPositions);
+					quadTris.push_back(quad);
+				}
+
+				node->InitializeLeaf(i, size, quadOffset);
+			}
+			else if (mode == IntersectionMode::Triaccel)
+			{
+				unsigned int triAccelOffset = static_cast<unsigned int>(triAccels.size());
+
+				for (unsigned int j = 0; j < size; j++)
+				{
+					const auto& triRef = triRefs[triIndices[offset+j]];
+					const auto* primitive = self->PrimitiveByIndex(triRef.primitiveIndex);
+					const auto* mesh = primitive->mesh;
+					const auto* ps = mesh->Positions();
+					const auto* fs = mesh->Faces();
+					unsigned int i1 = fs[3*triRef.faceIndex  ];
+					unsigned int i2 = fs[3*triRef.faceIndex+1];
+					unsigned int i3 = fs[3*triRef.faceIndex+2];
+					Math::Vec3 p1(primitive->transform * Math::Vec4(ps[3*i1], ps[3*i1+1], ps[3*i1+2], Math::Float(1)));
+					Math::Vec3 p2(primitive->transform * Math::Vec4(ps[3*i2], ps[3*i2+1], ps[3*i2+2], Math::Float(1)));
+					Math::Vec3 p3(primitive->transform * Math::Vec4(ps[3*i3], ps[3*i3+1], ps[3*i3+2], Math::Float(1)));
+
+					triAccels.push_back(TriAccel());
+					auto& triAccel = triAccels.back();
+					triAccel.shapeIndex = triRef.faceIndex;
+					triAccel.primIndex = triRef.primitiveIndex;
+					triAccel.Load(p1, p2, p3);
+				}
+
+				node->InitializeLeaf(i, size, triAccelOffset);
+			}
+		}
+		else
+		{
+			// Intermediate node
+			PostBuild(data, childData);
+		}
+	}
 }
 
 bool QBVHScene::Impl::SplitAxisAndPosition( const QBVHBuildData& data, unsigned int begin, unsigned int end, int& axis, Math::Float& splitPosition )
@@ -651,7 +791,16 @@ void QBVHScene::Impl::CreateLeafNode( unsigned int begin, unsigned int end, int 
 	// Initialize a leaf for #child
 	// For now, # of quads section of the leaf data is replaced to # of triangles.
 	// TODO : Replace it
-	node->InitializeLeaf(child, end - begin, begin);
+	if (mode == IntersectionMode::SSE)
+	{
+		// Store # of quad triangles as size entry
+		node->InitializeLeaf(child, (end - begin + 3) / 4, begin);
+	}
+	else if (mode == IntersectionMode::Triaccel)
+	{
+		// Store # of triangles as size entry
+		node->InitializeLeaf(child, end - begin, begin);
+	}
 }
 
 void QBVHScene::Impl::CreateIntermediateNode( int parent, int child, const AABB& bound, unsigned int& createdNodeIndex )
@@ -673,6 +822,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
 	unsigned int intersectedTriIndex;
+	unsigned int intersectedQuadOffset;		// Only for IntersectionMode::SSE
 	Math::Vec2 intersectedTriB;
 
 	// Some required data for intersection query
@@ -690,7 +840,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 
 	// Stack for traversal
 	std::vector<int> stack;
-	stack.reserve(256);
+	stack.reserve(64);
 
 	// Initial state
 	stack.push_back(0);
@@ -706,21 +856,39 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 			// Leaf node
 			
 			// If the node is empty, ignore it
-			if (data == QBVHNode::EmptyLeafNode) continue;
+			if (data == QBVHNode::EmptyLeafNode)
+			{
+				continue;
+			}
 
 			// Intersection
 			unsigned int size, offset;
 			QBVHNode::ExtractLeafData(data, size, offset);
 			for (unsigned int i = offset; i < offset + size; i++)
 			{
-				Math::Float t;
-				Math::Vec2 b;
-				if (triAccels[triIndices[i]].Intersect(ray, ray.minT, ray.maxT, b[0], b[1], t))
+				if (mode == IntersectionMode::SSE)
 				{
-					ray.maxT = t;
-					intersectedTriIndex = triIndices[i];
-					intersectedTriB = b;
-					intersected = true;
+					Math::Vec2 b;
+					unsigned int quadOffset;
+					if (quadTris[i]->Intersect(ray4, ray, b, quadOffset))
+					{
+						intersectedTriIndex = i;
+						intersectedQuadOffset = quadOffset;
+						intersectedTriB = b;
+						intersected = true;
+					}
+				}
+				else if (mode == IntersectionMode::Triaccel)
+				{
+					Math::Float t;
+					Math::Vec2 b;
+					if (triAccels[i].Intersect(ray, ray.minT, ray.maxT, b[0], b[1], t))
+					{
+						ray.maxT = t;
+						intersectedTriIndex = i;
+						intersectedTriB = b;
+						intersected = true;
+					}
 				}
 			}
 		}
@@ -740,8 +908,18 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	if (intersected)
 	{
 		// Store some information to the intersection structure
-		auto& triAccel = triAccels[intersectedTriIndex];
-		self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, intersectedTriB, isect);
+		if (mode == IntersectionMode::SSE)
+		{
+			auto* quad = quadTris[intersectedTriIndex];
+			auto& triRef = triRefs[quad->triRefIndex[intersectedQuadOffset]];
+			self->StoreIntersectionFromBarycentricCoords(triRef.primitiveIndex, triRef.faceIndex, ray, intersectedTriB, isect);
+		}
+		else if (mode == IntersectionMode::Triaccel)
+		{
+			auto& triAccel = triAccels[intersectedTriIndex];
+			self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, intersectedTriB, isect);
+		}
+
 		return true;
 	}
 
@@ -776,9 +954,14 @@ boost::signals2::connection QBVHScene::Connect_ReportBuildProgress( const std::f
 	return p->Connect_ReportBuildProgress(func);
 }
 
-bool QBVHScene::LoadImpl( const pugi::xml_node& node, const Assets& assets )
+bool QBVHScene::Configure( const pugi::xml_node& node )
 {
-	return p->LoadImpl(node, assets);
+	return p->Configure(node);
+}
+
+void QBVHScene::ResetScene()
+{
+	p->ResetScene();
 }
 
 NANON_NAMESPACE_END

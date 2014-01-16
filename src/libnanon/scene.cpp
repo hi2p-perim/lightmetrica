@@ -175,14 +175,6 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	}
 
 	NANON_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
-
-	// Implementation specific load function
-	{
-		NANON_LOG_INFO("Configuring '" + self->Type() + "'");
-		NANON_LOG_INDENTER();
-		self->LoadImpl(node, assets);
-		NANON_LOG_INFO("Completed");
-	}
 	
 	loaded = true;
 	return true;
@@ -555,7 +547,10 @@ bool Scene::Load( const NanonConfig& config, Assets& assets )
 
 void Scene::Reset()
 {
+	// Note that virtual function call in ctor is prohibited
+	// and ResetScene function is called here instead of in Reset.
 	p->Reset();
+	ResetScene();
 }
 
 int Scene::NumPrimitives() const
@@ -586,6 +581,11 @@ const Camera* Scene::MainCamera() const
 void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
 {
 	p->StoreIntersectionFromBarycentricCoords(primitiveIndex, triangleIndex, ray, b, isect);
+}
+
+bool Scene::Configure( const NanonConfig& config )
+{
+	return Configure(config.SceneElement());
 }
 
 NANON_NAMESPACE_END

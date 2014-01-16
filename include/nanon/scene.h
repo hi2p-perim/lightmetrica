@@ -86,6 +86,22 @@ public:
 	bool Load(const NanonConfig& config, Assets& assets);
 
 	/*!
+		Configure the scene.
+		\param node XML node for the configuration.
+		\retval true Succeeded to configure the scene.
+		\retval false Failed to configure the scene.
+	*/
+	virtual bool Configure(const pugi::xml_node& node) = 0;
+
+	/*!
+		Configure the scene.
+		\param config Configuration.
+		\retval true Succeeded to configure the scene.
+		\retval false Failed to configure the scene.
+	*/
+	bool Configure(const NanonConfig& config);
+
+	/*!
 		Build acceleration structure.
 		Some scene may have an acceleration structure for the optimization.
 		The function must be called after #Load.
@@ -168,11 +184,10 @@ public:
 protected:
 
 	/*!
-		Implementation specific load function.
-		\param node XML node for the configuration.
-		\param assets Asset manager.
+		Implementation specific reset function.
+		Get the scene back to the initial state.
 	*/
-	virtual bool LoadImpl(const pugi::xml_node& node, const Assets& assets) = 0;
+	virtual void ResetScene() = 0;
 
 	/*!
 		Store intersection data using barycentric coordinates.
