@@ -148,9 +148,6 @@ typedef TMat4<int> Mat4i;
 
 #ifdef LM_USE_SSE2
 
-template <> struct LM_ALIGN_16 TMat3<float>;
-template <> struct LM_ALIGN_16 TMat4<float>;
-
 /*!
 	SSE optimized 3x3 matrix.
 	Specialized version of TMat3 optimized by SSE.
@@ -245,9 +242,6 @@ template <> LM_FORCE_INLINE Mat4f Inverse(const Mat4f& m);
 // --------------------------------------------------------------------------------
 
 #ifdef LM_USE_AVX
-
-template <> struct LM_ALIGN_32 TMat3<double>;
-template <> struct LM_ALIGN_32 TMat4<double>;
 
 /*!
 	AVX optimized 3x3 matrix.
