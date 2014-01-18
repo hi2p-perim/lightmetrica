@@ -43,7 +43,7 @@ public:
 
 	virtual std::string Type() const { return "diffuse"; }
 	virtual BSDFType GetBSDFType() const { return BSDFType::DiffuseReflection; }
-	bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
 	virtual bool SampleWo( const BSDFSampleQuery& query, BSDFSampledData& sampled ) const;
 	virtual Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const;
 	virtual PDF Pdf( const BSDFEvaluateQuery& query ) const;
