@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,60 +24,60 @@
 
 #include "pch.h"
 #include "versiondef.h"
-#include <nanon/version.h>
+#include <lightmetrica/version.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 std::string Version::Major()
 {
-	return NANON_VERSION_MAJOR;
+	return LM_VERSION_MAJOR;
 }
 
 std::string Version::Minor()
 {
-	return NANON_VERSION_MINOR;
+	return LM_VERSION_MINOR;
 }
 
 std::string Version::Patch()
 {
-	return NANON_VERSION_PATCH;
+	return LM_VERSION_PATCH;
 }
 
 std::string Version::Revision()
 {
-	return NANON_VERSION_REVISION;
+	return LM_VERSION_REVISION;
 }
 
 std::string Version::BuildDate()
 {
-	return NANON_BUILD_DATE;
+	return LM_BUILD_DATE;
 }
 
 std::string Version::Formatted()
 {
 	return boost::str(boost::format("%s.%s.%s.%s")
-		% NANON_VERSION_MAJOR
-		% NANON_VERSION_MINOR
-		% NANON_VERSION_PATCH
-		% NANON_VERSION_REVISION);
+		% LM_VERSION_MAJOR
+		% LM_VERSION_MINOR
+		% LM_VERSION_PATCH
+		% LM_VERSION_REVISION);
 }
 
 std::string Version::Platform()
 {
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 	return "Windows";
-#elif defined(NANON_PLATFORM_LINUX)
+#elif defined(LM_PLATFORM_LINUX)
 	return "Linux";
 #endif
 }
 
 std::string Version::Archtecture()
 {
-#ifdef NANON_ARCH_X64
+#ifdef LM_ARCH_X64
 	return "x64";
-#elif defined(NANON_ARCH_X86)
+#elif defined(LM_ARCH_X86)
 	return "x86";
 #endif
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

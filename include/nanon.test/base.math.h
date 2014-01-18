@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,20 +23,20 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TEST_BASE_MATH_H__
-#define __LIB_NANON_TEST_BASE_MATH_H__
+#ifndef __LIB_LIGHTMETRICA_TEST_BASE_MATH_H__
+#define __LIB_LIGHTMETRICA_TEST_BASE_MATH_H__
 
 #include "base.h"
-#ifndef NANON_ENABLE_MULTI_PRECISION
-#define NANON_ENABLE_MULTI_PRECISION
+#ifndef LM_ENABLE_MULTI_PRECISION
+#define LM_ENABLE_MULTI_PRECISION
 #endif
-#include <nanon/math.h>
-#include <nanon/align.h>
+#include <lightmetrica/math.h>
+#include <lightmetrica/align.h>
 
 namespace mp = boost::multiprecision;
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 typedef ::testing::Types<float, double, Math::BigFloat> MathTestTypes;
 
@@ -44,7 +44,7 @@ template <typename T>
 class MathTestBase : public TestBase {};
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
 	T diff = std::abs(expected - actual);
 	T epsilon = Math::TConstants<T>::EpsLarge;
@@ -59,7 +59,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, cons
 }
 
 template <>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
 {
 	Math::BigFloat diff = mp::abs(expected - actual);
 	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge;
@@ -74,7 +74,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const M
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, const Math::TVec2<T>& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, const Math::TVec2<T>& actual)
 {
 	for (int i = 0; i < 2; i++)
 	{
@@ -89,7 +89,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -104,7 +104,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& expect, const Math::TVec4<T>& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& expect, const Math::TVec4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -119,7 +119,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& expect, const Math::TMat3<T>& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& expect, const Math::TMat3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -137,7 +137,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T
 }
 
 template <typename T>
-NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T>& expect, const Math::TMat4<T>& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T>& expect, const Math::TMat4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -154,7 +154,7 @@ NANON_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T
 	return ::testing::AssertionSuccess();
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_TEST_BASE_MATH_H__
+#endif // __LIB_LIGHTMETRICA_TEST_BASE_MATH_H__

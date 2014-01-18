@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,10 +23,10 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.math.h>
+#include <lightmetrica.test/base.math.h>
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 template <typename T>
 struct MathMatrix3Test_Data : public Aligned<std::alignment_of<Math::TMat3<T>>::value>
@@ -71,7 +71,7 @@ class MathMatrix3Test : public MathTestBase<T>
 public:
 
 	MathMatrix3Test() { d = new MathMatrix3Test_Data<T>(); }
-	virtual ~MathMatrix3Test() { NANON_SAFE_DELETE(d); }
+	virtual ~MathMatrix3Test() { LM_SAFE_DELETE(d); }
 
 protected:
 
@@ -214,7 +214,7 @@ class MathMatrix4Test : public MathTestBase<T>
 public:
 
 	MathMatrix4Test() { d = new MathMatrix4Test_Data<T>(); }
-	virtual ~MathMatrix4Test() { NANON_SAFE_DELETE(d); }
+	virtual ~MathMatrix4Test() { LM_SAFE_DELETE(d); }
 
 protected:
 
@@ -313,5 +313,5 @@ TYPED_TEST(MathMatrix4Test, Inverse)
 	EXPECT_TRUE(ExpectMat4Near(AT, Math::Inverse(A)));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

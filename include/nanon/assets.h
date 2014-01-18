@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_ASSETS_H__
-#define __LIB_NANON_ASSETS_H__
+#ifndef __LIB_LIGHTMETRICA_ASSETS_H__
+#define __LIB_LIGHTMETRICA_ASSETS_H__
 
 #include "object.h"
 #include <functional>
@@ -35,7 +35,7 @@ namespace pugi
 	class xml_node;
 };
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class Asset;
 
@@ -43,7 +43,7 @@ class Asset;
 	Collection of assets.
 	The asset collection class for the asset management.
 */
-class NANON_PUBLIC_API Assets : public Object
+class LM_PUBLIC_API Assets : public Object
 {
 public:
 
@@ -52,7 +52,7 @@ public:
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(Assets);
+	LM_DISABLE_COPY_AND_MOVE(Assets);
 
 public:
 
@@ -84,6 +84,6 @@ public:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_ASSETS_H__
+#endif // __LIB_LIGHTMETRICA_ASSETS_H__

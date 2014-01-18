@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,10 +23,10 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.math.h>
+#include <lightmetrica.test/base.math.h>
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 template <typename T>
 class MathVector2Test : public MathTestBase<T>
@@ -190,7 +190,7 @@ class MathVector3Test : public MathTestBase<T>
 public:
 
 	MathVector3Test() { d = new MathVector3Test_Data<T>(); }
-	virtual ~MathVector3Test() { NANON_SAFE_DELETE(d); }
+	virtual ~MathVector3Test() { LM_SAFE_DELETE(d); }
 
 protected:
 
@@ -362,7 +362,7 @@ class MathVector4Test : public MathTestBase<T>
 public:
 
 	MathVector4Test() { d = new MathVector4Test_Data<T>(); }
-	virtual ~MathVector4Test() { NANON_SAFE_DELETE(d); }
+	virtual ~MathVector4Test() { LM_SAFE_DELETE(d); }
 
 protected:
 
@@ -507,5 +507,5 @@ TYPED_TEST(MathVector4Test, MinMax)
 	EXPECT_TRUE(ExpectVec4Near(Math::TVec4<T>(T(4), T(3), T(3), T(4)), Math::Max(d->v1, d->v2)));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

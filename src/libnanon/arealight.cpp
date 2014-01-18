@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon/arealight.h>
-#include <nanon/intersection.h>
-#include <nanon/primitive.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/logger.h>
-#include <nanon/pugihelper.h>
+#include <lightmetrica/arealight.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/pugihelper.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class AreaLight::Impl : public Object
 {
@@ -59,7 +59,7 @@ bool AreaLight::Impl::LoadAsset( const pugi::xml_node& node, const Assets& asset
 	auto luminanceNode = node.child("luminance");
 	if (!luminanceNode)
 	{
-		NANON_LOG_DEBUG("Missing 'luminance' element");
+		LM_LOG_DEBUG("Missing 'luminance' element");
 		return false;
 	}
 	Le = PugiHelper::ParseVec3(luminanceNode);
@@ -119,7 +119,7 @@ AreaLight::AreaLight(const std::string& id)
 
 AreaLight::~AreaLight()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 Math::Vec3 AreaLight::EvaluateLe( const Math::Vec3& d, const Intersection& isect ) const
@@ -137,4 +137,4 @@ bool AreaLight::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 	return p->LoadAsset(node, assets);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

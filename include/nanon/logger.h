@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __NANON_CORE_LOGGER_H__
-#define __NANON_CORE_LOGGER_H__
+#ifndef __LM_CORE_LOGGER_H__
+#define __LM_CORE_LOGGER_H__
 
 #include "common.h"
 #include <string>
@@ -32,13 +32,13 @@
 #include <functional>
 #include <boost/signals2.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Logger.
 	Manages log messages.
 */
-class NANON_PUBLIC_API Logger
+class LM_PUBLIC_API Logger
 {
 public:
 
@@ -98,7 +98,7 @@ private:
 	Logger();
 	~Logger();
 
-	NANON_DISABLE_COPY_AND_MOVE(Logger);
+	LM_DISABLE_COPY_AND_MOVE(Logger);
 
 public:
 
@@ -244,53 +244,53 @@ public:
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(LogIndenter);
+	LM_DISABLE_COPY_AND_MOVE(LogIndenter);
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
 /*!
-	\def NANON_LOG_ERROR(message)
+	\def LM_LOG_ERROR(message)
 	Helper macro to add an error log message.
 	\param message Log message.
 */
 
 /*!
-	\def NANON_LOG_WARN(message)
+	\def LM_LOG_WARN(message)
 	Helper macro to add a warning log message.
 	\param message Log message.
 */
 
 /*!
-	\def NANON_LOG_INFO(message)
+	\def LM_LOG_INFO(message)
 	Helper macro to add an information log message.
 	\param message Log message.
 */
 
 /*!
-	\def NANON_LOG_DEBUG(message)
+	\def LM_LOG_DEBUG(message)
 	Helper macro to add a debug log message.
 	The macro is automatically disabled in the debug mode.
 	\param message Log message.
 */
 
 /*!
-	\def NANON_LOG_INDENT()
+	\def LM_LOG_INDENT()
 	Helper macro to add a indentation to the log message in the same scope.
 */
 
-#ifdef NANON_DEBUG_MODE
-	#define NANON_LOG_ERROR(message) nanon::Logger::Error(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define NANON_LOG_WARN(message) nanon::Logger::Warn(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define NANON_LOG_INFO(message) nanon::Logger::Info(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define NANON_LOG_DEBUG(message) nanon::Logger::Debug(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+#ifdef LM_DEBUG_MODE
+	#define LM_LOG_ERROR(message) nanon::Logger::Error(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_WARN(message) nanon::Logger::Warn(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_INFO(message) nanon::Logger::Info(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_DEBUG(message) nanon::Logger::Debug(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
 #else
-	#define NANON_LOG_ERROR(message) nanon::Logger::Error(message, "");
-	#define NANON_LOG_WARN(message) nanon::Logger::Warn(message, "");
-	#define NANON_LOG_INFO(message) nanon::Logger::Info(message, "");
-	#define NANON_LOG_DEBUG(message) nanon::Logger::Debug(message, "");
+	#define LM_LOG_ERROR(message) nanon::Logger::Error(message, "");
+	#define LM_LOG_WARN(message) nanon::Logger::Warn(message, "");
+	#define LM_LOG_INFO(message) nanon::Logger::Info(message, "");
+	#define LM_LOG_DEBUG(message) nanon::Logger::Debug(message, "");
 #endif
-#define NANON_LOG_INDENTER() nanon::LogIndenter _logIndenter;
+#define LM_LOG_INDENTER() nanon::LogIndenter _logIndenter;
 
-#endif // __NANON_CORE_LOGGER_H__
+#endif // __LM_CORE_LOGGER_H__

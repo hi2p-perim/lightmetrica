@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,17 +23,17 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TEST_STUB_ASSETS_H__
-#define __LIB_NANON_TEST_STUB_ASSETS_H__
+#ifndef __LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H__
+#define __LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H__
 
 #include "common.h"
-#include <nanon/assets.h>
+#include <lightmetrica/assets.h>
 #include <string>
 #include <memory>
 #include <boost/unordered_map.hpp>
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class StubAssets : public Assets
 {
@@ -49,7 +49,7 @@ protected:
 
 };
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_TEST_STUB_ASSETS_H__
+#endif // __LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H__

@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,23 +23,23 @@
 */
 
 #include "pch.h"
-#include <nanon/scene.h>
-#include <nanon/config.h>
-#include <nanon/assets.h>
-#include <nanon/asset.h>
-#include <nanon/light.h>
-#include <nanon/camera.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/bsdf.h>
-#include <nanon/logger.h>
-#include <nanon/math.h>
-#include <nanon/pugihelper.h>
-#include <nanon/primitive.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/config.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/asset.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/math.h>
+#include <lightmetrica/pugihelper.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class Scene::Impl : public Object
 {
@@ -104,21 +104,21 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 {
 	if (loaded)
 	{
-		NANON_LOG_ERROR("Already loaded");
+		LM_LOG_ERROR("Already loaded");
 		return false;
 	}
 
 	// Check the element name
 	if (std::strcmp(node.name(), "scene") != 0)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'scene')") % node.name()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'scene')") % node.name()));
 		return false;
 	}
 
 	// Check the scene type
 	if (self->Type() != node.attribute("type").as_string())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid scene type '%s' (expected '%s')") % node.attribute("type").as_string() % self->Type()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid scene type '%s' (expected '%s')") % node.attribute("type").as_string() % self->Type()));
 		return false;
 	}
 
@@ -126,7 +126,7 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	auto rootNode = node.child("root");
 	if (!rootNode)
 	{
-		NANON_LOG_ERROR("Missing 'root' node");
+		LM_LOG_ERROR("Missing 'root' node");
 		return false;
 	}
 	if (!Traverse(rootNode, assets, Math::Mat4::Identity()))
@@ -142,7 +142,7 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	// Camera
 	if (!mainCamera)
 	{
-		NANON_LOG_WARN("Missing 'camera' in the scene");
+		LM_LOG_WARN("Missing 'camera' in the scene");
 	}
 	else
 	{
@@ -171,10 +171,10 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	}
 	if (referencedPrimitives.empty())
 	{
-		NANON_LOG_WARN("Missing 'light' in the scene");
+		LM_LOG_WARN("Missing 'light' in the scene");
 	}
 
-	NANON_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
+	LM_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
 	
 	loaded = true;
 	return true;
@@ -184,7 +184,7 @@ bool Scene::Impl::LoadPrimitives( const std::vector<Primitive*>& primitives )
 {
 	if (loaded)
 	{
-		NANON_LOG_ERROR("Already loaded");
+		LM_LOG_ERROR("Already loaded");
 		return false;
 	}
 
@@ -247,8 +247,8 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	// Camera and light element cannot be used in the same time
 	if (cameraNode && lightNode)
 	{
-		NANON_LOG_ERROR("'camera' and 'light' elements cannot be used in the same time");
-		NANON_LOG_ERROR(PugiHelper::ElementInString(node));
+		LM_LOG_ERROR("'camera' and 'light' elements cannot be used in the same time");
+		LM_LOG_ERROR(PugiHelper::ElementInString(node));
 		return false;
 	}
 
@@ -289,8 +289,8 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		auto bsdfNode = node.child("bsdf");
 		if (!bsdfNode)
 		{
-			NANON_LOG_ERROR("Missing 'bsdf' element");
-			NANON_LOG_ERROR(PugiHelper::ElementInString(node));
+			LM_LOG_ERROR("Missing 'bsdf' element");
+			LM_LOG_ERROR(PugiHelper::ElementInString(node));
 			return false;
 		}
 
@@ -314,18 +314,18 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 		auto idAttr = node.attribute("id");
 		std::string id = idAttr.as_string();
 
-		NANON_LOG_INFO("Creating primitive (id : '" + id + "')");
+		LM_LOG_INFO("Creating primitive (id : '" + id + "')");
 		{
-			NANON_LOG_INDENTER();
+			LM_LOG_INDENTER();
 
 			if (primitive->camera)
-				NANON_LOG_INFO("Reference to camera '" + primitive->camera->ID() + "'");
+				LM_LOG_INFO("Reference to camera '" + primitive->camera->ID() + "'");
 			if (primitive->light)
-				NANON_LOG_INFO("Reference to light '" + primitive->light->ID() + "'");
+				LM_LOG_INFO("Reference to light '" + primitive->light->ID() + "'");
 			if (primitive->mesh)
-				NANON_LOG_INFO("Reference to triangle mesh '" + primitive->mesh->ID() + "'");
+				LM_LOG_INFO("Reference to triangle mesh '" + primitive->mesh->ID() + "'");
 			if (primitive->bsdf)
-				NANON_LOG_INFO("Reference to BSDF '" + primitive->bsdf->ID() + "'");
+				LM_LOG_INFO("Reference to BSDF '" + primitive->bsdf->ID() + "'");
 
 			// Register the primitive to the scene
 			primitives.push_back(std::move(primitive));
@@ -336,8 +336,8 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 				// Check if already exists
 				if (idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end())
 				{
-					NANON_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
-					NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+					LM_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
+					LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 					return false;
 				}
 
@@ -356,8 +356,8 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	bool isLeaf = lightNode || cameraNode || triangleMeshNode;
 	if (node.child("node") && isLeaf)
 	{
-		NANON_LOG_ERROR("Leaf node cannot have children");
-		NANON_LOG_ERROR(PugiHelper::ElementInString(node));
+		LM_LOG_ERROR("Leaf node cannot have children");
+		LM_LOG_ERROR(PugiHelper::ElementInString(node));
 		return false;
 	}
 
@@ -532,7 +532,7 @@ Scene::Scene()
 
 Scene::~Scene()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool Scene::Load( const pugi::xml_node& node, Assets& assets )
@@ -588,4 +588,4 @@ bool Scene::Configure( const NanonConfig& config )
 	return Configure(config.SceneElement());
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

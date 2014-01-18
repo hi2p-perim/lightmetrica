@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,16 +23,16 @@
 */
 
 #include "pch.h"
-#include <nanon/align.h>
+#include <lightmetrica/align.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 void* aligned_malloc( size_t size, size_t align )
 {
 	void* p;
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 	p = _aligned_malloc(size, align);
-#elif defined(NANON_PLATFORM_LINUX)
+#elif defined(LM_PLATFORM_LINUX)
 	if (posix_memalign(&p, align, size)) p = nullptr;
 #else
 	// cf.
@@ -51,9 +51,9 @@ void* aligned_malloc( size_t size, size_t align )
 
 void aligned_free( void* p )
 {
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 	_aligned_free(p);
-#elif defined(NANON_PLATFORM_LINUX)
+#elif defined(LM_PLATFORM_LINUX)
 	free(p);
 #else
 	if (!p) return;
@@ -61,5 +61,5 @@ void aligned_free( void* p )
 #endif
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 

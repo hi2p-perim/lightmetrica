@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,12 +23,12 @@
 */
 
 #include "pch.h"
-#include <nanon/rendererfactory.h>
-#include <nanon/logger.h>
-#include <nanon/raycast.h>
-#include <nanon/pathtrace.h>
+#include <lightmetrica/rendererfactory.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/raycast.h>
+#include <lightmetrica/pathtrace.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 RendererFactory::RendererFactory()
 {
@@ -52,9 +52,9 @@ Renderer* RendererFactory::Create( const std::string& type ) const
 	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid renderer type '" + type + "'");
+		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
 		return nullptr;
 	}
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

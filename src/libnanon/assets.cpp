@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,13 +23,13 @@
 */
 
 #include "pch.h"
-#include <nanon/assets.h>
-#include <nanon/asset.h>
-#include <nanon/logger.h>
-#include <nanon/pugihelper.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/asset.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/pugihelper.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 Assets::Assets()
 {
@@ -47,8 +47,8 @@ Asset* Assets::ResolveReferenceToAsset( const pugi::xml_node& node, const std::s
 	auto refAttr = node.attribute("ref");
 	if (!refAttr)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
+		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 
@@ -56,18 +56,18 @@ Asset* Assets::ResolveReferenceToAsset( const pugi::xml_node& node, const std::s
 	auto* asset = GetAssetByName(refAttr.as_string());
 	if (!asset)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
+		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 	else if (asset->Name() != name)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
-		NANON_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
+		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 
 	return asset;
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

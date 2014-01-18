@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,25 +23,25 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_CAST_H__
-#define __LIB_NANON_MATH_CAST_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_CAST_H__
+#define __LIB_LIGHTMETRICA_MATH_CAST_H__
 
 #include "math.common.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename Dest, typename Src>
-NANON_FORCE_INLINE Dest Cast(const Src& v)
+LM_FORCE_INLINE Dest Cast(const Src& v)
 {
 	// In the default, use static_cast operator
 	return static_cast<Dest>(v);
 }
 
-#ifdef NANON_ENABLE_MULTI_PRECISION
+#ifdef LM_ENABLE_MULTI_PRECISION
 
 template <typename Dest>
-NANON_FORCE_INLINE Dest Cast(const BigFloat& v)
+LM_FORCE_INLINE Dest Cast(const BigFloat& v)
 {
 	// For BigFloat type, use convert_to function
 	return v.convert_to<Dest>();
@@ -49,7 +49,7 @@ NANON_FORCE_INLINE Dest Cast(const BigFloat& v)
 
 #endif
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_MATH_CAST_H__
+#endif // __LIB_LIGHTMETRICA_MATH_CAST_H__

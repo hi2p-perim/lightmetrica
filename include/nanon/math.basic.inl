@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -25,30 +25,30 @@
 #include "math.basic.h"
 #include "math.constants.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> NANON_FORCE_INLINE T Radians(const T& v) { return v * TConstants<T>::Pi / T(180); }
-template <typename T> NANON_FORCE_INLINE T Degrees(const T& v) { return v * T(180) / TConstants<T>::Pi; }
-template <typename T> NANON_FORCE_INLINE T Cos(const T& v) { return std::cos(v); }
-template <typename T> NANON_FORCE_INLINE T Sin(const T& v) { return std::sin(v); }
-template <typename T> NANON_FORCE_INLINE T Tan(const T& v) { return std::tan(v); }
-template <typename T> NANON_FORCE_INLINE T Abs(const T& v) { return std::abs(v); }
-template <typename T> NANON_FORCE_INLINE T Sqrt(const T& v) { return std::sqrt(v); }
-template <typename T> NANON_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
-template <typename T> NANON_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
+template <typename T> LM_FORCE_INLINE T Radians(const T& v) { return v * TConstants<T>::Pi / T(180); }
+template <typename T> LM_FORCE_INLINE T Degrees(const T& v) { return v * T(180) / TConstants<T>::Pi; }
+template <typename T> LM_FORCE_INLINE T Cos(const T& v) { return std::cos(v); }
+template <typename T> LM_FORCE_INLINE T Sin(const T& v) { return std::sin(v); }
+template <typename T> LM_FORCE_INLINE T Tan(const T& v) { return std::tan(v); }
+template <typename T> LM_FORCE_INLINE T Abs(const T& v) { return std::abs(v); }
+template <typename T> LM_FORCE_INLINE T Sqrt(const T& v) { return std::sqrt(v); }
+template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
+template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
 
-#ifdef NANON_ENABLE_MULTI_PRECISION
+#ifdef LM_ENABLE_MULTI_PRECISION
 
-template <> NANON_FORCE_INLINE BigFloat Cos(const BigFloat& v) { return boost::multiprecision::cos(v); }
-template <> NANON_FORCE_INLINE BigFloat Sin(const BigFloat& v) { return boost::multiprecision::sin(v); }
-template <> NANON_FORCE_INLINE BigFloat Tan(const BigFloat& v) { return boost::multiprecision::tan(v); }
-template <> NANON_FORCE_INLINE BigFloat Abs(const BigFloat& v) { return boost::multiprecision::abs(v); }
-template <> NANON_FORCE_INLINE BigFloat Sqrt(const BigFloat& v) { return boost::multiprecision::sqrt(v); }
-template <> NANON_FORCE_INLINE BigFloat Min(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v2 : v1; }
-template <> NANON_FORCE_INLINE BigFloat Max(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v1 : v2; }
+template <> LM_FORCE_INLINE BigFloat Cos(const BigFloat& v) { return boost::multiprecision::cos(v); }
+template <> LM_FORCE_INLINE BigFloat Sin(const BigFloat& v) { return boost::multiprecision::sin(v); }
+template <> LM_FORCE_INLINE BigFloat Tan(const BigFloat& v) { return boost::multiprecision::tan(v); }
+template <> LM_FORCE_INLINE BigFloat Abs(const BigFloat& v) { return boost::multiprecision::abs(v); }
+template <> LM_FORCE_INLINE BigFloat Sqrt(const BigFloat& v) { return boost::multiprecision::sqrt(v); }
+template <> LM_FORCE_INLINE BigFloat Min(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v2 : v1; }
+template <> LM_FORCE_INLINE BigFloat Max(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v1 : v2; }
 
 #endif
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END

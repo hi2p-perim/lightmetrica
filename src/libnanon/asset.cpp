@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #include "pch.h"
-#include <nanon/asset.h>
-#include <nanon/logger.h>
+#include <lightmetrica/asset.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class Asset::Impl
 {
@@ -67,7 +67,7 @@ Asset::Asset(const std::string& id)
 
 Asset::~Asset()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 std::string Asset::ID() const
@@ -80,13 +80,13 @@ bool Asset::Load( const pugi::xml_node& node, const Assets& assets )
 	// Check name and type
 	if (node.name() != Name())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
 		return false;
 	}
 
 	if (node.attribute("type").as_string() != Type())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
 		return false;
 	}
 
@@ -94,4 +94,4 @@ bool Asset::Load( const pugi::xml_node& node, const Assets& assets )
 	return LoadAsset(node, assets);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

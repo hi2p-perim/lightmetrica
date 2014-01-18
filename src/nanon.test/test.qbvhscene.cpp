@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,19 +23,19 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.trianglemesh.h>
-#include <nanon.test/stub.bsdf.h>
-#include <nanon/qbvhscene.h>
-#include <nanon/primitive.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.trianglemesh.h>
+#include <lightmetrica.test/stub.bsdf.h>
+#include <lightmetrica/qbvhscene.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
 
 namespace
 {
 
-	const std::string SceneNode_Template = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Template = LM_TEST_MULTILINE_LITERAL(
 		<scene type="qbvh">
 			<intersection_mode>%s</intersection_mode>
 		</scene>
@@ -43,8 +43,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class QBVHSceneTest : public TestBase
 {
@@ -120,5 +120,5 @@ TEST_F(QBVHSceneTest, Intersect_Random)
 	}
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

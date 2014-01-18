@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,26 +23,26 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/defaultassets.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/stub.asset.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/defaultassets.h>
 
 namespace
 {
 
-	const std::string Asset_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string Asset_Success = LM_TEST_MULTILINE_LITERAL(
 		<asset id="test_1" type="success" />
 	);
 
-	const std::string Asset_FailOnCreate = NANON_TEST_MULTILINE_LITERAL(
+	const std::string Asset_FailOnCreate = LM_TEST_MULTILINE_LITERAL(
 		<Asset id="test_2" type="fail_on_create" />	
 	);
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class AssetTest : public TestBase
 {
@@ -64,5 +64,5 @@ TEST_F(AssetTest, Create_Failed)
 	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

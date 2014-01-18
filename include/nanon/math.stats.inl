@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,11 +24,11 @@
 
 #include "math.basic.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
-NANON_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u)
+LM_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u)
 {
 	// Uniform sampling on the square [-1, 1]^2
 	T v1 = T(2) * u[0] - T(1);
@@ -68,14 +68,14 @@ NANON_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u)
+LM_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u)
 {
 	auto s = ConcentricDiskSample(u);
 	return Math::Vec3(s, Math::Sqrt(Math::Max(T(0), T(1) - s.x*s.x - s.y*s.y)));
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
+LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
 {
 	const T& z = u[0];
 	T r = Math::Sqrt(Math::Max(0.0, 1.0 - z*z));
@@ -84,7 +84,7 @@ NANON_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
+LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
 {
 	T z = 1.0 - 2.0 * u[0];
 	T r = Math::Sqrt(Math::Max(T(0), T(1) - z*z));
@@ -93,11 +93,11 @@ NANON_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec2<T> UniformSampleTriangle(const TVec2<T>& u)
+LM_FORCE_INLINE TVec2<T> UniformSampleTriangle(const TVec2<T>& u)
 {
 	T s = Math::Sqrt(Math::Max(T(0), u[0]));
 	return Math::Vec2(T(1) - s, u[1] * s);
 }
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END

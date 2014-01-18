@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -25,7 +25,7 @@
 #pragma once
 #include "common.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Platform independent aligned malloc.
@@ -33,20 +33,20 @@ NANON_NAMESPACE_BEGIN
 	\param align Alignment in bytes.
 	\return Allocated pointer.
 */
-NANON_PUBLIC_API void* aligned_malloc(size_t size, size_t align);
+LM_PUBLIC_API void* aligned_malloc(size_t size, size_t align);
 
 /*!
 	Platform independent aligned free.
 	\param p Pointer to aligned memory.
 */
-NANON_PUBLIC_API void aligned_free(void* p);
+LM_PUBLIC_API void aligned_free(void* p);
 
 /*!
 	Check alignment.
 	\param p Pointer.
 	\param align Alignment in bytes.
 */
-NANON_FORCE_INLINE bool is_aligned(const void* p, size_t align)
+LM_FORCE_INLINE bool is_aligned(const void* p, size_t align)
 {
 	return (uintptr_t)p % align == 0;
 }
@@ -205,4 +205,4 @@ private:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

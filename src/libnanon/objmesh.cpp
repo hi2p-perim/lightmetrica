@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,9 +23,9 @@
 */
 
 #include "pch.h"
-#include <nanon/objmesh.h>
-#include <nanon/logger.h>
-#include <nanon/pugihelper.h>
+#include <lightmetrica/objmesh.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/pugihelper.h>
 #include <pugixml.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/DefaultLogger.hpp>
@@ -34,7 +34,7 @@
 #include <assimp/postprocess.h>
 #include <regex>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class LogStream : public Assimp::LogStream
 {
@@ -59,16 +59,16 @@ public:
 		switch (level)
 		{
 			case Logger::LogLevel::Debug:
-				NANON_LOG_DEBUG(str);
+				LM_LOG_DEBUG(str);
 				break;
 			case Logger::LogLevel::Warning:
-				NANON_LOG_WARN(str);
+				LM_LOG_WARN(str);
 				break;
 			case Logger::LogLevel::Error:
-				NANON_LOG_ERROR(str);
+				LM_LOG_ERROR(str);
 				break;
 			default:
-				NANON_LOG_INFO(str);
+				LM_LOG_INFO(str);
 		}
 	}
 
@@ -107,7 +107,7 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	auto pathNode = node.child("path");
 	if (!pathNode)
 	{
-		NANON_LOG_ERROR("Missing 'path' element");
+		LM_LOG_ERROR("Missing 'path' element");
 		return false;
 	}
 
@@ -119,7 +119,7 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Information), Assimp::Logger::Info);
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Warning), Assimp::Logger::Warn);
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Error), Assimp::Logger::Err);
-#ifdef NANON_DEBUG_MODE
+#ifdef LM_DEBUG_MODE
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Debug), Assimp::Logger::Debugging);
 #endif
 
@@ -135,7 +135,7 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 
 	if (!scene)
 	{
-		NANON_LOG_ERROR(importer.GetErrorString());
+		LM_LOG_ERROR(importer.GetErrorString());
 		return false;
 	}
 
@@ -204,7 +204,7 @@ ObjMesh::ObjMesh( const std::string& id )
 
 ObjMesh::~ObjMesh()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool ObjMesh::LoadAsset( const pugi::xml_node& node, const Assets& assets )
@@ -242,4 +242,4 @@ const unsigned int* ObjMesh::Faces() const
 	return p->faces.empty() ? nullptr : &p->faces[0];
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

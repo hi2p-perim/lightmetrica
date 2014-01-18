@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -28,7 +28,7 @@
 #include <nanon/objmesh.h>
 #include <nanon/rawmesh.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 Asset* TriangleMeshFactory::Create( const std::string& id, const std::string& type ) const
 {
@@ -42,9 +42,9 @@ Asset* TriangleMeshFactory::Create( const std::string& id, const std::string& ty
 	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid triangle mesh type '" + type + "'");
+		LM_LOG_ERROR("Invalid triangle mesh type '" + type + "'");
 		return nullptr;
 	}
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,12 +23,12 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_PATH_TRACE_H__
-#define __LIB_NANON_PATH_TRACE_H__
+#ifndef __LIB_LIGHTMETRICA_PATH_TRACE_H__
+#define __LIB_LIGHTMETRICA_PATH_TRACE_H__
 
 #include "renderer.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Path trace renderer.
@@ -37,7 +37,7 @@ NANON_NAMESPACE_BEGIN
 		Kajiya, J. T., The rendering equation,
 		Proceedings of the 13th annual conference on Computer graphics and interactive techniques, 1986,
 */
-class NANON_PUBLIC_API PathtraceRenderer : public Renderer
+class LM_PUBLIC_API PathtraceRenderer : public Renderer
 {
 public:
 
@@ -58,6 +58,6 @@ private:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_PATH_TRACE_H__
+#endif // __LIB_LIGHTMETRICA_PATH_TRACE_H__

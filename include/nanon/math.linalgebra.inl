@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -25,11 +25,11 @@
 #include "math.linalgebra.h"
 #include "math.basic.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
-NANON_FORCE_INLINE void OrthonormalBasis(const TVec3<T>& a, TVec3<T>& b, TVec3<T>& c)
+LM_FORCE_INLINE void OrthonormalBasis(const TVec3<T>& a, TVec3<T>& b, TVec3<T>& c)
 {
 	c = Math::Abs(a.x) > Math::Abs(a.y)
 		? Math::Normalize(Math::Vec3(a.z, T(0), -a.x))
@@ -37,5 +37,5 @@ NANON_FORCE_INLINE void OrthonormalBasis(const TVec3<T>& a, TVec3<T>& b, TVec3<T
 	b = Math::Normalize(Math::Cross(c, a));
 }
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END

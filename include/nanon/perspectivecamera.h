@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,18 +23,18 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_PERSPECTIVE_CAMERA_H__
-#define __LIB_NANON_PERSPECTIVE_CAMERA_H__
+#ifndef __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__
+#define __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__
 
 #include "camera.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Perspective camera.
 	A camera with perspective projection. a.k.a. pinhole camera.
 */
-class NANON_PUBLIC_API PerspectiveCamera : public Camera
+class LM_PUBLIC_API PerspectiveCamera : public Camera
 {
 public:
 
@@ -59,6 +59,6 @@ private:
 
 };	
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_PERSPECTIVE_CAMERA_H__
+#endif // __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__

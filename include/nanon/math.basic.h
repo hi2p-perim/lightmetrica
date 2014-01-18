@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,27 +23,27 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_BASIC_H__
-#define __LIB_NANON_MATH_BASIC_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_BASIC_H__
+#define __LIB_LIGHTMETRICA_MATH_BASIC_H__
 
 #include "math.common.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> NANON_FORCE_INLINE T Radians(const T& v);
-template <typename T> NANON_FORCE_INLINE T Degrees(const T& v);
-template <typename T> NANON_FORCE_INLINE T Cos(const T& v);
-template <typename T> NANON_FORCE_INLINE T Sin(const T& v);
-template <typename T> NANON_FORCE_INLINE T Tan(const T& v);
-template <typename T> NANON_FORCE_INLINE T Abs(const T& v);
-template <typename T> NANON_FORCE_INLINE T Sqrt(const T& v);
-template <typename T> NANON_FORCE_INLINE T Min(const T& v1, const T& v2);
-template <typename T> NANON_FORCE_INLINE T Max(const T& v1, const T& v2);
+template <typename T> LM_FORCE_INLINE T Radians(const T& v);
+template <typename T> LM_FORCE_INLINE T Degrees(const T& v);
+template <typename T> LM_FORCE_INLINE T Cos(const T& v);
+template <typename T> LM_FORCE_INLINE T Sin(const T& v);
+template <typename T> LM_FORCE_INLINE T Tan(const T& v);
+template <typename T> LM_FORCE_INLINE T Abs(const T& v);
+template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
+template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
+template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END
 
 #include "math.basic.inl"
 
-#endif // __LIB_NANON_MATH_BASIC_H__
+#endif // __LIB_LIGHTMETRICA_MATH_BASIC_H__

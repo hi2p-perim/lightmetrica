@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,10 +23,10 @@
 */
 
 #include "pch.h"
-#include <nanon/random.h>
+#include <lightmetrica/random.h>
 #include <random>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class Random::Impl
 {
@@ -66,7 +66,7 @@ Random::Random( unsigned int seed )
 
 Random::~Random()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 Math::Float Random::Next()
@@ -79,4 +79,4 @@ void Random::SetSeed( unsigned int seed )
 	p->SetSeed(seed);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

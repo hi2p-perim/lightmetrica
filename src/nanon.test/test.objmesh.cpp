@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/objmesh.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/objmesh.h>
 
 namespace
 {
 	
-	const std::string ObjMesh_Triangle_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ObjMesh_Triangle_Success = LM_TEST_MULTILINE_LITERAL(
 		v 0 1 1 \n
 		v 0 0 1 \n
 		v 1 0 1 \n
@@ -40,7 +40,7 @@ namespace
 		f 2 3 4 \n
 	);
 
-	const std::string ObjMesh_Polygon_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ObjMesh_Polygon_Success = LM_TEST_MULTILINE_LITERAL(
 		v 0 1 1 \n
 		v 0 0 1 \n
 		v 1 0 1 \n
@@ -48,28 +48,28 @@ namespace
 		f 1 2 3 4 \n
 	);
 
-	const std::string ObjMesh_Fail_MissingIndex = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ObjMesh_Fail_MissingIndex = LM_TEST_MULTILINE_LITERAL(
 		v 0 1 1 \n
 		v 0 0 1 \n
 		v 1 0 1 \n
 		f 1 2 4 \n
 	);
 
-	const std::string ObjMeshNode_Template = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ObjMeshNode_Template = LM_TEST_MULTILINE_LITERAL(
 		<triangle_mesh id="test" type="obj">
 			<path>%s</path>
 		</triangle_mesh>
 	);
 
-	const std::string ObjMeshNode_Fail_MissingPathElement = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ObjMeshNode_Fail_MissingPathElement = LM_TEST_MULTILINE_LITERAL(
 		<triangle_mesh id="test" type="obj">
 		</triangle_mesh>
 	);
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class ObjMeshTest : public TestBase
 {
@@ -121,5 +121,5 @@ TEST_F(ObjMeshTest, Load_Fail)
 	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,22 +23,22 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.assetfactory.h>
-#include <nanon.test/stub.bsdf.h>
-#include <nanon.test/stub.trianglemesh.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/scene.h>
-#include <nanon/assets.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/bsdf.h>
-#include <nanon/primitive.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.assetfactory.h>
+#include <lightmetrica.test/stub.bsdf.h>
+#include <lightmetrica.test/stub.trianglemesh.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/primitive.h>
 
 namespace
 {
 
-	const std::string SceneNode_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Success = LM_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
 			<root>
 				<node id="node1">
@@ -54,7 +54,7 @@ namespace
 	);
 
 	// Specify transform by matrix
-	const std::string SceneNode_Success_WithTransformByMatrix = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Success_WithTransformByMatrix = LM_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
 			<root>
 				<transform>
@@ -81,7 +81,7 @@ namespace
 		</scene>
 	);
 
-	const std::string SceneNode_Success_WithTransform = NANON_TEST_MULTILINE_LITERAL(
+	const std::string SceneNode_Success_WithTransform = LM_TEST_MULTILINE_LITERAL(
 		<scene type="stub">
 			<root>
 				<node id="node1">
@@ -102,8 +102,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class StubAssets_SceneTest : public StubAssets
 {
@@ -196,5 +196,5 @@ TEST_F(SceneTest, Load_WithTransform)
 	ASSERT_TRUE(ExpectVec4Near(expected, t));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

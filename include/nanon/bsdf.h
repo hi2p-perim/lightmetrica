@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,14 +23,14 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_BSDF_H__
-#define __LIB_NANON_BSDF_H__
+#ifndef __LIB_LIGHTMETRICA_BSDF_H__
+#define __LIB_LIGHTMETRICA_BSDF_H__
 
 #include "asset.h"
 #include "pdf.h"
 #include "math.types.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Direction of light transport.
@@ -106,7 +106,7 @@ struct Intersection;
 	BSDF.
 	A base class for BSDF implementations.
 */
-class NANON_PUBLIC_API BSDF : public Asset
+class LM_PUBLIC_API BSDF : public Asset
 {
 public:
 
@@ -161,6 +161,6 @@ protected:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_BSDF_H__
+#endif // __LIB_LIGHTMETRICA_BSDF_H__

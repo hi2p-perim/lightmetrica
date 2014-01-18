@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #include "pch.h"
-#include <nanon/logger.h>
-#ifdef NANON_PLATFORM_WINDOWS
+#include <lightmetrica/logger.h>
+#ifdef LM_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
 #include <boost/filesystem.hpp>
@@ -37,7 +37,7 @@ namespace
 	const std::string LogFormat = "| %-5s %s | %s\n";
 }
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class LoggerImpl
 {
@@ -234,7 +234,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 
 	if ((outputMode & Logger::LogOutputMode::Stdout) > 0)
 	{
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 		HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		WORD colorFlag = 0;
 		if (entry->level == Logger::LogLevel::Error)
@@ -250,7 +250,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 
 		std::cout << line;
 
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 		SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 #endif
 	}
@@ -260,7 +260,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 		std::cerr << line;
 	}
 
-#if defined(NANON_DEBUG_MODE) && defined(NANON_PLATFORM_WINDOWS)
+#if defined(LM_DEBUG_MODE) && defined(LM_PLATFORM_WINDOWS)
 	if ((outputMode & Logger::LogOutputMode::DebugOutput) > 0)
 	{
 		OutputDebugStringA(line.c_str());
@@ -461,4 +461,4 @@ void Logger::SetIndentation( unsigned int indentation )
 	p.SetIndentation(indentation);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

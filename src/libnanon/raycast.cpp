@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,17 +23,17 @@
 */
 
 #include "pch.h"
-#include <nanon/raycast.h>
-#include <nanon/scene.h>
-#include <nanon/camera.h>
-#include <nanon/film.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
-#include <nanon/math.functions.h>
-#include <nanon/logger.h>
+#include <lightmetrica/raycast.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/math.functions.h>
+#include <lightmetrica/logger.h>
 #include <atomic>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class RaycastRenderer::Impl : public Object
 {
@@ -109,7 +109,7 @@ RaycastRenderer::RaycastRenderer()
 
 RaycastRenderer::~RaycastRenderer()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool RaycastRenderer::Render(const Scene& scene)
@@ -127,4 +127,4 @@ boost::signals2::connection RaycastRenderer::Connect_ReportProgress( const std::
 	return p->Connect_ReportProgress(func);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

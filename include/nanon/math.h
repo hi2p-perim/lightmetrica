@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_H__
-#define __LIB_NANON_MATH_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_H__
+#define __LIB_LIGHTMETRICA_MATH_H__
 
 #include "math.types.h"
 #include "math.constants.h"
 #include "math.functions.h"
 
-#endif // __LIB_NANON_MATH_H__
+#endif // __LIB_LIGHTMETRICA_MATH_H__

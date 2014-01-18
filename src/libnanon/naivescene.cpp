@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,14 +23,14 @@
 */
 
 #include "pch.h"
-#include <nanon/naivescene.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
-#include <nanon/primitive.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/triaccel.h>
+#include <lightmetrica/naivescene.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/triaccel.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class NaiveScene::Impl : public Object
 {
@@ -132,7 +132,7 @@ NaiveScene::NaiveScene()
 
 NaiveScene::~NaiveScene()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool NaiveScene::Build()
@@ -150,4 +150,4 @@ boost::signals2::connection NaiveScene::Connect_ReportBuildProgress( const std::
 	return p->Connect_ReportBuildProgress(func);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

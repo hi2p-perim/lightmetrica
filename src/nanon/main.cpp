@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -22,24 +22,24 @@
 	THE SOFTWARE.
 */
 
-#include <nanon/config.h>
-#include <nanon/rendererdispatcher.h>
-#include <nanon/logger.h>
-#include <nanon/defaultassets.h>
-#include <nanon/version.h>
-#include <nanon/scene.h>
-#include <nanon/scenefactory.h>
-#include <nanon/renderer.h>
-#include <nanon/rendererfactory.h>
-#include <nanon/camerafactory.h>
-#include <nanon/filmfactory.h>
-#include <nanon/lightfactory.h>
-#include <nanon/bsdffactory.h>
-#include <nanon/texturefactory.h>
-#include <nanon/trianglemeshfactory.h>
-#include <nanon/math.h>
-#include <nanon/camera.h>
-#include <nanon/film.h>
+#include <lightmetrica/config.h>
+#include <lightmetrica/rendererdispatcher.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/defaultassets.h>
+#include <lightmetrica/version.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/scenefactory.h>
+#include <lightmetrica/renderer.h>
+#include <lightmetrica/rendererfactory.h>
+#include <lightmetrica/camerafactory.h>
+#include <lightmetrica/filmfactory.h>
+#include <lightmetrica/lightfactory.h>
+#include <lightmetrica/bsdffactory.h>
+#include <lightmetrica/texturefactory.h>
+#include <lightmetrica/trianglemeshfactory.h>
+#include <lightmetrica/math.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -53,7 +53,7 @@
 #include <ctime>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 
@@ -132,36 +132,36 @@ NanonApplication::NanonApplication()
 
 void NanonApplication::SetAppInfo()
 {
-	appName = "Nanon Renderer";
+	appName = "Lightmetrica";
 	//appName = "Nanon Renderer";
 	appNameShort = "nanon";
-	appDescription = boost::str(boost::format("%s - %s Version %s") % appNameShort % appName % Version::Formatted());
+	appDescription = boost::str(boost::format("%s - %s Version %s (yuyushiki)") % appNameShort % appName % Version::Formatted());
 	
 	// Enumerate supported SSE instructions
 	std::vector<std::string> supportted;
-#ifdef NANON_USE_SSE
-	supportted.push_back("SSE");
+#ifdef LM_USE_SSE
+	supportted.push_back("sse");
 #endif
-#ifdef NANON_USE_SSE2
-	supportted.push_back("SSE2");
+#ifdef LM_USE_SSE2
+	supportted.push_back("sse2");
 #endif
-#ifdef NANON_USE_SSE3
-	supportted.push_back("SSE3");
+#ifdef LM_USE_SSE3
+	supportted.push_back("sse3");
 #endif
-#ifdef NANON_USE_SSSE3
-	supportted.push_back("SSSE3");
+#ifdef LM_USE_SSSE3
+	supportted.push_back("ssse3");
 #endif
-#ifdef NANON_USE_SSE4_1
-	supportted.push_back("SSE4.1");
+#ifdef LM_USE_SSE4_1
+	supportted.push_back("sse4.1");
 #endif
-#ifdef NANON_USE_SSE4_2
-	supportted.push_back("SSE4.2");
+#ifdef LM_USE_SSE4_2
+	supportted.push_back("sse4.2");
 #endif
-#ifdef NANON_USE_SSE4A
-	supportted.push_back("SSE4A");
+#ifdef LM_USE_SSE4A
+	supportted.push_back("sse4a");
 #endif
-#ifdef NANON_USE_AVX
-	supportted.push_back("AVX");
+#ifdef LM_USE_AVX
+	supportted.push_back("avx");
 #endif
 
 	appSSESupport = "";
@@ -237,16 +237,16 @@ bool NanonApplication::Run()
 
 	// Load input file
 	NanonConfig config;
-	NANON_LOG_INFO("Entering : Configuration loading");
+	LM_LOG_INFO("Entering : Configuration loading");
 	{
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		if (!config.Load(inputFile))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Leaving : Configuration loading");
+	LM_LOG_INFO("Leaving : Configuration loading");
 
 	// --------------------------------------------------------------------------------
 
@@ -261,25 +261,25 @@ bool NanonApplication::Run()
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
 	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 
-	NANON_LOG_INFO("Entering : Asset loading")
+	LM_LOG_INFO("Entering : Asset loading")
 	{
 		ResetProgress("LOADING ASSETS");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
 		auto conn = assets.Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		if (!assets.Load(config))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 
 		{
 			std::unique_lock<std::mutex> lock(progressMutex);
 			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
 		}
 	}
-	NANON_LOG_INFO("Leaving : Asset loading");
+	LM_LOG_INFO("Leaving : Asset loading");
 
 	// --------------------------------------------------------------------------------
 
@@ -292,50 +292,50 @@ bool NanonApplication::Run()
 	}
 
 	// Load scene
-	NANON_LOG_INFO("Entering : Scene loading");
+	LM_LOG_INFO("Entering : Scene loading");
 	{
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		if (!scene->Load(config, assets))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Leaving : Scene loading");
+	LM_LOG_INFO("Leaving : Scene loading");
 
 	// Configure scene
-	NANON_LOG_INFO("Entering : Scene configuration");
+	LM_LOG_INFO("Entering : Scene configuration");
 	{
-		NANON_LOG_INDENTER();
-		NANON_LOG_INFO("Scene type : '" + scene->Type() + "'");
+		LM_LOG_INDENTER();
+		LM_LOG_INFO("Scene type : '" + scene->Type() + "'");
 		if (!scene->Configure(config))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Leaving : Scene configuration");
+	LM_LOG_INFO("Leaving : Scene configuration");
 
 	// Build scene
-	NANON_LOG_INFO("Entering : Scene building");
+	LM_LOG_INFO("Entering : Scene building");
 	{
 		ResetProgress("BUILDING SCENE");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
 		auto conn = scene->Connect_ReportBuildProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		if (!scene->Build())
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 
 		{
 			std::unique_lock<std::mutex> lock(progressMutex);
 			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
 		}
 	}
-	NANON_LOG_INFO("Leaving : Scene building");
+	LM_LOG_INFO("Leaving : Scene building");
 
 	// --------------------------------------------------------------------------------
 
@@ -348,53 +348,53 @@ bool NanonApplication::Run()
 	}
 
 	// Configure renderer
-	NANON_LOG_INFO("Entering : Renderer configuration");
+	LM_LOG_INFO("Entering : Renderer configuration");
 	{
-		NANON_LOG_INDENTER();
-		NANON_LOG_INFO("Renderer type : '" + renderer->Type() + "'");
+		LM_LOG_INDENTER();
+		LM_LOG_INFO("Renderer type : '" + renderer->Type() + "'");
 		if (!renderer->Configure(config, assets))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Leaving : Renderer configuration");
+	LM_LOG_INFO("Leaving : Renderer configuration");
 
 	// Begin rendering
-	NANON_LOG_INFO("Entering : Render");
+	LM_LOG_INFO("Entering : Render");
 	{
 		ResetProgress("RENDERING");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
 		auto conn = renderer->Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		if (!renderer->Render(*scene))
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 
 		{
 			std::unique_lock<std::mutex> lock(progressMutex);
 			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
 		}
 	}
-	NANON_LOG_INFO("Leaving : Render");
+	LM_LOG_INFO("Leaving : Render");
 
 	// --------------------------------------------------------------------------------
 
 	// Save rendered image
-	NANON_LOG_INFO("Entering : Save rendered image");
+	LM_LOG_INFO("Entering : Save rendered image");
 	{
-		NANON_LOG_INDENTER();
+		LM_LOG_INDENTER();
 		auto* film = scene->MainCamera()->GetFilm();
 		if (!film->Save())
 		{
 			return false;
 		}
-		NANON_LOG_INFO("Completed");
+		LM_LOG_INFO("Completed");
 	}
-	NANON_LOG_INFO("Leaving : Save rendered image");
+	LM_LOG_INFO("Leaving : Save rendered image");
 
 	// --------------------------------------------------------------------------------
 
@@ -416,7 +416,7 @@ void NanonApplication::StartLogging()
 		{
 			// Console info
 			int consoleWidth;
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 			CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
 			GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
@@ -464,11 +464,11 @@ void NanonApplication::StartLogging()
 					}
 
 					std::cout << boost::format("| %s [") % progressTaskName;
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 #endif
 					std::cout << bar;
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 #endif
 					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
@@ -502,23 +502,23 @@ void NanonApplication::FinishLogging()
 
 void NanonApplication::PrintStartMessage()
 {
-	NANON_LOG_INFO("");
-	NANON_LOG_INFO(appDescription);
-	NANON_LOG_INFO("");
-	NANON_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
-	NANON_LOG_INFO("The software is distributed under the MIT license.");
-	NANON_LOG_INFO("For detail see the LICENSE file along with the software.");
-	NANON_LOG_INFO("");
-	NANON_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
-	NANON_LOG_INFO("PLATFORM     | " + Version::Platform() + " " + Version::Archtecture());
-	NANON_LOG_INFO("OPTIMIZATION | " + appSSESupport);
-	NANON_LOG_INFO("CURRENT TIME | " + CurrentTime());
-	NANON_LOG_INFO("");
+	LM_LOG_INFO("");
+	LM_LOG_INFO(appDescription);
+	LM_LOG_INFO("");
+	LM_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
+	LM_LOG_INFO("The software is distributed under the MIT license.");
+	LM_LOG_INFO("For detail see the LICENSE file along with the software.");
+	LM_LOG_INFO("");
+	LM_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
+	LM_LOG_INFO("PLATFORM     | " + Version::Platform() + " " + Version::Archtecture());
+	LM_LOG_INFO("OPTIMIZATION | " + appSSESupport);
+	LM_LOG_INFO("CURRENT TIME | " + CurrentTime());
+	LM_LOG_INFO("");
 }
 
 void NanonApplication::PrintFinishMessage()
 {
-	NANON_LOG_INFO("Completed");
+	LM_LOG_INFO("Completed");
 }
 
 std::string NanonApplication::CurrentTime()
@@ -526,7 +526,7 @@ std::string NanonApplication::CurrentTime()
 	std::stringstream ss;
 	auto now = std::chrono::system_clock::now();
 	auto time = std::chrono::system_clock::to_time_t(now);
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 	struct tm timeinfo;
 	localtime_s(&timeinfo, &time);
 	ss << std::put_time(&timeinfo, "%Y.%m.%d.%H.%M.%S");
@@ -575,14 +575,14 @@ int main(int argc, char** argv)
 		}
 		catch (const std::exception& e)
 		{
-			NANON_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
+			LM_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
 			result = EXIT_FAILURE;
 		}
 
 		app.FinishLogging();
 	}
 
-#ifdef NANON_DEBUG_MODE
+#ifdef LM_DEBUG_MODE
 	std::cerr << "Press any key to exit ...";
 	std::cin.get();
 #endif

@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon/logger.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica/logger.h>
 #include <regex>
 #include <thread>
 #include <mutex>
@@ -32,8 +32,8 @@
 
 namespace fs = boost::filesystem;
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class LoggerTest : public TestBase {};
 
@@ -126,7 +126,7 @@ TEST_F(LoggerTest, OutputToFile)
 	}
 
 	Logger::SetOutputFileName(filename);
-	NANON_LOG_INFO("hello");
+	LM_LOG_INFO("hello");
 	
 	long long elapsed = 0;
 	auto start = std::chrono::high_resolution_clock::now();
@@ -176,7 +176,7 @@ TEST_F(LoggerTest, AddLogFromAnotherThread)
 			std::unique_lock<std::mutex> lock(mutex);
 			cv.wait(lock);
 			for (int i = 0; i < maxCount; i++)
-				NANON_LOG_INFO("hello");
+				LM_LOG_INFO("hello");
 		});
 
 	// Simulates event loop
@@ -217,9 +217,9 @@ TEST_F(LoggerTest, ImmediateMode)
 				emitted = true;
 		});
 
-	NANON_LOG_INFO("hello");
+	LM_LOG_INFO("hello");
 	EXPECT_TRUE(emitted);
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

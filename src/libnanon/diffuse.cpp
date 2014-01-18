@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,14 +23,14 @@
 */
 
 #include "pch.h"
-#include <nanon/diffuse.h>
-#include <nanon/pdf.h>
-#include <nanon/logger.h>
-#include <nanon/pugihelper.h>
-#include <nanon/math.stats.h>
+#include <lightmetrica/diffuse.h>
+#include <lightmetrica/pdf.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/pugihelper.h>
+#include <lightmetrica/math.stats.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 DiffuseBSDF::DiffuseBSDF( const std::string& id )
 	: BSDF(id)
@@ -50,7 +50,7 @@ bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 	if (!diffuseReflectanceNode)
 	{
 		diffuseReflectance = Math::Vec3(Math::Float(1));
-		NANON_LOG_WARN("Using default value for 'diffuse_reflectance'");
+		LM_LOG_WARN("Using default value for 'diffuse_reflectance'");
 	}
 	else
 	{
@@ -58,7 +58,7 @@ bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 		auto rgbNode = diffuseReflectanceNode.child("rgb");
 		if (!rgbNode)
 		{
-			NANON_LOG_ERROR("Missing 'rgb'");
+			LM_LOG_ERROR("Missing 'rgb'");
 			return false;
 		}
 
@@ -114,4 +114,4 @@ bool DiffuseBSDF::SampleWo( const BSDFSampleQuery& query, BSDFSampledData& sampl
 	return true;
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

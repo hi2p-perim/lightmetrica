@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #include "pch.h"
-#include <nanon/config.h>
-#include <nanon/logger.h>
+#include <lightmetrica/config.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 
 namespace
@@ -32,7 +32,7 @@ namespace
 	const std::string ConfigFileVersion = "1.0.dev";
 }
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class NanonConfig::Impl : public Object
 {
@@ -80,11 +80,11 @@ bool NanonConfig::Impl::Load( const std::string& path )
 {
 	if (loaded)
 	{
-		NANON_LOG_ERROR("Configuration is already loaded");
+		LM_LOG_ERROR("Configuration is already loaded");
 		return false;
 	}
 
-	NANON_LOG_INFO("Loading configuration from " + path);
+	LM_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
 	
 	return HandleLoadResult(result);
@@ -94,11 +94,11 @@ bool NanonConfig::Impl::LoadFromString( const std::string& data )
 {
 	if (loaded)
 	{
-		NANON_LOG_ERROR("Configuration is already loaded");
+		LM_LOG_ERROR("Configuration is already loaded");
 		return false;
 	}
 
-	NANON_LOG_INFO("Loading configuration");
+	LM_LOG_INFO("Loading configuration");
 	auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
 
 	return HandleLoadResult(result);
@@ -110,8 +110,8 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 
 	if (!result)
 	{
-		NANON_LOG_ERROR("Failed to load the configuration file")
-		NANON_LOG_ERROR(boost::str(boost::format("%s (offset : %d)") % result.description() % result.offset));
+		LM_LOG_ERROR("Failed to load the configuration file")
+		LM_LOG_ERROR(boost::str(boost::format("%s (offset : %d)") % result.description() % result.offset));
 		return false;
 	}
 
@@ -119,7 +119,7 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	auto nanonNode = doc.child("nanon");
 	if (!nanonNode)
 	{
-		NANON_LOG_ERROR("Missing <nanon> elemement");
+		LM_LOG_ERROR("Missing <nanon> elemement");
 		return false;
 	}
 	
@@ -127,7 +127,7 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	std::string version = nanonNode.attribute("version").as_string();
 	if (version != ConfigFileVersion)
 	{
-		NANON_LOG_ERROR("Different version : " + version + " ( expected : " + ConfigFileVersion + " )");
+		LM_LOG_ERROR("Different version : " + version + " ( expected : " + ConfigFileVersion + " )");
 		return false;
 	}
 
@@ -135,21 +135,21 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	assetsNode = nanonNode.child("assets");
 	if (!assetsNode)
 	{
-		NANON_LOG_ERROR("Missing 'assets' element");
+		LM_LOG_ERROR("Missing 'assets' element");
 		return false;
 	}
 
 	sceneNode = nanonNode.child("scene");
 	if (!sceneNode)
 	{
-		NANON_LOG_ERROR("Missing 'scene' element");
+		LM_LOG_ERROR("Missing 'scene' element");
 		return false;
 	}
 
 	rendererNode = nanonNode.child("renderer");
 	if (!rendererNode)
 	{
-		NANON_LOG_ERROR("Missing 'renderer' element");
+		LM_LOG_ERROR("Missing 'renderer' element");
 		return false;
 	}
 
@@ -192,7 +192,7 @@ NanonConfig::NanonConfig()
 
 NanonConfig::~NanonConfig()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool NanonConfig::Load( const std::string& path )
@@ -230,4 +230,4 @@ std::string NanonConfig::RendererType() const
 	return p->RendererType();
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

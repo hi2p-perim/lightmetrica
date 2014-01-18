@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,16 +23,16 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_NAIVE_SCENE_H__
-#define __LIB_NANON_NAIVE_SCENE_H__
+#ifndef __LIB_LIGHTMETRICA_NAIVE_SCENE_H__
+#define __LIB_LIGHTMETRICA_NAIVE_SCENE_H__
 
 #include "scene.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 */
-class NANON_PUBLIC_API NaiveScene : public Scene
+class LM_PUBLIC_API NaiveScene : public Scene
 {
 public:
 
@@ -55,6 +55,6 @@ private:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_NAIVE_SCENE_H__
+#endif // __LIB_LIGHTMETRICA_NAIVE_SCENE_H__

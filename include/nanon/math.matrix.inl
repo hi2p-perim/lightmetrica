@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,17 +24,17 @@
 
 #include "math.matrix.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3()
+LM_FORCE_INLINE TMat3<T>::TMat3()
 {
 
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat3<T>& m)
+LM_FORCE_INLINE TMat3<T>::TMat3(const TMat3<T>& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
@@ -42,7 +42,7 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat3<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat4<T>& m)
+LM_FORCE_INLINE TMat3<T>::TMat3(const TMat4<T>& m)
 {
 	v[0] = TVec3<T>(m.v[0]);
 	v[1] = TVec3<T>(m.v[1]);
@@ -50,7 +50,7 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const TMat4<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(const T& v)
+LM_FORCE_INLINE TMat3<T>::TMat3(const T& v)
 {
 	this->v[0] = TVec3<T>(v);
 	this->v[1] = TVec3<T>(v);
@@ -58,7 +58,7 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const T& v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const TVec3<T>& v2)
+LM_FORCE_INLINE TMat3<T>::TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	v[0] = v0;
 	v[1] = v1;
@@ -66,7 +66,7 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const TVec3<T>& v0, const TVec3<T>& v1, const
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(const T* v)
+LM_FORCE_INLINE TMat3<T>::TMat3(const T* v)
 {
 	this->v[0] = TVec3<T>(v[0], v[1], v[2]);
 	this->v[1] = TVec3<T>(v[3], v[4], v[5]);
@@ -74,7 +74,7 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(const T* v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>::TMat3(
+LM_FORCE_INLINE TMat3<T>::TMat3(
 	T v00, T v10, T v20,
 	T v01, T v11, T v21,
 	T v02, T v12, T v22)
@@ -85,13 +85,13 @@ NANON_FORCE_INLINE TMat3<T>::TMat3(
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> TMat3<T>::Zero()
+LM_FORCE_INLINE TMat3<T> TMat3<T>::Zero()
 {
 	return TMat3<T>();
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> TMat3<T>::Diag(T v)
+LM_FORCE_INLINE TMat3<T> TMat3<T>::Diag(T v)
 {
 	T Zero(0);
 	return TMat3<T>(
@@ -101,32 +101,32 @@ NANON_FORCE_INLINE TMat3<T> TMat3<T>::Diag(T v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> TMat3<T>::Identity()
+LM_FORCE_INLINE TMat3<T> TMat3<T>::Identity()
 {
 	return Diag(T(1));
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec3<T>& TMat3<T>::operator[](int i)
+LM_FORCE_INLINE TVec3<T>& TMat3<T>::operator[](int i)
 {
 	return v[i];
 }
 
 template <typename T>
-NANON_FORCE_INLINE const TVec3<T>& TMat3<T>::operator[](int i) const
+LM_FORCE_INLINE const TVec3<T>& TMat3<T>::operator[](int i) const
 {
 	return v[i];
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>& TMat3<T>::operator*=(const TMat3<T>& m)
+LM_FORCE_INLINE TMat3<T>& TMat3<T>::operator*=(const TMat3<T>& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>& TMat3<T>::operator*=(const T& s)
+LM_FORCE_INLINE TMat3<T>& TMat3<T>::operator*=(const T& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -135,7 +135,7 @@ NANON_FORCE_INLINE TMat3<T>& TMat3<T>::operator*=(const T& s)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T>& TMat3<T>::operator/=(const T& s)
+LM_FORCE_INLINE TMat3<T>& TMat3<T>::operator/=(const T& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -144,19 +144,19 @@ NANON_FORCE_INLINE TMat3<T>& TMat3<T>::operator/=(const T& s)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m, const T& s)
+LM_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m, const T& s)
 {
 	return TMat3<T>(m[0] * s, m[1] * s, m[2] * s);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> operator*(const T& v, const TMat3<T>& m)
+LM_FORCE_INLINE TMat3<T> operator*(const T& v, const TMat3<T>& m)
 {
 	return m * v;
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec3<T> operator*(const TMat3<T>& m, const TVec3<T>& v)
+LM_FORCE_INLINE TVec3<T> operator*(const TMat3<T>& m, const TVec3<T>& v)
 {
 	return TVec3<T>(
 		m[0][0] * v.x + m[1][0] * v.y + m[2][0] * v.z,
@@ -165,19 +165,19 @@ NANON_FORCE_INLINE TVec3<T> operator*(const TMat3<T>& m, const TVec3<T>& v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m1, const TMat3<T>& m2)
+LM_FORCE_INLINE TMat3<T> operator*(const TMat3<T>& m1, const TMat3<T>& m2)
 {
 	return TMat3<T>(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> operator/(const TMat3<T>& m, const T& s)
+LM_FORCE_INLINE TMat3<T> operator/(const TMat3<T>& m, const T& s)
 {
 	return TMat3<T>(m[0] / s, m[1] / s, m[2] / s);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> Transpose(const TMat3<T>& m)
+LM_FORCE_INLINE TMat3<T> Transpose(const TMat3<T>& m)
 {
 	return TMat3<T>(
 		m[0][0], m[1][0], m[2][0],
@@ -186,7 +186,7 @@ NANON_FORCE_INLINE TMat3<T> Transpose(const TMat3<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat3<T> Inverse(const TMat3<T>& m)
+LM_FORCE_INLINE TMat3<T> Inverse(const TMat3<T>& m)
 {
 	T det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2])
 		- m[1][0] * (m[0][1] * m[2][2] - m[2][1] * m[0][2])
@@ -207,13 +207,13 @@ NANON_FORCE_INLINE TMat3<T> Inverse(const TMat3<T>& m)
 // --------------------------------------------------------------------------------
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4()
+LM_FORCE_INLINE TMat4<T>::TMat4()
 {
 
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat3<T>& m)
+LM_FORCE_INLINE TMat4<T>::TMat4(const TMat3<T>& m)
 {
 	v[0] = TVec4<T>(m.v[0]);
 	v[1] = TVec4<T>(m.v[1]);
@@ -222,7 +222,7 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat3<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat4<T>& m)
+LM_FORCE_INLINE TMat4<T>::TMat4(const TMat4<T>& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
@@ -231,7 +231,7 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const TMat4<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(const T& v)
+LM_FORCE_INLINE TMat4<T>::TMat4(const T& v)
 {
 	this->v[0] = TVec4<T>(v);
 	this->v[1] = TVec4<T>(v);
@@ -240,7 +240,7 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const T& v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(const TVec4<T>& v0, const TVec4<T>& v1, const TVec4<T>& v2, const TVec4<T>& v3)
+LM_FORCE_INLINE TMat4<T>::TMat4(const TVec4<T>& v0, const TVec4<T>& v1, const TVec4<T>& v2, const TVec4<T>& v3)
 {
 	v[0] = v0;
 	v[1] = v1;
@@ -249,7 +249,7 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const TVec4<T>& v0, const TVec4<T>& v1, const
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(const T* v)
+LM_FORCE_INLINE TMat4<T>::TMat4(const T* v)
 {
 	this->v[0] = TVec4<T>(v[0], v[1], v[2], v[3]);
 	this->v[1] = TVec4<T>(v[4], v[5], v[6], v[7]);
@@ -258,7 +258,7 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(const T* v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>::TMat4(
+LM_FORCE_INLINE TMat4<T>::TMat4(
 	T v00, T v10, T v20, T v30,
 	T v01, T v11, T v21, T v31,
 	T v02, T v12, T v22, T v32,
@@ -271,13 +271,13 @@ NANON_FORCE_INLINE TMat4<T>::TMat4(
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> TMat4<T>::Zero()
+LM_FORCE_INLINE TMat4<T> TMat4<T>::Zero()
 {
 	return TMat4<T>();
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> TMat4<T>::Diag(T v)
+LM_FORCE_INLINE TMat4<T> TMat4<T>::Diag(T v)
 {
 	T Zero(0);
 	return TMat4<T>(
@@ -288,32 +288,32 @@ NANON_FORCE_INLINE TMat4<T> TMat4<T>::Diag(T v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> TMat4<T>::Identity()
+LM_FORCE_INLINE TMat4<T> TMat4<T>::Identity()
 {
 	return Diag(T(1));
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec4<T>& TMat4<T>::operator[](int i)
+LM_FORCE_INLINE TVec4<T>& TMat4<T>::operator[](int i)
 {
 	return v[i];
 }
 
 template <typename T>
-NANON_FORCE_INLINE const TVec4<T>& TMat4<T>::operator[](int i) const
+LM_FORCE_INLINE const TVec4<T>& TMat4<T>::operator[](int i) const
 {
 	return v[i];
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>& TMat4<T>::operator*=(const TMat4<T>& m)
+LM_FORCE_INLINE TMat4<T>& TMat4<T>::operator*=(const TMat4<T>& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>& TMat4<T>::operator*=(const T& s)
+LM_FORCE_INLINE TMat4<T>& TMat4<T>::operator*=(const T& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -323,7 +323,7 @@ NANON_FORCE_INLINE TMat4<T>& TMat4<T>::operator*=(const T& s)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T>& TMat4<T>::operator/=(const T& s)
+LM_FORCE_INLINE TMat4<T>& TMat4<T>::operator/=(const T& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -333,19 +333,19 @@ NANON_FORCE_INLINE TMat4<T>& TMat4<T>::operator/=(const T& s)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m, const T& s)
+LM_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m, const T& s)
 {
 	return TMat4<T>(m[0] * s, m[1] * s, m[2] * s, m[3] * s);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> operator*(const T& v, const TMat4<T>& m)
+LM_FORCE_INLINE TMat4<T> operator*(const T& v, const TMat4<T>& m)
 {
 	return m * v;
 }
 
 template <typename T>
-NANON_FORCE_INLINE TVec4<T> operator*(const TMat4<T>& m, const TVec4<T>& v)
+LM_FORCE_INLINE TVec4<T> operator*(const TMat4<T>& m, const TVec4<T>& v)
 {
 	return TVec4<T>(
 		m[0][0] * v.x + m[1][0] * v.y + m[2][0] * v.z + m[3][0] * v.w,
@@ -355,19 +355,19 @@ NANON_FORCE_INLINE TVec4<T> operator*(const TMat4<T>& m, const TVec4<T>& v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m1, const TMat4<T>& m2)
+LM_FORCE_INLINE TMat4<T> operator*(const TMat4<T>& m1, const TMat4<T>& m2)
 {
 	return TMat4<T>(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> operator/(const TMat4<T>& m, const T& s)
+LM_FORCE_INLINE TMat4<T> operator/(const TMat4<T>& m, const T& s)
 {
 	return TMat4<T>(m[0] / s, m[1] / s, m[2] / s, m[3] / s);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Transpose(const TMat4<T>& m)
+LM_FORCE_INLINE TMat4<T> Transpose(const TMat4<T>& m)
 {
 	return TMat4<T>(
 		m[0][0], m[1][0], m[2][0], m[3][0],
@@ -377,7 +377,7 @@ NANON_FORCE_INLINE TMat4<T> Transpose(const TMat4<T>& m)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
+LM_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
 {
 	T c00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
 	T c02 = m[1][2] * m[3][3] - m[3][2] * m[1][3];
@@ -426,49 +426,49 @@ NANON_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
 
 // --------------------------------------------------------------------------------
 
-#ifdef NANON_USE_SSE2
+#ifdef LM_USE_SSE2
 
-NANON_FORCE_INLINE Mat3f::TMat3()
+LM_FORCE_INLINE Mat3f::TMat3()
 {
 
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(const Mat3f& m)
+LM_FORCE_INLINE Mat3f::TMat3(const Mat3f& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
 	v[2] = m.v[2];
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(const Mat4f& m)
+LM_FORCE_INLINE Mat3f::TMat3(const Mat4f& m)
 {
 	v[0] = Vec3f(m.v[0]);
 	v[1] = Vec3f(m.v[1]);
 	v[2] = Vec3f(m.v[2]);
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(float v)
+LM_FORCE_INLINE Mat3f::TMat3(float v)
 {
 	this->v[0] = Vec3f(v);
 	this->v[1] = Vec3f(v);
 	this->v[2] = Vec3f(v);
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
+LM_FORCE_INLINE Mat3f::TMat3(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2)
 {
 	v[0] = v0;
 	v[1] = v1;
 	v[2] = v2;
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(const float* v)
+LM_FORCE_INLINE Mat3f::TMat3(const float* v)
 {
 	this->v[0] = Vec3f(v[0], v[1], v[2]);
 	this->v[1] = Vec3f(v[3], v[4], v[5]);
 	this->v[2] = Vec3f(v[6], v[7], v[8]);
 }
 
-NANON_FORCE_INLINE Mat3f::TMat3(
+LM_FORCE_INLINE Mat3f::TMat3(
 	float v00, float v10, float v20,
 	float v01, float v11, float v21,
 	float v02, float v12, float v22)
@@ -478,12 +478,12 @@ NANON_FORCE_INLINE Mat3f::TMat3(
 	v[2] = Vec3f(v02, v12, v22);
 }
 
-NANON_FORCE_INLINE Mat3f Mat3f::Zero()
+LM_FORCE_INLINE Mat3f Mat3f::Zero()
 {
 	return TMat3<float>();
 }
 
-NANON_FORCE_INLINE Mat3f Mat3f::Diag(float v)
+LM_FORCE_INLINE Mat3f Mat3f::Diag(float v)
 {
 	return TMat3<float>(
 		v, 0.0f, 0.0f,
@@ -491,28 +491,28 @@ NANON_FORCE_INLINE Mat3f Mat3f::Diag(float v)
 		0.0f, 0.0f, v);
 }
 
-NANON_FORCE_INLINE Mat3f Mat3f::Identity()
+LM_FORCE_INLINE Mat3f Mat3f::Identity()
 {
 	return Diag(1.0f);
 }
 
-NANON_FORCE_INLINE Vec3f& Mat3f::operator[](int i)
+LM_FORCE_INLINE Vec3f& Mat3f::operator[](int i)
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE const Vec3f& Mat3f::operator[](int i) const
+LM_FORCE_INLINE const Vec3f& Mat3f::operator[](int i) const
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat3f& Mat3f::operator*=(const Mat3f& m)
+LM_FORCE_INLINE Mat3f& Mat3f::operator*=(const Mat3f& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat3f& Mat3f::operator*=(const float& s)
+LM_FORCE_INLINE Mat3f& Mat3f::operator*=(const float& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -520,7 +520,7 @@ NANON_FORCE_INLINE Mat3f& Mat3f::operator*=(const float& s)
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat3f& Mat3f::operator/=(const float& s)
+LM_FORCE_INLINE Mat3f& Mat3f::operator/=(const float& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -529,19 +529,19 @@ NANON_FORCE_INLINE Mat3f& Mat3f::operator/=(const float& s)
 }
 
 template <>
-NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m, const float& s)
+LM_FORCE_INLINE Mat3f operator*(const Mat3f& m, const float& s)
 {
 	return Mat3f(m[0] * s, m[1] * s, m[2] * s);
 }
 
 template <>
-NANON_FORCE_INLINE Mat3f operator*(const float& s, const Mat3f& m)
+LM_FORCE_INLINE Mat3f operator*(const float& s, const Mat3f& m)
 {
 	return m * s;
 }
 
 template <>
-NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
+LM_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
 {
 	return Vec3f(
 		_mm_add_ps(
@@ -554,31 +554,31 @@ NANON_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
 }
 
 template <>
-NANON_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
+LM_FORCE_INLINE Mat3f operator*(const Mat3f& m1, const Mat3f& m2)
 {
 	return Mat3f(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
 }
 
 template <>
-NANON_FORCE_INLINE Mat3f operator/(const Mat3f& m, const float& s)
+LM_FORCE_INLINE Mat3f operator/(const Mat3f& m, const float& s)
 {
 	return Mat3f(m[0] / s, m[1] / s, m[2] / s);
 }
 
 template <>
-NANON_FORCE_INLINE Mat3f Transpose(const Mat3f& m)
+LM_FORCE_INLINE Mat3f Transpose(const Mat3f& m)
 {
 	return Mat3f(Transpose(Mat4f(m)));
 }
 
 // --------------------------------------------------------------------------------
 
-NANON_FORCE_INLINE Mat4f::TMat4()
+LM_FORCE_INLINE Mat4f::TMat4()
 {
 
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(const Mat3f& m)
+LM_FORCE_INLINE Mat4f::TMat4(const Mat3f& m)
 {
 	v[0] = Vec4f(m.v[0]);
 	v[1] = Vec4f(m.v[1]);
@@ -586,7 +586,7 @@ NANON_FORCE_INLINE Mat4f::TMat4(const Mat3f& m)
 	v[3] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(const Mat4f& m)
+LM_FORCE_INLINE Mat4f::TMat4(const Mat4f& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
@@ -594,7 +594,7 @@ NANON_FORCE_INLINE Mat4f::TMat4(const Mat4f& m)
 	v[3] = m.v[3];
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(float v)
+LM_FORCE_INLINE Mat4f::TMat4(float v)
 {
 	this->v[0] = Vec4f(v);
 	this->v[1] = Vec4f(v);
@@ -602,7 +602,7 @@ NANON_FORCE_INLINE Mat4f::TMat4(float v)
 	this->v[3] = Vec4f(v);
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(const Vec4f& v0, const Vec4f& v1, const Vec4f& v2, const Vec4f& v3)
+LM_FORCE_INLINE Mat4f::TMat4(const Vec4f& v0, const Vec4f& v1, const Vec4f& v2, const Vec4f& v3)
 {
 	v[0] = v0;
 	v[1] = v1;
@@ -610,7 +610,7 @@ NANON_FORCE_INLINE Mat4f::TMat4(const Vec4f& v0, const Vec4f& v1, const Vec4f& v
 	v[3] = v3;
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(const float* v)
+LM_FORCE_INLINE Mat4f::TMat4(const float* v)
 {
 	this->v[0] = Vec4f(v[0], v[1], v[2], v[3]);
 	this->v[1] = Vec4f(v[4], v[5], v[6], v[7]);
@@ -618,7 +618,7 @@ NANON_FORCE_INLINE Mat4f::TMat4(const float* v)
 	this->v[3] = Vec4f(v[12], v[13], v[14], v[15]);
 }
 
-NANON_FORCE_INLINE Mat4f::TMat4(
+LM_FORCE_INLINE Mat4f::TMat4(
 	float v00, float v10, float v20, float v30,
 	float v01, float v11, float v21, float v31,
 	float v02, float v12, float v22, float v32,
@@ -630,12 +630,12 @@ NANON_FORCE_INLINE Mat4f::TMat4(
 	v[3] = Vec4f(v03, v13, v23, v33);
 }
 
-NANON_FORCE_INLINE Mat4f Mat4f::Zero()
+LM_FORCE_INLINE Mat4f Mat4f::Zero()
 {
 	return TMat4<float>();
 }
 
-NANON_FORCE_INLINE Mat4f Mat4f::Diag(float v)
+LM_FORCE_INLINE Mat4f Mat4f::Diag(float v)
 {
 	return TMat4<float>(
 		v, 0.0f, 0.0f, 0.0f,
@@ -644,28 +644,28 @@ NANON_FORCE_INLINE Mat4f Mat4f::Diag(float v)
 		0.0f, 0.0f, 0.0f, v);
 }
 
-NANON_FORCE_INLINE Mat4f Mat4f::Identity()
+LM_FORCE_INLINE Mat4f Mat4f::Identity()
 {
 	return Diag(1.0f);
 }
 
-NANON_FORCE_INLINE Vec4f& Mat4f::operator[](int i)
+LM_FORCE_INLINE Vec4f& Mat4f::operator[](int i)
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE const Vec4f& Mat4f::operator[](int i) const
+LM_FORCE_INLINE const Vec4f& Mat4f::operator[](int i) const
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat4f& Mat4f::operator*=(const Mat4f& m)
+LM_FORCE_INLINE Mat4f& Mat4f::operator*=(const Mat4f& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat4f& Mat4f::operator*=(const float& s)
+LM_FORCE_INLINE Mat4f& Mat4f::operator*=(const float& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -674,7 +674,7 @@ NANON_FORCE_INLINE Mat4f& Mat4f::operator*=(const float& s)
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat4f& Mat4f::operator/=(const float& s)
+LM_FORCE_INLINE Mat4f& Mat4f::operator/=(const float& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -684,19 +684,19 @@ NANON_FORCE_INLINE Mat4f& Mat4f::operator/=(const float& s)
 }
 
 template <>
-NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m, const float& s)
+LM_FORCE_INLINE Mat4f operator*(const Mat4f& m, const float& s)
 {
 	return Mat4f(m[0] * s, m[1] * s, m[2] * s, m[3] * s);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4f operator*(const float& s, const Mat4f& m)
+LM_FORCE_INLINE Mat4f operator*(const float& s, const Mat4f& m)
 {
 	return m * s;
 }
 
 template <>
-NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v)
+LM_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v)
 {
 	return Vec4f(
 		_mm_add_ps(
@@ -709,20 +709,20 @@ NANON_FORCE_INLINE Vec4f operator*(const Mat4f& m, const Vec4f& v)
 }
 
 template <>
-NANON_FORCE_INLINE Mat4f operator*(const Mat4f& m1, const Mat4f& m2)
+LM_FORCE_INLINE Mat4f operator*(const Mat4f& m1, const Mat4f& m2)
 {
 	return Mat4f(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4f operator/(const Mat4f& m, const float& s)
+LM_FORCE_INLINE Mat4f operator/(const Mat4f& m, const float& s)
 {
 	return Mat4f(m[0] / s, m[1] / s, m[2] / s, m[3] / s);
 }
 
 // http://www.randombit.net/bitbashing/2009/10/08/integer_matrix_transpose_in_sse2.html
 template <>
-NANON_FORCE_INLINE Mat4f Transpose(const Mat4f& m)
+LM_FORCE_INLINE Mat4f Transpose(const Mat4f& m)
 {
 	__m128 t0 = _mm_unpacklo_ps(m[0].v, m[1].v);
 	__m128 t2 = _mm_unpacklo_ps(m[2].v, m[3].v);
@@ -739,7 +739,7 @@ NANON_FORCE_INLINE Mat4f Transpose(const Mat4f& m)
 // http://download.intel.com/design/PentiumIII/sml/24504301.pdf
 // http://devmaster.net/posts/16799/sse-mat4-inverse
 template <>
-NANON_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
+LM_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
 {
 	__m128 Fac0;
 	{
@@ -949,7 +949,7 @@ NANON_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
 	//						+ m[0][1] * Inverse[1][0] 
 	//						+ m[0][2] * Inverse[2][0] 
 	//						+ m[0][3] * Inverse[3][0];
-#ifdef NANON_USE_SSE4_1
+#ifdef LM_USE_SSE4_1
 	__m128 Det0 = _mm_dp_ps(m[0].v, Row2, 0xff);
 #else
 #error "TODO"
@@ -969,49 +969,49 @@ NANON_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
 
 // --------------------------------------------------------------------------------
 
-#ifdef NANON_USE_AVX
+#ifdef LM_USE_AVX
 
-NANON_FORCE_INLINE Mat3d::TMat3()
+LM_FORCE_INLINE Mat3d::TMat3()
 {
 
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(const Mat3d& m)
+LM_FORCE_INLINE Mat3d::TMat3(const Mat3d& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
 	v[2] = m.v[2];
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(const Mat4d& m)
+LM_FORCE_INLINE Mat3d::TMat3(const Mat4d& m)
 {
 	v[0] = Vec4d(m.v[0]);
 	v[1] = Vec4d(m.v[1]);
 	v[2] = Vec4d(m.v[2]);
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(double v)
+LM_FORCE_INLINE Mat3d::TMat3(double v)
 {
 	this->v[0] = Vec3d(v);
 	this->v[1] = Vec3d(v);
 	this->v[2] = Vec3d(v);
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(const Vec3d& v0, const Vec3d& v1, const Vec3d& v2)
+LM_FORCE_INLINE Mat3d::TMat3(const Vec3d& v0, const Vec3d& v1, const Vec3d& v2)
 {
 	v[0] = v0;
 	v[1] = v1;
 	v[2] = v2;
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(const double* v)
+LM_FORCE_INLINE Mat3d::TMat3(const double* v)
 {
 	this->v[0] = Vec3d(v[0], v[1], v[2]);
 	this->v[1] = Vec3d(v[4], v[5], v[6]);
 	this->v[2] = Vec3d(v[8], v[9], v[10]);
 }
 
-NANON_FORCE_INLINE Mat3d::TMat3(
+LM_FORCE_INLINE Mat3d::TMat3(
 	double v00, double v10, double v20,
 	double v01, double v11, double v21,
 	double v02, double v12, double v22)
@@ -1021,12 +1021,12 @@ NANON_FORCE_INLINE Mat3d::TMat3(
 	v[2] = Vec3d(v02, v12, v22);
 }
 
-NANON_FORCE_INLINE Mat3d Mat3d::Zero()
+LM_FORCE_INLINE Mat3d Mat3d::Zero()
 {
 	return TMat3<double>();
 }
 
-NANON_FORCE_INLINE Mat3d Mat3d::Diag(double v)
+LM_FORCE_INLINE Mat3d Mat3d::Diag(double v)
 {
 	return TMat3<double>(
 		v, 0, 0,
@@ -1034,28 +1034,28 @@ NANON_FORCE_INLINE Mat3d Mat3d::Diag(double v)
 		0, 0, v);
 }
 
-NANON_FORCE_INLINE Mat3d Mat3d::Identity()
+LM_FORCE_INLINE Mat3d Mat3d::Identity()
 {
 	return Diag(1);
 }
 
-NANON_FORCE_INLINE Vec3d& Mat3d::operator[](int i)
+LM_FORCE_INLINE Vec3d& Mat3d::operator[](int i)
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE const Vec3d& Mat3d::operator[](int i) const
+LM_FORCE_INLINE const Vec3d& Mat3d::operator[](int i) const
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat3d& Mat3d::operator*=(const Mat3d& m)
+LM_FORCE_INLINE Mat3d& Mat3d::operator*=(const Mat3d& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat3d& Mat3d::operator*=(const double& s)
+LM_FORCE_INLINE Mat3d& Mat3d::operator*=(const double& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -1063,7 +1063,7 @@ NANON_FORCE_INLINE Mat3d& Mat3d::operator*=(const double& s)
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat3d& Mat3d::operator/=(const double& s)
+LM_FORCE_INLINE Mat3d& Mat3d::operator/=(const double& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -1072,19 +1072,19 @@ NANON_FORCE_INLINE Mat3d& Mat3d::operator/=(const double& s)
 }
 
 template <>
-NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m, const double& s)
+LM_FORCE_INLINE Mat3d operator*(const Mat3d& m, const double& s)
 {
 	return Mat3d(m[0] * s, m[1] * s, m[2] * s);
 }
 
 template <>
-NANON_FORCE_INLINE Mat3d operator*(const double& s, const Mat3d& m)
+LM_FORCE_INLINE Mat3d operator*(const double& s, const Mat3d& m)
 {
 	return m * s;
 }
 
 template <>
-NANON_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
+LM_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
 {
 	return Vec3d(
 		_mm256_add_pd(
@@ -1097,25 +1097,25 @@ NANON_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
 }
 
 template <>
-NANON_FORCE_INLINE Mat3d operator*(const Mat3d& m1, const Mat3d& m2)
+LM_FORCE_INLINE Mat3d operator*(const Mat3d& m1, const Mat3d& m2)
 {
 	return Mat3d(m1 * m2[0], m1 * m2[1], m1 * m2[2]);
 }
 
 template <>
-NANON_FORCE_INLINE Mat3d operator/(const Mat3d& m, const double& s)
+LM_FORCE_INLINE Mat3d operator/(const Mat3d& m, const double& s)
 {
 	return Mat3d(m[0] / s, m[1] / s, m[2] / s);
 }
 
 // --------------------------------------------------------------------------------
 
-NANON_FORCE_INLINE Mat4d::TMat4()
+LM_FORCE_INLINE Mat4d::TMat4()
 {
 
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(const Mat3d& m)
+LM_FORCE_INLINE Mat4d::TMat4(const Mat3d& m)
 {
 	v[0] = Vec4d(m.v[0]);
 	v[1] = Vec4d(m.v[1]);
@@ -1123,7 +1123,7 @@ NANON_FORCE_INLINE Mat4d::TMat4(const Mat3d& m)
 	v[3] = Vec4d(0, 0, 0, 1);
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(const Mat4d& m)
+LM_FORCE_INLINE Mat4d::TMat4(const Mat4d& m)
 {
 	v[0] = m.v[0];
 	v[1] = m.v[1];
@@ -1131,7 +1131,7 @@ NANON_FORCE_INLINE Mat4d::TMat4(const Mat4d& m)
 	v[3] = m.v[3];
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(double v)
+LM_FORCE_INLINE Mat4d::TMat4(double v)
 {
 	this->v[0] = Vec4d(v);
 	this->v[1] = Vec4d(v);
@@ -1139,7 +1139,7 @@ NANON_FORCE_INLINE Mat4d::TMat4(double v)
 	this->v[3] = Vec4d(v);
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v2, const Vec4d& v3)
+LM_FORCE_INLINE Mat4d::TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v2, const Vec4d& v3)
 {
 	v[0] = v0;
 	v[1] = v1;
@@ -1147,7 +1147,7 @@ NANON_FORCE_INLINE Mat4d::TMat4(const Vec4d& v0, const Vec4d& v1, const Vec4d& v
 	v[3] = v3;
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(const double* v)
+LM_FORCE_INLINE Mat4d::TMat4(const double* v)
 {
 	this->v[0] = Vec4d(v[0], v[1], v[2], v[3]);
 	this->v[1] = Vec4d(v[4], v[5], v[6], v[7]);
@@ -1155,7 +1155,7 @@ NANON_FORCE_INLINE Mat4d::TMat4(const double* v)
 	this->v[3] = Vec4d(v[12], v[13], v[14], v[15]);
 }
 
-NANON_FORCE_INLINE Mat4d::TMat4(
+LM_FORCE_INLINE Mat4d::TMat4(
 	double v00, double v10, double v20, double v30,
 	double v01, double v11, double v21, double v31,
 	double v02, double v12, double v22, double v32,
@@ -1167,12 +1167,12 @@ NANON_FORCE_INLINE Mat4d::TMat4(
 	v[3] = Vec4d(v03, v13, v23, v33);
 }
 
-NANON_FORCE_INLINE Mat4d Mat4d::Zero()
+LM_FORCE_INLINE Mat4d Mat4d::Zero()
 {
 	return TMat4<double>();
 }
 
-NANON_FORCE_INLINE Mat4d Mat4d::Diag(double v)
+LM_FORCE_INLINE Mat4d Mat4d::Diag(double v)
 {
 	return TMat4<double>(
 		v, 0, 0, 0,
@@ -1181,28 +1181,28 @@ NANON_FORCE_INLINE Mat4d Mat4d::Diag(double v)
 		0, 0, 0, v);
 }
 
-NANON_FORCE_INLINE Mat4d Mat4d::Identity()
+LM_FORCE_INLINE Mat4d Mat4d::Identity()
 {
 	return Diag(1);
 }
 
-NANON_FORCE_INLINE Vec4d& Mat4d::operator[](int i)
+LM_FORCE_INLINE Vec4d& Mat4d::operator[](int i)
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE const Vec4d& Mat4d::operator[](int i) const
+LM_FORCE_INLINE const Vec4d& Mat4d::operator[](int i) const
 {
 	return v[i];
 }
 
-NANON_FORCE_INLINE Mat4d& Mat4d::operator*=(const Mat4d& m)
+LM_FORCE_INLINE Mat4d& Mat4d::operator*=(const Mat4d& m)
 {
 	*this = *this * m;
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat4d& Mat4d::operator*=(const double& s)
+LM_FORCE_INLINE Mat4d& Mat4d::operator*=(const double& s)
 {
 	v[0] *= s;
 	v[1] *= s;
@@ -1211,7 +1211,7 @@ NANON_FORCE_INLINE Mat4d& Mat4d::operator*=(const double& s)
 	return *this;
 }
 
-NANON_FORCE_INLINE Mat4d& Mat4d::operator/=(const double& s)
+LM_FORCE_INLINE Mat4d& Mat4d::operator/=(const double& s)
 {
 	v[0] /= s;
 	v[1] /= s;
@@ -1221,19 +1221,19 @@ NANON_FORCE_INLINE Mat4d& Mat4d::operator/=(const double& s)
 }
 
 template <>
-NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m, const double& s)
+LM_FORCE_INLINE Mat4d operator*(const Mat4d& m, const double& s)
 {
 	return Mat4d(m[0] * s, m[1] * s, m[2] * s, m[3] * s);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4d operator*(const double& s, const Mat4d& m)
+LM_FORCE_INLINE Mat4d operator*(const double& s, const Mat4d& m)
 {
 	return m * s;
 }
 
 template <>
-NANON_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v)
+LM_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v)
 {
 	return Vec4d(
 		_mm256_add_pd(
@@ -1246,18 +1246,18 @@ NANON_FORCE_INLINE Vec4d operator*(const Mat4d& m, const Vec4d& v)
 }
 
 template <>
-NANON_FORCE_INLINE Mat4d operator*(const Mat4d& m1, const Mat4d& m2)
+LM_FORCE_INLINE Mat4d operator*(const Mat4d& m1, const Mat4d& m2)
 {
 	return Mat4d(m1 * m2[0], m1 * m2[1], m1 * m2[2], m1 * m2[3]);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4d operator/(const Mat4d& m, const double& s)
+LM_FORCE_INLINE Mat4d operator/(const Mat4d& m, const double& s)
 {
 	return Mat4d(m[0] / s, m[1] / s, m[2] / s, m[3] / s);
 }
 
 #endif
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END

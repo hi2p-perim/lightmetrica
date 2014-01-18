@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_CONSTANTS_H__
-#define __LIB_NANON_MATH_CONSTANTS_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
+#define __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
 
 #include "math.common.h"
 #include <limits>
 #include <boost/math/constants/constants.hpp>
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
 class TConstants
@@ -41,7 +41,7 @@ public:
 	TConstants();
 	~TConstants();
 
-	NANON_DISABLE_COPY_AND_MOVE(TConstants);
+	LM_DISABLE_COPY_AND_MOVE(TConstants);
 
 public:
 
@@ -64,7 +64,7 @@ template <typename T> const T TConstants<T>::Eps = std::numeric_limits<T>::epsil
 template <typename T> const T TConstants<T>::EpsLarge = T(1e-10);
 template <> const float TConstants<float>::EpsLarge = 1e-3f;
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_MATH_CONSTANTS_H__
+#endif // __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__

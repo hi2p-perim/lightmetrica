@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <nanon/trianglemesh.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 TriangleMesh::TriangleMesh( const std::string& id )
 	: Asset(id)
@@ -38,4 +38,4 @@ TriangleMesh::~TriangleMesh()
 
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

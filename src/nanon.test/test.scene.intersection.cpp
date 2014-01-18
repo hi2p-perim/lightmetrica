@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,19 +23,19 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.bsdf.h>
-#include <nanon.test/stub.trianglemesh.h>
-#include <nanon/scenefactory.h>
-#include <nanon/naivescene.h>
-#include <nanon/primitive.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
-#include <nanon/math.functions.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.bsdf.h>
+#include <lightmetrica.test/stub.trianglemesh.h>
+#include <lightmetrica/scenefactory.h>
+#include <lightmetrica/naivescene.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/math.functions.h>
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class SceneIntersectionTest : public TestBase
 {
@@ -46,7 +46,7 @@ public:
 		// List of scene types to be tested
 		sceneTypes.push_back("naive");
 		sceneTypes.push_back("bvh");
-#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
+#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
 		sceneTypes.push_back("qbvh");
 #endif
 
@@ -56,7 +56,7 @@ public:
 
 	~SceneIntersectionTest()
 	{
-		NANON_SAFE_DELETE(bsdf);
+		LM_SAFE_DELETE(bsdf);
 	}
 
 protected:
@@ -251,5 +251,5 @@ TEST_F(SceneIntersectionTest, Consistency)
 	}
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

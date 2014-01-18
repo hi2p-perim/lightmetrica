@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_COMMON_H__
-#define __LIB_NANON_COMMON_H__
+#ifndef __LIB_LIGHTMETRICA_COMMON_H__
+#define __LIB_LIGHTMETRICA_COMMON_H__
 
 // C++ compiler is required
 #ifndef __cplusplus
@@ -33,21 +33,21 @@
 
 // Debug mode?
 #ifndef NDEBUG
-	#define NANON_DEBUG_MODE
+	#define LM_DEBUG_MODE
 #endif
 
 // --------------------------------------------------------------------------------
 
 // Platform
 #ifdef _WIN32
-	#define NANON_PLATFORM_WINDOWS
+	#define LM_PLATFORM_WINDOWS
 #elif defined(__linux)
-	#define NANON_PLATFORM_LINUX
+	#define LM_PLATFORM_LINUX
 #else
 	#error "Unsupportted platform"
 #endif
 
-#ifdef NANON_PLATFORM_WINDOWS
+#ifdef LM_PLATFORM_WINDOWS
 	#define NOMINMAX
 	#define WIN32_LEAN_AND_MEAN
 	#pragma warning(disable:4996)	// _SCL_SECURE_NO_WARNINGS
@@ -58,21 +58,21 @@
 // Compiler and architecture
 #ifdef _MSC_VER
 	// Microsoft Visual C++
-	#define NANON_COMPILER_MSVC
+	#define LM_COMPILER_MSVC
 	#ifdef _M_IX86
-		#define NANON_ARCH_X86
+		#define LM_ARCH_X86
 	#elif defined(_M_X64)
-		#define NANON_ARCH_X64
+		#define LM_ARCH_X64
 	#else
 		#error "Unsupportted architecture"
 	#endif
 #elif (defined(__GNUC__) || defined(__MINGW32__))
 	// GNU GCC
-	#define NANON_COMPILER_GCC
+	#define LM_COMPILER_GCC
 	#ifdef __i386__
-		#define NANON_ARCH_X86
+		#define LM_ARCH_X86
 	#elif defined(__x86_64__)
-		#define NANON_ARCH_X64
+		#define LM_ARCH_X64
 	#else
 		#error "Unsupportted architecture"
 	#endif
@@ -83,19 +83,19 @@
 // --------------------------------------------------------------------------------
 
 // Library import or export
-#ifdef NANON_COMPILER_MSVC
-	#ifdef NANON_EXPORTS
-		#define NANON_PUBLIC_API __declspec(dllexport)
+#ifdef LM_COMPILER_MSVC
+	#ifdef LM_EXPORTS
+		#define LM_PUBLIC_API __declspec(dllexport)
 	#else
-		#define NANON_PUBLIC_API __declspec(dllimport)
+		#define LM_PUBLIC_API __declspec(dllimport)
 	#endif
-	#define NANON_HIDDEN_API
-#elif defined(NANON_COMPILER_GCC)
-	#define NANON_PUBLIC_API __attribute__ ((visibility("default")))
-	#define NANON_HIDDEN_API __attribute__ ((visibility("hidden")))
+	#define LM_HIDDEN_API
+#elif defined(LM_COMPILER_GCC)
+	#define LM_PUBLIC_API __attribute__ ((visibility("default")))
+	#define LM_HIDDEN_API __attribute__ ((visibility("hidden")))
 #else
-	#define NANON_PUBLIC_API
-	#define NANON_HIDDEN_API
+	#define LM_PUBLIC_API
+	#define LM_HIDDEN_API
 #endif
 
 // In the debug mode, the hidden API is exposed
@@ -105,47 +105,47 @@
 #endif
 
 // Plugin export
-#ifdef NANON_COMPILER_MSVC
-	#define NANON_PLUGIN_API __declspec(dllexport)
-#elif defined(NANON_COMPILER_GCC)
-	#define NANON_PLUGIN_API __attribute__ ((visibility("default")))
+#ifdef LM_COMPILER_MSVC
+	#define LM_PLUGIN_API __declspec(dllexport)
+#elif defined(LM_COMPILER_GCC)
+	#define LM_PLUGIN_API __attribute__ ((visibility("default")))
 #else
-	#define NANON_PLUGIN_API 
+	#define LM_PLUGIN_API 
 #endif
 
 // --------------------------------------------------------------------------------
 
 // Force inline
-#ifdef NANON_COMPILER_MSVC
-	#define NANON_FORCE_INLINE __forceinline
-#elif defined(NANON_COMPILER_GCC)
-	#define NANON_FORCE_INLINE inline __attribute__((always_inline))
+#ifdef LM_COMPILER_MSVC
+	#define LM_FORCE_INLINE __forceinline
+#elif defined(LM_COMPILER_GCC)
+	#define LM_FORCE_INLINE inline __attribute__((always_inline))
 #endif
 
 // Alignment
-#ifdef NANON_COMPILER_MSVC
-	#define NANON_ALIGN(x) __declspec(align(x))
-#elif defined(NANON_COMPILER_GCC)
-	#define NANON_ALIGN(x) __attribute__((aligned(x)))
+#ifdef LM_COMPILER_MSVC
+	#define LM_ALIGN(x) __declspec(align(x))
+#elif defined(LM_COMPILER_GCC)
+	#define LM_ALIGN(x) __attribute__((aligned(x)))
 #endif
-#define NANON_ALIGN_16 NANON_ALIGN(16)
-#define NANON_ALIGN_32 NANON_ALIGN(32)
+#define LM_ALIGN_16 LM_ALIGN(16)
+#define LM_ALIGN_32 LM_ALIGN(32)
 
 // --------------------------------------------------------------------------------
 
 // Namespace
-#define NANON_NAMESPACE_BEGIN namespace nanon {
-#define NANON_NAMESPACE_END }
+#define LM_NAMESPACE_BEGIN namespace lightmetrica {
+#define LM_NAMESPACE_END }
 
 // --------------------------------------------------------------------------------
 
-#define NANON_SAFE_DELETE(val) if ((val) != NULL ) { delete (val); (val) = NULL; }
-#define NANON_SAFE_DELETE_ARRAY(val) if ((val) != NULL ) { delete[] (val); (val) = NULL; }
+#define LM_SAFE_DELETE(val) if ((val) != NULL ) { delete (val); (val) = NULL; }
+#define LM_SAFE_DELETE_ARRAY(val) if ((val) != NULL ) { delete[] (val); (val) = NULL; }
 
-#define NANON_DISABLE_COPY_AND_MOVE(TypeName) \
+#define LM_DISABLE_COPY_AND_MOVE(TypeName) \
 	TypeName(const TypeName &); \
 	TypeName(TypeName&&); \
 	void operator=(const TypeName&); \
 	void operator=(TypeName&&)
 
-#endif // __LIB_NANON_COMMON_H__
+#endif // __LIB_LIGHTMETRICA_COMMON_H__

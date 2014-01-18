@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon/scenefactory.h>
-#include <nanon/logger.h>
-#include <nanon/naivescene.h>
-#include <nanon/bvhscene.h>
-#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
-#include <nanon/qbvhscene.h>
+#include <lightmetrica/scenefactory.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/naivescene.h>
+#include <lightmetrica/bvhscene.h>
+#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
+#include <lightmetrica/qbvhscene.h>
 #endif
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 SceneFactory::SceneFactory()
 {
@@ -55,18 +55,18 @@ Scene* SceneFactory::Create( const std::string& type ) const
 	}
 	else if (type == "qbvh")
 	{
-#if defined(NANON_USE_SSE2) && defined(NANON_SINGLE_PRECISION)
+#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
 		return new QBVHScene();
 #else
-		NANON_LOG_ERROR("QBVH implementation requires SSE2 support and single precision mode");
+		LM_LOG_ERROR("QBVH implementation requires SSE2 support and single precision mode");
 		return nullptr;
 #endif
 	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid scene type '" + type + "'");
+		LM_LOG_ERROR("Invalid scene type '" + type + "'");
 		return nullptr;
 	}
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

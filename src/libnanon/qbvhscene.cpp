@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,26 +24,26 @@
 
 #include "pch.h"
 #include "simdsupport.h"
-#include <nanon/qbvhscene.h>
-#include <nanon/logger.h>
-#include <nanon/triaccel.h>
-#include <nanon/primitive.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/aabb.h>
-#include <nanon/align.h>
+#include <lightmetrica/qbvhscene.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/triaccel.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/aabb.h>
+#include <lightmetrica/align.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 // Quad ray structure in SOA format
-struct NANON_ALIGN_16 Ray4
+struct LM_ALIGN_16 Ray4
 {
 
 	__m128 ox, oy, oz;
 	__m128 dx, dy, dz;
 	__m128 minT, maxT;
 
-	NANON_FORCE_INLINE Ray4(const Ray& ray)
+	LM_FORCE_INLINE Ray4(const Ray& ray)
 	{
 		ox = _mm_set1_ps(ray.o.x);
 		oy = _mm_set1_ps(ray.o.y);
@@ -58,7 +58,7 @@ struct NANON_ALIGN_16 Ray4
 };
 
 // Quad triangle structure for SSE optimized triangle intersection
-struct NANON_ALIGN_16 QuadTriangle
+struct LM_ALIGN_16 QuadTriangle
 {
 
 	__m128 origx, origy, origz;
@@ -72,7 +72,7 @@ struct NANON_ALIGN_16 QuadTriangle
 		Load triangles.
 		\param positions 3*4 = 12 elements of triangle positions.
 	*/
-	NANON_FORCE_INLINE void Load(const Math::Vec3* positions)
+	LM_FORCE_INLINE void Load(const Math::Vec3* positions)
 	{
 		for (size_t i = 0; i < 4; i++)
 		{
@@ -96,7 +96,7 @@ struct NANON_ALIGN_16 QuadTriangle
 		\param ray4 Quad ray structure.
 		\param ray Ray structure.
 	*/
-	NANON_FORCE_INLINE bool Intersect(Ray4& ray4, Ray& ray, Math::Vec2& resultB, unsigned int& resultOffset)
+	LM_FORCE_INLINE bool Intersect(Ray4& ray4, Ray& ray, Math::Vec2& resultB, unsigned int& resultOffset)
 	{
 		// Check 4 intersections simultaneously
 		const __m128 zero = _mm_set1_ps(0.f);
@@ -160,7 +160,7 @@ struct TriangleRef
 	int primitiveIndex;		// Index of a primitive. -1 specifies no reference
 	int faceIndex;			// Index of a face in the primitive
 
-	NANON_FORCE_INLINE TriangleRef()
+	LM_FORCE_INLINE TriangleRef()
 		: primitiveIndex(-1)
 	{
 
@@ -197,7 +197,7 @@ struct QBVHNode
 	*/
 	int children[4];
 
-	NANON_FORCE_INLINE QBVHNode()
+	LM_FORCE_INLINE QBVHNode()
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -215,7 +215,7 @@ struct QBVHNode
 		\param childIndex Child index.
 		\param bound A bound to be set
 	*/
-	NANON_FORCE_INLINE void SetBound(int childIndex, const AABB& bound)
+	LM_FORCE_INLINE void SetBound(int childIndex, const AABB& bound)
 	{
 		for (int axis = 0; axis < 3; axis++)
 		{
@@ -230,7 +230,7 @@ struct QBVHNode
 		\param size Number of triangles
 		\param offset Offset in the triangle list
 	*/
-	NANON_FORCE_INLINE void InitializeLeaf(int childIndex, unsigned int size, unsigned int offset)
+	LM_FORCE_INLINE void InitializeLeaf(int childIndex, unsigned int size, unsigned int offset)
 	{
 		if (size == 0)
 		{
@@ -251,7 +251,7 @@ struct QBVHNode
 		\param childIndex Child index.
 		\param index Index of the node.
 	*/
-	NANON_FORCE_INLINE void InitializeIntermediateNode(int childIndex, unsigned int index)
+	LM_FORCE_INLINE void InitializeIntermediateNode(int childIndex, unsigned int index)
 	{
 		children[childIndex] = static_cast<int>(index);
 	}
@@ -262,7 +262,7 @@ struct QBVHNode
 		\param size Extracted size value.
 		\param offset Extracted offset value.
 	*/
-	NANON_FORCE_INLINE static void ExtractLeafData(int data, unsigned int& size, unsigned int& offset)
+	LM_FORCE_INLINE static void ExtractLeafData(int data, unsigned int& size, unsigned int& offset)
 	{
 		size = static_cast<unsigned int>(((data >> 27) & 0xf) + 1);
 		offset = data & 0x07ffffff;
@@ -276,7 +276,7 @@ struct QBVHNode
 		\param rayDirSign Specifies the component of the ray direction is negative.
 		\return Intersection mask.
 	*/
-	NANON_FORCE_INLINE int Intersect(const Ray4& ray4, const __m128 invRayDir[3], const int rayDirSign[3])
+	LM_FORCE_INLINE int Intersect(const Ray4& ray4, const __m128 invRayDir[3], const int rayDirSign[3])
 	{
 		__m128 minT = ray4.minT;
 		__m128 maxT = ray4.maxT;
@@ -386,9 +386,9 @@ QBVHScene::Impl::~Impl()
 void QBVHScene::Impl::ResetScene()
 {
 	for (auto* node : nodes)
-		NANON_SAFE_DELETE(node);
+		LM_SAFE_DELETE(node);
 	for (auto* quad : quadTris)
-		NANON_SAFE_DELETE(quad);
+		LM_SAFE_DELETE(quad);
 
 	triRefs.clear();
 	triAccels.clear();
@@ -403,7 +403,7 @@ bool QBVHScene::Impl::Configure( const pugi::xml_node& node )
 	if (!intersectionModeNode)
 	{
 		mode = IntersectionMode::SSE;
-		NANON_LOG_WARN("Using default value 'intersection_mode' = 'triaccel'");
+		LM_LOG_WARN("Using default value 'intersection_mode' = 'triaccel'");
 	}
 	else
 	{
@@ -417,7 +417,7 @@ bool QBVHScene::Impl::Configure( const pugi::xml_node& node )
 		}
 		else
 		{
-			NANON_LOG_ERROR(boost::str(boost::format("Invalid intersection mode '%s'") % intersectionModeNode.child_value()));
+			LM_LOG_ERROR(boost::str(boost::format("Invalid intersection mode '%s'") % intersectionModeNode.child_value()));
 			return false;
 		}
 	}
@@ -443,8 +443,8 @@ bool QBVHScene::Impl::Build()
 
 	{
 		// TODO : replace triaccel with SSE optimized quad triangle intersection
-		NANON_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == IntersectionMode::SSE ? "sse" : "triaccel")));
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == IntersectionMode::SSE ? "sse" : "triaccel")));
+		LM_LOG_INDENTER();
 
 		for (int i = 0; i < self->NumPrimitives(); i++)
 		{
@@ -485,8 +485,8 @@ bool QBVHScene::Impl::Build()
 
 	// Build QBVH
 	{
-		NANON_LOG_INFO("Building QBVH");
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO("Building QBVH");
+		LM_LOG_INDENTER();
 
 		//ResetProgress();
 
@@ -496,7 +496,7 @@ bool QBVHScene::Impl::Build()
 		auto end = std::chrono::high_resolution_clock::now();
 
 		double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0;
-		NANON_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
+		LM_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
 	}
 
 	signal_ReportBuildProgress(1, true);
@@ -936,7 +936,7 @@ QBVHScene::QBVHScene()
 
 QBVHScene::~QBVHScene()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool QBVHScene::Build()
@@ -964,4 +964,4 @@ void QBVHScene::ResetScene()
 	p->ResetScene();
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

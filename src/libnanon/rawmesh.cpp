@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #include "pch.h"
-#include <nanon/rawmesh.h>
-#include <nanon/logger.h>
+#include <lightmetrica/rawmesh.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class RawMesh::Impl : public Object
 {
@@ -66,7 +66,7 @@ bool RawMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	auto positionsNode = node.child("positions");
 	if (!positionsNode)
 	{
-		NANON_LOG_ERROR("Missing 'positions' element");
+		LM_LOG_ERROR("Missing 'positions' element");
 		return false;
 	}
 	ParseFloatArray(positionsNode, positions);
@@ -75,7 +75,7 @@ bool RawMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	auto normalsNode = node.child("normals");
 	if (!normalsNode)
 	{
-		NANON_LOG_ERROR("Missing 'normals' element");
+		LM_LOG_ERROR("Missing 'normals' element");
 		return false;
 	}
 	ParseFloatArray(normalsNode, normals);
@@ -91,7 +91,7 @@ bool RawMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	auto facesNode = node.child("faces");
 	if (!facesNode)
 	{
-		NANON_LOG_ERROR("Missing 'faces' element");
+		LM_LOG_ERROR("Missing 'faces' element");
 		return false;
 	}
 	ParseUIntArray(facesNode, faces);
@@ -130,7 +130,7 @@ RawMesh::RawMesh( const std::string& id )
 
 RawMesh::~RawMesh()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool RawMesh::LoadAsset( const pugi::xml_node& node, const Assets& assets )
@@ -168,4 +168,4 @@ const unsigned int* RawMesh::Faces() const
 	return p->faces.empty() ? nullptr : &p->faces[0];
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

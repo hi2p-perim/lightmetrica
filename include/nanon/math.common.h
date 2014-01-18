@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,31 +23,31 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_COMMON_H__
-#define __LIB_NANON_MATH_COMMON_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_COMMON_H__
+#define __LIB_LIGHTMETRICA_MATH_COMMON_H__
 
 #include "common.h"
 #include <cmath>
 
-#define NANON_MATH_NAMESPACE_BEGIN namespace Math {
-#define NANON_MATH_NAMESPACE_END }
+#define LM_MATH_NAMESPACE_BEGIN namespace Math {
+#define LM_MATH_NAMESPACE_END }
 
 // Multiprecision support
 // Note that the multiprecision support can be enabled irrelevant to 
-// the macro NANON_MULTI_PRECISION for testing.
-#ifdef NANON_ENABLE_MULTI_PRECISION
+// the macro LM_MULTI_PRECISION for testing.
+#ifdef LM_ENABLE_MULTI_PRECISION
 	#include <boost/multiprecision/cpp_dec_float.hpp>
-	#ifndef NANON_PRECISION_NUM
+	#ifndef LM_PRECISION_NUM
 		// Default precision : 50 decimal digits
-		#define NANON_PRECISION_NUM 50
+		#define LM_PRECISION_NUM 50
 	#endif
-	NANON_NAMESPACE_BEGIN
-	NANON_MATH_NAMESPACE_BEGIN
-		#ifdef NANON_ENABLE_MULTI_PRECISION
-			typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<NANON_PRECISION_NUM>> BigFloat;
+	LM_NAMESPACE_BEGIN
+	LM_MATH_NAMESPACE_BEGIN
+		#ifdef LM_ENABLE_MULTI_PRECISION
+			typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<LM_PRECISION_NUM>> BigFloat;
 		#endif
-	NANON_MATH_NAMESPACE_END
-	NANON_NAMESPACE_END
+	LM_MATH_NAMESPACE_END
+	LM_NAMESPACE_END
 #endif
 
-#endif // __LIB_NANON_MATH_COMMON_H__
+#endif // __LIB_LIGHTMETRICA_MATH_COMMON_H__

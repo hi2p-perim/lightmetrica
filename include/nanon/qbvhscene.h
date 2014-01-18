@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,12 +23,12 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_QBVH_SCENE_H__
-#define __LIB_NANON_QBVH_SCENE_H__
+#ifndef __LIB_LIGHTMETRICA_QBVH_SCENE_H__
+#define __LIB_LIGHTMETRICA_QBVH_SCENE_H__
 
 #include "scene.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	QBVH scene.
@@ -40,7 +40,7 @@ NANON_NAMESPACE_BEGIN
 	- LuxRender's QBVHAccel
 	- http://d.hatena.ne.jp/ototoi/20090925/p1
 */
-class NANON_PUBLIC_API QBVHScene : public Scene
+class LM_PUBLIC_API QBVHScene : public Scene
 {
 public:
 
@@ -63,6 +63,6 @@ private:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_QBVH_SCENE_H__
+#endif // __LIB_LIGHTMETRICA_QBVH_SCENE_H__

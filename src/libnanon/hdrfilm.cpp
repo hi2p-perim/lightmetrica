@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,12 +23,12 @@
 */
 
 #include "pch.h"
-#include <nanon/hdrfilm.h>
-#include <nanon/logger.h>
+#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 #include <FreeImage.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 enum class ImageType
 {
@@ -75,13 +75,13 @@ bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& a
 	// Check name and type
 	if (node.name() != self->Name())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
 		return false;
 	}
 
 	if (node.attribute("type").as_string() != self->Type())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid film type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid film type '%s'") % node.attribute("type").as_string()));
 		return false;
 	}
 
@@ -89,7 +89,7 @@ bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& a
 	auto widthNode = node.child("width");
 	if (!widthNode)
 	{
-		NANON_LOG_ERROR("Missing 'width' element");
+		LM_LOG_ERROR("Missing 'width' element");
 		return false;
 	}
 
@@ -97,7 +97,7 @@ bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& a
 	auto heightNode = node.child("height");
 	if (!heightNode)
 	{
-		NANON_LOG_ERROR("Missing 'height' element");
+		LM_LOG_ERROR("Missing 'height' element");
 		return false;
 	}
 
@@ -105,7 +105,7 @@ bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& a
 	auto pathNode = node.child("path");
 	if (!pathNode)
 	{
-		NANON_LOG_ERROR("Missing 'path' element");
+		LM_LOG_ERROR("Missing 'path' element");
 		return false;
 	}
 
@@ -135,7 +135,7 @@ bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& a
 		}
 		else
 		{
-			NANON_LOG_ERROR(boost::str(boost::format("Invalid image type '%s'") % imageTypeNode.child_value()));
+			LM_LOG_ERROR(boost::str(boost::format("Invalid image type '%s'") % imageTypeNode.child_value()));
 			return false;
 		}
 	}
@@ -155,8 +155,8 @@ void HDRBitmapFilm::Impl::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const c
 		? FreeImage_GetFormatFromFIF(fif)
 		: "unknown";
 
-	NANON_LOG_ERROR(format);
-	NANON_LOG_ERROR(message);
+	LM_LOG_ERROR(format);
+	LM_LOG_ERROR(message);
 }
 
 void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
@@ -168,7 +168,7 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 
 	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
 	{
-		NANON_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
+		LM_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
 		return;
 	}
 
@@ -188,7 +188,7 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, c
 
 	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
 	{
-		NANON_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
+		LM_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
 		return;
 	}
 
@@ -207,7 +207,7 @@ bool HDRBitmapFilm::Impl::Save()
 	FIBITMAP* bitmap = FreeImage_AllocateT(FIT_RGBF, width, height);
 	if (!bitmap)
 	{
-		NANON_LOG_ERROR("Failed to allocate bitmap");
+		LM_LOG_ERROR("Failed to allocate bitmap");
 		return false;
 	}
 
@@ -238,12 +238,12 @@ bool HDRBitmapFilm::Impl::Save()
 
 	if (!result)
 	{
-		NANON_LOG_DEBUG("Failed to save image : " + path);
+		LM_LOG_DEBUG("Failed to save image : " + path);
 		FreeImage_Unload(bitmap);
 		return false;
 	}
 
-	NANON_LOG_INFO("Successfully saved to " + path);
+	LM_LOG_INFO("Successfully saved to " + path);
 
 	FreeImage_Unload(bitmap);
 	return true;
@@ -267,7 +267,7 @@ HDRBitmapFilm::HDRBitmapFilm(const std::string& id)
 
 HDRBitmapFilm::~HDRBitmapFilm()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool HDRBitmapFilm::Save() const
@@ -305,4 +305,4 @@ bool HDRBitmapFilm::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 	return p->LoadAsset(node, assets);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

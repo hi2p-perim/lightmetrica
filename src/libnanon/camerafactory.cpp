@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #include "pch.h"
-#include <nanon/camerafactory.h>
-#include <nanon/logger.h>
-#include <nanon/perspectivecamera.h>
+#include <lightmetrica/camerafactory.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/perspectivecamera.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 Asset* CameraFactory::Create( const std::string& id, const std::string& type ) const
 {
@@ -37,9 +37,9 @@ Asset* CameraFactory::Create( const std::string& id, const std::string& type ) c
 	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid camera type '" + type + "'");
+		LM_LOG_ERROR("Invalid camera type '" + type + "'");
 		return nullptr;
 	}
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

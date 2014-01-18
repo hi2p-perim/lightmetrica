@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,14 +23,14 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon/config.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica/config.h>
 
 namespace fs = boost::filesystem;
 
 namespace
 {
-	const std::string ConfigData_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ConfigData_Success = LM_TEST_MULTILINE_LITERAL(
 		<?xml version="1.0" ?>
 		<nanon version="1.0.dev">
 			<assets />
@@ -39,13 +39,13 @@ namespace
 		</nanon>
 	);
 
-	const std::string ConfigData_Fail_MissingElement = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ConfigData_Fail_MissingElement = LM_TEST_MULTILINE_LITERAL(
 		<?xml version="1.0" ?>
 		<nanon version="1.0.dev">
 		</nanon>
 	);
 
-	const std::string ConfigData_Fail_DifferentVersion = NANON_TEST_MULTILINE_LITERAL(
+	const std::string ConfigData_Fail_DifferentVersion = LM_TEST_MULTILINE_LITERAL(
 		<?xml version="1.0" ?>
 		<nanon version="some.version">
 			<assets />
@@ -55,8 +55,8 @@ namespace
 	);
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class NanonConfigTest : public TestBase
 {
@@ -107,5 +107,5 @@ TEST_F(NanonConfigTest, LoadString_Failed)
 	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

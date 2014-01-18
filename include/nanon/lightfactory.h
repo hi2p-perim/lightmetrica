@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,18 +23,18 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_LIGHT_FACTORY_H__
-#define __LIB_NANON_LIGHT_FACTORY_H__
+#ifndef __LIB_LIGHTMETRICA_LIGHT_FACTORY_H__
+#define __LIB_LIGHTMETRICA_LIGHT_FACTORY_H__
 
 #include "assetfactory.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Light factory.
 	A factory class for lights.
 */
-class NANON_PUBLIC_API LightFactory : public AssetFactory
+class LM_PUBLIC_API LightFactory : public AssetFactory
 {
 public:
 
@@ -42,6 +42,6 @@ public:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_LIGHT_FACTORY_H__
+#endif // __LIB_LIGHTMETRICA_LIGHT_FACTORY_H__

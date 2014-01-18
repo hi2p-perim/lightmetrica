@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #include "pch.h"
-#include <nanon/bsdffactory.h>
-#include <nanon/logger.h>
-#include <nanon/diffuse.h>
+#include <lightmetrica/bsdffactory.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/diffuse.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 Asset* BSDFFactory::Create( const std::string& id, const std::string& type ) const
 {
@@ -37,9 +37,9 @@ Asset* BSDFFactory::Create( const std::string& id, const std::string& type ) con
 	}
 	else
 	{
-		NANON_LOG_ERROR("Invalid BSDF type '" + type + "'");
+		LM_LOG_ERROR("Invalid BSDF type '" + type + "'");
 		return nullptr;
 	}
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

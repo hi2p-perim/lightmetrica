@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,17 +23,17 @@
 */
 
 #include "pch.h"
-#include <nanon/bvhscene.h>
-#include <nanon/primitive.h>
-#include <nanon/trianglemesh.h>
-#include <nanon/triaccel.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
-#include <nanon/logger.h>
-#include <nanon/aabb.h>
+#include <lightmetrica/bvhscene.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/trianglemesh.h>
+#include <lightmetrica/triaccel.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/aabb.h>
 #include <thread>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 struct BVHNode
 {
@@ -192,8 +192,8 @@ bool BVHScene::Impl::Build()
 	BVHBuildData data;
 
 	{
-		NANON_LOG_INFO("Creating triaccels");
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO("Creating triaccels");
+		LM_LOG_INDENTER();
 
 		for (int i = 0; i < self->NumPrimitives(); i++)
 		{
@@ -233,13 +233,13 @@ bool BVHScene::Impl::Build()
 			}
 		}
 
-		NANON_LOG_INFO("Successfully created " + std::to_string(triAccels.size()) + " triaccels");
+		LM_LOG_INFO("Successfully created " + std::to_string(triAccels.size()) + " triaccels");
 	}
 
 	// Build BVH
 	{
-		NANON_LOG_INFO("Building BVH");
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO("Building BVH");
+		LM_LOG_INDENTER();
 
 		ResetProgress();
 
@@ -248,7 +248,7 @@ bool BVHScene::Impl::Build()
 		auto end = std::chrono::high_resolution_clock::now();
 
 		double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0;
-		NANON_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
+		LM_LOG_INFO("Completed in " + std::to_string(elapsed) + " seconds");
 	}
 
 	return true;
@@ -482,7 +482,7 @@ BVHScene::BVHScene()
 
 BVHScene::~BVHScene()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool BVHScene::Build()
@@ -500,4 +500,4 @@ boost::signals2::connection BVHScene::Connect_ReportBuildProgress( const std::fu
 	return p->Connect_ReportBuildProgress(func);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

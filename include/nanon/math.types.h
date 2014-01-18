@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_TYPES_H__
-#define __LIB_NANON_MATH_TYPES_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_TYPES_H__
+#define __LIB_LIGHTMETRICA_MATH_TYPES_H__
 
 #include "math.vector.h"
 #include "math.matrix.h"
@@ -33,16 +33,16 @@
 #include "math.colors.h"
 #include "math.cast.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 // Define default floating point types
-#ifdef NANON_SINGLE_PRECISION
+#ifdef LM_SINGLE_PRECISION
 	typedef float Float;
-#elif defined(NANON_DOUBLE_PRECISION)
+#elif defined(LM_DOUBLE_PRECISION)
 	typedef double Float;
-#elif defined(NANON_MULTI_PRECISION)
-	#ifndef NANON_ENABLE_MULTI_PRECISION
+#elif defined(LM_MULTI_PRECISION)
+	#ifndef LM_ENABLE_MULTI_PRECISION
 		#error "Multiprecision support must be enabled"
 	#endif
 	typedef BigFloat Float;
@@ -56,7 +56,7 @@ typedef TMat4<Float> Mat4;
 typedef TConstants<Float> Constants;
 typedef TColors<Float> Colors;
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_MATH_TYPES_H__
+#endif // __LIB_LIGHTMETRICA_MATH_TYPES_H__

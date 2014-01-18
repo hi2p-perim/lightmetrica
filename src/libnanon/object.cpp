@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,16 +24,16 @@
 
 #include "pch.h"
 #include "simdsupport.h"
-#include <nanon/object.h>
-#include <nanon/align.h>
+#include <lightmetrica/object.h>
+#include <lightmetrica/align.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 void* Object::operator new(std::size_t size) throw (std::bad_alloc) 
 {
-#if defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_SSE2)
+#if defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)
 	void* p = aligned_malloc(size, 16);
-#elif defined(NANON_DOUBLE_PRECISION) && defined(NANON_USE_AVX)
+#elif defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX)
 	void* p = aligned_malloc(size, 32);
 #else
 	void* p = malloc(size);
@@ -44,11 +44,11 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc)
 
 void Object::operator delete(void* p)
 {
-#if (defined(NANON_SINGLE_PRECISION) && defined(NANON_USE_SSE2)) || (defined(NANON_DOUBLE_PRECISION) && defined(NANON_USE_AVX))
+#if (defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)) || (defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX))
 	aligned_free(p);
 #else
 	free(p);
 #endif
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,9 +23,9 @@
 */
 
 #include "pch.h"
-#include <nanon/film.h>
+#include <lightmetrica/film.h>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 Film::Film(const std::string& id)
 	: Asset(id)
@@ -38,4 +38,4 @@ Film::~Film()
 
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

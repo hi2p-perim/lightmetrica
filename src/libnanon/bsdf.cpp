@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,12 +23,12 @@
 */
 
 #include "pch.h"
-#include <nanon/bsdf.h>
-#include <nanon/logger.h>
-#include <nanon/intersection.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/intersection.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 BSDF::BSDF(const std::string& id)
 	: Asset(id)
@@ -67,4 +67,4 @@ Math::Float BSDF::ShadingNormalCorrectionFactor( const BSDFEvaluateQuery& query,
 	return Math::Float(1);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

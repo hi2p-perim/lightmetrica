@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,16 +23,16 @@
 */
 
 #include "pch.h"
-#include <nanon/asset.h>
-#include <nanon/defaultassets.h>
-#include <nanon/assetfactory.h>
-#include <nanon/config.h>
-#include <nanon/logger.h>
-#include <nanon/pugihelper.h>
+#include <lightmetrica/asset.h>
+#include <lightmetrica/defaultassets.h>
+#include <lightmetrica/assetfactory.h>
+#include <lightmetrica/config.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/pugihelper.h>
 #include <pugixml.hpp>
 #include <thread>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class DefaultAssets::Impl : public Object
 {
@@ -72,9 +72,9 @@ DefaultAssets::Impl::Impl( DefaultAssets* self )
 DefaultAssets::Impl::~Impl()
 {
 	for (auto& v : assetFactoryEntries)
-		NANON_SAFE_DELETE(v.factory);
+		LM_SAFE_DELETE(v.factory);
 	for (auto& v : assetInstances)
-		NANON_SAFE_DELETE(v);
+		LM_SAFE_DELETE(v);
 }
 
 bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
@@ -85,7 +85,7 @@ bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
 	
 	if (it != assetFactoryEntries.end())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Asset factory '%s' is already registered") % entry.name));
+		LM_LOG_ERROR(boost::str(boost::format("Asset factory '%s' is already registered") % entry.name));
 		return false;
 	}
 
@@ -115,13 +115,13 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 	// Element name must be 'assets'
 	if (std::strcmp(node.name(), "assets") != 0)
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'assets')") % node.name()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'assets')") % node.name()));
 		return false;
 	}
 
 	{
-		NANON_LOG_INFO("Stage : Finding assets");
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO("Stage : Finding assets");
+		LM_LOG_INDENTER();
 
 		// By priority, find the child element under 'assets', and
 		// find corresponding asset factory and create asset instances.
@@ -131,8 +131,8 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 			auto assetGroupNode = node.child(factoryEntry.name.c_str());
 			if (assetGroupNode)
 			{
-				NANON_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
-				NANON_LOG_INDENTER();
+				LM_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
+				LM_LOG_INDENTER();
 
 				// For each child of the node, create an instance of the asset
 				for (auto assetNode : assetGroupNode.children())
@@ -141,7 +141,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 					auto name = assetNode.name();
 					if (name != factoryEntry.child)
 					{
-						NANON_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
+						LM_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
 						return false;
 					}
 
@@ -149,33 +149,33 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 					auto typeAttribute = assetNode.attribute("type");
 					if (!typeAttribute)
 					{
-						NANON_LOG_ERROR("Missing attribute 'type'.");
+						LM_LOG_ERROR("Missing attribute 'type'.");
 						return false;
 					}
 
 					auto idAttribute = assetNode.attribute("id");
 					if (!idAttribute)
 					{
-						NANON_LOG_ERROR("Missing attribute 'id'.");
+						LM_LOG_ERROR("Missing attribute 'id'.");
 						return false;
 					}
 
 					{
-						NANON_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
-						NANON_LOG_INDENTER();
+						LM_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
+						LM_LOG_INDENTER();
 
 						// Check if the 'id' is already registered
 						std::string id = idAttribute.value();
 						if (assetIndexMap.find(id) != assetIndexMap.end())
 						{
-							NANON_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
+							LM_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
 							return false;
 						}
 
 						auto* asset = factoryEntry.factory->Create(id, typeAttribute.value());
 						if (asset == nullptr)
 						{
-							NANON_LOG_ERROR("Failed to create the asset.");
+							LM_LOG_ERROR("Failed to create the asset.");
 							return false;
 						}
 
@@ -188,12 +188,12 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 			}
 		}
 
-		NANON_LOG_INFO("Successfully found " + std::to_string(assetInstances.size()) + " assets");
+		LM_LOG_INFO("Successfully found " + std::to_string(assetInstances.size()) + " assets");
 	}
 
 	{
-		NANON_LOG_INFO("Stage : Loading assets");
-		NANON_LOG_INDENTER();
+		LM_LOG_INFO("Stage : Loading assets");
+		LM_LOG_INDENTER();
 
 		signal_ReportProgress(0, false);
 
@@ -201,13 +201,13 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 		{
 			auto* asset = assetInstances[i];
 
-			NANON_LOG_INFO(boost::str(boost::format("Loading asset (id : '%s', type : '%s')") % asset->ID() % asset->Type()));
-			NANON_LOG_INDENTER();
+			LM_LOG_INFO(boost::str(boost::format("Loading asset (id : '%s', type : '%s')") % asset->ID() % asset->Type()));
+			LM_LOG_INDENTER();
 
 			// Load
 			if (!asset->Load(assetInstanceNodes[i], *self))
 			{
-				NANON_LOG_ERROR("Failed to load the asset.");
+				LM_LOG_ERROR("Failed to load the asset.");
 				return false;
 			}
 
@@ -215,7 +215,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 			signal_ReportProgress(static_cast<double>(i+1) / assetInstances.size(), i+1 == assetInstances.size());
 		}
 
-		NANON_LOG_INFO("Successfully loaded " + std::to_string(assetInstances.size()) + " assets");
+		LM_LOG_INFO("Successfully loaded " + std::to_string(assetInstances.size()) + " assets");
 	}
 
 	return true;
@@ -241,7 +241,7 @@ DefaultAssets::DefaultAssets()
 
 DefaultAssets::~DefaultAssets()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool DefaultAssets::Load( const pugi::xml_node& node )
@@ -269,4 +269,4 @@ boost::signals2::connection DefaultAssets::Connect_ReportProgress( const std::fu
 	return p->Connect_ReportProgress(func);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

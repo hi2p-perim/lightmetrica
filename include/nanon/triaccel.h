@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,13 +23,13 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TRIACCEL_H__
-#define __LIB_NANON_TRIACCEL_H__
+#ifndef __LIB_LIGHTMETRICA_TRIACCEL_H__
+#define __LIB_LIGHTMETRICA_TRIACCEL_H__
 
 #include "math.functions.h"
 #include "ray.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 // TriAccel by Ingo Wald
 // We used the implementation in mitsuba with a slight modification
@@ -52,14 +52,14 @@ struct TriAccel
 	uint32_t primIndex;
 
 	// Construct from vertex data. Returns '1' if there was a failure
-	NANON_FORCE_INLINE int Load(const Math::Vec3& A, const Math::Vec3& B, const Math::Vec3& C);
+	LM_FORCE_INLINE int Load(const Math::Vec3& A, const Math::Vec3& B, const Math::Vec3& C);
 
 	// Fast ray-triangle intersection test
-	NANON_FORCE_INLINE bool Intersect(const Ray& ray, Math::Float mint, Math::Float maxt, Math::Float& u, Math::Float& v, Math::Float& t) const;
+	LM_FORCE_INLINE bool Intersect(const Ray& ray, Math::Float mint, Math::Float maxt, Math::Float& u, Math::Float& v, Math::Float& t) const;
 
 };
 
-NANON_FORCE_INLINE int TriAccel::Load(const Math::Vec3& A, const Math::Vec3& B, const Math::Vec3& C)
+LM_FORCE_INLINE int TriAccel::Load(const Math::Vec3& A, const Math::Vec3& B, const Math::Vec3& C)
 {
 	static const int waldModulo[4] = { 1, 2, 0, 1 };
 
@@ -102,7 +102,7 @@ NANON_FORCE_INLINE int TriAccel::Load(const Math::Vec3& A, const Math::Vec3& B, 
 	return 0;
 }
 
-NANON_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Math::Float maxt, Math::Float& u, Math::Float& v, Math::Float& t) const
+LM_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Math::Float maxt, Math::Float& u, Math::Float& v, Math::Float& t) const
 {
 	Math::Float o_u, o_v, o_k, d_u, d_v, d_k;
 	switch (k)
@@ -139,7 +139,7 @@ NANON_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Ma
 	}
 
 
-#ifdef NANON_DEBUG_MODE
+#ifdef LM_DEBUG_MODE
 	if (d_u * n_u + d_v * n_v + d_k == 0)
 	{
 		return false;
@@ -164,6 +164,6 @@ NANON_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Ma
 	return u >= 0 && v >= 0 && u+v <= 1;
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_TRIACCEL_H__
+#endif // __LIB_LIGHTMETRICA_TRIACCEL_H__

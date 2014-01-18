@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,19 +23,19 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TEST_COMMON_H__
-#define __LIB_NANON_TEST_COMMON_H__
+#ifndef __LIB_LIGHTMETRICA_TEST_COMMON_H__
+#define __LIB_LIGHTMETRICA_TEST_COMMON_H__
 
-#include <nanon/common.h>
+#include <lightmetrica/common.h>
 
-//#ifdef NANON_PLATFORM_WINDOWS
+//#ifdef LM_PLATFORM_WINDOWS
 //	// Disable LNK4099 : PDB was not found
 //	#pragma comment(linker, "/ignore:4099")
 //#endif
 
-#define NANON_TEST_NAMESPACE_BEGIN namespace test {
-#define NANON_TEST_NAMESPACE_END }
+#define LM_TEST_NAMESPACE_BEGIN namespace test {
+#define LM_TEST_NAMESPACE_END }
 
-#define NANON_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__
+#define LM_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__
 
-#endif // __LIB_NANON_TEST_COMMON_H__
+#endif // __LIB_LIGHTMETRICA_TEST_COMMON_H__

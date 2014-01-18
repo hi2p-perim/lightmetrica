@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,9 +23,9 @@
 */
 
 #pragma once
-#ifndef __NANON_PERF_BASE_PERF_H__
-#define __NANON_PERF_BASE_PERF_H__
+#ifndef __LM_PERF_BASE_PERF_H__
+#define __LM_PERF_BASE_PERF_H__
 
-#include <nanon.test/base.h>
+#include <lightmetrica.test/base.h>
 
-#endif // __NANON_PERF_BASE_PERF_H__
+#endif // __LM_PERF_BASE_PERF_H__

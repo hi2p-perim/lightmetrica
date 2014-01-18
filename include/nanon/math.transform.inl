@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -25,11 +25,11 @@
 #include "math.transform.h"
 #include "math.basic.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v)
+LM_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v)
 {
 	TMat4<T> r(m);
 	r[3] = m[0] * v.x + m[1] * v.y + m[2] * v.z + m[3];
@@ -37,13 +37,13 @@ NANON_FORCE_INLINE TMat4<T> Translate(const TMat4<T>& m, const TVec3<T>& v)
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v)
+LM_FORCE_INLINE TMat4<T> Translate(const TVec3<T>& v)
 {
 	return Translate<T>(TMat4<T>::Identity(), v);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis)
+LM_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& axis)
 {
 	T c = Cos(Radians(angle));
 	T s = Sin(Radians(angle));
@@ -72,25 +72,25 @@ NANON_FORCE_INLINE TMat4<T> Rotate(const TMat4<T>& m, T angle, const TVec3<T>& a
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
+LM_FORCE_INLINE TMat4<T> Rotate(T angle, const TVec3<T>& axis)
 {
 	return Rotate(TMat4<T>::Identity(), angle, axis);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
+LM_FORCE_INLINE TMat4<T> Scale(const TMat4<T>& m, const TVec3<T>& v)
 {
 	return TMat4<T>(m[0] * v[0], m[1] * v[1], m[2] * v[2], m[3]);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
+LM_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v)
 {
 	return Scale(TMat4<T>::Identity(), v);
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up)
+LM_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up)
 {
 	auto f = Normalize(center - eye);
 	auto u = Normalize(up);
@@ -105,7 +105,7 @@ NANON_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, 
 }
 
 template <typename T>
-NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
+LM_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
 {
 	T radian = Radians(fovy);
 	T t = Math::Tan(T(radian / T(2)));	// Wrap by T for expression template type
@@ -119,16 +119,16 @@ NANON_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
 
 // --------------------------------------------------------------------------------
 
-#ifdef NANON_USE_SSE2
+#ifdef LM_USE_SSE2
 
 template <>
-NANON_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
+LM_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
 {
 	return m * Rotate(angle, axis);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
+LM_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
 {
 	float c = Cos(Radians(angle));
 	float s = Sin(Radians(angle));
@@ -152,16 +152,16 @@ NANON_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
 
 // --------------------------------------------------------------------------------
 
-#ifdef NANON_USE_AVX
+#ifdef LM_USE_AVX
 
 template <>
-NANON_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis)
+LM_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis)
 {
 	return m * Rotate(angle, axis);
 }
 
 template <>
-NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
+LM_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
 {
 	double c = Cos(Radians(angle));
 	double s = Sin(Radians(angle));
@@ -183,5 +183,5 @@ NANON_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
 
 #endif
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END

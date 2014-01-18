@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,24 +23,24 @@
 */
 
 #include "pch.h"
-#include <nanon/pathtrace.h>
-#include <nanon/camera.h>
-#include <nanon/film.h>
-#include <nanon/ray.h>
-#include <nanon/intersection.h>
-#include <nanon/primitive.h>
-#include <nanon/light.h>
-#include <nanon/logger.h>
-#include <nanon/random.h>
-#include <nanon/scene.h>
-#include <nanon/bsdf.h>
-#include <nanon/logger.h>
+#include <lightmetrica/pathtrace.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/random.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 #include <thread>
 #include <omp.h>
 #include <atomic>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class PathtraceRenderer::Impl : public Object
 {
@@ -76,7 +76,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 	// Check type
 	if (node.attribute("type").as_string() != self->Type())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid renderer type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid renderer type '%s'") % node.attribute("type").as_string()));
 		return false;
 	}
 
@@ -85,7 +85,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 	if (!numSamples)
 	{
 		numSamples = 1;
-		NANON_LOG_WARN(boost::str(boost::format("Using default value 'num_samples' = %d") % numSamples));
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_samples' = %d") % numSamples));
 	}
 	else
 	{
@@ -97,7 +97,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 	if (!rrDepthNode)
 	{
 		rrDepth = 1;
-		NANON_LOG_WARN(boost::str(boost::format("Using default value 'rr_depth' = %d") % rrDepth));
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'rr_depth' = %d") % rrDepth));
 	}
 	else
 	{
@@ -109,7 +109,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 	if (!numThreadsNode)
 	{
 		numThreads = std::thread::hardware_concurrency();
-		NANON_LOG_WARN(boost::str(boost::format("Using default value 'num_threads' = %d") % numThreads));
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_threads' = %d") % numThreads));
 	}
 	else
 	{
@@ -246,7 +246,7 @@ PathtraceRenderer::PathtraceRenderer()
 
 PathtraceRenderer::~PathtraceRenderer()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 bool PathtraceRenderer::Configure( const pugi::xml_node& node, const Assets& assets )
@@ -264,4 +264,4 @@ boost::signals2::connection PathtraceRenderer::Connect_ReportProgress( const std
 	return p->Connect_ReportProgress(func);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

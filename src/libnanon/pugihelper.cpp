@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,11 +23,11 @@
 */
 
 #include "pch.h"
-#include <nanon/pugihelper.h>
-#include <nanon/logger.h>
+#include <lightmetrica/pugihelper.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 std::string PugiHelper::ElementInString( const pugi::xml_node& node )
 {
@@ -55,7 +55,7 @@ Math::Vec3 PugiHelper::ParseVec3( const pugi::xml_node& node )
 	while (ss >> t) v.push_back(t);
 	if (v.size() != 3)
 	{
-		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		LM_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
 		return Math::Vec3();
 	}
 
@@ -73,7 +73,7 @@ Math::Mat4 PugiHelper::ParseMat4( const pugi::xml_node& node )
 	while (ss >> t) m.push_back(t);
 	if (m.size() != 16)
 	{
-		NANON_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
+		LM_LOG_WARN("Invalid number of elements in '" + std::string(node.name()) + "'");
 		return Math::Mat4::Identity();
 	}
 
@@ -83,4 +83,4 @@ Math::Mat4 PugiHelper::ParseMat4( const pugi::xml_node& node )
 	return Math::Mat4(&m2[0]);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

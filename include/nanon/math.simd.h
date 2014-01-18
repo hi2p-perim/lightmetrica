@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,42 +23,42 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_SIMD_H__
-#define __LIB_NANON_MATH_SIMD_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_SIMD_H__
+#define __LIB_LIGHTMETRICA_MATH_SIMD_H__
 
 #include "simdsupport.h"
 
-#ifdef NANON_FORCE_NO_SIMD
-	#undef NANON_USE_SSE
-	#undef NANON_USE_SSE2
-	#undef NANON_USE_SSE3
-	#undef NANON_USE_SSSE3
-	#undef NANON_USE_SSE4_1
-	#undef NANON_USE_SSE4_2
-	#undef NANON_USE_SSE4A
-	#undef NANON_USE_AVX
+#ifdef LM_FORCE_NO_SIMD
+	#undef LM_USE_SSE
+	#undef LM_USE_SSE2
+	#undef LM_USE_SSE3
+	#undef LM_USE_SSSE3
+	#undef LM_USE_SSE4_1
+	#undef LM_USE_SSE4_2
+	#undef LM_USE_SSE4A
+	#undef LM_USE_AVX
 #endif
 
-#ifdef NANON_USE_SSE2
+#ifdef LM_USE_SSE2
 #include <xmmintrin.h>
 #endif
-#ifdef NANON_USE_SSE3
+#ifdef LM_USE_SSE3
 #include <pmmintrin.h>
 #endif
-#ifdef NANON_USE_SSSE3
+#ifdef LM_USE_SSSE3
 #include <tmmintrin.h>
 #endif
-#ifdef NANON_USE_SSE4_1
+#ifdef LM_USE_SSE4_1
 #include <smmintrin.h>
 #endif
-#ifdef NANON_USE_SSE4_2
+#ifdef LM_USE_SSE4_2
 #include <nmmintrin.h>
 #endif
-#ifdef NANON_USE_SSE4A
+#ifdef LM_USE_SSE4A
 #include <ammintrin.h>
 #endif
-#ifdef NANON_USE_AVX
+#ifdef LM_USE_AVX
 #include <immintrin.h>
 #endif
 
-#endif // __LIB_NANON_MATH_SIMD_H__
+#endif // __LIB_LIGHTMETRICA_MATH_SIMD_H__

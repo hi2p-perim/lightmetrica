@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/hdrfilm.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/hdrfilm.h>
 
 namespace
 {
 
-	const std::string FilmNode_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string FilmNode_Success = LM_TEST_MULTILINE_LITERAL(
 		<film id="test" type="hdr">
 			<width>40</width>
 			<height>30</height>
@@ -39,7 +39,7 @@ namespace
 		<\film>
 	);
 
-	const std::string FilmNode_Blank = NANON_TEST_MULTILINE_LITERAL(
+	const std::string FilmNode_Blank = LM_TEST_MULTILINE_LITERAL(
 		<film id="test" type="hdr">
 			<width>40</width>
 			<height>30</height>
@@ -47,7 +47,7 @@ namespace
 		<\film>
 	);
 
-	const std::string FilmNode_Fail_MissingElement = NANON_TEST_MULTILINE_LITERAL(
+	const std::string FilmNode_Fail_MissingElement = LM_TEST_MULTILINE_LITERAL(
 		<film id="test" type="hdr">
 			<height>30</height>
 			<path>test.hdr</path>
@@ -56,8 +56,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class HDRBitmapFilmTest : public TestBase
 {
@@ -141,5 +141,5 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 //	
 //}
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

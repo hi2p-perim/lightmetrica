@@ -1,5 +1,5 @@
 #
-#	nanon : A research-oriented renderer
+#	L I G H T  M E T R I C A
 #
 #	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 #
@@ -117,29 +117,29 @@ include_directories(${PROJECT_BINARY_DIR})
 
 include(CMakeDependentOption)
 
-option(NANON_SINGLE_PRECISION "Use single presicion floating-point number" ON)
-if (NANON_SINGLE_PRECISION)
-	add_definitions(-DNANON_SINGLE_PRECISION)
+option(LM_SINGLE_PRECISION "Use single presicion floating-point number" ON)
+if (LM_SINGLE_PRECISION)
+	add_definitions(-DLM_SINGLE_PRECISION)
 endif()
 
 cmake_dependent_option(
-	NANON_DOUBLE_PRECISION "Use double precision floating-point number" ON
-	"NOT NANON_SINGLE_PRECISION" OFF)
-if (NANON_DOUBLE_PRECISION)
-	add_definitions(-DNANON_DOUBLE_PRECISION)
+	LM_DOUBLE_PRECISION "Use double precision floating-point number" ON
+	"NOT LM_SINGLE_PRECISION" OFF)
+if (LM_DOUBLE_PRECISION)
+	add_definitions(-DLM_DOUBLE_PRECISION)
 endif()
 
 cmake_dependent_option(
-	NANON_MULTI_PRECISION "Use multi precision floating-point number" ON
-	"NOT NANON_SINGLE_PRECISION;NOT NANON_DOUBLE_PRECISION" OFF)
-if (NANON_MULTI_PRECISION)
-	add_definitions(-DNANON_ENABLE_MULTI_PRECISION)
-	add_definitions(-DNANON_MULTI_PRECISION)
+	LM_MULTI_PRECISION "Use multi precision floating-point number" ON
+	"NOT LM_SINGLE_PRECISION;NOT LM_DOUBLE_PRECISION" OFF)
+if (LM_MULTI_PRECISION)
+	add_definitions(-DLM_ENABLE_MULTI_PRECISION)
+	add_definitions(-DLM_MULTI_PRECISION)
 endif()
 
-option(NANON_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)
-if (NANON_FORCE_NO_SIMD)
-	add_definitions(-DNANON_FORCE_NO_SIMD)
+option(LM_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)
+if (LM_FORCE_NO_SIMD)
+	add_definitions(-DLM_FORCE_NO_SIMD)
 endif()
 
 #
@@ -173,16 +173,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 #
 
-# Version number
-set(NANON_VERSION_MAJOR "0")
-set(NANON_VERSION_MINOR "0")
-set(NANON_VERSION_PATCH "1")
+# Version number and codename
+set(LM_VERSION_MAJOR "0")
+set(LM_VERSION_MINOR "0")
+set(LM_VERSION_PATCH "1")
+set(LM_VERSION_CODENAME "nanon")
 
 # Execute git command in the project root and check revision number
 find_package(Git REQUIRED)
 execute_process(
 	COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--short" "HEAD"
-	OUTPUT_VARIABLE NANON_VERSION_REVISION
+	OUTPUT_VARIABLE LM_VERSION_REVISION
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
@@ -190,15 +191,15 @@ execute_process(
 
 # Current date
 if (WIN32)
-	execute_process(COMMAND "cmd" "/C date /T" OUTPUT_VARIABLE NANON_CURRENT_DATE)
+	execute_process(COMMAND "cmd" "/C date /T" OUTPUT_VARIABLE LM_CURRENT_DATE)
 else()
-	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE NANON_CURRENT_DATE)
+	execute_process(COMMAND "date" "+%Y/%m/%d" OUTPUT_VARIABLE LM_CURRENT_DATE)
 endif()
-string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" NANON_CURRENT_DATE ${NANON_CURRENT_DATE})
+string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" LM_CURRENT_DATE ${LM_CURRENT_DATE})
 
 #
 
-if (NOT NANON_FORCE_NO_SIMD)
+if (NOT LM_FORCE_NO_SIMD)
 
 	# SIMD compatibility check
 	try_run(
@@ -213,25 +214,25 @@ if (NOT NANON_FORCE_NO_SIMD)
 		message(FATAL_ERROR "Failed to check SIMD support")
 	endif()
 	
-	string(REGEX REPLACE ".*SSE:([0-1]).*" "\\1" NANON_USE_SSE ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE2:([0-1]).*" "\\1" NANON_USE_SSE2 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE3:([0-1]).*" "\\1" NANON_USE_SSE3 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSSE3:([0-1]).*" "\\1" NANON_USE_SSSE3 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE4\\.1:([0-1]).*" "\\1" NANON_USE_SSE4_1 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE4\\.2:([0-1]).*" "\\1" NANON_USE_SSE4_2 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE4a:([0-1]).*" "\\1" NANON_USE_SSE4A ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*SSE5:([0-1]).*" "\\1" NANON_USE_SSE5 ${_SSE_CHECK_RUN_OUTPUT})
-	string(REGEX REPLACE ".*AVX:([0-1]).*" "\\1" NANON_USE_AVX ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE:([0-1]).*" "\\1" LM_USE_SSE ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE2:([0-1]).*" "\\1" LM_USE_SSE2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE3:([0-1]).*" "\\1" LM_USE_SSE3 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSSE3:([0-1]).*" "\\1" LM_USE_SSSE3 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.1:([0-1]).*" "\\1" LM_USE_SSE4_1 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.2:([0-1]).*" "\\1" LM_USE_SSE4_2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4a:([0-1]).*" "\\1" LM_USE_SSE4A ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE5:([0-1]).*" "\\1" LM_USE_SSE5 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*AVX:([0-1]).*" "\\1" LM_USE_AVX ${_SSE_CHECK_RUN_OUTPUT})
 
 	# Add compiler options
 	if (MSVC)
-		if (NANON_USE_AVX)
+		if (LM_USE_AVX)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
 			#add_definitions("/arch:AVX")
-		elseif (NANON_USE_SSE2)
+		elseif (LM_USE_SSE2)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 			#add_definitions("/arch:SSE2")
-		elseif (NANON_USE_SSE)
+		elseif (LM_USE_SSE)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
 			#add_definitions("/arch:SSE")
 		endif()
@@ -247,11 +248,11 @@ endif()
 include_directories("include")
 
 # Add projects
-add_subdirectory("src/libnanon")
-add_subdirectory("src/libnanon.test")
-add_subdirectory("src/nanon.test")
-add_subdirectory("src/nanon.perf")
-add_subdirectory("src/nanon")
+add_subdirectory("src/liblightmetrica")
+add_subdirectory("src/liblightmetrica.test")
+add_subdirectory("src/lightmetrica.test")
+add_subdirectory("src/lightmetrica.perf")
+add_subdirectory("src/lightmetrica")
 if (GLEW_FOUND AND GLFW_FOUND)
-	add_subdirectory("src/nanon.gui")
+	add_subdirectory("src/lightmetrica.gui")
 endif()

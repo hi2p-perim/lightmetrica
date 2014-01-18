@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,13 +23,13 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_MATH_COLORS_H__
-#define __LIB_NANON_MATH_COLORS_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_COLORS_H__
+#define __LIB_LIGHTMETRICA_MATH_COLORS_H__
 
 #include "math.common.h"
 
-NANON_NAMESPACE_BEGIN
-NANON_MATH_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_MATH_NAMESPACE_BEGIN
 
 /*!
 	Useful color constants for TVec3.
@@ -43,7 +43,7 @@ public:
 	TColors();
 	~TColors();
 
-	NANON_DISABLE_COPY_AND_MOVE(TColors);
+	LM_DISABLE_COPY_AND_MOVE(TColors);
 
 public:
 
@@ -83,7 +83,7 @@ template <typename T> const TVec3<T> TColors<T>::Navy		= TVec3<T>(T(0   ), T(0  
 template <typename T> const TVec3<T> TColors<T>::Fuchsia	= TVec3<T>(T(1   ), T(0   ), T(1   ));
 template <typename T> const TVec3<T> TColors<T>::Purple		= TVec3<T>(T(0.5 ), T(0   ), T(0.5 ));
 
-NANON_MATH_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_MATH_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_MATH_COLORS_H__
+#endif // __LIB_LIGHTMETRICA_MATH_COLORS_H__

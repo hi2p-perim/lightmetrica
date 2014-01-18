@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -24,30 +24,30 @@
 
 #include "aabb.h"
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
-NANON_FORCE_INLINE AABB::AABB()
+LM_FORCE_INLINE AABB::AABB()
 	: min(Math::Constants::Inf)
 	, max(-Math::Constants::Inf)
 {
 
 }
 
-NANON_FORCE_INLINE AABB::AABB(const Math::Vec3& p)
+LM_FORCE_INLINE AABB::AABB(const Math::Vec3& p)
 	: min(p)
 	, max(p)
 {
 
 }
 
-NANON_FORCE_INLINE AABB::AABB(const Math::Vec3& p1, const Math::Vec3& p2)
+LM_FORCE_INLINE AABB::AABB(const Math::Vec3& p1, const Math::Vec3& p2)
 	: min(Math::Min(p1, p2))
 	, max(Math::Max(p1, p2))
 {
 
 }
 
-NANON_FORCE_INLINE bool AABB::Intersect(const AABB& b) const
+LM_FORCE_INLINE bool AABB::Intersect(const AABB& b) const
 {
 	bool x = (max.x >= b.min.x) && (min.x <= b.max.x);
 	bool y = (max.y >= b.min.y) && (min.y <= b.max.y);
@@ -55,7 +55,7 @@ NANON_FORCE_INLINE bool AABB::Intersect(const AABB& b) const
 	return x && y && z;
 }
 
-NANON_FORCE_INLINE bool AABB::Contain(const Math::Vec3& p) const
+LM_FORCE_INLINE bool AABB::Contain(const Math::Vec3& p) const
 {
 	return
 		p.x >= min.x && p.x <= max.x &&
@@ -63,25 +63,25 @@ NANON_FORCE_INLINE bool AABB::Contain(const Math::Vec3& p) const
 		p.z >= min.z && p.z <= max.z;
 }
 
-NANON_FORCE_INLINE Math::Float AABB::SurfaceArea() const
+LM_FORCE_INLINE Math::Float AABB::SurfaceArea() const
 {
 	auto d = max - min;
 	return Math::Float(2) * (d.x * d.y + d.y * d.z + d.z * d.x);
 }
 
-NANON_FORCE_INLINE Math::Float AABB::Volume() const
+LM_FORCE_INLINE Math::Float AABB::Volume() const
 {
 	Math::Vec3 d = max - min;
 	return d.x * d.y * d.z;
 }
 
-NANON_FORCE_INLINE int AABB::LongestAxis() const
+LM_FORCE_INLINE int AABB::LongestAxis() const
 {
 	auto d = max - min;
 	return d.x > d.y && d.x > d.z ? 0 : d.y > d.z ? 1 : 2;
 }
 
-NANON_FORCE_INLINE AABB AABB::Union(const AABB& b) const
+LM_FORCE_INLINE AABB AABB::Union(const AABB& b) const
 {
 	AABB r;
 	r.min = Math::Min(min, b.min);
@@ -89,7 +89,7 @@ NANON_FORCE_INLINE AABB AABB::Union(const AABB& b) const
 	return r;
 }
 
-NANON_FORCE_INLINE AABB AABB::Union(const Math::Vec3& p) const
+LM_FORCE_INLINE AABB AABB::Union(const Math::Vec3& p) const
 {
 	AABB r;
 	r.min = Math::Min(min, p);
@@ -97,14 +97,14 @@ NANON_FORCE_INLINE AABB AABB::Union(const Math::Vec3& p) const
 	return r;
 }
 
-NANON_FORCE_INLINE const Math::Vec3& AABB::operator[](int i) const
+LM_FORCE_INLINE const Math::Vec3& AABB::operator[](int i) const
 {
 	return (&min)[i];
 }
 
-NANON_FORCE_INLINE Math::Vec3& AABB::operator[](int i)
+LM_FORCE_INLINE Math::Vec3& AABB::operator[](int i)
 {
 	return (&min)[i];
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

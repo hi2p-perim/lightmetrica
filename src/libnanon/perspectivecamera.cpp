@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,16 +23,16 @@
 */
 
 #include "pch.h"
-#include <nanon/perspectivecamera.h>
-#include <nanon/film.h>
-#include <nanon/assets.h>
-#include <nanon/primitive.h>
-#include <nanon/logger.h>
-#include <nanon/math.functions.h>
-#include <nanon/ray.h>
+#include <lightmetrica/perspectivecamera.h>
+#include <lightmetrica/film.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/math.functions.h>
+#include <lightmetrica/ray.h>
 #include <pugixml.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class PerspectiveCamera::Impl : public Object
 {
@@ -69,13 +69,13 @@ bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Asset
 	// Check name and type
 	if (node.name() != self->Name())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
 		return false;
 	}
 
 	if (node.attribute("type").as_string() != self->Type())
 	{
-		NANON_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
 		return false;
 	}
 
@@ -90,7 +90,7 @@ bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Asset
 	auto fovyNode = node.child("fovy");
 	if (!fovyNode)
 	{
-		NANON_LOG_ERROR("Missing 'fovy' element");
+		LM_LOG_ERROR("Missing 'fovy' element");
 		return false;
 	}
 	Math::Float fovy = Math::Float(std::stod(fovyNode.child_value()));
@@ -155,7 +155,7 @@ PerspectiveCamera::PerspectiveCamera( const std::string& id )
 
 PerspectiveCamera::~PerspectiveCamera()
 {
-	NANON_SAFE_DELETE(p);
+	LM_SAFE_DELETE(p);
 }
 
 void PerspectiveCamera::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const
@@ -178,4 +178,4 @@ bool PerspectiveCamera::LoadAsset( const pugi::xml_node& node, const Assets& ass
 	return p->LoadAsset(node, assets);
 }
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END

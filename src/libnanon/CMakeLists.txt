@@ -1,5 +1,5 @@
 #
-#	nanon : A research-oriented renderer
+#	L I G H T  M E T R I C A
 #
 #	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 #
@@ -315,7 +315,7 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 #
 
 # Proprocessor definition for exporting symbols
-add_definitions(-DNANON_EXPORTS)
+add_definitions(-DLM_EXPORTS)
 
 pch_add_library(libnanon SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(libnanon ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES})

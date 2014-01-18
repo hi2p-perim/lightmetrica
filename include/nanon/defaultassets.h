@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,13 +23,13 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_DEFAULT_ASSETS_H__
-#define __LIB_NANON_DEFAULT_ASSETS_H__
+#ifndef __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__
+#define __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__
 
 #include "assets.h"
 #include <memory>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class AssetFactory;
 class NanonConfig;
@@ -61,7 +61,7 @@ struct AssetFactoryEntry
 	Default implementation of Assets.
 	The class corresponds to the \a assets element in the configuration file.
 */
-class NANON_PUBLIC_API DefaultAssets : public Assets
+class LM_PUBLIC_API DefaultAssets : public Assets
 {
 public:
 
@@ -110,6 +110,6 @@ private:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_DEFAULT_ASSETS_H__
+#endif // __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__

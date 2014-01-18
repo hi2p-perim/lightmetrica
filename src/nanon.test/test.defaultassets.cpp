@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/stub.asset.h>
-#include <nanon.test/stub.assetfactory.h>
-#include <nanon/defaultassets.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/stub.asset.h>
+#include <lightmetrica.test/stub.assetfactory.h>
+#include <lightmetrica/defaultassets.h>
 
 namespace
 {
 
-	const std::string AssetsNode_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string AssetsNode_Success = LM_TEST_MULTILINE_LITERAL(
 		<assets>
 			<stub_assetfactory>
 				<asset id="id1" type="success" />
@@ -40,12 +40,12 @@ namespace
 		</assets>
 	);
 
-	const std::string AssetsNode_Fail_InvalidElementName = NANON_TEST_MULTILINE_LITERAL(
+	const std::string AssetsNode_Fail_InvalidElementName = LM_TEST_MULTILINE_LITERAL(
 		<invalid_name>
 		</invalid_name>
 	);
 
-	const std::string AssetsNode_Fail_SameID = NANON_TEST_MULTILINE_LITERAL(
+	const std::string AssetsNode_Fail_SameID = LM_TEST_MULTILINE_LITERAL(
 		<assets>
 			<stub_assetfactory>
 				<asset id="wood" type="success" />
@@ -54,7 +54,7 @@ namespace
 		</assets>
 	);
 
-	const std::string AssetNode_Fail_FailedToCreate = NANON_TEST_MULTILINE_LITERAL(
+	const std::string AssetNode_Fail_FailedToCreate = LM_TEST_MULTILINE_LITERAL(
 		<assets>
 			<stub_assetfactory>
 				<asset id="id" type="fail_on_create" />
@@ -64,8 +64,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class AssetsTest : public TestBase
 {
@@ -127,5 +127,5 @@ TEST_F(AssetsTest, GetAssetByName_Failed)
 	EXPECT_FALSE(assets.GetAssetByName("id3"));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

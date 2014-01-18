@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,20 +23,20 @@
 */
 
 #pragma once
-#ifndef __LIB_NANON_TRIANGLE_MESH_H__
-#define __LIB_NANON_TRIANGLE_MESH_H__
+#ifndef __LIB_LIGHTMETRICA_TRIANGLE_MESH_H__
+#define __LIB_LIGHTMETRICA_TRIANGLE_MESH_H__
 
 #include "asset.h"
 #include "math.types.h"
 #include <vector>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 /*!
 	Triangle mesh.
 	A base class for the triangle meshes.
 */
-class NANON_PUBLIC_API TriangleMesh : public Asset
+class LM_PUBLIC_API TriangleMesh : public Asset
 {
 public:
 
@@ -87,6 +87,6 @@ public:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_TRIANGLE_MESH_H__
+#endif // __LIB_LIGHTMETRICA_TRIANGLE_MESH_H__

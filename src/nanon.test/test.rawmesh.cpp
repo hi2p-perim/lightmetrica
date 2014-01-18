@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,15 +23,15 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/rawmesh.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/rawmesh.h>
 
 namespace
 {
 
-	const std::string RawMeshNode_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string RawMeshNode_Success = LM_TEST_MULTILINE_LITERAL(
 		<triangle_mesh id="quad" type="raw">
 			<positions>
 				0 1 0
@@ -54,8 +54,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class RawMeshTest : public TestBase
 {
@@ -102,5 +102,5 @@ TEST_F(RawMeshTest, Load_Success)
 	}
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

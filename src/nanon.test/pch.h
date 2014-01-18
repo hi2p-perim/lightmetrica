@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __NANON_TEST_PCH_H__
-#define __NANON_TEST_PCH_H__
+#ifndef __LM_TEST_PCH_H__
+#define __LM_TEST_PCH_H__
 
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
@@ -54,4 +54,4 @@
 
 #include <gtest/gtest.h>
 
-#endif // __NANON_TEST_PCH_H__
+#endif // __LM_TEST_PCH_H__

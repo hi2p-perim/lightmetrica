@@ -1,5 +1,5 @@
 /*
-	nanon : A research-oriented renderer
+	L I G H T  M E T R I C A
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
@@ -23,32 +23,32 @@
 */
 
 #include "pch.h"
-#include <nanon.test/base.h>
-#include <nanon.test/base.math.h>
-#include <nanon.test/stub.assets.h>
-#include <nanon/perspectivecamera.h>
-#include <nanon/film.h>
-#include <nanon/primitive.h>
-#include <nanon/ray.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica/perspectivecamera.h>
+#include <lightmetrica/film.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/ray.h>
 
 namespace
 {
 
-	const std::string PerspectiveCameraNode_Success = NANON_TEST_MULTILINE_LITERAL(
+	const std::string PerspectiveCameraNode_Success = LM_TEST_MULTILINE_LITERAL(
 		<camera id="test" type="perspective">
 			<film ref="stub" />
 			<fovy>90</fovy>
 		</camera>
 	);
 
-	const std::string PerspectiveCameraNode_Fail_InvalidType = NANON_TEST_MULTILINE_LITERAL(
+	const std::string PerspectiveCameraNode_Fail_InvalidType = LM_TEST_MULTILINE_LITERAL(
 		<camera id="test" type="perspect">
 			<film ref="stub" />
 			<fovy>90</fovy>
 		</camera>
 	);
 
-	const std::string PerspectiveCameraNode_Fail_InvalidProperty = NANON_TEST_MULTILINE_LITERAL(
+	const std::string PerspectiveCameraNode_Fail_InvalidProperty = LM_TEST_MULTILINE_LITERAL(
 		<camera id="test" type="perspect">
 			<film ref="stub" />
 		</camera>
@@ -56,8 +56,8 @@ namespace
 
 }
 
-NANON_NAMESPACE_BEGIN
-NANON_TEST_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 class StubFilm : public Film
 {
@@ -139,5 +139,5 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
 }
 
-NANON_TEST_NAMESPACE_END
-NANON_NAMESPACE_END
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END
