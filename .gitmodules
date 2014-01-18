@@ -1,8 +1,8 @@
 [submodule "external"]
 	path = external
-	url = ssh://git@git.akarin.info:30000/perim/lightmetrica-external.git
+	url = gitlab-akarin:perim/lightmetrica-external.git
 	branch = master
 [submodule "resources"]
 	path = resources
-	url = ssh://git@git.akarin.info:30000/perim/lightmetrica-resources.git
+	url = gitlab-akarin:perim/lightmetrica-resources.git
 	branch = master
