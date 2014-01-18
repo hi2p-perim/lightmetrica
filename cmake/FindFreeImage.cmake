@@ -46,7 +46,7 @@ else()
 	# Find library files
 	find_library(
 		FREEIMAGE_LIBRARY
-		NAMES FreeImage
+		NAMES freeimage
 		PATHS
 			/usr/lib64
 			/usr/lib
