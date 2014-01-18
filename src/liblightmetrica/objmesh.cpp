@@ -32,7 +32,7 @@
 #include <assimp/LogStream.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <regex>
+#include <boost/regex.hpp>
 
 LM_NAMESPACE_BEGIN
 
@@ -53,8 +53,8 @@ public:
 		str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
 		// Remove initial string
-		std::regex re("[a-zA-Z]+, +T[0-9]+: (.*)");
-		str = std::regex_replace(str, re, "$1");
+		boost::regex re("[a-zA-Z]+, +T[0-9]+: (.*)");
+		str = boost::regex_replace(str, re, "$1");
 
 		switch (level)
 		{
