@@ -81,7 +81,7 @@ Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersec
 		return Math::Vec3();
 	}
 
-	return diffuseReflectance * Math::Constants::InvPi * Math::CosThetaZUp(query.wo) * sf;
+	return diffuseReflectance * Math::Constants::InvPi() * Math::CosThetaZUp(query.wo) * sf;
 }
 
 PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
@@ -92,7 +92,7 @@ PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
 	}
 
 	return PDF(
-		Math::CosThetaZUp(query.wo) * Math::Constants::InvPi,
+		Math::CosThetaZUp(query.wo) * Math::Constants::InvPi(),
 		ProbabilityMeasure::SolidAngle);
 }
 

@@ -22,40 +22,60 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
-#define __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
-
-#include "math.common.h"
+#include "math.constants.h"
+#include <limits>
+#include <boost/math/constants/constants.hpp>
 
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
 template <typename T>
-class TConstants
+LM_FORCE_INLINE T TConstants<T>::Zero()
 {
-public:
+	return T(0);
+}
 
-	TConstants();
-	~TConstants();
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::Pi()
+{
+	return boost::math::constants::pi<T>();
+}
 
-	LM_DISABLE_COPY_AND_MOVE(TConstants);
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::InvPi()
+{
+	return T(0.31830988618379067154);
+}
 
-public:
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::InvTwoPi()
+{
+	return boost::math::constants::one_div_two_pi()<T>();
+}
 
-	LM_FORCE_INLINE static T Zero();
-	LM_FORCE_INLINE static T Pi();
-	LM_FORCE_INLINE static T InvPi();
-	LM_FORCE_INLINE static T InvTwoPi();
-	LM_FORCE_INLINE static T Inf();
-	LM_FORCE_INLINE static T Eps();
-	LM_FORCE_INLINE static T EpsLarge();
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::Inf()
+{
+	return std::numeric_limits<T>::infinity();
+}
 
-};
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::Eps()
+{
+	return std::numeric_limits<T>::epsilon();
+}
+
+template <typename T>
+LM_FORCE_INLINE T TConstants<T>::EpsLarge()
+{
+	return T(1e-10);
+}
+
+template <>
+LM_FORCE_INLINE float TConstants<float>::EpsLarge()
+{
+	return 1e-3f;
+}
 
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END
-
-#include "math.constants.inl"
-
-#endif // __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__

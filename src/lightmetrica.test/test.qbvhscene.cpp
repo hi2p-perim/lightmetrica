@@ -107,8 +107,8 @@ TEST_F(QBVHSceneTest, Intersect_Random)
 				// Intersection query
 				ray.o = Math::Vec3(0, 0, 1);
 				ray.d = Math::Normalize(Math::Vec3(x, y, 0) - ray.o);
-				ray.minT = Math::Constants::Zero;
-				ray.maxT = Math::Constants::Inf;
+				ray.minT = Math::Constants::Zero();
+				ray.maxT = Math::Constants::Inf();
 
 				ASSERT_TRUE(scene.Intersect(ray, isect));
 				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, 0), isect.p));

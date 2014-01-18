@@ -131,7 +131,7 @@ void PerspectiveCamera::Impl::RasterPosToRay( const Math::Vec2& rasterPos, Ray& 
 	ray.d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
 	ray.o = position;
 	ray.minT = Math::Float(0);
-	ray.maxT = Math::Constants::Inf;
+	ray.maxT = Math::Constants::Inf();
 }
 
 void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )

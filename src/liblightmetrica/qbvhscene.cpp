@@ -201,8 +201,8 @@ struct QBVHNode
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			bounds[0][i] = _mm_set1_ps(Math::Constants::Inf);
-			bounds[1][i] = _mm_set1_ps(-Math::Constants::Inf);
+			bounds[0][i] = _mm_set1_ps(Math::Constants::Inf());
+			bounds[1][i] = _mm_set1_ps(-Math::Constants::Inf());
 		}
 		for (int i = 0; i < 4; i++)
 		{

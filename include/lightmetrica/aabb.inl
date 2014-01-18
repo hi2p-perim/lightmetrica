@@ -27,8 +27,8 @@
 LM_NAMESPACE_BEGIN
 
 LM_FORCE_INLINE AABB::AABB()
-	: min(Math::Constants::Inf)
-	, max(-Math::Constants::Inf)
+	: min(Math::Constants::Inf())
+	, max(-Math::Constants::Inf())
 {
 
 }

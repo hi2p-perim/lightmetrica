@@ -99,7 +99,7 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 			Math::Vec2 rasterPos(
 				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film.Width()),
 				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film.Height()));
-			film.RecordContribution(rasterPos, (x + y) % 2 == 0 ? Math::Colors::Green : Math::Colors::Red);
+			film.RecordContribution(rasterPos, (x + y) % 2 == 0 ? Math::Colors::Green() : Math::Colors::Red());
 		}
 	}
 
@@ -112,15 +112,15 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 		size_t y = i / film.Width();
 		if ((x + y) % 2 == 0)
 		{
-			EXPECT_TRUE(ExpectNear(Math::Colors::Green[0], data[3*i  ]));
-			EXPECT_TRUE(ExpectNear(Math::Colors::Green[1], data[3*i+1]));
-			EXPECT_TRUE(ExpectNear(Math::Colors::Green[2], data[3*i+2]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green()[0], data[3*i  ]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green()[1], data[3*i+1]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Green()[2], data[3*i+2]));
 		}
 		else
 		{
-			EXPECT_TRUE(ExpectNear(Math::Colors::Red[0], data[3*i  ]));
-			EXPECT_TRUE(ExpectNear(Math::Colors::Red[1], data[3*i+1]));
-			EXPECT_TRUE(ExpectNear(Math::Colors::Red[2], data[3*i+2]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red()[0], data[3*i  ]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red()[1], data[3*i+1]));
+			EXPECT_TRUE(ExpectNear(Math::Colors::Red()[2], data[3*i+2]));
 		}
 	}
 }

@@ -207,8 +207,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					// Setup next ray
 					ray.d = isect.shadingToWorld * bsdfSampledData.wo;
 					ray.o = isect.p;
-					ray.minT = Math::Constants::Eps;
-					ray.maxT = Math::Constants::Inf;
+					ray.minT = Math::Constants::Eps();
+					ray.maxT = Math::Constants::Inf();
 
 					// --------------------------------------------------------------------------------
 

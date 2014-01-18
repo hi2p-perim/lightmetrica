@@ -26,7 +26,7 @@
 #ifndef __LIB_LIGHTMETRICA_MATH_COLORS_H__
 #define __LIB_LIGHTMETRICA_MATH_COLORS_H__
 
-#include "math.common.h"
+#include "math.vector.h"
 
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
@@ -47,41 +47,24 @@ public:
 
 public:
 
-	static const TVec3<T> White;
-	static const TVec3<T> Silver;
-	static const TVec3<T> Gray;
-	static const TVec3<T> Black;
-	static const TVec3<T> Red;
-	static const TVec3<T> Maroon;
-	static const TVec3<T> Yellow;
-	static const TVec3<T> Olive;
-	static const TVec3<T> Green;
-	static const TVec3<T> Lime;
-	static const TVec3<T> Aqua;
-	static const TVec3<T> Teal;
-	static const TVec3<T> Blue;
-	static const TVec3<T> Navy;
-	static const TVec3<T> Fuchsia;
-	static const TVec3<T> Purple;
+	LM_FORCE_INLINE static TVec3<T> White()		{ return TVec3<T>(T(1   ), T(1   ), T(1   )); }
+	LM_FORCE_INLINE static TVec3<T> Silver()	{ return TVec3<T>(T(0.75), T(0.75), T(0.75)); }
+	LM_FORCE_INLINE static TVec3<T> Gray()		{ return TVec3<T>(T(0.5 ), T(0.5 ), T(0.5 )); }
+	LM_FORCE_INLINE static TVec3<T> Black()		{ return TVec3<T>(T(0   ), T(0   ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Red()		{ return TVec3<T>(T(1   ), T(0   ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Maroon()	{ return TVec3<T>(T(0.5 ), T(0   ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Yellow()	{ return TVec3<T>(T(1   ), T(1   ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Olive()		{ return TVec3<T>(T(0.5 ), T(0.5 ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Green()		{ return TVec3<T>(T(0   ), T(1   ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Lime()		{ return TVec3<T>(T(0   ), T(0.5 ), T(0   )); }
+	LM_FORCE_INLINE static TVec3<T> Aqua()		{ return TVec3<T>(T(0   ), T(1   ), T(1   )); }
+	LM_FORCE_INLINE static TVec3<T> Teal()		{ return TVec3<T>(T(0   ), T(0.5 ), T(0.5 )); }
+	LM_FORCE_INLINE static TVec3<T> Blue()		{ return TVec3<T>(T(0   ), T(0   ), T(1   )); }
+	LM_FORCE_INLINE static TVec3<T> Navy()		{ return TVec3<T>(T(0   ), T(0   ), T(0.5 )); }
+	LM_FORCE_INLINE static TVec3<T> Fuchsia()	{ return TVec3<T>(T(1   ), T(0   ), T(1   )); }
+	LM_FORCE_INLINE static TVec3<T> Purple()	{ return TVec3<T>(T(0.5 ), T(0   ), T(0.5 )); }
 
 };
-
-template <typename T> const TVec3<T> TColors<T>::White		= TVec3<T>(T(1   ), T(1   ), T(1   ));
-template <typename T> const TVec3<T> TColors<T>::Silver		= TVec3<T>(T(0.75), T(0.75), T(0.75));
-template <typename T> const TVec3<T> TColors<T>::Gray		= TVec3<T>(T(0.5 ), T(0.5 ), T(0.5 ));
-template <typename T> const TVec3<T> TColors<T>::Black		= TVec3<T>(T(0   ), T(0   ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Red		= TVec3<T>(T(1   ), T(0   ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Maroon		= TVec3<T>(T(0.5 ), T(0   ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Yellow		= TVec3<T>(T(1   ), T(1   ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Olive		= TVec3<T>(T(0.5 ), T(0.5 ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Green		= TVec3<T>(T(0   ), T(1   ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Lime		= TVec3<T>(T(0   ), T(0.5 ), T(0   ));
-template <typename T> const TVec3<T> TColors<T>::Aqua		= TVec3<T>(T(0   ), T(1   ), T(1   ));
-template <typename T> const TVec3<T> TColors<T>::Teal		= TVec3<T>(T(0   ), T(0.5 ), T(0.5 ));
-template <typename T> const TVec3<T> TColors<T>::Blue		= TVec3<T>(T(0   ), T(0   ), T(1   ));
-template <typename T> const TVec3<T> TColors<T>::Navy		= TVec3<T>(T(0   ), T(0   ), T(0.5 ));
-template <typename T> const TVec3<T> TColors<T>::Fuchsia	= TVec3<T>(T(1   ), T(0   ), T(1   ));
-template <typename T> const TVec3<T> TColors<T>::Purple		= TVec3<T>(T(0.5 ), T(0   ), T(0.5 ));
 
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END

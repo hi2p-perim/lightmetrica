@@ -105,7 +105,7 @@ void AreaLight::Impl::RegisterPrimitives( const std::vector<Primitive*>& primiti
 		v /= area;
 	}
 
-	power = Le * Math::Constants::Pi * area;
+	power = Le * Math::Constants::Pi() * area;
 }
 
 // --------------------------------------------------------------------------------

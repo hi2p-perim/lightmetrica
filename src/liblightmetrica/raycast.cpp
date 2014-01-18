@@ -82,7 +82,7 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 			else
 			{
 				// Not intersected : black color
-				film->RecordContribution(rasterPos, Math::Colors::Black);
+				film->RecordContribution(rasterPos, Math::Colors::Black());
 			}
 		}
 

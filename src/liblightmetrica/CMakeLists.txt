@@ -234,6 +234,7 @@ set(
 	"${_INCLUDE_DIR}/math.quat.h"
 	"${_INCLUDE_DIR}/math.quat.inl"
 	"${_INCLUDE_DIR}/math.constants.h"
+	"${_INCLUDE_DIR}/math.constants.inl"
 	"${_INCLUDE_DIR}/math.colors.h"
 	"${_INCLUDE_DIR}/math.cast.h"
 )

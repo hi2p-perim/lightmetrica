@@ -28,8 +28,8 @@
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> LM_FORCE_INLINE T Radians(const T& v) { return v * TConstants<T>::Pi / T(180); }
-template <typename T> LM_FORCE_INLINE T Degrees(const T& v) { return v * T(180) / TConstants<T>::Pi; }
+template <typename T> LM_FORCE_INLINE T Radians(const T& v) { return v * TConstants<T>::Pi() / T(180); }
+template <typename T> LM_FORCE_INLINE T Degrees(const T& v) { return v * T(180) / TConstants<T>::Pi(); }
 template <typename T> LM_FORCE_INLINE T Cos(const T& v) { return std::cos(v); }
 template <typename T> LM_FORCE_INLINE T Sin(const T& v) { return std::sin(v); }
 template <typename T> LM_FORCE_INLINE T Tan(const T& v) { return std::tan(v); }

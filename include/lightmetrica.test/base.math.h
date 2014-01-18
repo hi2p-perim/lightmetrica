@@ -47,7 +47,7 @@ template <typename T>
 LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
 	T diff = std::abs(expected - actual);
-	T epsilon = Math::TConstants<T>::EpsLarge;
+	T epsilon = Math::TConstants<T>::EpsLarge();
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << epsilon << " )";
@@ -62,7 +62,7 @@ template <>
 LM_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
 {
 	Math::BigFloat diff = mp::abs(expected - actual);
-	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge;
+	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge();
 	if (diff > epsilon)
 	{
 		return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << epsilon.str() << " )";

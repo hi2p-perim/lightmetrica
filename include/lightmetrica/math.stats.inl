@@ -35,68 +35,68 @@ LM_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u)
 	T v2 = T(2) * u[1] - T(1);
 
 	// Convert (sx, sy) to (r, theta)
-	Math::Vec2 conv;
+	TVec2<T> conv;
 
 	if (v1 == T(0) && v2 == T(0))
 	{
-		conv = Math::Vec2(T(0));
+		conv = TVec2<T>(T(0));
 	}
 	else if (v1 > -v2)
 	{
 		if (v1 > v2)
 		{
-			conv = Math::Vec2(v1, T((Math::Constants::Pi / T(4)) * v2/v1));
+			conv = TVec2<T>(v1, T((Constants::Pi() / T(4)) * v2/v1));
 		}
 		else
 		{
-			conv = Math::Vec2(v2, T((Math::Constants::Pi / T(4)) * (T(2) - v1/v2)));
+			conv = TVec2<T>(v2, T((Constants::Pi() / T(4)) * (T(2) - v1/v2)));
 		}
 	}
 	else
 	{
 		if (v1 < v2)
 		{
-			conv = Math::Vec2(-v1, T((Math::Constants::Pi / T(4)) * (T(4) + v2/v1)));
+			conv = TVec2<T>(-v1, T((Constants::Pi() / T(4)) * (T(4) + v2/v1)));
 		}
 		else
 		{
-			conv = Math::Vec2(-v2, T((Math::Constants::Pi / T(4)) * (T(6) - v1/v2)));
+			conv = TVec2<T>(-v2, T((Constants::Pi() / T(4)) * (T(6) - v1/v2)));
 		}
 	}
 
-	return Math::Vec2(conv.x * Math::Cos(conv.y), conv.x * Math::Sin(conv.y));
+	return TVec2<T>(conv.x * Cos(conv.y), conv.x * Sin(conv.y));
 }
 
 template <typename T>
 LM_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u)
 {
 	auto s = ConcentricDiskSample(u);
-	return Math::Vec3(s, Math::Sqrt(Math::Max(T(0), T(1) - s.x*s.x - s.y*s.y)));
+	return TVec3<T>(s, Sqrt(Max(T(0), T(1) - s.x*s.x - s.y*s.y)));
 }
 
 template <typename T>
 LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
 {
 	const T& z = u[0];
-	T r = Math::Sqrt(Math::Max(0.0, 1.0 - z*z));
-	T phi = 2.0 * Pi * u[1];
-	return Math::Vec3(r * Math::Cos(phi), r * Math::Sin(phi), z);
+	T r = Sqrt(Max(0.0, 1.0 - z*z));
+	T phi = 2.0 * Constants::Pi() * u[1];
+	return TVec3<T>(r * Cos(phi), r * Sin(phi), z);
 }
 
 template <typename T>
 LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
 {
 	T z = 1.0 - 2.0 * u[0];
-	T r = Math::Sqrt(Math::Max(T(0), T(1) - z*z));
-	T phi = T(2) * Pi * u[1];
-	return Math::Vec3(r * Math::Cos(phi), r * Math::Sin(phi), z);
+	T r = Sqrt(Max(T(0), T(1) - z*z));
+	T phi = T(2) * Constants::Pi() * u[1];
+	return TVec3<T>(r * Cos(phi), r * Sin(phi), z);
 }
 
 template <typename T>
 LM_FORCE_INLINE TVec2<T> UniformSampleTriangle(const TVec2<T>& u)
 {
-	T s = Math::Sqrt(Math::Max(T(0), u[0]));
-	return Math::Vec2(T(1) - s, u[1] * s);
+	T s = Sqrt(Max(T(0), u[0]));
+	return TVec2<T>(T(1) - s, u[1] * s);
 }
 
 LM_MATH_NAMESPACE_END
