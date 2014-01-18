@@ -1,8 +1,8 @@
 [submodule "external"]
 	path = external
-	url = ssh://git.akarin.info:3000/perim/nanonrender-external
+	url = ssh://git@git.akarin.info:30000/perim/lightmetrica-external.git
 	branch = master
 [submodule "resources"]
 	path = resources
-	url = ssh://git.akarin.info:3000/perim/nanonrender-resources
+	url = ssh://git@git.akarin.info:30000/perim/lightmetrica-resources.git
 	branch = master
