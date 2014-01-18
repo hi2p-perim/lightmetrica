@@ -50,7 +50,7 @@ LM_FORCE_INLINE T TConstants<T>::InvPi()
 template <typename T>
 LM_FORCE_INLINE T TConstants<T>::InvTwoPi()
 {
-	return boost::math::constants::one_div_two_pi()<T>();
+	return boost::math::constants::one_div_two_pi<T>();
 }
 
 template <typename T>
