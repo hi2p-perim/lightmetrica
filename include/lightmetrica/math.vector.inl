@@ -486,9 +486,9 @@ template <typename T>
 LM_FORCE_INLINE T Luminance(const TVec3<T>& v)
 {
 	return
-		Math::Float(0.212671) * v[0] +
-		Math::Float(0.715160) * v[1] +
-		Math::Float(0.072169) * v[2];
+		T(0.212671) * v[0] +
+		T(0.715160) * v[1] +
+		T(0.072169) * v[2];
 }
 
 template <typename T>
