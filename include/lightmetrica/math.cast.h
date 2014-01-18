@@ -1,5 +1,5 @@
 /*
-	L I G H T  M E T R I C A
+	Lightmetrica : A research-oriented renderer
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
 
