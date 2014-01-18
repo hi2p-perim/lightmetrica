@@ -428,7 +428,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 					auto quatNode = rotateNode.child("quat");
 					if (quatNode)
 					{
-						throw std::exception("not implemented");
+						throw std::runtime_error("not implemented");
 						//translateMat = ;
 					}
 					else
