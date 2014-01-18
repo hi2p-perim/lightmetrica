@@ -51,4 +51,4 @@ set(
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
 )
 
-pch_add_library(libnanon.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
+pch_add_library(liblightmetrica.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})

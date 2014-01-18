@@ -42,6 +42,6 @@ set(
 	"test.math.transform.cpp"
 )
 
-pch_add_executable(nanon.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(nanon.test libnanon libnanon.test)
-add_dependencies(nanon.test libnanon libnanon.test)
+pch_add_executable(lightmetrica.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
+target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test)
+add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)

@@ -27,6 +27,6 @@ set(
 	main.cpp
 )
 
-add_executable(nanon ${_SOURCE_FILES})
-target_link_libraries(nanon libnanon ${COMMON_LIBRARY_FILES})
-add_dependencies(nanon libnanon)
+add_executable(lightmetrica ${_SOURCE_FILES})
+target_link_libraries(lightmetrica liblightmetrica ${COMMON_LIBRARY_FILES})
+add_dependencies(lightmetrica liblightmetrica)

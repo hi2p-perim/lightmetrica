@@ -30,6 +30,6 @@ set(
 	"perf.scene.intersection.cpp"
 )
 
-pch_add_executable(nanon.perf PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(nanon.perf libnanon libnanon.test)
-add_dependencies(nanon.test libnanon libnanon.test)
+pch_add_executable(lightmetrica.perf PCH_HEADER "pch.h" ${_SOURCE_FILES})
+target_link_libraries(lightmetrica.perf liblightmetrica liblightmetrica.test)
+add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)

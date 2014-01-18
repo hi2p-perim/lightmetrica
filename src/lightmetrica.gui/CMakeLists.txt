@@ -22,6 +22,6 @@
 #	THE SOFTWARE.
 #
 
-add_executable(nanon.gui main.cpp)
-target_link_libraries(nanon.gui libnanon ${COMMON_LIBRARY_FILES} ${GLEW_LIBRARIES} ${GLFW_LIBRARIES})
-add_dependencies(nanon.gui libnanon)
+add_executable(lightmetrica.gui main.cpp)
+target_link_libraries(lightmetrica.gui liblightmetrica ${COMMON_LIBRARY_FILES} ${GLEW_LIBRARIES} ${GLFW_LIBRARIES})
+add_dependencies(lightmetrica.gui liblightmetrica)
