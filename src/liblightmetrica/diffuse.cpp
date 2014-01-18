@@ -84,7 +84,7 @@ Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersec
 	return diffuseReflectance * Math::Constants::InvPi * Math::CosThetaZUp(query.wo) * sf;
 }
 
-nanon::PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
+PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
 {
 	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
 	{

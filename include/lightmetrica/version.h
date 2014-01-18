@@ -71,6 +71,12 @@ public:
 	static std::string Revision();
 
 	/*!
+		Get the version codename of the library.
+		\return Codename.
+	*/
+	static std::string Codename();
+
+	/*!
 		Get the build date of the library.
 		\return Build date.
 	*/

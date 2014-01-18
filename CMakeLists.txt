@@ -24,7 +24,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(nanonrender)
+project(lightmetrica)
 
 #
 
@@ -244,7 +244,7 @@ endif()
 
 #
 
-# Include directory for libnanon
+# Include directory for libraries
 include_directories("include")
 
 # Add projects

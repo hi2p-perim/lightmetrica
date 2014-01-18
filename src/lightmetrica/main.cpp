@@ -57,7 +57,7 @@
 #include <windows.h>
 #endif
 
-using namespace nanon;
+using namespace lightmetrica;
 namespace po = boost::program_options;
 
 template <typename BoolType>
@@ -101,9 +101,8 @@ private:
 
 	// Application info
 	std::string appName;
-	std::string appNameShort;
 	std::string appDescription;
-	std::string appSSESupport;
+	std::string appFlags;
 
 	// Command line parameters
 	std::string inputFile;
@@ -133,44 +132,51 @@ NanonApplication::NanonApplication()
 void NanonApplication::SetAppInfo()
 {
 	appName = "Lightmetrica";
-	//appName = "Nanon Renderer";
-	appNameShort = "nanon";
-	appDescription = boost::str(boost::format("%s - %s Version %s (yuyushiki)") % appNameShort % appName % Version::Formatted());
+	appDescription = boost::str(boost::format("%s Version %s (%s)") % appName % Version::Formatted() % Version::Codename());
 	
-	// Enumerate supported SSE instructions
-	std::vector<std::string> supportted;
+	// Enumerate flags
+	std::vector<std::string> flags;
+#ifdef LM_SINGLE_PRECISION
+	flags.push_back("single_precision");
+#endif
+#ifdef LM_DOUBLE_PRECISION
+	flags.push_back("double_precision");
+#endif
+#ifdef LM_MULTI_PRECISION
+	flags.push_back("multi_precision");
+#endif
 #ifdef LM_USE_SSE
-	supportted.push_back("sse");
+	flags.push_back("sse");
 #endif
 #ifdef LM_USE_SSE2
-	supportted.push_back("sse2");
+	flags.push_back("sse2");
 #endif
 #ifdef LM_USE_SSE3
-	supportted.push_back("sse3");
+	flags.push_back("sse3");
 #endif
 #ifdef LM_USE_SSSE3
-	supportted.push_back("ssse3");
+	flags.push_back("ssse3");
 #endif
 #ifdef LM_USE_SSE4_1
-	supportted.push_back("sse4.1");
+	flags.push_back("sse4.1");
 #endif
 #ifdef LM_USE_SSE4_2
-	supportted.push_back("sse4.2");
+	flags.push_back("sse4.2");
 #endif
 #ifdef LM_USE_SSE4A
-	supportted.push_back("sse4a");
+	flags.push_back("sse4a");
 #endif
 #ifdef LM_USE_AVX
-	supportted.push_back("avx");
+	flags.push_back("avx");
 #endif
 
-	appSSESupport = "";
-	for (size_t i = 0; i < supportted.size(); i++)
+	appFlags = "";
+	for (size_t i = 0; i < flags.size(); i++)
 	{
-		appSSESupport += supportted[i];
-		if (i < supportted.size() - 1)
+		appFlags += flags[i];
+		if (i < flags.size() - 1)
 		{
-			appSSESupport += " ";
+			appFlags += " ";
 		}
 	}
 }
@@ -511,7 +517,7 @@ void NanonApplication::PrintStartMessage()
 	LM_LOG_INFO("");
 	LM_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
 	LM_LOG_INFO("PLATFORM     | " + Version::Platform() + " " + Version::Archtecture());
-	LM_LOG_INFO("OPTIMIZATION | " + appSSESupport);
+	LM_LOG_INFO("FLAGS        | " + appFlags);
 	LM_LOG_INFO("CURRENT TIME | " + CurrentTime());
 	LM_LOG_INFO("");
 }

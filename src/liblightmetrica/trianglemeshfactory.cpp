@@ -23,10 +23,10 @@
 */
 
 #include "pch.h"
-#include <nanon/trianglemeshfactory.h>
-#include <nanon/logger.h>
-#include <nanon/objmesh.h>
-#include <nanon/rawmesh.h>
+#include <lightmetrica/trianglemeshfactory.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/objmesh.h>
+#include <lightmetrica/rawmesh.h>
 
 LM_NAMESPACE_BEGIN
 

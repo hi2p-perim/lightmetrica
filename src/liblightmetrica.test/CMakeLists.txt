@@ -24,7 +24,7 @@
 
 include (PCHTargets)
 
-set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon.test)
+set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/lightmetrica.test)
 set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"

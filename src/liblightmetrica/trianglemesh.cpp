@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <nanon/trianglemesh.h>
+#include <lightmetrica/trianglemesh.h>
 
 LM_NAMESPACE_BEGIN
 

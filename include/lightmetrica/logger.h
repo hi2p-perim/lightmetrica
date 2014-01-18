@@ -281,16 +281,16 @@ LM_NAMESPACE_END
 */
 
 #ifdef LM_DEBUG_MODE
-	#define LM_LOG_ERROR(message) nanon::Logger::Error(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define LM_LOG_WARN(message) nanon::Logger::Warn(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define LM_LOG_INFO(message) nanon::Logger::Info(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
-	#define LM_LOG_DEBUG(message) nanon::Logger::Debug(message, nanon::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_ERROR(message) lightmetrica::Logger::Error(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_WARN(message) lightmetrica::Logger::Warn(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_INFO(message) lightmetrica::Logger::Info(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
+	#define LM_LOG_DEBUG(message) lightmetrica::Logger::Debug(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
 #else
-	#define LM_LOG_ERROR(message) nanon::Logger::Error(message, "");
-	#define LM_LOG_WARN(message) nanon::Logger::Warn(message, "");
-	#define LM_LOG_INFO(message) nanon::Logger::Info(message, "");
-	#define LM_LOG_DEBUG(message) nanon::Logger::Debug(message, "");
+	#define LM_LOG_ERROR(message) lightmetrica::Logger::Error(message, "");
+	#define LM_LOG_WARN(message) lightmetrica::Logger::Warn(message, "");
+	#define LM_LOG_INFO(message) lightmetrica::Logger::Info(message, "");
+	#define LM_LOG_DEBUG(message) lightmetrica::Logger::Debug(message, "");
 #endif
-#define LM_LOG_INDENTER() nanon::LogIndenter _logIndenter;
+#define LM_LOG_INDENTER() lightmetrica::LogIndenter _logIndenter;
 
 #endif // __LM_CORE_LOGGER_H__

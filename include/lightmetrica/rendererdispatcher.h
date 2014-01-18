@@ -1,10 +1,10 @@
-#ifndef __LIB_NANON_DISPATCHER_H__
-#define __LIB_NANON_DISPATCHER_H__
+#ifndef __LIB_LIGHTMETRICA_DISPATCHER_H__
+#define __LIB_LIGHTMETRICA_DISPATCHER_H__
 
 #include "common.h"
 #include <boost/signals2.hpp>
 
-NANON_NAMESPACE_BEGIN
+LM_NAMESPACE_BEGIN
 
 class NanonConfig;
 
@@ -12,7 +12,7 @@ class NanonConfig;
 	Renderer dispatcher.
 	Create renderer from the configuration and execute rendering.
 */
-class NANON_PUBLIC_API RendererDispatcher
+class LM_PUBLIC_API RendererDispatcher
 {
 public:
 
@@ -21,7 +21,7 @@ public:
 
 private:
 
-	NANON_DISABLE_COPY_AND_MOVE(RendererDispatcher);
+	LM_DISABLE_COPY_AND_MOVE(RendererDispatcher);
 
 public:
 
@@ -49,6 +49,6 @@ public:
 
 };
 
-NANON_NAMESPACE_END
+LM_NAMESPACE_END
 
-#endif // __LIB_NANON_DISPATCHER_H__
+#endif // __LIB_LIGHTMETRICA_DISPATCHER_H__

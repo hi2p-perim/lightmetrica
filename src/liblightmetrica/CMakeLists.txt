@@ -26,7 +26,7 @@ include (PCHTargets)
 
 set(_HEADER_FILES_ROOT "Header Files")
 set(_SOURCE_FILES_ROOT "Source Files")
-set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/nanon)
+set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/lightmetrica)
 set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"
@@ -325,13 +325,13 @@ if(WIN32)
 	file(GLOB BINARY_FILES "${CMAKE_SOURCE_DIR}/external/bin/${CMAKE_LIBRARY_ARCHITECTURE}/*.dll")
 	foreach(BINARY_FILE_NAME ${BINARY_FILES})
 	add_custom_command(
-		TARGET libnanon
+		TARGET liblightmetrica
 		POST_BUILD
 			# Execute "cmake -E copy_if_different ..."
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				${BINARY_FILE_NAME}
 				# Same directory as the target executable
 				# For details, see 'generator expressions' in the documentation
-				$<TARGET_FILE_DIR:libnanon>)
+				$<TARGET_FILE_DIR:liblightmetrica>)
 	endforeach()
 endif()

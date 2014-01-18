@@ -80,4 +80,9 @@ std::string Version::Archtecture()
 #endif
 }
 
+std::string Version::Codename()
+{
+	return LM_VERSION_CODENAME;
+}
+
 LM_NAMESPACE_END
