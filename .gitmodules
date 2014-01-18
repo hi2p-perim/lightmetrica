@@ -1,8 +1,8 @@
 [submodule "external"]
 	path = external
-	url = gitolite-akarin:nanonrender-external
+	url = ssh://git.akarin.info:3000/perim/nanonrender-external
 	branch = master
 [submodule "resources"]
 	path = resources
-	url = gitolite-akarin:nanonrender-resources
+	url = ssh://git.akarin.info:3000/perim/nanonrender-resources
 	branch = master
