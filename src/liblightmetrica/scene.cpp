@@ -508,9 +508,9 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	// Texture coordinates
 	if (texcoords)
 	{
-		auto& uv1 = Math::Vec2(texcoords[2*v1], texcoords[2*v1+1]);
-		auto& uv2 = Math::Vec2(texcoords[2*v2], texcoords[2*v2+1]);
-		auto& uv3 = Math::Vec2(texcoords[2*v3], texcoords[2*v3+1]);
+		Math::Vec2 uv1(texcoords[2*v1], texcoords[2*v1+1]);
+		Math::Vec2 uv2(texcoords[2*v2], texcoords[2*v2+1]);
+		Math::Vec2 uv3(texcoords[2*v3], texcoords[2*v3+1]);
 		isect.uv = uv1 * Math::Float(Math::Float(1) - b[0] - b[1]) + uv2 * b[0] + uv3 * b[1];
 	}
 
