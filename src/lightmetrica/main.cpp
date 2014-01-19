@@ -537,7 +537,10 @@ std::string NanonApplication::CurrentTime()
 	localtime_s(&timeinfo, &time);
 	ss << std::put_time(&timeinfo, "%Y.%m.%d.%H.%M.%S");
 #else
-	ss << std::put_time(std::localtime(&time), "%Y.%m.%d.%H.%M.%S");
+	// std::put_time is not implemented
+	char timeStr[256];
+	std::strftime(timeStr, sizeof(timeStr), "%Y.%m.%d.%H.%M.%S", std::localtime(&time));
+	ss << timeStr;
 #endif
 	return ss.str();
 }

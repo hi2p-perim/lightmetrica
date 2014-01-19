@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <lightmetrica.test/base.h>
 #include <lightmetrica/logger.h>
-#include <regex>
+#include <boost/regex.hpp>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -106,9 +106,9 @@ TEST_F(LoggerTest, OutputToStdoutOrStderr)
 	EXPECT_TRUE(elapsed < OutputProcessTimeout);
 
 	// Check if output messages contain 'hello'
-	std::regex r("^\\| ERROR .+ \\| hello");
-	EXPECT_TRUE(std::regex_search(coutSS.str(), r));
-	EXPECT_TRUE(std::regex_search(cerrSS.str(), r));
+	boost::regex r("^\\| ERROR .+ \\| hello");
+	EXPECT_TRUE(boost::regex_search(coutSS.str(), r));
+	EXPECT_TRUE(boost::regex_search(cerrSS.str(), r));
 }
 
 TEST_F(LoggerTest, OutputToFile)
@@ -145,8 +145,8 @@ TEST_F(LoggerTest, OutputToFile)
 
 	std::string s;
 	std::getline(ifs, s);
-	std::regex r("^\\| INFO .+ \\| hello");
-	EXPECT_TRUE(std::regex_search(s, r)) << s;
+	boost::regex r("^\\| INFO .+ \\| hello");
+	EXPECT_TRUE(boost::regex_search(s, r)) << s;
 
 	// Clean up
 	ifs.close();

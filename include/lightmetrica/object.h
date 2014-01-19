@@ -29,6 +29,7 @@
 #include "common.h"
 #include <cstddef>
 #include <exception>
+#include <new>
 
 LM_NAMESPACE_BEGIN
 

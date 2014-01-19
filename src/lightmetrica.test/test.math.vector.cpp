@@ -202,7 +202,7 @@ TYPED_TEST_CASE(MathVector3Test, MathTestTypes);
 
 TYPED_TEST(MathVector3Test, Alignment)
 {
-	EXPECT_TRUE(is_aligned(d, std::alignment_of<MathVector3Test_Data<TypeParam>>::value));
+	EXPECT_TRUE(is_aligned(this->d, std::alignment_of<MathVector3Test_Data<TypeParam>>::value));
 }
 
 TYPED_TEST(MathVector3Test, Constructor)
@@ -374,7 +374,7 @@ TYPED_TEST_CASE(MathVector4Test, MathTestTypes);
 
 TYPED_TEST(MathVector4Test, Alignment)
 {
-	EXPECT_TRUE(is_aligned(d, std::alignment_of<MathVector4Test_Data<TypeParam>>::value));
+	EXPECT_TRUE(is_aligned(this->d, std::alignment_of<MathVector4Test_Data<TypeParam>>::value));
 }
 
 TYPED_TEST(MathVector4Test, Constructor)
