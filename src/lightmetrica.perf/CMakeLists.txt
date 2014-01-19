@@ -31,5 +31,5 @@ set(
 )
 
 pch_add_executable(lightmetrica.perf PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(lightmetrica.perf liblightmetrica liblightmetrica.test)
+target_link_libraries(lightmetrica.perf liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES})
 add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)
