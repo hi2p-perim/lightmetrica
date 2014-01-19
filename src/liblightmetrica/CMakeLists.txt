@@ -318,21 +318,48 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 # Proprocessor definition for exporting symbols
 add_definitions(-DLM_EXPORTS)
 
+# Create project
 pch_add_library(liblightmetrica SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(liblightmetrica ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES})
 
+#
+
 # Copy dynamic libaries as post-build events
 if(WIN32)
+	# Add an custom command to copy an DLL to the same directory as executables
+	function(add_custom_command_copy_dll BINARY_FILE_NAME)
+		add_custom_command(
+			TARGET liblightmetrica
+			POST_BUILD
+				# Execute "cmake -E copy_if_different ..."
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					${BINARY_FILE_NAME}
+					# Same directory as the target executable
+					# For details, see 'generator expressions' in the documentation
+					$<TARGET_FILE_DIR:liblightmetrica>)
+	endfunction()
+
+	# Libraries in external directory
 	file(GLOB BINARY_FILES "${CMAKE_SOURCE_DIR}/external/bin/${CMAKE_LIBRARY_ARCHITECTURE}/*.dll")
 	foreach(BINARY_FILE_NAME ${BINARY_FILES})
-	add_custom_command(
-		TARGET liblightmetrica
-		POST_BUILD
-			# Execute "cmake -E copy_if_different ..."
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				${BINARY_FILE_NAME}
-				# Same directory as the target executable
-				# For details, see 'generator expressions' in the documentation
-				$<TARGET_FILE_DIR:liblightmetrica>)
+		add_custom_command_copy_dll(${BINARY_FILE_NAME})
 	endforeach()
+	
+	# Boost libraries
+	# Release and RelWithDebInfo modes
+	foreach(LIBRARY_NAME ${Boost_LIBRARIES_RELEASE})
+		get_filename_component(LIBRARY_NAME_WE ${LIBRARY_NAME} NAME_WE)
+		get_filename_component(LIBRARY_DIRECTORY ${LIBRARY_NAME} DIRECTORY)
+		set(BINARY_FILE_NAME "${LIBRARY_DIRECTORY}/${LIBRARY_NAME_WE}.dll")
+		add_custom_command_copy_dll(${BINARY_FILE_NAME})
+	endforeach()
+	
+	# Debug mode
+	foreach(LIBRARY_NAME ${Boost_LIBRARIES_DEBUG})
+		get_filename_component(LIBRARY_NAME_WE ${LIBRARY_NAME} NAME_WE)
+		get_filename_component(LIBRARY_DIRECTORY ${LIBRARY_NAME} DIRECTORY)
+		set(BINARY_FILE_NAME "${LIBRARY_DIRECTORY}/${LIBRARY_NAME_WE}.dll")
+		add_custom_command_copy_dll(${BINARY_FILE_NAME})
+	endforeach()
+	
 endif()

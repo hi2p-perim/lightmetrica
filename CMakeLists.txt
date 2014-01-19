@@ -58,11 +58,24 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 
 # Boost
-#set(Boost_USE_STATIC_LIBS ON)
+# Use dynamic libraries
+set(Boost_USE_STATIC_LIBS OFF)
+add_definitions(-DBOOST_ALL_DYN_LINK)		# Specify to use dynamic libraries
+#add_definitions(-DBOOST_ALL_NO_LIB)		# Disable auto-linking in VS 
 find_package(Boost 1.49 REQUIRED COMPONENTS "program_options" "filesystem" "system" "regex")
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND COMMON_LIBRARY_FILES ${Boost_LIBRARIES})
+set(Boost_LIBRARIES_RELEASE
+	${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE}
+	${Boost_FILESYSTEM_LIBRARY_RELEASE}
+	${Boost_SYSTEM_LIBRARY_RELEASE}
+	${Boost_REGEX_LIBRARY_RELEASE})
+set(Boost_LIBRARIES_DEBUG
+	${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG}
+	${Boost_FILESYSTEM_LIBRARY_DEBUG}
+	${Boost_SYSTEM_LIBRARY_DEBUG}
+	${Boost_REGEX_LIBRARY_DEBUG})
 
 # GLM
 #find_package(GLM REQUIRED)
@@ -155,8 +168,8 @@ if (MSVC)
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000")
 endif()
 
-# Enabling C++11 for gcc
 if(CMAKE_COMPILER_IS_GNUCXX)
+	# Enabling C++11 for gcc
 	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	add_definitions(-std=c++11)
 	# If the build type is Debug, define macro

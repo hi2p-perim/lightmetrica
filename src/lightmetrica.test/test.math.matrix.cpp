@@ -88,7 +88,7 @@ TYPED_TEST(MathMatrix3Test, Constructor)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			EXPECT_TRUE(ExpectNear(T(i*3+j+1), d->m1.v[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*3+j+1), this->d->m1.v[i][j]));
 		}
 	}
 }
@@ -101,7 +101,7 @@ TYPED_TEST(MathMatrix3Test, Conversion)
 		T(4), T(5), T(6), T(8),
 		T(7), T(8), T(9), T(12),
 		T(13), T(14), T(15), T(16));
-	EXPECT_TRUE(ExpectMat3Near(d->m1, Math::TMat3<T>(t1)));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1, Math::TMat3<T>(t1)));
 }
 
 TYPED_TEST(MathMatrix3Test, Accessor)
@@ -111,7 +111,7 @@ TYPED_TEST(MathMatrix3Test, Accessor)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			EXPECT_TRUE(ExpectNear(T(i*3+j+1), d->m1[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*3+j+1), this->d->m1[i][j]));
 		}
 	}
 }
@@ -121,29 +121,29 @@ TYPED_TEST(MathMatrix3Test, MultiplyDivideAssign)
 	typedef TypeParam T;
 	Math::TMat3<T> t;
 
-	t = d->m1; t *= T(2);
-	EXPECT_TRUE(ExpectMat3Near(d->m1s2, t));
+	t = this->d->m1; t *= T(2);
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1s2, t));
 
-	t = d->m1; t *= d->m2;
-	EXPECT_TRUE(ExpectMat3Near(d->m1m2, t));
+	t = this->d->m1; t *= this->d->m2;
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1m2, t));
 
-	t = d->m1s2; t /= T(2);
-	EXPECT_TRUE(ExpectMat3Near(d->m1, t));
+	t = this->d->m1s2; t /= T(2);
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1, t));
 }
 
 TYPED_TEST(MathMatrix3Test, MultiplyDivide)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectMat3Near(d->m1s2, d->m1 * T(2)));
-	EXPECT_TRUE(ExpectMat3Near(d->m1s2, T(2) * d->m1));
-	EXPECT_TRUE(ExpectVec3Near(d->m1v1, d->m1 * d->v1));
-	EXPECT_TRUE(ExpectMat3Near(d->m1m2, d->m1 * d->m2));
-	EXPECT_TRUE(ExpectMat3Near(d->m1, d->m1s2 / T(2)));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1s2, this->d->m1 * T(2)));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1s2, T(2) * this->d->m1));
+	EXPECT_TRUE(ExpectVec3Near(this->d->m1v1, this->d->m1 * this->d->v1));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1m2, this->d->m1 * this->d->m2));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1, this->d->m1s2 / T(2)));
 }
 
 TYPED_TEST(MathMatrix3Test, Transpose)
 {
-	EXPECT_TRUE(ExpectMat3Near(d->m2, Math::Transpose(d->m1)));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m2, Math::Transpose(this->d->m1)));
 }
 
 TYPED_TEST(MathMatrix3Test, Inverse)
@@ -231,7 +231,7 @@ TYPED_TEST(MathMatrix4Test, Constructor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			EXPECT_TRUE(ExpectNear(T(i*4+j+1), d->m1.v[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*4+j+1), this->d->m1.v[i][j]));
 		}
 	}
 }
@@ -258,7 +258,7 @@ TYPED_TEST(MathMatrix4Test, Accessor)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			EXPECT_TRUE(ExpectNear(T(i*4+j+1), d->m1[i][j]));
+			EXPECT_TRUE(ExpectNear(T(i*4+j+1), this->d->m1[i][j]));
 		}
 	}
 }
@@ -268,29 +268,29 @@ TYPED_TEST(MathMatrix4Test, MultiplyDivideAssign)
 	typedef TypeParam T;
 	Math::TMat4<T> t;
 
-	t = d->m1; t *= T(2);
-	EXPECT_TRUE(ExpectMat4Near(d->m1s2, t));
+	t = this->d->m1; t *= T(2);
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1s2, t));
 
-	t = d->m1; t *= d->m2;
-	EXPECT_TRUE(ExpectMat4Near(d->m1m2, t));
+	t = this->d->m1; t *= this->d->m2;
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1m2, t));
 
-	t = d->m1s2; t /= T(2);
-	EXPECT_TRUE(ExpectMat4Near(d->m1, t));
+	t = this->d->m1s2; t /= T(2);
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1, t));
 }
 
 TYPED_TEST(MathMatrix4Test, MultiplyDivide)
 {
 	typedef TypeParam T;
-	EXPECT_TRUE(ExpectMat4Near(d->m1s2, d->m1 * T(2)));
-	EXPECT_TRUE(ExpectMat4Near(d->m1s2, T(2) * d->m1));
-	EXPECT_TRUE(ExpectVec4Near(d->m1v1, d->m1 * d->v1));
-	EXPECT_TRUE(ExpectMat4Near(d->m1m2, d->m1 * d->m2));
-	EXPECT_TRUE(ExpectMat4Near(d->m1, d->m1s2 / T(2)));
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1s2, this->d->m1 * T(2)));
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1s2, T(2) * this->d->m1));
+	EXPECT_TRUE(ExpectVec4Near(this->d->m1v1, this->d->m1 * this->d->v1));
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1m2, this->d->m1 * this->d->m2));
+	EXPECT_TRUE(ExpectMat4Near(this->d->m1, this->d->m1s2 / T(2)));
 }
 
 TYPED_TEST(MathMatrix4Test, Transpose)
 {
-	EXPECT_TRUE(ExpectMat4Near(d->m2, Math::Transpose(d->m1)));
+	EXPECT_TRUE(ExpectMat4Near(this->d->m2, Math::Transpose(this->d->m1)));
 }
 
 TYPED_TEST(MathMatrix4Test, Inverse)
