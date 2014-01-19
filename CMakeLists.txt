@@ -62,7 +62,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}
 set(Boost_USE_STATIC_LIBS OFF)
 add_definitions(-DBOOST_ALL_DYN_LINK)		# Specify to use dynamic libraries
 #add_definitions(-DBOOST_ALL_NO_LIB)		# Disable auto-linking in VS 
-find_package(Boost 1.49 REQUIRED COMPONENTS "program_options" "filesystem" "system" "regex")
+find_package(Boost 1.53 REQUIRED COMPONENTS "program_options" "filesystem" "system" "regex")
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND COMMON_LIBRARY_FILES ${Boost_LIBRARIES})
