@@ -2,6 +2,9 @@
 [Tt]humbs.db
 *.DS_Store
 
+# Temporary files
+*.swp
+
 # Project files
 [Bb]uild/
 [Rr]esults/
