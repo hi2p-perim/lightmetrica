@@ -23,7 +23,7 @@ include(FindPackageHandleStandardArgs)
 
 # Dependencies
 # GLEW depends on OpenGL
-find_package(OpenGL REQUIRED)
+find_package(OpenGL)
 
 if (WIN32)
 	# Find include files

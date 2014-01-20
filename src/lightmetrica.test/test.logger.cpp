@@ -127,7 +127,7 @@ TEST_F(LoggerTest, OutputToFile)
 
 	Logger::SetOutputFileName(filename);
 	LM_LOG_INFO("hello");
-	
+
 	long long elapsed = 0;
 	auto start = std::chrono::high_resolution_clock::now();
 	while (Logger::CountFileOutputEntries() > 0 && elapsed < OutputProcessTimeout)

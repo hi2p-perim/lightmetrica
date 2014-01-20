@@ -137,8 +137,8 @@ void LoggerImpl::AddLogEntry( Logger::LogLevel level, const std::string& message
 					signal_LogUpdate(entry.get());
 				}
 
-				if ((outputMode & Logger::LogOutputMode::Stdout) > 0 || 
-					(outputMode & Logger::LogOutputMode::Stderr) > 0 || 
+				if ((outputMode & Logger::LogOutputMode::Stdout) > 0 ||
+					(outputMode & Logger::LogOutputMode::Stderr) > 0 ||
 					(outputMode & Logger::LogOutputMode::DebugOutput) > 0 ||
 					(outputMode & Logger::LogOutputMode::File) > 0)
 				{
@@ -181,8 +181,8 @@ void LoggerImpl::ProcessOutput()
 					}
 				}
 
-				if ((outputMode & Logger::LogOutputMode::Stdout) > 0 || 
-					(outputMode & Logger::LogOutputMode::Stderr) > 0 || 
+				if ((outputMode & Logger::LogOutputMode::Stdout) > 0 ||
+					(outputMode & Logger::LogOutputMode::Stderr) > 0 ||
 					(outputMode & Logger::LogOutputMode::DebugOutput) > 0 ||
 					(outputMode & Logger::LogOutputMode::File) > 0)
 				{
@@ -197,7 +197,7 @@ void LoggerImpl::ProcessOutput()
 			lastOutputTime = now;
 		}
 	}
-	
+
 	if ((outputMode & Logger::LogOutputMode::FileOutput) > 0)
 	{
 		// Process the mode File or FileHtml
@@ -347,7 +347,7 @@ void LoggerImpl::SetIndentation( unsigned int indentation )
 	{
 		indentationStr = "";
 	}
-	
+
 }
 
 // --------------------------------------------------------------------------------
