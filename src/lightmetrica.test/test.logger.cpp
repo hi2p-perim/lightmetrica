@@ -170,14 +170,14 @@ TEST_F(LoggerTest, AddLogFromAnotherThread)
 	std::mutex mutex;
 	std::condition_variable cv;
 	std::thread thread(
-		[&]()
-		{
-			// After some time, a log entry is added
-			std::unique_lock<std::mutex> lock(mutex);
-			cv.wait(lock);
-			for (int i = 0; i < maxCount; i++)
-				LM_LOG_INFO("hello");
-		});
+        [&]()
+        {
+            // After some time, a log entry is added
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock);
+            for (int i = 0; i < maxCount; i++)
+                LM_LOG_INFO("hello");
+        });
 
 	// Simulates event loop
 	bool added = false;

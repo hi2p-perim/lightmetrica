@@ -40,7 +40,7 @@ LM_NAMESPACE_BEGIN
 	- Reference counting
 	- Operator overriding for new and delete
 	  - Aligned allocation for SIMD data types
-	  - Enables to call new and delete from the outside library across the DLL boundary 
+	  - Enables to call new and delete from the outside library across the DLL boundary
 */
 class LM_PUBLIC_API Object
 {
@@ -50,6 +50,8 @@ public:
 
 public:
 
+    // TODO : Using global aligned allocator increases performance penalty
+    // and it is not a clean design ... Re-design them somehow.
 	void* operator new(std::size_t size) throw (std::bad_alloc);
 	void operator delete(void* p);
 

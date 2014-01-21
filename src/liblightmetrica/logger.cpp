@@ -316,6 +316,7 @@ void LoggerImpl::Reset()
 	updateMode = Logger::LogUpdateMode::Manual;
 	indentation = 0;
 	indentationStr = "";
+    signal_LogUpdate.disconnect_all_slots();
 }
 
 void LoggerImpl::SetOutputFileName( const std::string& fileName )

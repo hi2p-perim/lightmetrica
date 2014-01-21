@@ -189,7 +189,10 @@ class MathVector3Test : public MathTestBase<T>
 {
 public:
 
-	MathVector3Test() { d = new MathVector3Test_Data<T>(); }
+	MathVector3Test()
+	{
+	    d = new MathVector3Test_Data<T>();
+    }
 	virtual ~MathVector3Test() { LM_SAFE_DELETE(d); }
 
 protected:

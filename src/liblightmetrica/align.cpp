@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <lightmetrica/align.h>
+#include <lightmetrica/logger.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -33,7 +34,29 @@ void* aligned_malloc( size_t size, size_t align )
 #ifdef LM_PLATFORM_WINDOWS
 	p = _aligned_malloc(size, align);
 #elif defined(LM_PLATFORM_LINUX)
-	if (posix_memalign(&p, align, size)) p = nullptr;
+    if ((align & (align - 1)) == 0 && align % sizeof(void*) == 0)
+    {
+        int result = posix_memalign(&p, align, size);
+        if (result != 0)
+        {
+            p = nullptr;
+#ifdef LM_DEBUG_MODE
+            if (result == EINVAL)
+            {
+                LM_LOG_WARN("Alignment parameter is not a power of two multiple of sizeof(void*) : align = " + std::to_string(align));
+            }
+            else if (result == ENOMEM)
+            {
+                LM_LOG_DEBUG("Insufficient memory available");
+            }
+#endif
+        }
+    }
+    else
+    {
+        // TODO
+        p = malloc(size);
+    }
 #else
 	// cf.
 	// http://www.songho.ca/misc/alignment/dataalign.html
