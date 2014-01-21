@@ -34,6 +34,7 @@
 #include <boost/scoped_array.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals2.hpp>
+#include <boost/filesystem.hpp>
 
 #include <iostream>
 #include <sstream>

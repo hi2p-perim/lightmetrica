@@ -103,6 +103,8 @@ ObjMesh::Impl::Impl( ObjMesh* self )
 
 bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
+	namespace fs = boost::filesystem;
+
 	// Find 'path' element
 	auto pathNode = node.child("path");
 	if (!pathNode)
@@ -110,6 +112,20 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 		LM_LOG_ERROR("Missing 'path' element");
 		return false;
 	}
+	std::string path = pathNode.child_value();
+	auto fsPath = fs::path(path);
+
+	//if (fsPath.is_absolute())
+	//{
+	//	// If the 'path' is absolute use the value as it is
+	//	// This is not a recommended style so we display a warning message
+	//	LM_LOG_WARN("Using absolute path '" + path + "'")
+	//}
+	//else if (fsPath.is_relative())
+	//{
+	//	// If the 'path' is relative, use the path relative to the configuration file
+	//	std::string basePath = node.root()
+	//}
 
 	// Find 'group' element and get its value (this is optional)
 	//std::string groupName = node.child("group").child_value();
@@ -125,8 +141,6 @@ bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets 
 
 	// Load file
 	Assimp::Importer importer;
-
-	std::string path = pathNode.child_value();
 	const aiScene* scene = importer.ReadFile(path.c_str(),
 		aiProcess_GenNormals |
 		//aiProcess_CalcTangentSpace |
