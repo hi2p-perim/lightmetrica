@@ -246,12 +246,23 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 		else if (entry->level == Logger::LogLevel::Information)
 			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 		SetConsoleTextAttribute(consoleHandle, colorFlag);
+#elif defined(LM_PLATFORM_LINUX)
+		if (entry->level == Logger::LogLevel::Error)
+			std::cout << "\033[31m";
+		else if (entry->level == Logger::LogLevel::Warning)
+			std::cout << "\033[33m";
+		else if (entry->level == Logger::LogLevel::Debug)
+			std::cout << "\033[37m";
+		else if (entry->level == Logger::LogLevel::Information)
+			std::cout << "\033[137m";
 #endif
 
 		std::cout << line;
 
 #ifdef LM_PLATFORM_WINDOWS
 		SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+#elif defined(LM_PLATFORM_LINUX)
+		std::cout << "\033[0m";
 #endif
 	}
 

@@ -126,7 +126,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 bool PathtraceRenderer::Impl::Render( const Scene& scene )
 {
 	auto* film = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedLines;
+	std::atomic<int> processedLines(0);
 
 	signal_ReportProgress(0, false);
 

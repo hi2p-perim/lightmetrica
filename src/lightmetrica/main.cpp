@@ -55,6 +55,8 @@
 #include <boost/format.hpp>
 #ifdef LM_PLATFORM_WINDOWS
 #include <windows.h>
+#elif defined(LM_PLATFORM_LINUX)
+#include <sys/ioctl.h>
 #endif
 
 using namespace lightmetrica;
@@ -427,8 +429,10 @@ void NanonApplication::StartLogging()
 			CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
 			GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
 			consoleWidth = screenBufferInfo.dwSize.X-1;
-#else
-			consoleWidth = 70;
+#elif defined(LM_PLATFORM_LINUX)
+			struct winsize w;
+			ioctl(0, TIOCGWINSZ, &w);
+			consoleWidth = w.ws_col;
 #endif
 
 			std::string spaces(consoleWidth, ' ');
@@ -472,10 +476,14 @@ void NanonApplication::StartLogging()
 					std::cout << boost::format("| %s [") % progressTaskName;
 #ifdef LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+#elif defined(LM_PLATFORM_LINUX)
+					std::cout << "\033[32m";
 #endif
 					std::cout << bar;
 #ifdef LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+#elif defined(LM_PLATFORM_LINUX)
+					std::cout << "\033[0m";
 #endif
 					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
 					

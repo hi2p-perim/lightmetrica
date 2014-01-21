@@ -52,7 +52,7 @@ private:
 bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
 	auto* film = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedLines;
+	std::atomic<int> processedLines(0);
 
 	signal_ReportProgress(0, false);
 

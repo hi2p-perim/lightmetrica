@@ -106,7 +106,7 @@ TEST_F(LoggerTest, OutputToStdoutOrStderr)
 	EXPECT_TRUE(elapsed < OutputProcessTimeout);
 
 	// Check if output messages contain 'hello'
-	boost::regex r("^\\| ERROR .+ \\| hello");
+	boost::regex r("\\| ERROR .+ \\| hello");
 	EXPECT_TRUE(boost::regex_search(coutSS.str(), r));
 	EXPECT_TRUE(boost::regex_search(cerrSS.str(), r));
 }
