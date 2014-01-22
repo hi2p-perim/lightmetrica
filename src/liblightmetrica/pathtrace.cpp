@@ -82,7 +82,7 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 
 	// 'num_samples'
 	auto numSamplesNode = node.child("num_samples");
-	if (!numSamples)
+	if (!numSamplesNode)
 	{
 		numSamples = 1;
 		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_samples' = %d") % numSamples));
