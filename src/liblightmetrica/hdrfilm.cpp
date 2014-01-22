@@ -161,16 +161,17 @@ void HDRBitmapFilm::Impl::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const c
 
 void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
-	// Convert raster position to pixel position
-	Math::Vec2i pixelPos(
-		Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))),
-		Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))));
-
-	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
+	// Check raster position
+	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
 	{
-		LM_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
+		LM_LOG_WARN(boost::str(boost::format("Invalid raster position (%d, %d)") % rasterPos.x % rasterPos.y));
 		return;
 	}
+
+	// Convert raster position to pixel position
+	Math::Vec2i pixelPos(
+		Math::Clamp(Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))), 0, width-1),
+		Math::Clamp(Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))), 0, height-1));
 
 	// Record contribution
 	size_t idx = pixelPos.y * width + pixelPos.x;
@@ -181,16 +182,17 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 
 void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
-	// Convert raster position to pixel position
-	Math::Vec2i pixelPos(
-		Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))),
-		Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))));
-
-	if (pixelPos.x < 0 || width <= pixelPos.x || pixelPos.y < 0 || height <= pixelPos.y)
+	// Check raster position
+	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
 	{
-		LM_LOG_WARN(boost::str(boost::format("Invalid pixel position (%d, %d)") % pixelPos.x % pixelPos.y));
+		LM_LOG_WARN(boost::str(boost::format("Invalid raster position (%d, %d)") % rasterPos.x % rasterPos.y));
 		return;
 	}
+
+	// Convert raster position to pixel position
+	Math::Vec2i pixelPos(
+		Math::Clamp(Math::Cast<int>(Math::Float(rasterPos.x * Math::Float(width))), 0, width-1),
+		Math::Clamp(Math::Cast<int>(Math::Float(rasterPos.y * Math::Float(height))), 0, height-1));
 
 	// Accumulate contribution
 	size_t idx = pixelPos.y * width + pixelPos.x;

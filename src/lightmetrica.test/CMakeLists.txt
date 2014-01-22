@@ -39,6 +39,7 @@ set(
 	"test.perspectivecamera.cpp"
 	"test.math.vector.cpp"
 	"test.math.matrix.cpp"
+	"test.math.basic.cpp"
 	"test.math.transform.cpp"
 )
 

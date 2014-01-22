@@ -37,6 +37,7 @@ template <typename T> LM_FORCE_INLINE T Abs(const T& v) { return std::abs(v); }
 template <typename T> LM_FORCE_INLINE T Sqrt(const T& v) { return std::sqrt(v); }
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
+template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max) { return Min(Max(v, min), max); }
 
 #ifdef LM_ENABLE_MULTI_PRECISION
 

@@ -22,29 +22,31 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_BASIC_H__
-#define __LIB_LIGHTMETRICA_MATH_BASIC_H__
-
-#include "math.common.h"
+#include "pch.h"
+#include <lightmetrica.test/base.math.h>
 
 LM_NAMESPACE_BEGIN
-LM_MATH_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-template <typename T> LM_FORCE_INLINE T Radians(const T& v);
-template <typename T> LM_FORCE_INLINE T Degrees(const T& v);
-template <typename T> LM_FORCE_INLINE T Cos(const T& v);
-template <typename T> LM_FORCE_INLINE T Sin(const T& v);
-template <typename T> LM_FORCE_INLINE T Tan(const T& v);
-template <typename T> LM_FORCE_INLINE T Abs(const T& v);
-template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
-template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max);
+template <typename T>
+class MathBasicTest : public MathTestBase<T> {};
 
-LM_MATH_NAMESPACE_END
+TYPED_TEST_CASE(MathBasicTest, MathTestTypes);
+
+TYPED_TEST(MathBasicTest, MinMax)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(0), Math::Min(T(0), T(1))));
+	EXPECT_TRUE(ExpectNear(T(1), Math::Max(T(0), T(1))));
+}
+
+TYPED_TEST(MathBasicTest, Clamp)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(0.5), Math::Clamp(T(0.5), T(0), T(1))));
+	EXPECT_TRUE(ExpectNear(T(0), Math::Clamp(T(-0.5), T(0), T(1))));
+	EXPECT_TRUE(ExpectNear(T(1), Math::Clamp(T(1.5), T(0), T(1))));
+}
+
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
-
-#include "math.basic.inl"
-
-#endif // __LIB_LIGHTMETRICA_MATH_BASIC_H__
