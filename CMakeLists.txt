@@ -172,6 +172,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	# Enabling C++11 for gcc
 	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	add_definitions(-std=c++11)
+
 	# If the build type is Debug, define macro
 	if (CMAKE_BUILD_TYPE STREQUAL Debug)
 		add_definitions(-D_DEBUG)
