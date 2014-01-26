@@ -25,6 +25,6 @@ The application contains three projects:
 - **liblightmetrica** : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
 - **lightmetrica** : The command line renderer interface.
 - **lightmetrica.gui** : The GUI renderer interface.
-- **lightmetrica.test** : Unit test project for **libnanon**.    
+- **lightmetrica.test** : Unit test project for **liblightmetrica**.
 
 We *highly* recommend to read the Veach's thesis to understand the implementation.
