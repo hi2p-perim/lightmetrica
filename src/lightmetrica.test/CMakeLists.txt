@@ -43,16 +43,21 @@ set(
 	"test.math.transform.cpp"
 )
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+	if(CMAKE_BUILD_TYPE STREQUAL Debug)
+			endif()
+endif()
+
 pch_add_executable(lightmetrica.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
 target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES})
 add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)
 
 # Add a target for coverage calculation
-if(CMAKE_COMPILER_IS_GNUCXX)
-	if(CMAKE_BUILD_TYPE STREQUAL Debug)
-		include(CodeCoverage)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-		setup_target_for_coverage(test.coverage lightmetrica.test test.coverage)
-	endif()
-endif()
+#if(CMAKE_COMPILER_IS_GNUCXX)
+#	if(CMAKE_BUILD_TYPE STREQUAL Debug)
+#		include(CodeCoverage)
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+#		setup_target_for_coverage(test.coverage lightmetrica.test test.coverage)
+#	endif()
+#endif()
 
