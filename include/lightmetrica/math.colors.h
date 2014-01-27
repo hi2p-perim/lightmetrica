@@ -34,6 +34,7 @@ LM_MATH_NAMESPACE_BEGIN
 /*!
 	Useful color constants for TVec3.
 	For internal use.
+	\tparam T Internal value type.
 */
 template <typename T>
 class TColors

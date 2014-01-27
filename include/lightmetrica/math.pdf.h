@@ -23,42 +23,69 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_TYPES_H__
-#define __LIB_LIGHTMETRICA_MATH_TYPES_H__
+#ifndef __LIB_LIGHTMETRICA_MATH_PDF_H__
+#define __LIB_LIGHTMETRICA_MATH_PDF_H__
 
-#include "math.vector.h"
-#include "math.matrix.h"
-#include "math.quat.h"
-#include "math.constants.h"
-#include "math.colors.h"
-#include "math.cast.h"
-#include "math.pdf.h"
+#include "math.common.h"
 
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
-// Define default floating point types
-#ifdef LM_SINGLE_PRECISION
-	typedef float Float;
-#elif defined(LM_DOUBLE_PRECISION)
-	typedef double Float;
-#elif defined(LM_MULTI_PRECISION)
-	#ifndef LM_ENABLE_MULTI_PRECISION
-		#error "Multiprecision support must be enabled"
-	#endif
-	typedef BigFloat Float;
-#endif
+/*!
+	Probability measure.
+	Types of the probability measures.
+*/
+enum class ProbabilityMeasure
+{
 
-typedef TVec2<Float> Vec2;
-typedef TVec3<Float> Vec3;
-typedef TVec4<Float> Vec4;
-typedef TMat3<Float> Mat3;
-typedef TMat4<Float> Mat4;
-typedef TConstants<Float> Constants;
-typedef TColors<Float> Colors;
-typedef TPDFEval<Float> PDFEval;
+	/*!
+		Solid angle measure.
+		P_\sigma(x\to y).
+	*/
+	SolidAngle,
+	
+	/*!
+		Area measure.
+		P_A(x).
+	*/
+	Area,
+
+	/*!
+		Discrete measure.
+		Constructed from the measurable set (\Omega, 2^\Omega),
+		where
+			\Omega : Countable set,
+			2^\Omega : Power set of \Omega
+		Define P : 2^\Omega \to \mathbb{R}
+		where
+			P(A) = \sum_{\omega\in A} p(\omega), A\in 2^\Omega
+			p_\omega is the probability mass function such that \sum_{\omega\in\Omega} p(\omega) = 1
+	*/
+	Discrete,
+
+};
+
+/*!
+	Evaluated PDF value.
+	Represents the evaluation of the probability density function (PDF).
+	\tparam 
+*/
+template <typename T>
+struct TPDFEval
+{
+
+	TPDFEval() {}
+	TPDFEval(const T& v, ProbabilityMeasure measure)
+		: v(v)
+		, measure(measure)
+	{}
+
+	T v;							//!< Value of the PDF evaluation.
+	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.
+
+};
 
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_MATH_TYPES_H__
+#endif // __LIB_LIGHTMETRICA_MATH_PDF_H__

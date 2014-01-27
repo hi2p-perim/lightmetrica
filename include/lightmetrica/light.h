@@ -34,14 +34,20 @@ LM_NAMESPACE_BEGIN
 
 struct Primitive;
 
-//! Query structure for BSDF::Sample.
+/*!
+	Light sample query.
+	A query structure for BSDF::Sample.
+*/
 struct LightSampleQuery
 {
 	Math::Vec2 sampleD;		//!< Uniform random numbers for direction sampling.
 	Math::Vec2 sampleP;		//!< Uniform random numbers for position sampling.
 };
 
-//! Sample data of BSDF::Sample.
+/*!
+	Light sample result.
+	A structure for the sampled data for BSDF::Sample.
+*/
 struct LightSampleResult
 {
 	Math::Vec3 p;			//!< Sampled position.
@@ -69,6 +75,12 @@ public:
 public:
 
 	/*!
+		Sample a position and a direction.
+		The function samples
+		 - a position in the light source p_A(x_0) from the distribution as area measure
+		 - a direction emitted from the sampled position from the distribution as solid angle measure.
+		\param query Sample query.
+		\param result Sampled data.
 	*/
 	virtual void Sample(const LightSampleQuery& query, LightSampleResult& result) const = 0;
 

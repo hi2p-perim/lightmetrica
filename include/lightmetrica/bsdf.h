@@ -43,7 +43,10 @@ enum class TransportDirection
 	CameraToLight		//!< Transport direction is from camera to light (a.k.a. radiance transport, or non-adjoint transport)
 };
 
-//! BSDF type of surface interaction.
+/*!
+	BSDF type.
+	BSDF types of the surface interaction.
+*/
 enum BSDFType
 {
 	// Primitive BSDF types
@@ -63,7 +66,10 @@ enum BSDFType
 	Transmission			= DiffuseTransmission | SpecularTransmission | GlossyTransmission,
 };
 
-//! Query structure for BSDF::SampleWo.
+/*!
+	BSDF sample query.
+	Query structure for BSDF::SampleWo.
+*/
 struct BSDFSampleQuery
 {
 	Math::Vec2 sample;					//!< Uniform random numbers for sampling BSDF.
@@ -72,7 +78,10 @@ struct BSDFSampleQuery
 	Math::Vec3 wi;						//!< Input direction in shading coordinates.
 };
 
-//! Sampled data of BSDF::SampleWo.
+/*!
+	BSDF sample result.
+	Sampled data of BSDF::SampleWo.
+*/
 struct BSDFSampleResult
 {
 	int sampledType;					//!< Sampled BSDF type.
@@ -80,7 +89,10 @@ struct BSDFSampleResult
 	PDFEval pdf;						//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
 };
 
-//! Query structure for BSDF::Evaluate.
+/*!
+	BSDF evaluate query.
+	Query structure for BSDF::Evaluate.
+*/
 struct BSDFEvaluateQuery
 {
 
@@ -150,7 +162,7 @@ public:
 		\param query Query structure.
 		\return Evaluated PDF.
 	*/
-	virtual PDF Pdf(const BSDFEvaluateQuery& query) const = 0;
+	virtual PDFEval Pdf(const BSDFEvaluateQuery& query) const = 0;
 
 protected:
 

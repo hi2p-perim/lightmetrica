@@ -31,10 +31,14 @@
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> LM_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u);
+template <typename T> LM_FORCE_INLINE TVec2<T> UniformConcentricDiskSample(const TVec2<T>& u);
+template <typename T> LM_FORCE_INLINE TPDFEval<T> UniformConcentricDiskSamplePDF();
 template <typename T> LM_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u);
+template <typename T> LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDF(const TVec3<T>& d);
 template <typename T> LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u);
+template <typename T> LM_FORCE_INLINE TPDFEval<T> UniformSampleHemispherePDF();
 template <typename T> LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u);
+template <typename T> LM_FORCE_INLINE TPDFEval<T> UniformSampleSphere();
 template <typename T> LM_FORCE_INLINE TVec2<T> UniformSampleTriangle(const TVec2<T>& u);
 
 LM_MATH_NAMESPACE_END

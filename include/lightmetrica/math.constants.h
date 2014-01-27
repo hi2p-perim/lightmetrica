@@ -31,6 +31,10 @@
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
+/*!
+	Math constants.
+	\tparam T Internal value type.
+*/
 template <typename T>
 class TConstants
 {

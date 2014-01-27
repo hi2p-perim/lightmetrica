@@ -51,6 +51,9 @@ public:
 	virtual void RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const;
 	virtual Film* GetFilm() const;
 	virtual void RegisterPrimitive( const Primitive* primitive );
+	virtual void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf ) const;
+	virtual Math::Vec3 EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const;
+	virtual Math::Vec2 RasterPosition( const Math::Vec3& p, const Math::Vec3& d ) const;
 
 private:
 

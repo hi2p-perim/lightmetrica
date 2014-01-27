@@ -43,6 +43,9 @@ public:
 	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
 	Film* GetFilm() const { return film; }
 	void RegisterPrimitive(const Primitive* primitive);
+	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf) const;
+	Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const;
+	Math::Vec2 RasterPosition(const Math::Vec3& p, const Math::Vec3& d) const;
 
 private:
 
@@ -144,6 +147,21 @@ void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
 	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
+void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf ) const
+{
+
+}
+
+Math::Vec3 PerspectiveCamera::Impl::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+
+}
+
+Math::Vec2 PerspectiveCamera::Impl::RasterPosition( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+
+}
+
 // --------------------------------------------------------------------------------
 
 PerspectiveCamera::PerspectiveCamera( const std::string& id )
@@ -176,6 +194,21 @@ void PerspectiveCamera::RegisterPrimitive( const Primitive* primitive )
 bool PerspectiveCamera::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
+}
+
+void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf ) const
+{
+	p->SamplePosition(sampleP, p, pdf);
+}
+
+Math::Vec3 PerspectiveCamera::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+	return p->EvaluateWe(p, d);
+}
+
+Math::Vec2 PerspectiveCamera::RasterPosition( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+	return p->RasterPosition(p, d);
 }
 
 LM_NAMESPACE_END

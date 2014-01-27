@@ -22,60 +22,70 @@
 	THE SOFTWARE.
 */
 
-#include "math.constants.h"
-#include <limits>
-#include <boost/math/constants/constants.hpp>
+#include "pch.h"
+#include <lightmetrica.test/base.math.h>
 
 LM_NAMESPACE_BEGIN
-LM_MATH_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
 template <typename T>
-LM_FORCE_INLINE T TConstants<T>::Zero()
+class MathStatsTest : public MathTestBase<T> {};
+
+TYPED_TEST_CASE(MathStatsTest, MathTestTypes);
+
+TYPED_TEST(MathStatsTest, UniformConcentricDiskSample)
 {
-	return T(0);
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::Pi()
+TYPED_TEST(MathStatsTest, UniformConcentricDiskSamplePDF)
 {
-	return boost::math::constants::pi<T>();
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::InvPi()
+TYPED_TEST(MathStatsTest, CosineSampleHemisphere)
 {
-	return InvTwoPi() * T(2);
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::InvTwoPi()
+TYPED_TEST(MathStatsTest, CosineSampleHemispherePDF)
 {
-	return boost::math::constants::one_div_two_pi<T>();
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::Inf()
+TYPED_TEST(MathStatsTest, UniformSampleHemisphere)
 {
-	return std::numeric_limits<T>::infinity();
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::Eps()
+TYPED_TEST(MathStatsTest, UniformSampleHemispherePDF)
 {
-	return std::numeric_limits<T>::epsilon();
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <typename T>
-LM_FORCE_INLINE T TConstants<T>::EpsLarge()
+TYPED_TEST(MathStatsTest, UniformSampleSphere)
 {
-	return T(1e-10);
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-template <>
-LM_FORCE_INLINE float TConstants<float>::EpsLarge()
+TYPED_TEST(MathStatsTest, UniformSampleSpherePDF)
 {
-	return 1e-3f;
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
 }
 
-LM_MATH_NAMESPACE_END
+TYPED_TEST(MathStatsTest, UniformSampleTriangle)
+{
+	typedef TypeParam T;
+	FAIL() << "Not implemented";
+}
+
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

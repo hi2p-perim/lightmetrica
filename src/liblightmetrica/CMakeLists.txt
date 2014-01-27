@@ -39,7 +39,6 @@ set(
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/random.h"
-	"${_INCLUDE_DIR}/pdf.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -237,6 +236,7 @@ set(
 	"${_INCLUDE_DIR}/math.constants.inl"
 	"${_INCLUDE_DIR}/math.colors.h"
 	"${_INCLUDE_DIR}/math.cast.h"
+	"${_INCLUDE_DIR}/math.pdf.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
@@ -275,6 +275,7 @@ set(
 	"${_INCLUDE_DIR}/qbvhscene.h"
 	"${_INCLUDE_DIR}/primitive.h"
 	"${_INCLUDE_DIR}/triaccel.h"
+	"${_INCLUDE_DIR}/triangleref.h"
 	"${_INCLUDE_DIR}/aabb.h"
 	"${_INCLUDE_DIR}/aabb.inl"
 )

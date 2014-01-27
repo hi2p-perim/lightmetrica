@@ -23,64 +23,26 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PDF_H__
-#define __LIB_LIGHTMETRICA_PDF_H__
-
-#include "common.h"
-#include "math.types.h"
-
-LM_NAMESPACE_BEGIN
+#ifndef __LIB_LIGHTMETRICA_TRIANGLE_REF_H__
+#define __LIB_LIGHTMETRICA_TRIANGLE_REF_H__
 
 /*!
+	Reference to triangle information.
+	The structure is used as intermediate data for some processes, e.g., QBVH construction.
+	A entry of the structure points to a triangle in a mesh in one of a primitives.
 */
-enum class ProbabilityMeasure
+struct TriangleRef
 {
 
-	/*!
-		Solid angle measure.
-		P_\sigma(x\to y).
-	*/
-	SolidAngle,
-	
-	/*!
-		Area measure.
-		P_A(x).
-	*/
-	Area,
+	int primitiveIndex;		//!< Index of a primitive. -1 specifies no reference
+	int faceIndex;			//!< Index of a face in the primitive
 
-	/*!
-		Discrete measure.
-		Constructed from the measurable set (\Omega, 2^\Omega),
-		where
-			\Omega : Countable set,
-			2^\Omega : Power set of \Omega
-		Define P : 2^\Omega \to \mathbb{R}
-		where
-			P(A) = \sum_{\omega\in A} p(\omega), A\in 2^\Omega
-			p_\omega is the probability mass function such that \sum_{\omega\in\Omega} p(\omega) = 1
-	*/
-	Discrete,
+	LM_FORCE_INLINE TriangleRef()
+		: primitiveIndex(-1)
+	{
+
+	}
 
 };
 
-/*!
-	PDF evaluation.
-	Represents the evaluation of the probability density function (PDF).
-*/
-struct PDFEval
-{
-
-	PDFEval() {}
-	PDFEval(const Math::Float& v, ProbabilityMeasure measure)
-		: v(v)
-		, measure(measure)
-	{}
-
-	Math::Float v;					//!< Value of the PDF evaluation.
-	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.
-
-};
-
-LM_NAMESPACE_END
-
-#endif // __LIB_LIGHTMETRICA_PDF_H__
+#endif // __LIB_LIGHTMETRICA_TRIANGLE_REF_H__

@@ -41,6 +41,7 @@ set(
 	"test.math.matrix.cpp"
 	"test.math.basic.cpp"
 	"test.math.transform.cpp"
+	"test.math.stats.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

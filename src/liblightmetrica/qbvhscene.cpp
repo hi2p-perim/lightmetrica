@@ -31,6 +31,7 @@
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/aabb.h>
 #include <lightmetrica/align.h>
+#include <lightmetrica/triangleref.h>
 #include <pugixml.hpp>
 
 LM_NAMESPACE_BEGIN
@@ -145,25 +146,6 @@ struct LM_ALIGN_16 QuadTriangle
 			reinterpret_cast<const float*>(&b2)[hit]);
 
 		return true;
-	}
-
-};
-
-/*
-	Reference to triangle information.
-	The structure is used as intermediate data for QBVH construction.
-	A entry of the structure points to a triangle in a mesh in one of a primitives.
-*/
-struct TriangleRef
-{
-
-	int primitiveIndex;		// Index of a primitive. -1 specifies no reference
-	int faceIndex;			// Index of a face in the primitive
-
-	LM_FORCE_INLINE TriangleRef()
-		: primitiveIndex(-1)
-	{
-
 	}
 
 };

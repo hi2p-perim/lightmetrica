@@ -49,8 +49,9 @@ public:
 
 public:
 
-	virtual Math::Vec3 EvaluateLe( const Math::Vec3& d, const Intersection& isect ) const;
+	virtual Math::Vec3 EvaluateLe( const Math::Vec3& d, const Math::Vec3& gn ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
+	virtual void Sample( const LightSampleQuery& query, LightSampleResult& result ) const;
 
 private:
 

@@ -68,10 +68,22 @@ LM_FORCE_INLINE TVec2<T> ConcentricDiskSample(const TVec2<T>& u)
 }
 
 template <typename T>
+LM_FORCE_INLINE TPDFEval<T> UniformConcentricDiskSamplePDF()
+{
+	return TPDFEval<T>(Constants::InvPi(), ProbabilityMeasure::Area);
+}
+
+template <typename T>
 LM_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u)
 {
 	auto s = ConcentricDiskSample(u);
 	return TVec3<T>(s, Sqrt(Max(T(0), T(1) - s.x*s.x - s.y*s.y)));
+}
+
+template <typename T>
+LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDF(const TVec3<T>& d)
+{
+	return TPDFEval<T>(Constants::InvPi() * CosThetaZUp(d), ProbabilityMeasure::SolidAngle);
 }
 
 template <typename T>
@@ -84,12 +96,24 @@ LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
 }
 
 template <typename T>
+LM_FORCE_INLINE TPDFEval<T> UniformSampleHemispherePDF()
+{
+	return TPDFEval<T>(Constants::InvTwoPi(), ProbabilityMeasure::SolidAngle);
+}
+
+template <typename T>
 LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
 {
 	T z = 1.0 - 2.0 * u[0];
 	T r = Sqrt(Max(T(0), T(1) - z*z));
 	T phi = T(2) * Constants::Pi() * u[1];
 	return TVec3<T>(r * Cos(phi), r * Sin(phi), z);
+}
+
+template <typename T>
+LM_FORCE_INLINE TPDFEval<T> UniformSampleSphere()
+{
+	return TPDFEval<T>(Constants::InvTwoPi() / T(2), ProbabilityMeasure::SolidAngle);
 }
 
 template <typename T>

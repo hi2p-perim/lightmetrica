@@ -142,7 +142,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 		// Sample a light
 
 		// Random number for light sampling
-		Math::Vec2 ls(rng.Next(), rng.Next());
+		auto ls = rng.NextVec2();
 		
 		// Choose a light
 		int nl = scene.NumLights();
@@ -233,7 +233,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 					if (Math::IsZero(bsdf))
 					{
 						// Accumulate color
-						film->AccumulateContribution(rasterPos, Le * throughput * bsdf * We / pdfEp);
+						film->AccumulateContribution(rasterPos, Le * throughput * bsdf * We / pdfEp.v);
 					}
 				}
 			}
