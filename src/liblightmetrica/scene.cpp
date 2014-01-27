@@ -53,11 +53,13 @@ public:
 	void Reset();
 	bool Load(const pugi::xml_node& node, Assets& assets);
 	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
-	int NumPrimitives() const;
+	int NumPrimitives() const { return static_cast<int>(primitives.size()); }
 	const Primitive* PrimitiveByIndex(int index) const;
 	const Primitive* PrimitiveByID(const std::string& id) const;
 	const Camera* MainCamera() const { return mainCamera; }
 	void StoreIntersectionFromBarycentricCoords(unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect);
+	int NumLights() const { return lights.size(); }
+	const Light* LightByIndex(int index) const;
 
 private:
 
@@ -456,11 +458,6 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 	return transform;
 }
 
-int Scene::Impl::NumPrimitives() const
-{
-	return static_cast<int>(primitives.size());
-}
-
 const Primitive* Scene::Impl::PrimitiveByIndex( int index ) const
 {
 	return index < primitives.size() ? primitives[index].get() : nullptr;
@@ -471,6 +468,11 @@ const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
 	return idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end()
 		? primitives[idPrimitiveIndexMap.at(id)].get()
 		: nullptr;
+}
+
+const Light* Scene::Impl::LightByIndex( int index ) const
+{
+	return index < lights.size() ? lights[index] : nullptr;
 }
 
 void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
@@ -586,6 +588,16 @@ void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex,
 bool Scene::Configure( const NanonConfig& config )
 {
 	return Configure(config.SceneElement());
+}
+
+int Scene::NumLights() const
+{
+	return p->NumLights();
+}
+
+const Light* Scene::LightByIndex( int index ) const
+{
+	return p->LightByIndex(index);
 }
 
 LM_NAMESPACE_END

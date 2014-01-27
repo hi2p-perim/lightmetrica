@@ -27,6 +27,7 @@
 #define __LIB_LIGHTMETRICA_CAMERA_H__
 
 #include "asset.h"
+#include "pdf.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
@@ -51,6 +52,33 @@ public:
 	virtual std::string Name() const { return "camera"; }
 
 public:
+
+	/*!
+		Sample a position on the camera.
+		\param sampleP Position sample.
+		\param p Sampled position.
+		\param pdf Evaluated PDF.
+	*/
+	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf) const = 0;
+
+	/*!
+		Evaluate the importance.
+		Evaluate the importance W_e(x_0\to x_1).
+		\param p Position on the camera.
+		\param d Outgoing direction x_0\to x_1 (must be normalized).
+		\return Importance.
+	*/
+	virtual Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const = 0;
+
+	/*!
+		Calculate raster position.
+		The function calculates the raster position from the camera position
+		and outgoing ray direction from the point.
+		\param p Position on the camera.
+		\param d Outgoing direction from #p.
+		\return Raster position.
+	*/
+	virtual Math::Vec2 RasterPosition(const Math::Vec3& p, const Math::Vec3& d) const = 0;
 
 	/*!
 		Convert the raster position to a ray.

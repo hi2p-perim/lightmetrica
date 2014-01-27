@@ -40,6 +40,7 @@ public:
 public:
 
 	Math::Float Next();
+	Math::Vec2 NextVec2() { return Math::Vec2(Next(), Next()); }
 	void SetSeed(unsigned int seed);
 
 private:

@@ -492,6 +492,12 @@ LM_FORCE_INLINE T Luminance(const TVec3<T>& v)
 }
 
 template <typename T>
+LM_FORCE_INLINE bool IsZero(cosnt TVec3<T>& v)
+{
+	return v.x == T(0) && v.y == T(0) && v.z == T(0);
+}
+
+template <typename T>
 LM_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v)
 {
 	return v.z;
@@ -978,6 +984,12 @@ LM_FORCE_INLINE Vec3f Max(const Vec3f& v1, const Vec3f& v2)
 	return Vec3f(_mm_max_ps(v1.v, v2.v));
 }
 
+template <>
+LM_FORCE_INLINE bool IsZero(const Vec3f& v)
+{
+	return _mm_movemask_ps(_mm_cmpeq_ps(v.v, _mm_setzero_ps())) == 0;
+}
+
 // --------------------------------------------------------------------------------
 
 LM_FORCE_INLINE Vec4f::TVec4()
@@ -1405,6 +1417,12 @@ template <>
 LM_FORCE_INLINE Vec3d Max(const Vec3d& v1, const Vec3d& v2)
 {
 	return Vec3d(_mm256_max_pd(v1.v, v2.v));
+}
+
+template <>
+LM_FORCE_INLINE bool IsZero(const Vec3d& v)
+{
+	return _mm256_movemask_pd(_mm256_cmp_pd(v.v, _mm256_setzero_pd(), _CMP_EQ_OQ)) == 0;
 }
 
 // --------------------------------------------------------------------------------

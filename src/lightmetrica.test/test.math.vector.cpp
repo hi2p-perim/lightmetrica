@@ -342,6 +342,13 @@ TYPED_TEST(MathVector3Test, MinMax)
 	EXPECT_TRUE(ExpectVec3Near(Math::TVec3<T>(T(4), T(3), T(3)), Math::Max(this->d->v1, this->d->v2)));
 }
 
+TYPED_TEST(MathVector3Test, IsZero)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(Math::IsZero(Math::TVec3<T>(T(0))));
+	EXPECT_FALSE(Math::IsZero(Math::TVec3<T>(T(1))));
+}
+
 // --------------------------------------------------------------------------------
 
 template <typename T>

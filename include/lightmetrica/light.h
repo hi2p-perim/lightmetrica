@@ -27,12 +27,29 @@
 #define __LIB_LIGHTMETRICA_LIGHT_H__
 
 #include "asset.h"
+#include "pdf.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
 struct Primitive;
-struct Intersection;
+
+//! Query structure for BSDF::Sample.
+struct LightSampleQuery
+{
+	Math::Vec2 sampleD;		//!< Uniform random numbers for direction sampling.
+	Math::Vec2 sampleP;		//!< Uniform random numbers for position sampling.
+};
+
+//! Sample data of BSDF::Sample.
+struct LightSampleResult
+{
+	Math::Vec3 p;			//!< Sampled position.
+	Math::Vec3 d;			//!< Sampled direction.
+	Math::Vec3 gn;			//!< Geometry normal vector of the sampled position.
+	PDFEval pdfP;			//!< Evaluation of PDF according to #p.
+	PDFEval pdfD;			//!< Evaluation of PDF according to #d.
+};
 
 /*!
 	Light.
@@ -52,11 +69,16 @@ public:
 public:
 
 	/*!
-		Evaluate L_e(x_n\to x_{n-1}).
-		\param d Outgoing direction x_n\to x_{n-1}.
-		\param isect Intersection data.
 	*/
-	virtual Math::Vec3 EvaluateLe(const Math::Vec3& d, const Intersection& isect) const = 0;
+	virtual void Sample(const LightSampleQuery& query, LightSampleResult& result) const = 0;
+
+	/*!
+		Evaluate the emitted radiance.
+		Evaluate the emitted radiance L_e(x_n\to x_{n-1}).
+		\param d Outgoing direction x_n\to x_{n-1}.
+		\param gn Geometry normal.
+	*/
+	virtual Math::Vec3 EvaluateLe(const Math::Vec3& d, const Math::Vec3& gn) const = 0;
 	
 	/*!
 		Register an reference to the primitive.

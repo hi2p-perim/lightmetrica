@@ -66,31 +66,30 @@ enum BSDFType
 //! Query structure for BSDF::SampleWo.
 struct BSDFSampleQuery
 {
-	Math::Vec2 u;						//!< Uniform random numbers for sampling BSDF.
+	Math::Vec2 sample;					//!< Uniform random numbers for sampling BSDF.
 	int type;							//!< Requested BSDF type.
 	TransportDirection transportDir;	//!< Transport direction.
 	Math::Vec3 wi;						//!< Input direction in shading coordinates.
 };
 
 //! Sampled data of BSDF::SampleWo.
-struct BSDFSampledData
+struct BSDFSampleResult
 {
 	int sampledType;					//!< Sampled BSDF type.
 	Math::Vec3 wo;						//!< Sampled outgoing direction in shading coordinates.
-	PDF pdf;							//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
+	PDFEval pdf;						//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
 };
-
 
 //! Query structure for BSDF::Evaluate.
 struct BSDFEvaluateQuery
 {
 
 	BSDFEvaluateQuery() {}
-	BSDFEvaluateQuery(const BSDFSampleQuery& query, const BSDFSampledData& sampled)
+	BSDFEvaluateQuery(const BSDFSampleQuery& query, const BSDFSampleResult& result)
 		: type(query.type)
 		, transportDir(query.transportDir)
 		, wi(query.wi)
-		, wo(sampled.wo)
+		, wo(result.wo)
 	{}
 
 	int type;							//!< Requested BSDF type.
@@ -134,7 +133,7 @@ public:
 		\retval true Succeeded to sample #wo.
 		\retval false Failed to sample #wo.
 	*/
-	virtual bool SampleWo(const BSDFSampleQuery& query, BSDFSampledData& sampled) const = 0;
+	virtual bool Sample(const BSDFSampleQuery& query, BSDFSampleResult& result) const = 0;
 
 	/*!
 		Evaluate BSDF.

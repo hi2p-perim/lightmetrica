@@ -37,8 +37,8 @@
 #include <lightmetrica/logger.h>
 #include <pugixml.hpp>
 #include <thread>
-#include <omp.h>
 #include <atomic>
+#include <omp.h>
 
 LM_NAMESPACE_BEGIN
 

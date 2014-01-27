@@ -27,6 +27,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/raycast.h>
 #include <lightmetrica/pathtrace.h>
+#include <lightmetrica/lighttrace.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -49,6 +50,10 @@ Renderer* RendererFactory::Create( const std::string& type ) const
 	else if (type == "pathtrace")
 	{
 		return new PathtraceRenderer();
+	}
+	else if (type == "lighttrace")
+	{
+		return new LighttraceRenderer();
 	}
 	else
 	{

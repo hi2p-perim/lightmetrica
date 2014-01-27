@@ -160,7 +160,20 @@ public:
 		\return Scene type.
 	*/
 	virtual std::string Type() const = 0;
-	
+
+	/*!
+		Get the number of lights.
+		\return Number of lights.
+	*/
+	int NumLights() const;
+
+	/*!
+		Get a light by index.
+		\param index Index of a light.
+		\return Light.
+	*/
+	const Light* LightByIndex(int index) const;
+
 public:
 
 	/*!

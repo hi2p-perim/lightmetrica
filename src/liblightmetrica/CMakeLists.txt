@@ -249,6 +249,7 @@ set(
 	"${_INCLUDE_DIR}/rendererfactory.h"
 	"${_INCLUDE_DIR}/raycast.h"
 	"${_INCLUDE_DIR}/pathtrace.h"
+	"${_INCLUDE_DIR}/lighttrace.h"
 )
 set(
 	_RENDERER_SOURCES
@@ -256,6 +257,7 @@ set(
 	"rendererfactory.cpp"
 	"raycast.cpp"
 	"pathtrace.cpp"
+	"lighttrace.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})

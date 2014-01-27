@@ -23,64 +23,41 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PDF_H__
-#define __LIB_LIGHTMETRICA_PDF_H__
+#ifndef __LIB_LIGHTMETRICA_LIGHT_TRACE_H__
+#define __LIB_LIGHTMETRICA_LIGHT_TRACE_H__
 
-#include "common.h"
-#include "math.types.h"
+#include "renderer.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
+	Light trace renderer.
+	An implementation of light tracing (a.k.a. inverse path tracing).
+	Reference:
+		Arvo, J., Backward ray tracing, Developments in Ray Tracing,
+		Computer Graphics, Proc. of ACM SIGGRAPH 86 Course Notes, 1986.
 */
-enum class ProbabilityMeasure
+class LM_PUBLIC_API LighttraceRenderer : public Renderer
 {
+public:
 
-	/*!
-		Solid angle measure.
-		P_\sigma(x\to y).
-	*/
-	SolidAngle,
-	
-	/*!
-		Area measure.
-		P_A(x).
-	*/
-	Area,
+	LighttraceRenderer();
+	virtual ~LighttraceRenderer();
 
-	/*!
-		Discrete measure.
-		Constructed from the measurable set (\Omega, 2^\Omega),
-		where
-			\Omega : Countable set,
-			2^\Omega : Power set of \Omega
-		Define P : 2^\Omega \to \mathbb{R}
-		where
-			P(A) = \sum_{\omega\in A} p(\omega), A\in 2^\Omega
-			p_\omega is the probability mass function such that \sum_{\omega\in\Omega} p(\omega) = 1
-	*/
-	Discrete,
+public:
 
-};
+	virtual bool Configure( const pugi::xml_node& node, const Assets& assets );
+	virtual std::string Type() const { return "lighttrace"; }
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 
-/*!
-	PDF evaluation.
-	Represents the evaluation of the probability density function (PDF).
-*/
-struct PDFEval
-{
+private:
 
-	PDFEval() {}
-	PDFEval(const Math::Float& v, ProbabilityMeasure measure)
-		: v(v)
-		, measure(measure)
-	{}
-
-	Math::Float v;					//!< Value of the PDF evaluation.
-	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.
+	class Impl;
+	Impl* p;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_PDF_H__
+#endif // __LIB_LIGHTMETRICA_LIGHT_TRACE_H__
