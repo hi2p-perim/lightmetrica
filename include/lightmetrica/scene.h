@@ -43,6 +43,7 @@ LM_NAMESPACE_BEGIN
 class Assets;
 class NanonConfig;
 class Camera;
+class Light;
 struct Primitive;
 struct Ray;
 struct Intersection;

@@ -37,6 +37,10 @@ public:
 	Random(unsigned int seed);
 	~Random();
 
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(Random);
+
 public:
 
 	Math::Float Next();

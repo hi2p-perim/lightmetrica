@@ -492,7 +492,7 @@ LM_FORCE_INLINE T Luminance(const TVec3<T>& v)
 }
 
 template <typename T>
-LM_FORCE_INLINE bool IsZero(cosnt TVec3<T>& v)
+LM_FORCE_INLINE bool IsZero(const TVec3<T>& v)
 {
 	return v.x == T(0) && v.y == T(0) && v.z == T(0);
 }

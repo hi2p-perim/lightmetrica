@@ -125,6 +125,11 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 	}
 }
 
+TEST_F(HDRBitmapFilmTest, Clone)
+{
+	FAIL() << "Not implemented";
+}
+
 //TEST_F(HDRBitmapFilmTest, Save)
 //{
 //	// Dest on temporary directory

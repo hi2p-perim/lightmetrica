@@ -83,6 +83,23 @@ public:
 	*/
 	virtual void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) = 0;
 
+	/*!
+		Accumulate the contribution to the entire film.
+		This function accumulates the contribution of the other film.
+		The other film must be same size and type.
+		\param film A film.
+	*/
+	virtual void AccumulateContribution(const Film* film) = 0;
+
+public:
+
+	/*!
+		Clone the film.
+		The function is used internally.
+		\return Duplicated film.
+	*/
+	virtual Film* Clone() const = 0;
+
 };
 
 LM_NAMESPACE_END

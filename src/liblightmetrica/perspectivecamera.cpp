@@ -40,12 +40,20 @@ public:
 
 	Impl(PerspectiveCamera* self);
 	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
-	void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const;
 	Film* GetFilm() const { return film; }
 	void RegisterPrimitive(const Primitive* primitive);
-	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf) const;
+	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf) const;
+	void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf) const;
 	Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const;
-	Math::Vec2 RasterPosition(const Math::Vec3& p, const Math::Vec3& d) const;
+	bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const;
+
+private:
+
+	/*
+		Calculate importance W_e(z_0\to y_{s-1}),
+		i.e., sensitivity of the sensor
+	*/
+	Math::Float EvaluateImportance(Math::Float cosTheta) const;
 
 private:
 
@@ -122,21 +130,6 @@ bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Asset
 	return true;
 }
 
-void PerspectiveCamera::Impl::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const
-{
-	// Raster position in [-1, 1]^2
-	auto ndcRasterPos = Math::Vec3(rasterPos * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
-
-	// Convert raster position to camera coordinates
-	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
-	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
-
-	ray.d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
-	ray.o = position;
-	ray.minT = Math::Float(0);
-	ray.maxT = Math::Constants::Inf();
-}
-
 void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
 {
 	// View matrix and its inverse
@@ -147,19 +140,81 @@ void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
 	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
-void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf ) const
+void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf ) const
 {
-
+	p = position;
+	pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
 }
 
 Math::Vec3 PerspectiveCamera::Impl::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
 {
+	// Reference point in camera coordinates
+	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
+	auto refCam3 = Math::Vec3(refCam4);
 
+	// Reference point in NDC
+	auto refNdc4 = projectionMatrix * refCam4;
+	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
+
+	// Importance
+	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
 }
 
-Math::Vec2 PerspectiveCamera::Impl::RasterPosition( const Math::Vec3& p, const Math::Vec3& d ) const
+bool PerspectiveCamera::Impl::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
 {
+	// Reference point in camera coordinates
+	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
+	auto refCam3 = Math::Vec3(refCam4);
 
+	// Reference point in NDC
+	auto refNdc4 = projectionMatrix * refCam4;
+	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
+
+	// Raster position in [0, 1]^2
+	rasterPos = (Math::Vec2(refNdc3.x, refNdc3.y) + Math::Vec2(Math::Float(1))) / Math::Float(2);
+
+	// Check visibility
+	if (rasterPos.x < 0 || rasterPos.x > 1 || rasterPos.y < 0 || rasterPos.y > 1)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) const
+{
+	// Assume hypothetical sensor on z=-d in camera coordinates.
+	// Then the sensitivity is 1/Ad^2 where A is area of the sensor when d=1.
+	// Converting the measure, the sensitivity is
+	//  W_e(z_0\to y_{s-1})
+	//   = dA/d\omega 1/Ad^2
+	//   = \| p - z_0 \|^2 / \cos{(\theta)} / Ad^2
+	//   = 1 / (A * \cos^3{(\theta)}),
+	// where p is the raster position on the sensor,
+	// \theta is the angle between the normal on p and p - z_0.
+
+	if (cosTheta <= Math::Float(0))
+	{
+		// p is on behind the camera
+		return Math::Float(0);
+	}
+
+	Math::Float invCosTheta = Math::Float(1) / cosTheta;
+	return invA * invCosTheta * invCosTheta * invCosTheta;
+}
+
+void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf ) const
+{
+	// Raster position in [-1, 1]^2
+	auto ndcRasterPos = Math::Vec3(sampleD * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
+
+	// Convert raster position to camera coordinates
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
+	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
+
+	d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
+	pdf = Math::PDFEval(EvaluateImportance(-Math::CosThetaZUp(dirTCam3)), Math::ProbabilityMeasure::SolidAngle);
 }
 
 // --------------------------------------------------------------------------------
@@ -174,11 +229,6 @@ PerspectiveCamera::PerspectiveCamera( const std::string& id )
 PerspectiveCamera::~PerspectiveCamera()
 {
 	LM_SAFE_DELETE(p);
-}
-
-void PerspectiveCamera::RasterPosToRay( const Math::Vec2& rasterPos, Ray& ray ) const
-{
-	p->RasterPosToRay(rasterPos, ray);
 }
 
 Film* PerspectiveCamera::GetFilm() const
@@ -196,19 +246,24 @@ bool PerspectiveCamera::LoadAsset( const pugi::xml_node& node, const Assets& ass
 	return p->LoadAsset(node, assets);
 }
 
-void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf ) const
+void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf ) const
 {
-	p->SamplePosition(sampleP, p, pdf);
+	this->p->SamplePosition(sampleP, p, pdf);
 }
 
 Math::Vec3 PerspectiveCamera::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
 {
-	return p->EvaluateWe(p, d);
+	return this->p->EvaluateWe(p, d);
 }
 
-Math::Vec2 PerspectiveCamera::RasterPosition( const Math::Vec3& p, const Math::Vec3& d ) const
+bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
 {
-	return p->RasterPosition(p, d);
+	return this->p->RayToRasterPosition(p, d, rasterPos);
+}
+
+void PerspectiveCamera::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf ) const
+{
+	this->p->SampleDirection(sampleD, p, d, pdf);
 }
 
 LM_NAMESPACE_END

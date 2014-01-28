@@ -47,7 +47,9 @@ public:
 	bool Save();
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
+	void AccumulateContribution(const Film* film);
 	void InternalData(std::vector<Math::Float>& dest);
+	Film* Clone() const;
 
 public:
 
@@ -201,6 +203,30 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, c
 	data[3 * idx + 2] += contrb[2];
 }
 
+void HDRBitmapFilm::Impl::AccumulateContribution( const Film* film )
+{
+	// Check type
+	if (film->Type() != self->Type())
+	{
+		LM_LOG_WARN("Invalid image type '" + film->Type() + "', expected '" + self->Type() + "'");
+		return;
+	}
+
+	// Check image size
+	if (film->Width() != width || film->Height() != height)
+	{
+		LM_LOG_WARN("Invalid image size");
+		return;
+	}
+
+	// Accumulate data
+	auto& d = dynamic_cast<const HDRBitmapFilm*>(film)->p->data;
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		data[i] += d[i];
+	}
+}
+
 bool HDRBitmapFilm::Impl::Save()
 {
 	// Create bitmap
@@ -258,6 +284,14 @@ void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Float>& dest )
 	std::copy(data.begin(), data.end(), dest.begin());
 }
 
+Film* HDRBitmapFilm::Impl::Clone() const
+{
+	auto* film = new HDRBitmapFilm(self->ID());
+	*film->p = *this;
+	film->p->self = film;
+	return film;
+}
+
 // --------------------------------------------------------------------------------
 
 HDRBitmapFilm::HDRBitmapFilm(const std::string& id)
@@ -302,9 +336,19 @@ void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const M
 	p->AccumulateContribution(rasterPos, contrb);
 }
 
+void HDRBitmapFilm::AccumulateContribution( const Film* film )
+{
+	p->AccumulateContribution(film);
+}
+
 bool HDRBitmapFilm::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
+}
+
+Film* HDRBitmapFilm::Clone() const
+{
+	return p->Clone();
 }
 
 LM_NAMESPACE_END

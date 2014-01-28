@@ -24,7 +24,6 @@
 
 #include "pch.h"
 #include <lightmetrica/diffuse.h>
-#include <lightmetrica/pdf.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/pugihelper.h>
 #include <lightmetrica/math.stats.h>
@@ -84,29 +83,29 @@ Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersec
 	return diffuseReflectance * Math::Constants::InvPi() * Math::CosThetaZUp(query.wo) * sf;
 }
 
-PDF DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
+Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
 {
 	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
 	{
-		return PDF();
+		return Math::PDFEval();
 	}
 
-	return PDF(
+	return Math::PDFEval(
 		Math::CosThetaZUp(query.wo) * Math::Constants::InvPi(),
-		ProbabilityMeasure::SolidAngle);
+		Math::ProbabilityMeasure::SolidAngle);
 }
 
-bool DiffuseBSDF::SampleWo( const BSDFSampleQuery& query, BSDFSampledData& sampled ) const
+bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
 {
 	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0)
 	{
 		return false;
 	}
 
-	sampled.wo = Math::CosineSampleHemisphere(query.u);
-	sampled.sampledType = BSDFType::DiffuseReflection;
-	sampled.pdf = Pdf(BSDFEvaluateQuery(query, sampled));
-	if (sampled.pdf.v == Math::Float(0))
+	result.wo = Math::CosineSampleHemisphere(query.sample);
+	result.sampledType = BSDFType::DiffuseReflection;
+	result.pdf = Pdf(BSDFEvaluateQuery(query, result));
+	if (result.pdf.v == Math::Float(0))
 	{
 		return false;
 	}

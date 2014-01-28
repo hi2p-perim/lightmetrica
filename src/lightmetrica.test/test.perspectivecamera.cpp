@@ -139,5 +139,25 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
 }
 
+TEST_F(PerspectiveCameraTest, RegisterPrimitive)
+{
+	FAIL() << "Not implemented";
+}
+
+TEST_F(PerspectiveCameraTest, SamplePosition)
+{
+	FAIL() << "Not implemented";
+}
+
+TEST_F(PerspectiveCameraTest, EvaluateWe)
+{
+	FAIL() << "Not implemented";
+}
+
+TEST_F(PerspectiveCameraTest, RasterPosition)
+{
+	FAIL() << "Not implemented";
+}
+
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

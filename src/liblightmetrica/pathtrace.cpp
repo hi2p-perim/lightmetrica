@@ -150,10 +150,18 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					(Math::Float(y) + rng.Next()) / Math::Float(film->Height()));
 
 				// Generate camera ray
-				scene.MainCamera()->RasterPosToRay(rasterPos, ray);
+				Math::PDFEval pdfP, pdfD;
+				scene.MainCamera()->SamplePosition(rng.NextVec2(), ray.o, pdfP);
+				scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, pdfD);
+
+				ray.minT = Math::Float(0);
+				ray.maxT = Math::Constants::Inf();
+
+				// Evaluate importance
+				auto We = scene.MainCamera()->EvaluateWe(ray.o, ray.d);
 
 				Math::Vec3 L;
-				Math::Vec3 throughput(Math::Float(1));
+				Math::Vec3 throughput = We / pdfD.v / pdfP.v; // = 1 !!
 				int depth = 0;
 				
 				while (true)
@@ -174,7 +182,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					if (light)
 					{
 						// Emission
-						L += throughput * light->EvaluateLe(-ray.d, isect);
+						L += throughput * light->EvaluateLe(-ray.d, isect.gn);
 					}
 
 					// --------------------------------------------------------------------------------
@@ -182,19 +190,19 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					// Sample BSDF
 					const auto* bsdf = isect.primitive->bsdf;
 
-					BSDFSampleQuery bsdfQuery;
-					bsdfQuery.u = Math::Vec2(rng.Next(), rng.Next());
-					bsdfQuery.type = BSDFType::All;
-					bsdfQuery.transportDir = TransportDirection::CameraToLight;
-					bsdfQuery.wi = isect.worldToShading * -ray.d;
+					BSDFSampleQuery bsdfSQ;
+					bsdfSQ.sample = Math::Vec2(rng.Next(), rng.Next());
+					bsdfSQ.type = BSDFType::All;
+					bsdfSQ.transportDir = TransportDirection::CameraToLight;
+					bsdfSQ.wi = isect.worldToShading * -ray.d;
 					
-					BSDFSampledData bsdfSampledData;
-					if (!bsdf->SampleWo(bsdfQuery, bsdfSampledData) || bsdfSampledData.pdf.measure != ProbabilityMeasure::SolidAngle)
+					BSDFSampleResult bsdfSR;
+					if (!bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
 					{
 						break;
 					}
 
-					auto fs = bsdf->Evaluate(BSDFEvaluateQuery(bsdfQuery, bsdfSampledData), isect);
+					auto fs = bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
 					if (fs == Math::Vec3())
 					{
 						break;
@@ -202,10 +210,10 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					
 					// Update throughput
 					// weight = f_s(w_i, w_o) * cos(theta_o) / p_\sigma(w_o), where theta_o is the angle between N_s and w_o.
-					throughput *= fs * Math::CosThetaZUp(bsdfSampledData.wo) / bsdfSampledData.pdf.v;
+					throughput *= fs * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
 
 					// Setup next ray
-					ray.d = isect.shadingToWorld * bsdfSampledData.wo;
+					ray.d = isect.shadingToWorld * bsdfSR.wo;
 					ray.o = isect.p;
 					ray.minT = Math::Constants::Eps();
 					ray.maxT = Math::Constants::Inf();

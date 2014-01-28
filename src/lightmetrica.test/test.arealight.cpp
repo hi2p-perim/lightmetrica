@@ -22,60 +22,43 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_LIGHTMETRICA_HDR_FILM_H__
-#define __LIB_LIGHTMETRICA_HDR_FILM_H__
-
-#include "film.h"
+#include "pch.h"
+#include <lightmetrica.test/base.h>
+#include <lightmetrica/arealight.h>
+#include <lightmetrica.test/stub.assets.h>
 
 LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-/*!
-	High dynamic range bitmap film.
-	Implements HDR version of bitmap image recording.
-*/
-class LM_PUBLIC_API HDRBitmapFilm : public Film
+class AreaLightTest : public TestBase
 {
 public:
 
-	HDRBitmapFilm(const std::string& id);
-	virtual ~HDRBitmapFilm();
+	AreaLightTest()
+	{
 
-public:
+	}
 
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
-	virtual std::string Type() const { return "hdr"; }
-	
-public:
+protected:
 
-	virtual int Width() const;
-	virtual int Height() const;
-	virtual bool Save() const;
-	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
-	virtual void AccumulateContribution( const Film* film );
-
-public:
-
-	virtual Film* Clone() const;
-
-public:
-
-	/*!
-		Get the internal data.
-		Copy the internal data to the given array #dest.
-		This function is used internally for testing.
-		\param dest An array to store internal data.
-	*/
-	void InternalData(std::vector<Math::Float>& dest);
-
-private:
-
-	class Impl;
-	Impl* p;
+	StubAssets assets;
 
 };
 
-LM_NAMESPACE_END
+TEST_F(AreaLightTest, EvaluateLe)
+{
+	FAIL() << "Not implemented";
+}
 
-#endif // __LIB_LIGHTMETRICA_HDR_FILM_H__
+TEST_F(AreaLightTest, RegisterPrimitives)
+{
+	FAIL() << "Not implemented";
+}
+
+TEST_F(AreaLightTest, Sample)
+{
+	FAIL() << "Not implemented";
+}
+
+LM_TEST_NAMESPACE_END
+LM_NAMESPACE_END

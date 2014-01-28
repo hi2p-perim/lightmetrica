@@ -70,14 +70,19 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 				(Math::Float(0.5) + Math::Float(y)) / Math::Float(film->Height()));
 
 			// Generate ray
-			scene.MainCamera()->RasterPosToRay(rasterPos, ray);
+			// Note : position sampling is not used here (thus DoF is disabled)
+			Math::PDFEval _;
+			scene.MainCamera()->SamplePosition(Math::Vec2(), ray.o, _);
+			scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, _);
+
+			ray.minT = Math::Float(0);
+			ray.maxT = Math::Constants::Inf();
 
 			// Check intersection
 			if (scene.Intersect(ray, isect))
 			{
 				// Intersected : while color
 				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.sn, -ray.d))));
-				//film->RecordContribution(rasterPos, Math::Colors::White);
 			}
 			else
 			{

@@ -27,7 +27,6 @@
 #define __LIB_LIGHTMETRICA_LIGHT_H__
 
 #include "asset.h"
-#include "pdf.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
@@ -53,8 +52,8 @@ struct LightSampleResult
 	Math::Vec3 p;			//!< Sampled position.
 	Math::Vec3 d;			//!< Sampled direction.
 	Math::Vec3 gn;			//!< Geometry normal vector of the sampled position.
-	PDFEval pdfP;			//!< Evaluation of PDF according to #p.
-	PDFEval pdfD;			//!< Evaluation of PDF according to #d.
+	Math::PDFEval pdfP;		//!< Evaluation of PDF according to #p.
+	Math::PDFEval pdfD;		//!< Evaluation of PDF according to #d.
 };
 
 /*!

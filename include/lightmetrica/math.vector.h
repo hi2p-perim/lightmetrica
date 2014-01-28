@@ -141,7 +141,7 @@ template <typename T> LM_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVe
 template <typename T> LM_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2);
 
 template <typename T> LM_FORCE_INLINE T Luminance(const TVec3<T>& v);
-template <typename T> LM_FORCE_INLINE bool IsZero(cosnt TVec3<T>& v);
+template <typename T> LM_FORCE_INLINE bool IsZero(const TVec3<T>& v);
 
 // Useful trigonometric functions for shading coordinates.
 // Theta is the angle between z axis and the given vector.

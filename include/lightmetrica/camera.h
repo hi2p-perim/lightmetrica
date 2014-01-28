@@ -27,7 +27,6 @@
 #define __LIB_LIGHTMETRICA_CAMERA_H__
 
 #include "asset.h"
-#include "pdf.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
@@ -57,9 +56,18 @@ public:
 		Sample a position on the camera.
 		\param sampleP Position sample.
 		\param p Sampled position.
-		\param pdf Evaluated PDF.
+		\param pdf Evaluated PDF (area measure).
 	*/
-	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, PDFEval& pdf) const = 0;
+	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf) const = 0;
+
+	/*!
+		Sample the direction of the outgoing ray.
+		\param sampleD Direction sample (same as raster position).
+		\param p Origin of the ray.
+		\param d Sampled direction.
+		\param pdf Evaluated PDF (solid angle measure).
+	*/
+	virtual void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf) const = 0;
 
 	/*!
 		Evaluate the importance.
@@ -71,21 +79,16 @@ public:
 	virtual Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const = 0;
 
 	/*!
-		Calculate raster position.
-		The function calculates the raster position from the camera position
-		and outgoing ray direction from the point.
+		Convert a ray to a raster position.
+		The function calculates the raster position from the outgoing ray.
+		Returns false if calculated raster position is the outside of [0, 1]^2.
 		\param p Position on the camera.
 		\param d Outgoing direction from #p.
-		\return Raster position.
+		\param rasterPos Raster position.
+		\return true Succeeded to convert.
+		\return false Failed to convert.
 	*/
-	virtual Math::Vec2 RasterPosition(const Math::Vec3& p, const Math::Vec3& d) const = 0;
-
-	/*!
-		Convert the raster position to a ray.
-		\param rasterPos Raster position in [0, 1]^2.
-		\param ray Ray.
-	*/
-	virtual void RasterPosToRay(const Math::Vec2& rasterPos, Ray& ray) const = 0;
+	virtual bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const = 0;
 
 	/*!
 		Get film.

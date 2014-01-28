@@ -27,7 +27,6 @@
 #define __LIB_LIGHTMETRICA_BSDF_H__
 
 #include "asset.h"
-#include "pdf.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
@@ -86,7 +85,7 @@ struct BSDFSampleResult
 {
 	int sampledType;					//!< Sampled BSDF type.
 	Math::Vec3 wo;						//!< Sampled outgoing direction in shading coordinates.
-	PDFEval pdf;						//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
+	Math::PDFEval pdf;					//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
 };
 
 /*!
@@ -162,7 +161,7 @@ public:
 		\param query Query structure.
 		\return Evaluated PDF.
 	*/
-	virtual PDFEval Pdf(const BSDFEvaluateQuery& query) const = 0;
+	virtual Math::PDFEval Pdf(const BSDFEvaluateQuery& query) const = 0;
 
 protected:
 

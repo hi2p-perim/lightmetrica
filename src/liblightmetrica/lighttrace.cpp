@@ -32,7 +32,6 @@
 #include <lightmetrica/camera.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/light.h>
-#include <lightmetrica/pdf.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/bsdf.h>
 #include <pugixml.hpp>
@@ -125,166 +124,199 @@ bool LighttraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asse
 
 bool LighttraceRenderer::Impl::Render( const Scene& scene )
 {
-	auto* film = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedLines(0);
+	auto* masterFilm = scene.MainCamera()->GetFilm();
+	std::atomic<int> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
 
+	// --------------------------------------------------------------------------------
+
 	// Set number of threads
-	//omp_set_num_threads(numThreads);
+	omp_set_num_threads(numThreads);
 
-	// TODO
-	Random rng(static_cast<int>(std::time(nullptr)));
-
-	//#pragma omp parallel for
-	for (int sample = 0; sample < numSamples; sample++)
+	// Random number generators and films
+	std::vector<std::unique_ptr<Random>> rngs;
+	std::vector<std::unique_ptr<Film>> films;
+	int seed = static_cast<int>(std::time(nullptr));
+	for (int i = 0; i < numThreads; i++)
 	{
-		// Sample a light
+		rngs.push_back(std::unique_ptr<Random>(new Random(seed + i)));
+		films.push_back(std::unique_ptr<Film>(masterFilm->Clone()));
+	}
 
-		// Random number for light sampling
-		auto ls = rng.NextVec2();
-		
-		// Choose a light
-		int nl = scene.NumLights();
-		int li = Math::Min(static_cast<int>(ls.x * nl), nl - 1);
-		ls.x = ls.x * nl - Math::Float(li);
-		const Light* light = scene.LightByIndex(li);
-		PDFEval lightSelectionPdf(Math::Float(1.0 / li), ProbabilityMeasure::Discrete);
+	// Number of blocks to be separated
+	const int samplesPerBlock = 100;
+	int blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
-		// Sample a position and a direction on the light
-		LightSampleQuery lightSQ;
-		lightSQ.sampleP = ls;
-		lightSQ.sampleD = rng.NextVec2();
+	// --------------------------------------------------------------------------------
 
-		LightSampleResult lightSR;
-		light->Sample(lightSQ, lightSR);
+	#pragma omp parallel for
+	for (int block = 0; block < blocks; block++)
+	{
+		// Thread ID
+		int threadId = omp_get_thread_num();
+		auto& rng = rngs[threadId];
+		auto& film = films[threadId];
 
-		// Evaluate Le
-		auto Le = light->EvaluateLe(lightSR.d, lightSR.gn);
-		
-		// --------------------------------------------------------------------------------
+		// Sample range
+		int sampleBegin = samplesPerBlock * block;
+		int sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
-		// Handle LE path
-		// TODO
-
-		// --------------------------------------------------------------------------------
-
-		// Construct a ray
-		Ray ray;
-		ray.d = lightSR.d;
-		ray.o = lightSR.p;
-		ray.minT = Math::Constants::Eps();
-		ray.maxT = Math::Constants::Inf();
-
-		// --------------------------------------------------------------------------------
-
-		// Trace light particle and evaluate importance
-		Math::Vec3 throughput(Math::Float(1));
-		Intersection isect;
-		int depth = 0;
-
-		while (true)
+		for (int sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			// Query intersection
-			if (!scene.Intersect(ray, isect))
-			{
-				break;
-			}
+			// Sample a light
 
-			// ----------------------------------------------------------------------
+			// Random number for light sampling
+			auto ls = rng->NextVec2();
 
-			// Explicit eye path
-			Math::Vec2 rasterPos;
-			Math::Float explicitLightSamplePdf;
+			// Choose a light
+			int nl = scene.NumLights();
+			int li = Math::Min(static_cast<int>(ls.x * nl), nl - 1);
+			ls.x = ls.x * nl - Math::Float(li);
+			const Light* light = scene.LightByIndex(li);
+			Math::PDFEval lightSelectionPdf(Math::Float(1.0 / li), Math::ProbabilityMeasure::Discrete);
 
-			// Sample a position
-			Math::Vec3 ep;
-			PDFEval pdfEp;
-			scene.MainCamera()->SamplePosition(rng.NextVec2(), ep, pdfEp);
+			// Sample a position and a direction on the light
+			LightSampleQuery lightSQ;
+			lightSQ.sampleP = ls;
+			lightSQ.sampleD = rng->NextVec2();
 
-			// Evaluate importance
-			auto We = scene.MainCamera()->EvaluateWe(ep, isect.p - ep);
+			LightSampleResult lightSR;
+			light->Sample(lightSQ, lightSR);
 
-			// Calculate raster position
-			auto rasterPos = scene.MainCamera()->RasterPosition(ep, isect.p - ep);
+			// Evaluate Le
+			auto Le = light->EvaluateLe(lightSR.d, lightSR.gn);
 
-			if (!Math::IsZero(pdfEp.v) && !Math::IsZero(We))
-			{
-				// Check visibility between camera position and sampled position in the light
-				Ray shadowRay;
-				auto d = ep - isect.p;
-				Math::Float dl = Math::Length(d);
-				shadowRay.d = d / dl;
-				shadowRay.o = isect.p;
-				shadowRay.minT = Math::Constants::Eps();
-				shadowRay.maxT = dl * (Math::Float(1) - Math::Constants::Eps());
+			// --------------------------------------------------------------------------------
 
-				Intersection shadowIsect;
-				if (!scene.Intersect(shadowRay, shadowIsect))
-				{
-					// Evaluate BSDF
-					BSDFEvaluateQuery bsdfEQ;
-					bsdfEQ.transportDir = TransportDirection::LightToCamera;
-					bsdfEQ.type = BSDFType::All;
-					bsdfEQ.wi = isect.worldToShading * -ray.d;
-					bsdfEQ.wo = isect.worldToShading * shadowRay.d;
+			// Handle LE path
+			// TODO
 
-					auto bsdf = isect.primitive->bsdf->Evaluate(bsdfEQ, isect);
-					if (Math::IsZero(bsdf))
-					{
-						// Accumulate color
-						film->AccumulateContribution(rasterPos, Le * throughput * bsdf * We / pdfEp.v);
-					}
-				}
-			}
+			// --------------------------------------------------------------------------------
 
-			// ----------------------------------------------------------------------
-
-			// Sample BSDF
-			BSDFSampleQuery bsdfSQ;
-			bsdfSQ.sample = rng.NextVec2();
-			bsdfSQ.type = BSDFType::All;
-			bsdfSQ.wi = isect.worldToShading * -ray.d;
-			bsdfSQ.transportDir = TransportDirection::LightToCamera;
-
-			BSDFSampleResult bsdfSR;
-			if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != ProbabilityMeasure::SolidAngle)
-			{
-				break;
-			}
-
-			// Evaluate BSDF
-			auto bsdf = isect.primitive->bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
-			if (Math::IsZero(bsdf))
-			{
-				break;
-			}
-
-			// Update throughput
-			throughput *= bsdf;
-
-			// Setup next ray
-			ray.d = isect.shadingToWorld * bsdfSR.wo;
-			ray.o = isect.p;
+			// Construct a ray
+			Ray ray;
+			ray.d = lightSR.d;
+			ray.o = lightSR.p;
 			ray.minT = Math::Constants::Eps();
 			ray.maxT = Math::Constants::Inf();
 
-			// ----------------------------------------------------------------------
+			// --------------------------------------------------------------------------------
 
-			if (++depth >= rrDepth)
+			// Trace light particle and evaluate importance
+			Math::Vec3 throughput(Math::Float(1));
+			Intersection isect;
+			int depth = 0;
+
+			while (true)
 			{
-				// Russian roulette for path termination
-				Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-				if (rng.Next() > p)
+				// Query intersection
+				if (!scene.Intersect(ray, isect))
 				{
 					break;
 				}
 
-				throughput /= p;
+				// ----------------------------------------------------------------------
+
+				// Sample a position
+				Math::Vec3 ep;
+				Math::PDFEval pdfEp;
+				scene.MainCamera()->SamplePosition(rng->NextVec2(), ep, pdfEp);
+				if (!Math::IsZero(pdfEp.v))
+				{
+					// Calculate raster position
+					Math::Vec2 rasterPos;
+					if (scene.MainCamera()->RayToRasterPosition(ep, isect.p - ep, rasterPos))
+					{
+						// Evaluate importance
+						auto We = scene.MainCamera()->EvaluateWe(ep, isect.p - ep);
+						if (!Math::IsZero(We))
+						{
+							// Check visibility between camera position and sampled position in the light
+							Ray shadowRay;
+							auto d = ep - isect.p;
+							Math::Float dl = Math::Length(d);
+							shadowRay.d = d / dl;
+							shadowRay.o = isect.p;
+							shadowRay.minT = Math::Constants::Eps();
+							shadowRay.maxT = dl * (Math::Float(1) - Math::Constants::Eps());
+
+							Intersection shadowIsect;
+							if (!scene.Intersect(shadowRay, shadowIsect))
+							{
+								// Evaluate BSDF
+								BSDFEvaluateQuery bsdfEQ;
+								bsdfEQ.transportDir = TransportDirection::LightToCamera;
+								bsdfEQ.type = BSDFType::All;
+								bsdfEQ.wi = isect.worldToShading * -ray.d;
+								bsdfEQ.wo = isect.worldToShading * shadowRay.d;
+
+								auto bsdf = isect.primitive->bsdf->Evaluate(bsdfEQ, isect);
+								if (!Math::IsZero(bsdf))
+								{
+									// Accumulate color
+									film->AccumulateContribution(rasterPos, Le * throughput * bsdf * We / pdfEp.v);
+								}
+							}
+						}
+					}
+				}
+
+				// ----------------------------------------------------------------------
+
+				// Sample BSDF
+				BSDFSampleQuery bsdfSQ;
+				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.type = BSDFType::All;
+				bsdfSQ.wi = isect.worldToShading * -ray.d;
+				bsdfSQ.transportDir = TransportDirection::LightToCamera;
+
+				BSDFSampleResult bsdfSR;
+				if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
+				{
+					break;
+				}
+
+				// Evaluate BSDF
+				auto bsdf = isect.primitive->bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
+				if (Math::IsZero(bsdf))
+				{
+					break;
+				}
+
+				// Update throughput
+				throughput *= bsdf;
+
+				// Setup next ray
+				ray.d = isect.shadingToWorld * bsdfSR.wo;
+				ray.o = isect.p;
+				ray.minT = Math::Constants::Eps();
+				ray.maxT = Math::Constants::Inf();
+
+				// ----------------------------------------------------------------------
+
+				if (++depth >= rrDepth)
+				{
+					// Russian roulette for path termination
+					Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
+					if (rng->Next() > p)
+					{
+						break;
+					}
+
+					throughput /= p;
+				}
 			}
 		}
 
-		signal_ReportProgress(static_cast<double>(sample + 1) / numSamples, sample + 1 == numSamples);
+		processedBlocks++;
+		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
+	}
+
+	// Accumulate rendered results for all threads to one film
+	for (auto& f : films)
+	{
+		masterFilm->AccumulateContribution(f.get());
 	}
 
 	return true;
