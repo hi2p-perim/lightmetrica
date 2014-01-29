@@ -791,13 +791,13 @@ LM_FORCE_INLINE Vec3f::TVec3(const Vec3f& v)
 LM_FORCE_INLINE Vec3f::TVec3(const Vec4f& v)
 	: v(v.v)
 {
-	_ = 0.0f;
+
 }
 
 LM_FORCE_INLINE Vec3f::TVec3(float v)
 	: v(_mm_set1_ps(v))
 {
-	_ = 0.0f;
+
 }
 
 LM_FORCE_INLINE Vec3f::TVec3(__m128 v)
@@ -855,17 +855,21 @@ LM_FORCE_INLINE Vec3f& Vec3f::operator*=(float s)
 
 LM_FORCE_INLINE Vec3f& Vec3f::operator/=(const Vec3f& v)
 {
-	Vec3f t(v.v);
-	t._ = 1.0f;
-	this->v = _mm_div_ps(this->v, t.v);
+	//this->v = _mm_div_ps(this->v, _mm_blend_ps(v.v, _mm_set1_ps(1.0f), 0x8));
+	this->v = _mm_div_ps(this->v, v.v);
+	//Vec3f t(v.v);
+	//t._ = 1.0f;
+	//this->v = _mm_div_ps(this->v, t.v);
 	return *this;
 }
 
 LM_FORCE_INLINE Vec3f& Vec3f::operator/=(float s)
 {
-	Vec3f t(s);
-	t._ = 1.0f;
-	this->v = _mm_div_ps(this->v, t.v);
+	//this->v = _mm_div_ps(this->v, _mm_set_ps(1.0f, s, s, s));
+	this->v = _mm_div_ps(this->v, _mm_set_ps1(s));
+	//Vec3f t(s);
+	//t._ = 1.0f;
+	//this->v = _mm_div_ps(this->v, t.v);
 	return *this;
 }
 
@@ -908,9 +912,11 @@ LM_FORCE_INLINE Vec3f operator/(const Vec3f& v, const float& s)
 template <>
 LM_FORCE_INLINE Vec3f operator/(const Vec3f& v1, const Vec3f& v2)
 {
-	Vec3f t(v2);
-	t._ = 1.0f;
-	return Vec3f(_mm_div_ps(v1.v, t.v));
+	//return Vec3f(_mm_div_ps(v1.v, _mm_blend_ps(v2.v, _mm_set1_ps(1.0f), 0x8)));
+	return Vec3f(_mm_div_ps(v1.v, v2.v));
+	//Vec3f t(v2);
+	//t._ = 1.0f;
+	//return Vec3f(_mm_div_ps(v1.v, t.v));
 }
 
 template <>
@@ -923,7 +929,7 @@ template <>
 LM_FORCE_INLINE float Length(const Vec3f& v)
 {
 #ifdef LM_USE_SSE4_1
-	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v.v, v.v, 0xf1)));
+	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v.v, v.v, 0x71)));
 #else
 #error "TODO"
 #endif
@@ -933,7 +939,7 @@ template <>
 LM_FORCE_INLINE float Length2(const Vec3f& v)
 {
 #ifdef LM_USE_SSE4_1
-	return _mm_cvtss_f32(_mm_dp_ps(v.v, v.v, 0xf1));
+	return _mm_cvtss_f32(_mm_dp_ps(v.v, v.v, 0x71));
 #else
 #error "TODO"
 #endif
@@ -943,7 +949,7 @@ template <>
 LM_FORCE_INLINE Vec3f Normalize(const Vec3f& v)
 {
 #ifdef LM_USE_SSE4_1
-	return Vec3f(_mm_mul_ps(v.v, _mm_rsqrt_ps(_mm_dp_ps(v.v, v.v, 0xff))));
+	return Vec3f(_mm_mul_ps(v.v, _mm_rsqrt_ps(_mm_dp_ps(v.v, v.v, 0x7f))));
 #else
 #error "TODO"
 #endif
@@ -953,7 +959,7 @@ template <>
 LM_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2)
 {
 #ifdef LM_USE_SSE4_1
-	return _mm_cvtss_f32(_mm_dp_ps(v1.v, v2.v, 0xf1));
+	return _mm_cvtss_f32(_mm_dp_ps(v1.v, v2.v, 0x71));
 #else
 #error "TODO"
 #endif
@@ -987,7 +993,7 @@ LM_FORCE_INLINE Vec3f Max(const Vec3f& v1, const Vec3f& v2)
 template <>
 LM_FORCE_INLINE bool IsZero(const Vec3f& v)
 {
-	return _mm_movemask_ps(_mm_cmpeq_ps(v.v, _mm_setzero_ps())) == 0;
+	return (_mm_movemask_ps(_mm_cmpeq_ps(v.v, _mm_setzero_ps())) & 0x7) == 7;
 }
 
 // --------------------------------------------------------------------------------
@@ -1005,7 +1011,7 @@ LM_FORCE_INLINE Vec4f::TVec4(const Vec2f& v)
 }
 
 LM_FORCE_INLINE Vec4f::TVec4(const Vec3f& v)
-	: v(v.v)
+	: v(_mm_blend_ps(v.v, _mm_setzero_ps(), 0x8))
 {
 
 }
@@ -1278,17 +1284,19 @@ LM_FORCE_INLINE Vec3d& Vec3d::operator*=(double s)
 
 LM_FORCE_INLINE Vec3d& Vec3d::operator/=(const Vec3d& v)
 {
-	Vec3d t(v.v);
-	t._ = 1.0f;
-	this->v = _mm256_div_pd(this->v, t.v);
+	this->v = _mm256_div_pd(this->v, v.v);
+	//Vec3d t(v.v);
+	//t._ = 1.0f;
+	//this->v = _mm256_div_pd(this->v, t.v);
 	return *this;
 }
 
 LM_FORCE_INLINE Vec3d& Vec3d::operator/=(double s)
 {
-	Vec3d t(s);
-	t._ = 1.0f;
-	this->v = _mm256_div_pd(this->v, t.v);
+	this->v = _mm256_div_pd(this->v, _mm256_set1_pd(s));
+	//Vec3d t(s);
+	//t._ = 1.0f;
+	//this->v = _mm256_div_pd(this->v, t.v);
 	return *this;
 }
 
@@ -1331,9 +1339,10 @@ LM_FORCE_INLINE Vec3d operator/(const Vec3d& v, const double& s)
 template <>
 LM_FORCE_INLINE Vec3d operator/(const Vec3d& v1, const Vec3d& v2)
 {
-	Vec3d t(v2);
-	t._ = 1.0f;
-	return Vec3d(_mm256_div_pd(v1.v, t.v));
+	return Vec3d(_mm256_div_pd(v1.v, v2.v));
+	//Vec3d t(v2);
+	//t._ = 1.0f;
+	//return Vec3d(_mm256_div_pd(v1.v, t.v));
 }
 
 template <>
@@ -1363,12 +1372,15 @@ LM_FORCE_INLINE Vec3d Normalize(const Vec3d& v)
 template <>
 LM_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2)
 {
-	__m256d t1 = _mm256_mul_pd(v1.v, v2.v);		// t1 = [ v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w ]
-	__m256d t2 = _mm256_hadd_pd(t1, t1);		// t2 = [ v1.x * v2.x + v1.y * v2.y, _, v1.z * v2.z + v1.w * v2.w, _ ]
-	__m128d t3 = _mm256_extractf128_pd(t2, 1);	// t3 = [ v1.x * v2.x + v1.y * v2.y, _ ]
-	__m128d t4 = _mm256_castpd256_pd128(t2);	// t4 = [ v1.z * v2.z + v1.w * v2.w, _ ]
-	__m128d result = _mm_add_pd(t3, t4);		// result = [ v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w, _ ]
-	return Vec3d(_mm256_castpd128_pd256(result)).x;
+	__m256d z = _mm256_setzero_pd();
+	__m256d tv1 = _mm256_blend_pd(v1.v, z, 0x8);	// = ( 0, z1, y1, x1 )
+	__m256d tv2 = _mm256_blend_pd(v2.v, z, 0x8);	// = ( 0, z2, y2, x2 )
+	__m256d t1 = _mm256_mul_pd(tv1, tv2);			// = ( 0, z1 * z2, y1 * y2, x1 * x2 )
+	__m256d t2 = _mm256_hadd_pd(t1, t1);			// = ( z1 * z2, z1 * z2, x1 * x2 + y1 * y2, x1 * x2 + y1 * y2 )
+	__m128d t3 = _mm256_extractf128_pd(t2, 1);		// = ( z1 * z2, z1 * z2 )
+	__m128d t4 = _mm256_castpd256_pd128(t2);		// = ( x1 * x2 + y1 * y2, x1 * x2 + y1 * y2 )
+	__m128d result = _mm_add_pd(t3, t4);			// = ( x1 * x2 + y1 * y2 + z1 * z2, x1 * x2 + y1 * y2 + z1 * z2 )
+	return _mm_cvtsd_f64(result);
 }
 
 template <>
@@ -1422,7 +1434,7 @@ LM_FORCE_INLINE Vec3d Max(const Vec3d& v1, const Vec3d& v2)
 template <>
 LM_FORCE_INLINE bool IsZero(const Vec3d& v)
 {
-	return _mm256_movemask_pd(_mm256_cmp_pd(v.v, _mm256_setzero_pd(), _CMP_EQ_OQ)) == 0;
+	return (_mm256_movemask_pd(_mm256_cmp_pd(v.v, _mm256_setzero_pd(), _CMP_EQ_OQ)) & 0x7) == 7;
 }
 
 // --------------------------------------------------------------------------------
@@ -1440,7 +1452,7 @@ LM_FORCE_INLINE Vec4d::TVec4(const Vec2d& v)
 }
 
 LM_FORCE_INLINE Vec4d::TVec4(const Vec3d& v)
-	: v(v.v)
+	: v(_mm256_blend_pd(v.v, _mm256_setzero_pd(), 0x8))
 {
 
 }
@@ -1591,12 +1603,12 @@ LM_FORCE_INLINE Vec4d Normalize(const Vec4d& v)
 template <>
 LM_FORCE_INLINE double Dot(const Vec4d& v1, const Vec4d& v2)
 {
-	__m256d t1 = _mm256_mul_pd(v1.v, v2.v);		// t1 = [ v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w ]
-	__m256d t2 = _mm256_hadd_pd(t1, t1);		// t2 = [ v1.x * v2.x + v1.y * v2.y, _, v1.z * v2.z + v1.w * v2.w, _ ]
-	__m128d t3 = _mm256_extractf128_pd(t2, 1);	// t3 = [ v1.x * v2.x + v1.y * v2.y, _ ]
-	__m128d t4 = _mm256_castpd256_pd128(t2);	// t4 = [ v1.z * v2.z + v1.w * v2.w, _ ]
-	__m128d result = _mm_add_pd(t3, t4);		// result = [ v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w, _ ]
-	return Vec4d(_mm256_castpd128_pd256(result)).x;
+	__m256d t1 = _mm256_mul_pd(v1.v, v2.v);		// = ( w1 * w2, z1 * z2, y1 * y2, x1 * x2 )
+	__m256d t2 = _mm256_hadd_pd(t1, t1);		// = ( z1 * z2 + w1 * w2, z1 * z2 + w1 * w2, x1 * x2 + y1 * y2, x1 * x2 + y1 * y2 )
+	__m128d t3 = _mm256_extractf128_pd(t2, 1);	// = ( z1 * z2 + w1 * w2, z1 * z2 + w1 * w2 )
+	__m128d t4 = _mm256_castpd256_pd128(t2);	// = ( x1 * x2 + y1 * y2, x1 * x2 + y1 * y2 )
+	__m128d result = _mm_add_pd(t3, t4);		// = ( _, v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w )
+	return _mm_cvtsd_f64(result);
 }
 
 template <>

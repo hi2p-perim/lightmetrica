@@ -108,11 +108,12 @@ TEST_F(PerspectiveCameraTest, Load_Fail)
 	EXPECT_FALSE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Fail_InvalidProperty), assets));
 }
 
-TEST_F(PerspectiveCameraTest, RasterPosToRay)
+TEST_F(PerspectiveCameraTest, SampleRay)
 {
 	EXPECT_TRUE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Success), assets));
 
 	Ray ray;
+	Math::PDFEval _;
 
 	// Primitive 1
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
@@ -120,13 +121,15 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (0, 0, 0), d = (0, 0, -1) }
-	camera.RasterPosToRay(Math::Vec2(0.5), ray);
+	camera.SamplePosition(Math::Vec2(), ray.o, _);
+	camera.SampleDirection(Math::Vec2(0.5), ray.o, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, -1), ray.d));
 
 	// Raster position (1, 1)
 	// -> Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
-	camera.RasterPosToRay(Math::Vec2(1), ray);
+	camera.SamplePosition(Math::Vec2(), ray.o, _);
+	camera.SampleDirection(Math::Vec2(1), ray.o, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), ray.d));
 
@@ -136,7 +139,8 @@ TEST_F(PerspectiveCameraTest, RasterPosToRay)
 	
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
-	camera.RasterPosToRay(Math::Vec2(0.5), ray);
+	camera.SamplePosition(Math::Vec2(), ray.o, _);
+	camera.SampleDirection(Math::Vec2(0.5), ray.o, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
 }

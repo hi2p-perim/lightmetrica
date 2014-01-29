@@ -31,7 +31,10 @@
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/math.functions.h>
 #include <lightmetrica/logger.h>
+#include <pugixml.hpp>
 #include <atomic>
+#include <thread>
+#include <omp.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -46,6 +49,7 @@ public:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
+	int numThreads;		// Number of threads
 
 };
 
@@ -55,6 +59,9 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 	std::atomic<int> processedLines(0);
 
 	signal_ReportProgress(0, false);
+
+	// Set number of threads
+	omp_set_num_threads(numThreads);
 
 	#pragma omp parallel for
 	for (int y = 0; y < film->Height(); y++)
@@ -82,7 +89,8 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 			if (scene.Intersect(ray, isect))
 			{
 				// Intersected : while color
-				film->RecordContribution(rasterPos, Math::Vec3(Math::Abs(Math::Dot(isect.sn, -ray.d))));
+				Math::Float c = Math::Abs(Math::Dot(isect.sn, -ray.d));
+				film->RecordContribution(rasterPos, Math::Vec3(c));
 			}
 			else
 			{
@@ -100,7 +108,22 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 
 bool RaycastRenderer::Impl::Configure( const pugi::xml_node& node, const Assets& assets )
 {
-	// Nothing!!
+	// 'num_threads'
+	auto numThreadsNode = node.child("num_threads");
+	if (!numThreadsNode)
+	{
+		numThreads = std::thread::hardware_concurrency();
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_threads' = %d") % numThreads));
+	}
+	else
+	{
+		numThreads = std::stoi(numThreadsNode.child_value());
+		if (numThreads <= 0)
+		{
+			numThreads = std::thread::hardware_concurrency();
+		}
+	}
+
 	return true;
 }
 

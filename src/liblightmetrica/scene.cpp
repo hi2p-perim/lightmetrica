@@ -505,7 +505,23 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	Math::Vec3 n1 = normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
 	Math::Vec3 n2 = normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
 	Math::Vec3 n3 = normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
-	isect.sn = Math::Normalize(n1 * Math::Float(Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
+	isect.sn = Math::Normalize(n1 * (Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
+
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	for (int j = 0; j < 3; j++)
+	//	{
+	//		LM_LOG_DEBUG("normalTransform[" + std::to_string(i) + "][" + std::to_string(j) + "] = " + std::to_string(normalTransform[i][j]));
+	//	}
+	//}
+
+	//LM_LOG_DEBUG("normal1 : " + std::to_string(normals[3*v1]) + " " + std::to_string(normals[3*v1+1]) + " " + std::to_string(normals[3*v1+2]));
+	//LM_LOG_DEBUG("normal2 : " + std::to_string(normals[3*v2]) + " " + std::to_string(normals[3*v2+1]) + " " + std::to_string(normals[3*v2+2]));
+	//LM_LOG_DEBUG("normal3 : " + std::to_string(normals[3*v3]) + " " + std::to_string(normals[3*v3+1]) + " " + std::to_string(normals[3*v3+2]));
+
+	//LM_LOG_DEBUG("n1 : " + std::to_string(n1.x) + " " + std::to_string(n1.y) + " " + std::to_string(n1.z));
+	//LM_LOG_DEBUG("n2 : " + std::to_string(n2.x) + " " + std::to_string(n2.y) + " " + std::to_string(n2.z));
+	//LM_LOG_DEBUG("n3 : " + std::to_string(n3.x) + " " + std::to_string(n3.y) + " " + std::to_string(n3.z));
 
 	// Texture coordinates
 	if (texcoords)
