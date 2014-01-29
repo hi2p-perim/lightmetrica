@@ -23,6 +23,9 @@
 */
 
 #pragma once
+#ifndef __LIB_LIGHTMETRICA_ALIGN_H__
+#define __LIB_LIGHTMETRICA_ALIGN_H__
+
 #include "common.h"
 
 LM_NAMESPACE_BEGIN
@@ -206,3 +209,5 @@ private:
 };
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_ALIGN_H__
