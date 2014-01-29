@@ -214,7 +214,9 @@ void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const 
 	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
 
 	d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
-	pdf = Math::PDFEval(EvaluateImportance(-Math::CosThetaZUp(dirTCam3)), Math::ProbabilityMeasure::SolidAngle);
+	pdf = Math::PDFEval(
+		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 // --------------------------------------------------------------------------------

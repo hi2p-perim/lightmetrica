@@ -54,6 +54,7 @@ public:
 	LM_FORCE_INLINE static T Inf();
 	LM_FORCE_INLINE static T Eps();
 	LM_FORCE_INLINE static T EpsLarge();
+	LM_FORCE_INLINE static T MachineEps();
 
 };
 

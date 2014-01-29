@@ -62,19 +62,31 @@ LM_FORCE_INLINE T TConstants<T>::Inf()
 template <typename T>
 LM_FORCE_INLINE T TConstants<T>::Eps()
 {
-	return std::numeric_limits<T>::epsilon();
+	return T(1e-7);
+}
+
+template <>
+LM_FORCE_INLINE float TConstants<float>::Eps()
+{
+	return 1e-4f;
 }
 
 template <typename T>
 LM_FORCE_INLINE T TConstants<T>::EpsLarge()
 {
-	return T(1e-10);
+	return T(1e-5);
 }
 
 template <>
 LM_FORCE_INLINE float TConstants<float>::EpsLarge()
 {
 	return 1e-3f;
+}
+
+template <typename T>
+LM_FORCE_INLINE static T MachineEps()
+{
+	return std::numeric_limits<T>::epsilon();
 }
 
 LM_MATH_NAMESPACE_END

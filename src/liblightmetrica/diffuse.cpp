@@ -80,7 +80,7 @@ Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersec
 		return Math::Vec3();
 	}
 
-	return diffuseReflectance * Math::Constants::InvPi() * Math::CosThetaZUp(query.wo) * sf;
+	return diffuseReflectance * Math::Constants::InvPi() * sf;
 }
 
 Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
@@ -90,9 +90,7 @@ Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
 		return Math::PDFEval();
 	}
 
-	return Math::PDFEval(
-		Math::CosThetaZUp(query.wo) * Math::Constants::InvPi(),
-		Math::ProbabilityMeasure::SolidAngle);
+	return Math::CosineSampleHemispherePDF(query.wo);
 }
 
 bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
@@ -104,7 +102,7 @@ bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result
 
 	result.wo = Math::CosineSampleHemisphere(query.sample);
 	result.sampledType = BSDFType::DiffuseReflection;
-	result.pdf = Pdf(BSDFEvaluateQuery(query, result));
+	result.pdf = Math::CosineSampleHemispherePDF(result.wo);
 	if (result.pdf.v == Math::Float(0))
 	{
 		return false;

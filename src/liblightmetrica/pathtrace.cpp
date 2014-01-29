@@ -62,6 +62,7 @@ private:
 	int numSamples;		// Number of samples
 	int rrDepth;		// Depth of beginning RR
 	int numThreads;		// Number of threads
+	int samplesPerBlock;	// Samples to be processed per block
 
 };
 
@@ -120,125 +121,166 @@ bool PathtraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asset
 		}
 	}
 
+	// 'samples_per_block'
+	auto samplesPerBlockNode = node.child("samples_per_block");
+	if (!samplesPerBlockNode)
+	{
+		samplesPerBlock = 100;
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'samples_per_block' = %d") % samplesPerBlock));
+	}
+	else
+	{
+		samplesPerBlock = std::stoi(samplesPerBlockNode.child_value());
+		if (samplesPerBlock <= 0)
+		{
+			LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+			return false;
+		}
+	}
+
 	return true;
 }
 
 bool PathtraceRenderer::Impl::Render( const Scene& scene )
 {
-	auto* film = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedLines(0);
+	auto* masterFilm = scene.MainCamera()->GetFilm();
+	std::atomic<int> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
+
+	// --------------------------------------------------------------------------------
 
 	// Set number of threads
 	omp_set_num_threads(numThreads);
 
-	#pragma omp parallel for
-	for (int y = 0; y < film->Height(); y++)
+	// Random number generators and films
+	std::vector<std::unique_ptr<Random>> rngs;
+	std::vector<std::unique_ptr<Film>> films;
+	int seed = static_cast<int>(std::time(nullptr));
+	for (int i = 0; i < numThreads; i++)
 	{
-		Ray ray;
-		Intersection isect;
-		Random rng(static_cast<int>(std::time(nullptr)) + omp_get_thread_num());
+		rngs.push_back(std::unique_ptr<Random>(new Random(seed + i)));
+		films.push_back(std::unique_ptr<Film>(masterFilm->Clone()));
+	}
 
-		for (int x = 0; x < film->Width(); x++)
+	// Number of blocks to be separated
+	int blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
+
+	// --------------------------------------------------------------------------------
+
+	#pragma omp parallel for
+	for (int block = 0; block < blocks; block++)
+	{
+		// Thread ID
+		int threadId = omp_get_thread_num();
+		auto& rng = rngs[threadId];
+		auto& film = films[threadId];
+
+		// Sample range
+		int sampleBegin = samplesPerBlock * block;
+		int sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+
+		for (int sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			for (int s = 0; s < numSamples; s++)
-			{
-				// Raster position
-				Math::Vec2 rasterPos(
-					(Math::Float(x) + rng.Next()) / Math::Float(film->Width()),
-					(Math::Float(y) + rng.Next()) / Math::Float(film->Height()));
+			Ray ray;
+			Intersection isect;
 
-				// Generate camera ray
-				Math::PDFEval pdfP, pdfD;
-				scene.MainCamera()->SamplePosition(rng.NextVec2(), ray.o, pdfP);
-				scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, pdfD);
+			// Raster position
+			auto rasterPos = rng->NextVec2();
 
-				ray.minT = Math::Float(0);
-				ray.maxT = Math::Constants::Inf();
+			// Generate camera ray
+			Math::PDFEval pdfP, pdfD;
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), ray.o, pdfP);
+			scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, pdfD);
 
-				// Evaluate importance
-				auto We = scene.MainCamera()->EvaluateWe(ray.o, ray.d);
+			ray.minT = Math::Float(0);
+			ray.maxT = Math::Constants::Inf();
 
-				Math::Vec3 L;
-				Math::Vec3 throughput = We / pdfD.v / pdfP.v; // = 1 !!
-				int depth = 0;
+			// Evaluate importance
+			auto We = scene.MainCamera()->EvaluateWe(ray.o, ray.d);
+
+			Math::Vec3 L;
+			Math::Vec3 throughput = We / pdfD.v / pdfP.v; // = 1 !!
+			int depth = 0;
 				
-				while (true)
+			while (true)
+			{
+				// Check intersection
+				if (!scene.Intersect(ray, isect))
 				{
-					// Check intersection
-					if (!scene.Intersect(ray, isect))
-					{
-						//// There is no intersection, evaluate environment light if exists
-						//const auto* envLight = scene.GetEnvironmentLight();
-						//if (!envLight)
-						//{
-						//	L += throughput * envLight->Evaluate(-ray.d);
-						//}
-						break;
-					}
+					//// There is no intersection, evaluate environment light if exists
+					//const auto* envLight = scene.GetEnvironmentLight();
+					//if (!envLight)
+					//{
+					//	L += throughput * envLight->Evaluate(-ray.d);
+					//}
+					break;
+				}
 					
-					const auto* light = isect.primitive->light;
-					if (light)
-					{
-						// Emission
-						L += throughput * light->EvaluateLe(-ray.d, isect.gn);
-					}
-
-					// --------------------------------------------------------------------------------
-
-					// Sample BSDF
-					const auto* bsdf = isect.primitive->bsdf;
-
-					BSDFSampleQuery bsdfSQ;
-					bsdfSQ.sample = Math::Vec2(rng.Next(), rng.Next());
-					bsdfSQ.type = BSDFType::All;
-					bsdfSQ.transportDir = TransportDirection::CameraToLight;
-					bsdfSQ.wi = isect.worldToShading * -ray.d;
-					
-					BSDFSampleResult bsdfSR;
-					if (!bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
-					{
-						break;
-					}
-
-					auto fs = bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
-					if (fs == Math::Vec3())
-					{
-						break;
-					}
-					
-					// Update throughput
-					// weight = f_s(w_i, w_o) * cos(theta_o) / p_\sigma(w_o), where theta_o is the angle between N_s and w_o.
-					throughput *= fs * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
-
-					// Setup next ray
-					ray.d = isect.shadingToWorld * bsdfSR.wo;
-					ray.o = isect.p;
-					ray.minT = Math::Constants::Eps();
-					ray.maxT = Math::Constants::Inf();
-
-					// --------------------------------------------------------------------------------
-
-					if (++depth >= rrDepth)
-					{
-						// Russian roulette for path termination
-						Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-						if (rng.Next() > p)
-						{
-							break;
-						}
-
-						throughput /= p;
-					}
+				const auto* light = isect.primitive->light;
+				if (light)
+				{
+					// Emission
+					L += throughput * light->EvaluateLe(-ray.d, isect.gn);
 				}
 
-				film->AccumulateContribution(rasterPos, L / Math::Float(numSamples));
+				// --------------------------------------------------------------------------------
+
+				// Sample BSDF
+				BSDFSampleQuery bsdfSQ;
+				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.type = BSDFType::All;
+				bsdfSQ.transportDir = TransportDirection::CameraToLight;
+				bsdfSQ.wi = isect.worldToShading * -ray.d;
+					
+				BSDFSampleResult bsdfSR;
+				if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
+				{
+					break;
+				}
+
+				auto bsdf = isect.primitive->bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
+				if (Math::IsZero(bsdf))
+				{
+					break;
+				}
+					
+				// Update throughput
+				// weight = f_s(w_i, w_o) * cos(theta_o) / p_\sigma(w_o), where theta_o is the angle between N_s and w_o.
+				throughput *= bsdf * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
+
+				// Setup next ray
+				ray.d = isect.shadingToWorld * bsdfSR.wo;
+				ray.o = isect.p;
+				ray.minT = Math::Constants::Eps();
+				ray.maxT = Math::Constants::Inf();
+
+				// --------------------------------------------------------------------------------
+
+				if (++depth >= rrDepth)
+				{
+					// Russian roulette for path termination
+					Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
+					if (rng->Next() > p)
+					{
+						break;
+					}
+
+					throughput /= p;
+				}
 			}
+
+			film->AccumulateContribution(rasterPos, L * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 		}
 
-		processedLines++;
-		signal_ReportProgress(static_cast<double>(processedLines) / film->Height(), processedLines == film->Height());
+		processedBlocks++;
+		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
+	}
+
+	// Accumulate rendered results for all threads to one film
+	for (auto& f : films)
+	{
+		masterFilm->AccumulateContribution(f.get());
 	}
 
 	return true;

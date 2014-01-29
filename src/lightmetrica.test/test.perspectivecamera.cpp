@@ -69,8 +69,10 @@ public:
 	virtual bool Save() const { return true; }
 	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
+	virtual void AccumulateContribution( const Film* film ) {}
 	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return true; }
 	virtual std::string Type() const { return "stub"; }
+	virtual Film* Clone() const { return nullptr; }
 
 };
 

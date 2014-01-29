@@ -40,9 +40,9 @@ public:
 	virtual bool LoadAsset(const pugi::xml_node& node, const Assets& assets) { return true; }
 	virtual std::string Type() const { return "stub"; }
 	virtual BSDFType GetBSDFType() const { return BSDFType::All; }
-	virtual bool SampleWo( const BSDFSampleQuery& query, BSDFSampledData& sampled ) const { return true; }
+	virtual bool Sample( const BSDFSampleQuery& query, BSDFSampleResult& sampled ) const { return true; }
 	virtual Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const { return Math::Vec3(); }
-	virtual PDF Pdf( const BSDFEvaluateQuery& query ) const { return PDF(); }
+	virtual Math::PDFEval Pdf( const BSDFEvaluateQuery& query ) const { return Math::PDFEval(); }
 
 };
 

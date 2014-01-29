@@ -58,9 +58,10 @@ private:
 	LighttraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	int numSamples;		// Number of samples
-	int rrDepth;		// Depth of beginning RR
-	int numThreads;		// Number of threads
+	int numSamples;			// Number of samples
+	int rrDepth;			// Depth of beginning RR
+	int numThreads;			// Number of threads
+	int samplesPerBlock;	// Samples to be processed per block
 
 };
 
@@ -119,6 +120,23 @@ bool LighttraceRenderer::Impl::Configure( const pugi::xml_node& node, const Asse
 		}
 	}
 
+	// 'samples_per_block'
+	auto samplesPerBlockNode = node.child("samples_per_block");
+	if (!samplesPerBlockNode)
+	{
+		samplesPerBlock = 100;
+		LM_LOG_WARN(boost::str(boost::format("Using default value 'samples_per_block' = %d") % samplesPerBlock));
+	}
+	else
+	{
+		samplesPerBlock = std::stoi(samplesPerBlockNode.child_value());
+		if (samplesPerBlock <= 0)
+		{
+			LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -145,7 +163,6 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 	}
 
 	// Number of blocks to be separated
-	const int samplesPerBlock = 100;
 	int blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
 	// --------------------------------------------------------------------------------
@@ -174,7 +191,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 			int li = Math::Min(static_cast<int>(ls.x * nl), nl - 1);
 			ls.x = ls.x * nl - Math::Float(li);
 			const Light* light = scene.LightByIndex(li);
-			Math::PDFEval lightSelectionPdf(Math::Float(1.0 / li), Math::ProbabilityMeasure::Discrete);
+			Math::PDFEval lightSelectionPdf(Math::Float(1.0 / nl), Math::ProbabilityMeasure::Discrete);
 
 			// Sample a position and a direction on the light
 			LightSampleQuery lightSQ;
@@ -185,12 +202,49 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 			light->Sample(lightSQ, lightSR);
 
 			// Evaluate Le
-			auto Le = light->EvaluateLe(lightSR.d, lightSR.gn);
+			auto Le = light->EvaluateLe(lightSR.d, lightSR.gn) / lightSR.pdfD.v / lightSR.pdfP.v / lightSelectionPdf.v; // = poweeeeeer!
 
 			// --------------------------------------------------------------------------------
 
 			// Handle LE path
-			// TODO
+			Math::Vec3 ep;
+			Math::PDFEval pdfEp;
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), ep, pdfEp);
+			if (!Math::IsZero(pdfEp.v))
+			{
+				// Calculate raster position
+				Math::Vec2 rasterPos;
+				if (scene.MainCamera()->RayToRasterPosition(ep, lightSR.p - ep, rasterPos))
+				{
+					// Evaluate importance
+					auto We = scene.MainCamera()->EvaluateWe(ep, lightSR.p - ep);
+					if (!Math::IsZero(We))
+					{
+						// Check visibility between camera position and sampled position in the light
+						Ray shadowRay;
+						auto d = ep - lightSR.p;
+						Math::Float dl = Math::Length(d);
+						shadowRay.d = d / dl;
+						shadowRay.o = lightSR.p;
+						shadowRay.minT = Math::Constants::Eps();
+						shadowRay.maxT = dl * (Math::Float(1) - Math::Constants::Eps());
+
+						Intersection shadowIsect;
+						if (!scene.Intersect(shadowRay, shadowIsect))
+						{
+							// Evaluate Le
+							auto Le = light->EvaluateLe(shadowRay.d, lightSR.gn) / lightSR.pdfP.v / lightSelectionPdf.v;
+
+							// Compute geometry factor
+							Math::Float G = Math::Dot(lightSR.gn, shadowRay.d) / dl / dl;
+
+							// Evaluate contribution and accumulate
+							auto contrb = Le * G * We / pdfEp.v;
+							film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
+						}
+					}
+				}
+			}
 
 			// --------------------------------------------------------------------------------
 
@@ -204,7 +258,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 			// --------------------------------------------------------------------------------
 
 			// Trace light particle and evaluate importance
-			Math::Vec3 throughput(Math::Float(1));
+			auto throughput = Le;
 			Intersection isect;
 			int depth = 0;
 
@@ -254,8 +308,13 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 								auto bsdf = isect.primitive->bsdf->Evaluate(bsdfEQ, isect);
 								if (!Math::IsZero(bsdf))
 								{
-									// Accumulate color
-									film->AccumulateContribution(rasterPos, Le * throughput * bsdf * We / pdfEp.v);
+									// Compute geometry factor
+									// TODO : Think about the case with the position of E is not degenerated
+									Math::Float G = Math::CosThetaZUp(bsdfEQ.wo) / dl / dl;
+
+									// Evaluate contribution and accumulate
+									auto contrb = throughput * bsdf * G * We / pdfEp.v;
+									film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 								}
 							}
 						}
@@ -285,7 +344,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 				}
 
 				// Update throughput
-				throughput *= bsdf;
+				throughput *= bsdf * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
 
 				// Setup next ray
 				ray.d = isect.shadingToWorld * bsdfSR.wo;

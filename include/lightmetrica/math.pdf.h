@@ -45,6 +45,12 @@ enum class ProbabilityMeasure
 	SolidAngle,
 	
 	/*!
+		Projected solid angle measure.
+		P_{\sigma^\bot}(x\to y). See [Veach 1997] for details.
+	*/
+	ProjectedSolidAngle,
+
+	/*!
 		Area measure.
 		P_A(x).
 	*/
@@ -68,7 +74,7 @@ enum class ProbabilityMeasure
 /*!
 	Evaluated PDF value.
 	Represents the evaluation of the probability density function (PDF).
-	\tparam 
+	\tparam T Internal value type.
 */
 template <typename T>
 struct TPDFEval

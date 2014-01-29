@@ -144,7 +144,12 @@ void AreaLight::Impl::Sample( const LightSampleQuery& query, LightSampleResult& 
 	auto localToWorld = Math::Mat3(s, t, result.gn);
 	auto localDir = Math::CosineSampleHemisphere(query.sampleD);
 	result.d = localToWorld * localDir;
-	result.pdfD = Math::CosineSampleHemispherePDF(localDir);
+
+	// Returns direction PDF evaluation in projected solid angle measure,
+	// in order to handle degenerated cases without branching
+	result.pdfD = Math::PDFEval(
+		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 // --------------------------------------------------------------------------------
