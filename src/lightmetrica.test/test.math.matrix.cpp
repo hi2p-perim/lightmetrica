@@ -139,6 +139,23 @@ TYPED_TEST(MathMatrix3Test, MultiplyDivide)
 	EXPECT_TRUE(ExpectVec3Near(this->d->m1v1, this->d->m1 * this->d->v1));
 	EXPECT_TRUE(ExpectMat3Near(this->d->m1m2, this->d->m1 * this->d->m2));
 	EXPECT_TRUE(ExpectMat3Near(this->d->m1, this->d->m1s2 / T(2)));
+
+	// Mat3 constructed from Mat4 may have non-zero fourth component
+	// for each column vector when SSE/AVX is enabled.
+	Math::TMat3<T> m1_2(Math::TMat4<T>(
+		T(1), T(2), T(3), T(1),
+		T(4), T(5), T(6), T(1),
+		T(7), T(8), T(9), T(1),
+		T(1), T(1), T(1), T(1)));
+	
+	Math::TMat3<T> m2_2(Math::TMat4<T>(
+		T(1), T(4), T(7), T(1),
+		T(2), T(5), T(8), T(1),
+		T(3), T(6), T(9), T(1),
+		T(1), T(1), T(1), T(1)));
+
+	EXPECT_TRUE(ExpectVec3Near(this->d->m1v1, m1_2 * this->d->v1));
+	EXPECT_TRUE(ExpectMat3Near(this->d->m1m2, m1_2 * m2_2));
 }
 
 TYPED_TEST(MathMatrix3Test, Transpose)

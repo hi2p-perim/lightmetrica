@@ -548,9 +548,7 @@ LM_FORCE_INLINE Vec3f operator*(const Mat3f& m, const Vec3f& v)
 			_mm_add_ps(
 				_mm_mul_ps(m[0].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(0, 0, 0, 0))),
 				_mm_mul_ps(m[1].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(1, 1, 1, 1)))),
-			_mm_add_ps(
-				_mm_mul_ps(m[2].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(2, 2, 2, 2))),
-				_mm_mul_ps(m[3].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3))))));
+			_mm_mul_ps(m[2].v, _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(2, 2, 2, 2)))));
 }
 
 template <>
@@ -1091,9 +1089,7 @@ LM_FORCE_INLINE Vec3d operator*(const Mat3d& m, const Vec3d& v)
 			_mm256_add_pd(
 				_mm256_mul_pd(m[0].v, _mm256_broadcast_sd(&(v.x))),
 				_mm256_mul_pd(m[1].v, _mm256_broadcast_sd(&(v.x) + 1))),
-			_mm256_add_pd(
-				_mm256_mul_pd(m[2].v, _mm256_broadcast_sd(&(v.x) + 2)),
-				_mm256_mul_pd(m[3].v, _mm256_broadcast_sd(&(v.x) + 3)))));
+			_mm256_mul_pd(m[2].v, _mm256_broadcast_sd(&(v.x) + 2))));
 }
 
 template <>
