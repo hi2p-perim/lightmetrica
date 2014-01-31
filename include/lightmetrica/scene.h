@@ -41,7 +41,7 @@ namespace pugi
 LM_NAMESPACE_BEGIN
 
 class Assets;
-class NanonConfig;
+class Config;
 class Camera;
 class Light;
 struct Primitive;
@@ -84,7 +84,7 @@ public:
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
 	*/
-	bool Load(const NanonConfig& config, Assets& assets);
+	bool Load(const Config& config, Assets& assets);
 
 	/*!
 		Configure the scene.
@@ -100,7 +100,7 @@ public:
 		\retval true Succeeded to configure the scene.
 		\retval false Failed to configure the scene.
 	*/
-	bool Configure(const NanonConfig& config);
+	bool Configure(const Config& config);
 
 	/*!
 		Build acceleration structure.

@@ -34,11 +34,114 @@ namespace
 
 LM_NAMESPACE_BEGIN
 
-class NanonConfig::Impl : public Object
+class ConfigNode::Impl : public Object
 {
 public:
 
-	Impl();
+	Impl() {}
+	Impl(void* node, const Config* config);
+
+public:
+
+	pugi::xml_node node;
+	const Config* config;
+
+};
+
+ConfigNode::Impl::Impl( void* node, const Config* config )
+	: node(static_cast<pugi::xml_node_struct*>(node))
+	, config(config)
+{
+
+}
+
+// --------------------------------------------------------------------------------
+
+ConfigNode::ConfigNode()
+	: p(new Impl)
+{
+
+}
+
+ConfigNode::ConfigNode( void* node, const Config* config )
+	: p(new Impl(node, config))
+{
+
+}
+
+ConfigNode::ConfigNode( const ConfigNode& config )
+	: p(new Impl(config.p->node, config.p->config))
+{
+	
+}
+
+void ConfigNode::operator=( const ConfigNode& config )
+{
+	*p = *config.p;
+}
+
+ConfigNode::ConfigNode( ConfigNode&& config )
+{
+	this->p = config.p;
+	config.p = nullptr;
+}
+
+void ConfigNode::operator=( ConfigNode&& config )
+{
+	this->p = config.p;
+	config.p = nullptr;
+}
+
+ConfigNode::~ConfigNode()
+{
+	LM_SAFE_DELETE(p);
+}
+
+bool ConfigNode::Empty() const
+{
+	return p->node.empty();
+}
+
+const ConfigNode ConfigNode::Child( const std::string& name ) const
+{
+	return ConfigNode(p->node.child(name.c_str()).internal_object(), p->config);
+}
+
+std::string ConfigNode::Value() const
+{
+	return p->node.child_value();
+}
+
+std::string ConfigNode::AttributeValue( const std::string& name ) const
+{
+	return p->node.attribute(name.c_str()).value();
+}
+
+template <>
+std::string ConfigNode::Value<std::string>() const
+{
+	return Value();
+}
+
+template <>
+int ConfigNode::Value<int>() const
+{
+	return std::stoi(Value());
+}
+
+template <>
+Math::Float ConfigNode::Value<Math::Float>() const
+{
+	return Math::Float(std::stod(Value()));
+}
+
+// --------------------------------------------------------------------------------
+
+class Config::Impl : public Object
+{
+public:
+
+	Impl(Config* self);
 	~Impl();
 
 public:
@@ -50,12 +153,15 @@ public:
 	const pugi::xml_node RendererElement() const;
 	std::string SceneType() const;
 	std::string RendererType() const;
-	
+	const ConfigNode Root() const;
+
 private:
 
 	bool HandleLoadResult(const pugi::xml_parse_result& result);
 
 public:
+
+	Config* self;
 
 	bool loaded;
 	pugi::xml_document doc;
@@ -65,18 +171,19 @@ public:
 
 };
 
-NanonConfig::Impl::Impl()
-	: loaded(false)
+Config::Impl::Impl(Config* self)
+	: self(self)
+	, loaded(false)
 {
 
 }
 
-NanonConfig::Impl::~Impl()
+Config::Impl::~Impl()
 {
 
 }
 
-bool NanonConfig::Impl::Load( const std::string& path )
+bool Config::Impl::Load( const std::string& path )
 {
 	if (loaded)
 	{
@@ -90,7 +197,7 @@ bool NanonConfig::Impl::Load( const std::string& path )
 	return HandleLoadResult(result);
 }
 
-bool NanonConfig::Impl::LoadFromString( const std::string& data )
+bool Config::Impl::LoadFromString( const std::string& data )
 {
 	if (loaded)
 	{
@@ -104,7 +211,7 @@ bool NanonConfig::Impl::LoadFromString( const std::string& data )
 	return HandleLoadResult(result);
 }
 
-bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
+bool Config::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 {
 	loaded = false;
 
@@ -116,15 +223,15 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	}
 
 	// Validate root node
-	auto nanonNode = doc.child("nanon");
-	if (!nanonNode)
+	auto rootNode = doc.child("nanon");
+	if (!rootNode)
 	{
 		LM_LOG_ERROR("Missing <nanon> elemement");
 		return false;
 	}
 	
 	// Validate version number
-	std::string version = nanonNode.attribute("version").as_string();
+	std::string version = rootNode.attribute("version").as_string();
 	if (version != ConfigFileVersion)
 	{
 		LM_LOG_ERROR("Different version : " + version + " ( expected : " + ConfigFileVersion + " )");
@@ -132,21 +239,21 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	}
 
 	// Check some required elements
-	assetsNode = nanonNode.child("assets");
+	assetsNode = rootNode.child("assets");
 	if (!assetsNode)
 	{
 		LM_LOG_ERROR("Missing 'assets' element");
 		return false;
 	}
 
-	sceneNode = nanonNode.child("scene");
+	sceneNode = rootNode.child("scene");
 	if (!sceneNode)
 	{
 		LM_LOG_ERROR("Missing 'scene' element");
 		return false;
 	}
 
-	rendererNode = nanonNode.child("renderer");
+	rendererNode = rootNode.child("renderer");
 	if (!rendererNode)
 	{
 		LM_LOG_ERROR("Missing 'renderer' element");
@@ -157,77 +264,87 @@ bool NanonConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
 	return true;
 }
 
-const pugi::xml_node NanonConfig::Impl::AssetsElement() const
+const pugi::xml_node Config::Impl::AssetsElement() const
 {
 	return loaded ? assetsNode : pugi::xml_node();
 }
 
-const pugi::xml_node NanonConfig::Impl::SceneElement() const
+const pugi::xml_node Config::Impl::SceneElement() const
 {
 	return loaded ? sceneNode : pugi::xml_node();
 }
 
-const pugi::xml_node NanonConfig::Impl::RendererElement() const
+const pugi::xml_node Config::Impl::RendererElement() const
 {
 	return loaded ? rendererNode : pugi::xml_node();
 }
 
-std::string NanonConfig::Impl::SceneType() const
+std::string Config::Impl::SceneType() const
 {
 	return sceneNode.attribute("type").as_string();
 }
 
-std::string NanonConfig::Impl::RendererType() const
+std::string Config::Impl::RendererType() const
 {
 	return rendererNode.attribute("type").as_string();
 }
 
+const ConfigNode Config::Impl::Root() const
+{
+	return ConfigNode(doc.root().internal_object(), self);
+}
+
 // --------------------------------------------------------------------------------
 
-NanonConfig::NanonConfig()
-	: p(new Impl)
+Config::Config()
+	: p(new Impl(this))
 {
 
 }
 
-NanonConfig::~NanonConfig()
+Config::~Config()
 {
 	LM_SAFE_DELETE(p);
 }
 
-bool NanonConfig::Load( const std::string& path )
+bool Config::Load( const std::string& path )
 {
 	return p->Load(path);
 }
 
-bool NanonConfig::LoadFromString( const std::string& data )
+bool Config::LoadFromString( const std::string& data )
 {
 	return p->LoadFromString(data);
 }
 
-const pugi::xml_node NanonConfig::AssetsElement() const
+const pugi::xml_node Config::AssetsElement() const
 {
 	return p->AssetsElement();
 }
 
-const pugi::xml_node NanonConfig::SceneElement() const
+const pugi::xml_node Config::SceneElement() const
 {
 	return p->SceneElement();
 }
 
-const pugi::xml_node NanonConfig::RendererElement() const
+const pugi::xml_node Config::RendererElement() const
 {
 	return p->RendererElement();
 }
 
-std::string NanonConfig::SceneType() const
+std::string Config::SceneType() const
 {
 	return p->SceneType();
 }
 
-std::string NanonConfig::RendererType() const
+std::string Config::RendererType() const
 {
 	return p->RendererType();
+}
+
+const ConfigNode Config::Root() const
+{
+	return p->Root();
 }
 
 LM_NAMESPACE_END

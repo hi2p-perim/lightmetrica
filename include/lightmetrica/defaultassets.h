@@ -32,7 +32,7 @@
 LM_NAMESPACE_BEGIN
 
 class AssetFactory;
-class NanonConfig;
+class Config;
 
 /*!
 	An entry for the asset factory.
@@ -101,7 +101,7 @@ public:
 		\retval true Succeeded to load assets.
 		\retval false Failed to load assets.
 	*/
-	bool Load(const NanonConfig& config);
+	bool Load(const Config& config);
 
 private:
 	

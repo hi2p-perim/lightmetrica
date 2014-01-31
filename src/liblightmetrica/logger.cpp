@@ -323,7 +323,7 @@ void LoggerImpl::Reset()
 	outputFrequency = 10;
 	outputFrequencyForFileIO = 100;
 	begin = lastOutputTime = ch::high_resolution_clock::now();
-	outputFileName = "nanon.log";
+	outputFileName = "lightmetrica.log";
 	updateMode = Logger::LogUpdateMode::Manual;
 	indentation = 0;
 	indentationStr = "";

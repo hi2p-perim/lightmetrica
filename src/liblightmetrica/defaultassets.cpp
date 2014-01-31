@@ -249,7 +249,7 @@ bool DefaultAssets::Load( const pugi::xml_node& node )
 	return p->Load(node);
 }
 
-bool DefaultAssets::Load( const NanonConfig& config )
+bool DefaultAssets::Load( const Config& config )
 {
 	return p->Load(config.AssetsElement());
 }

@@ -542,7 +542,7 @@ bool Scene::Load( const pugi::xml_node& node, Assets& assets )
 	return p->Load(node, assets);
 }
 
-bool Scene::Load( const NanonConfig& config, Assets& assets )
+bool Scene::Load( const Config& config, Assets& assets )
 {
 	return p->Load(config.SceneElement(), assets);
 }
@@ -585,7 +585,7 @@ void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex,
 	p->StoreIntersectionFromBarycentricCoords(primitiveIndex, triangleIndex, ray, b, isect);
 }
 
-bool Scene::Configure( const NanonConfig& config )
+bool Scene::Configure( const Config& config )
 {
 	return Configure(config.SceneElement());
 }

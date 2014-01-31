@@ -66,7 +66,7 @@ Renderer::~Renderer()
 	LM_SAFE_DELETE(p);
 }
 
-bool Renderer::Configure( const NanonConfig& config, const Assets& assets )
+bool Renderer::Configure( const Config& config, const Assets& assets )
 {
 	return Configure(config.RendererElement(), assets);
 }

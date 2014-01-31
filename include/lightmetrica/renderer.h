@@ -40,7 +40,7 @@ LM_NAMESPACE_BEGIN
 
 class Assets;
 class Scene;
-class NanonConfig;
+class Config;
 
 /*!
 	Renderer class.
@@ -75,7 +75,7 @@ public:
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
-	bool Configure(const NanonConfig& config, const Assets& assets);
+	bool Configure(const Config& config, const Assets& assets);
 
 	/*!
 		Get the scene type.

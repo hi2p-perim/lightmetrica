@@ -31,18 +31,30 @@
 
 LM_NAMESPACE_BEGIN
 
-DiffuseBSDF::DiffuseBSDF( const std::string& id )
-	: BSDF(id)
+class DiffuseBSDF::Impl
+{
+public:
+
+	Impl(DiffuseBSDF* self);
+	bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	bool Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const;
+	Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const;
+	Math::PDFEval Pdf( const BSDFEvaluateQuery& query ) const;
+
+private:
+
+	DiffuseBSDF* self;
+	Math::Vec3 diffuseReflectance;
+
+};
+
+DiffuseBSDF::Impl::Impl( DiffuseBSDF* self )
+	: self(self)
 {
 
 }
 
-DiffuseBSDF::~DiffuseBSDF()
-{
-
-}
-
-bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool DiffuseBSDF::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 {
 	// 'diffuse_reflectance'
 	auto diffuseReflectanceNode = node.child("diffuse_reflectance");
@@ -67,33 +79,7 @@ bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
 	return true;
 }
 
-Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
-{
-	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
-	{
-		return Math::Vec3();
-	}
-
-	Math::Float sf = ShadingNormalCorrectionFactor(query, isect);
-	if (sf == 0.0)
-	{
-		return Math::Vec3();
-	}
-
-	return diffuseReflectance * Math::Constants::InvPi() * sf;
-}
-
-Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
-{
-	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
-	{
-		return Math::PDFEval();
-	}
-
-	return Math::CosineSampleHemispherePDF(query.wo);
-}
-
-bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
+bool DiffuseBSDF::Impl::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
 {
 	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0)
 	{
@@ -109,6 +95,66 @@ bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result
 	}
 
 	return true;
+}
+
+Math::Vec3 DiffuseBSDF::Impl::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+{
+	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
+	{
+		return Math::Vec3();
+	}
+
+	Math::Float sf = self->ShadingNormalCorrectionFactor(query, isect);
+	if (sf == 0.0)
+	{
+		return Math::Vec3();
+	}
+
+	return diffuseReflectance * Math::Constants::InvPi() * sf;
+}
+
+Math::PDFEval DiffuseBSDF::Impl::Pdf( const BSDFEvaluateQuery& query ) const
+{
+	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
+	{
+		return Math::PDFEval();
+	}
+
+	return Math::CosineSampleHemispherePDF(query.wo);
+}
+
+// --------------------------------------------------------------------------------
+
+DiffuseBSDF::DiffuseBSDF( const std::string& id )
+	: BSDF(id)
+	, p(new Impl(this))
+{
+
+}
+
+DiffuseBSDF::~DiffuseBSDF()
+{
+	LM_SAFE_DELETE(p);
+}
+
+bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+{
+	return p->LoadAsset(node, assets);
+}
+
+Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+{
+	return p->Evaluate(query, isect);
+}
+
+Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
+{
+	return p->Pdf(query);
+}
+
+bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
+{
+	return p->Sample(query, result);
 }
 
 LM_NAMESPACE_END

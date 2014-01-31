@@ -50,7 +50,8 @@ public:
 
 private:
 
-	Math::Vec3 diffuseReflectance;
+	class Impl;
+	Impl* p;
 
 };
 

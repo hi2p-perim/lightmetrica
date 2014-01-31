@@ -244,7 +244,7 @@ bool NanonApplication::Run()
 	// --------------------------------------------------------------------------------
 
 	// Load input file
-	NanonConfig config;
+	Config config;
 	LM_LOG_INFO("Entering : Configuration loading");
 	{
 		LM_LOG_INDENTER();
