@@ -103,13 +103,6 @@
 	#define LM_HIDDEN_API
 #endif
 
-// Extern template
-//#ifndef LM_EXPORTS
-//	#define LM_EXTERN_TEMPLATE
-//#else
-//	#define LM_EXTERN_TEMPLATE extern
-//#endif
-
 // In the debug mode, the hidden API is exposed
 #ifdef RF_DEBUG_MODE
 	#undef RF_HIDDEN_API

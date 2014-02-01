@@ -133,13 +133,13 @@ std::string ConfigNode::Name() const
 }
 
 template <>
-std::string ConfigNode::Value<std::string>() const
+LM_PUBLIC_API std::string ConfigNode::Value<std::string>() const
 {
 	return Value();
 }
 
 template <>
-int ConfigNode::Value<int>() const
+LM_PUBLIC_API int ConfigNode::Value<int>() const
 {
 	try
 	{
@@ -158,7 +158,7 @@ int ConfigNode::Value<int>() const
 }
 
 template <>
-Math::Float ConfigNode::Value<Math::Float>() const
+LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const
 {
 	try
 	{
@@ -177,7 +177,7 @@ Math::Float ConfigNode::Value<Math::Float>() const
 }
 
 template <>
-Math::Vec3 ConfigNode::Value<Math::Vec3>() const
+LM_PUBLIC_API Math::Vec3 ConfigNode::Value<Math::Vec3>() const
 {
 	// Parse vector elements (in double)
 	std::vector<double> v;
@@ -199,7 +199,7 @@ Math::Vec3 ConfigNode::Value<Math::Vec3>() const
 }
 
 template <>
-Math::Mat4 ConfigNode::Value<Math::Mat4>() const
+LM_PUBLIC_API Math::Mat4 ConfigNode::Value<Math::Mat4>() const
 {
 	// Parse matrix elements (in double)
 	std::vector<double> m;
@@ -224,7 +224,7 @@ Math::Mat4 ConfigNode::Value<Math::Mat4>() const
 
 
 template <>
-std::vector<Math::Float> ConfigNode::Value<std::vector<Math::Float>>() const
+LM_PUBLIC_API std::vector<Math::Float> ConfigNode::Value<std::vector<Math::Float>>() const
 {
 	std::vector<Math::Float> v;
 	std::stringstream ss(Value());
@@ -239,7 +239,7 @@ std::vector<Math::Float> ConfigNode::Value<std::vector<Math::Float>>() const
 }
 
 template <>
-std::vector<unsigned int> ConfigNode::Value<std::vector<unsigned int>>() const
+LM_PUBLIC_API std::vector<unsigned int> ConfigNode::Value<std::vector<unsigned int>>() const
 {
 	std::vector<unsigned int> v;
 	std::stringstream ss(Value());
