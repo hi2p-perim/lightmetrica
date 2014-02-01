@@ -36,7 +36,7 @@ const long long TestBase::OutputProcessTimeout = 500;
 void TestBase::SetUp()
 {
 	Logger::Reset();
-	Logger::SetOutputMode(Logger::LogOutputMode::Stderr);
+	Logger::SetOutputMode(Logger::LogOutputMode::Stdout);
 	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
 }
 

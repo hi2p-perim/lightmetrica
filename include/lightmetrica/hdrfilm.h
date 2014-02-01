@@ -50,7 +50,7 @@ public:
 
 	virtual int Width() const;
 	virtual int Height() const;
-	virtual bool Save() const;
+	virtual bool Save(const std::string& path) const;
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
 	virtual void AccumulateContribution( const Film* film );

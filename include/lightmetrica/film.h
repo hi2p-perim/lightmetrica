@@ -64,8 +64,10 @@ public:
 	/*!
 		Save as image.
 		Saves the film as image.
+		If #path is empty, the default path is used.
+		\param path Path to the output image.
 	*/
-	virtual bool Save() const = 0;
+	virtual bool Save(const std::string& path) const = 0;
 
 	/*!
 		Record the contribution to the raster position.

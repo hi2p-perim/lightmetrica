@@ -29,5 +29,6 @@
 #include "math.basic.h"
 #include "math.transform.h"
 #include "math.linalgebra.h"
+#include "math.stats.h"
 
 #endif // __LIB_LIGHTMETRICA_MATH_FUNCTIONS_H__

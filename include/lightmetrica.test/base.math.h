@@ -30,7 +30,8 @@
 #ifndef LM_ENABLE_MULTI_PRECISION
 #define LM_ENABLE_MULTI_PRECISION
 #endif
-#include <lightmetrica/math.h>
+#include <lightmetrica/math.types.h>
+#include <lightmetrica/math.basic.h>
 #include <lightmetrica/align.h>
 
 namespace mp = boost::multiprecision;
@@ -46,7 +47,7 @@ class MathTestBase : public TestBase {};
 template <typename T>
 LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
-	T diff = std::abs(expected - actual);
+	T diff = Math::Abs(expected - actual);
 	T epsilon = Math::TConstants<T>::EpsLarge();
 	if (diff > epsilon)
 	{

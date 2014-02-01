@@ -51,7 +51,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 pch_add_executable(lightmetrica.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES})
+target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES} ${FREEIMAGE_LIBRARIES})
 add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)
 
 # Add a target for coverage calculation

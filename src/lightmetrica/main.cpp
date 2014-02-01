@@ -77,11 +77,11 @@ private:
 
 };
 
-class NanonApplication
+class LightmetricaApplication
 {
 public:
 
-	NanonApplication();
+	LightmetricaApplication();
 
 public:
 
@@ -109,6 +109,7 @@ private:
 
 	// Command line parameters
 	std::string inputFile;
+	std::string outputImagePath;
 
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
@@ -126,13 +127,13 @@ private:
 
 };
 
-NanonApplication::NanonApplication()
+LightmetricaApplication::LightmetricaApplication()
 	: logThreadDone(false)
 {
 	SetAppInfo();
 }
 
-void NanonApplication::SetAppInfo()
+void LightmetricaApplication::SetAppInfo()
 {
 	appName = "Lightmetrica";
 	appDescription = boost::str(boost::format("%s Version %s (%s)") % appName % Version::Formatted() % Version::Codename());
@@ -184,26 +185,28 @@ void NanonApplication::SetAppInfo()
 	}
 }
 
-void NanonApplication::PrintHelpMessage( const po::options_description& opt )
+void LightmetricaApplication::PrintHelpMessage( const po::options_description& opt )
 {
 	std::cout << appDescription << std::endl;
 	std::cout << std::endl;
-	std::cout << "Usage: nanon [arguments] [file ..]" << std::endl;
+	std::cout << "Usage: lightmetrica [arguments] [file ..]" << std::endl;
 	std::cout << std::endl;
 	std::cout << opt << std::endl;
 }
 
-bool NanonApplication::ParseArguments( int argc, char** argv )
+bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 {
 	// Define options
 	po::options_description opt("Allowed options");
 	opt.add_options()
 		("help", "Display help message")
-		("input-file,i", po::value<std::string>(&inputFile)->required(), "Input file (*.nanon)");
+		("config,i", po::value<std::string>(&inputFile)->required(), "Configuration file")
+		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path");
 
-	// All positional position are translated into --input-file
+	// positional arguments
 	po::positional_options_description p;
-	p.add("input-file", -1);
+	p.add("config", 1);
+	p.add("output-image", 2);
 
 	po::variables_map vm;
 
@@ -238,7 +241,7 @@ bool NanonApplication::ParseArguments( int argc, char** argv )
 	return true;
 }
 
-bool NanonApplication::Run()
+bool LightmetricaApplication::Run()
 {
 	PrintStartMessage();
 
@@ -274,7 +277,7 @@ bool NanonApplication::Run()
 	{
 		ResetProgress("LOADING ASSETS");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = assets.Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		auto conn = assets.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
 		LM_LOG_INDENTER();
 		if (!assets.Load(config.Root().Child("assets")))
@@ -330,7 +333,7 @@ bool NanonApplication::Run()
 	{
 		ResetProgress("BUILDING SCENE");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = scene->Connect_ReportBuildProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		auto conn = scene->Connect_ReportBuildProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
 		LM_LOG_INDENTER();
 		if (!scene->Build())
@@ -374,7 +377,7 @@ bool NanonApplication::Run()
 	{
 		ResetProgress("RENDERING");
 		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = renderer->Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		auto conn = renderer->Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 
 		LM_LOG_INDENTER();
 		if (!renderer->Render(*scene))
@@ -397,7 +400,7 @@ bool NanonApplication::Run()
 	{
 		LM_LOG_INDENTER();
 		auto* film = scene->MainCamera()->GetFilm();
-		if (!film->Save())
+		if (!film->Save(outputImagePath))
 		{
 			return false;
 		}
@@ -413,7 +416,7 @@ bool NanonApplication::Run()
 	return true;
 }
 
-void NanonApplication::StartLogging()
+void LightmetricaApplication::StartLogging()
 {
 	// Configure the logger
 	Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
@@ -508,14 +511,14 @@ void NanonApplication::StartLogging()
 		});
 }
 
-void NanonApplication::FinishLogging()
+void LightmetricaApplication::FinishLogging()
 {
 	// Wait for the finish of the logger thread
 	logThreadDone = true;
 	logResult.wait();
 }
 
-void NanonApplication::PrintStartMessage()
+void LightmetricaApplication::PrintStartMessage()
 {
 	LM_LOG_INFO("");
 	LM_LOG_INFO(appDescription);
@@ -531,12 +534,12 @@ void NanonApplication::PrintStartMessage()
 	LM_LOG_INFO("");
 }
 
-void NanonApplication::PrintFinishMessage()
+void LightmetricaApplication::PrintFinishMessage()
 {
 	LM_LOG_INFO("Completed");
 }
 
-std::string NanonApplication::CurrentTime()
+std::string LightmetricaApplication::CurrentTime()
 {
 	std::stringstream ss;
 	auto now = std::chrono::system_clock::now();
@@ -554,7 +557,7 @@ std::string NanonApplication::CurrentTime()
 	return ss.str();
 }
 
-void NanonApplication::OnReportProgress( double progress, bool done )
+void LightmetricaApplication::OnReportProgress( double progress, bool done )
 {
 	if (!progressDone)
 	{
@@ -565,7 +568,7 @@ void NanonApplication::OnReportProgress( double progress, bool done )
 	}
 }
 
-void NanonApplication::ResetProgress(const std::string& taskName)
+void LightmetricaApplication::ResetProgress(const std::string& taskName)
 {
 	std::unique_lock<std::mutex> lock(progressMutex);
 	progress = 0;
@@ -578,7 +581,7 @@ void NanonApplication::ResetProgress(const std::string& taskName)
 int main(int argc, char** argv)
 {
 	int result = EXIT_SUCCESS;
-	NanonApplication app;
+	LightmetricaApplication app;
 
 	if (app.ParseArguments(argc, argv))
 	{

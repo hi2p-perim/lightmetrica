@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <lightmetrica.test/base.math.h>
+#include <lightmetrica/math.transform.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN

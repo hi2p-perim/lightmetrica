@@ -44,7 +44,7 @@ public:
 	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 	int Width() const { return width; }
 	int Height() const { return height; }
-	bool Save();
+	bool Save(const std::string& path);
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Film* film);
@@ -60,7 +60,6 @@ private:
 	HDRBitmapFilm* self;
 	int width;
 	int height;
-	std::string path;				// Path to the image to be saved
 	ImageType type;					// Type of the image to be saved
 	std::vector<Math::Float> data;	// Image data
 
@@ -76,7 +75,6 @@ bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 {
 	if (!node.ChildValue("width",	width))		return false;
 	if (!node.ChildValue("height",	height))	return false;
-	if (!node.ChildValue("path",	path))		return false;
 
 	// Find 'image_type' element (optional)
 	auto imageTypeNode = node.Child("imagetype");
@@ -189,8 +187,16 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Film* film )
 	}
 }
 
-bool HDRBitmapFilm::Impl::Save()
+bool HDRBitmapFilm::Impl::Save(const std::string& path)
 {
+	// If #path is empty, the default path is used
+	std::string imagePath = path;
+	if (imagePath.empty())
+	{
+		imagePath = "result.hdr";
+		LM_LOG_WARN("Output image path is not specified. Using '" + imagePath + "' as default.");
+	}
+
 	// Create bitmap
 	// 128 bit RGBA float image
 	// Note: EXR - FIT_RGBAF, HDR - FIT_RGBF
@@ -218,22 +224,22 @@ bool HDRBitmapFilm::Impl::Save()
 	if (type == ImageType::RadianceHDR)
 	{
 		// Save image as Radiance HDR format
-		result = FreeImage_Save(FIF_HDR, bitmap, path.c_str(), HDR_DEFAULT);
+		result = FreeImage_Save(FIF_HDR, bitmap, imagePath.c_str(), HDR_DEFAULT);
 	}
 	else if (type == ImageType::OpenEXR)
 	{
 		// Save image as OpenEXR format
-		result = FreeImage_Save(FIF_EXR, bitmap, path.c_str(), EXR_DEFAULT);
+		result = FreeImage_Save(FIF_EXR, bitmap, imagePath.c_str(), EXR_DEFAULT);
 	}
 
 	if (!result)
 	{
-		LM_LOG_DEBUG("Failed to save image : " + path);
+		LM_LOG_DEBUG("Failed to save image : " + imagePath);
 		FreeImage_Unload(bitmap);
 		return false;
 	}
 
-	LM_LOG_INFO("Successfully saved to " + path);
+	LM_LOG_INFO("Successfully saved to " + imagePath);
 
 	FreeImage_Unload(bitmap);
 	return true;
@@ -268,9 +274,9 @@ HDRBitmapFilm::~HDRBitmapFilm()
 	LM_SAFE_DELETE(p);
 }
 
-bool HDRBitmapFilm::Save() const
+bool HDRBitmapFilm::Save(const std::string& path) const
 {
-	return p->Save();
+	return p->Save(path);
 }
 
 void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest )

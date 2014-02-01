@@ -28,11 +28,12 @@
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/hdrfilm.h>
+#include <FreeImage.h>
 
 namespace
 {
 
-	const std::string FilmNode_Success = LM_TEST_MULTILINE_LITERAL(
+	const std::string FilmNode_1 = LM_TEST_MULTILINE_LITERAL(
 		<film id="test" type="hdr">
 			<width>40</width>
 			<height>30</height>
@@ -80,7 +81,7 @@ protected:
 
 TEST_F(HDRBitmapFilmTest, Load)
 {
-	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_Success), assets));
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
 	EXPECT_EQ(40, film.Width());
 	EXPECT_EQ(30, film.Height());
 }
@@ -92,7 +93,7 @@ TEST_F(HDRBitmapFilmTest, Load_Fail)
 
 TEST_F(HDRBitmapFilmTest, RecordContribution)
 {
-	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_Success), assets));
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
 
 	for (int y = 0; y < film.Height(); y++)
 	{
@@ -127,26 +128,153 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 	}
 }
 
-TEST_F(HDRBitmapFilmTest, Clone)
+TEST_F(HDRBitmapFilmTest, AccumulateContribution)
 {
-	FAIL() << "Not implemented";
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
+
+	// Accumulate #Count times to (0, 0) and (1, 1)
+	const int Count = 10;
+	for (int i = 0; i < Count; i++)
+	{
+		film.AccumulateContribution(Math::Vec2(), Math::Vec3(Math::Float(1)));
+		film.AccumulateContribution(Math::Vec2(Math::Float(1)), Math::Vec3(Math::Float(2)));
+	}
+	
+	// Check data
+	std::vector<Math::Float> data;
+	film.InternalData(data);
+
+	EXPECT_TRUE(ExpectNear(Math::Float(Count), data[0]));
+	EXPECT_TRUE(ExpectNear(Math::Float(Count), data[1]));
+	EXPECT_TRUE(ExpectNear(Math::Float(Count), data[2]));
+
+	size_t i = data.size() - 3;
+	EXPECT_TRUE(ExpectNear(Math::Float(Count * 2), data[i  ]));
+	EXPECT_TRUE(ExpectNear(Math::Float(Count * 2), data[i+1]));
+	EXPECT_TRUE(ExpectNear(Math::Float(Count * 2), data[i+2]));
 }
 
-//TEST_F(HDRBitmapFilmTest, Save)
-//{
-//	// Dest on temporary directory
-//	const std::string filename = (fs::temp_directory_path() / "test.hdr").string();
-//	if (fs::exists(filename))
-//	{
-//		EXPECT_TRUE(fs::remove(filename));
-//	}
-//
-//	// TODO : Should we specify the output directory by Save?
-//
-//	// Save
-//	film.Save();
-//	
-//}
+TEST_F(HDRBitmapFilmTest, AccumulateContribution_2)
+{
+	// Create a film with constant value
+	HDRBitmapFilm film2("");
+	EXPECT_TRUE(film2.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
+	for (int y = 0; y < film2.Height(); y++)
+	{
+		for (int x = 0; x < film2.Width(); x++)
+		{
+			Math::Vec2 rasterPos(
+				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film2.Width()),
+				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film2.Height()));
+			film2.RecordContribution(rasterPos, Math::Vec3(Math::Float(1)));
+		}
+	}
+
+	// Accumulate to #film
+	const int Count = 10;
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
+	for (int i = 0; i < Count; i++)
+	{
+		film.AccumulateContribution(&film2);
+	}
+	
+	// Check data
+	std::vector<Math::Float> data;
+	film.InternalData(data);
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		EXPECT_TRUE(ExpectNear(Math::Float(Count), data[i]));
+	}
+}
+
+TEST_F(HDRBitmapFilmTest, Save)
+{
+	// Create a film
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
+	for (int y = 0; y < film.Height(); y++)
+	{
+		for (int x = 0; x < film.Width(); x++)
+		{
+			Math::Vec2 rasterPos(
+				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film.Width()),
+				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film.Height()));
+			film.RecordContribution(rasterPos, Math::Vec3(Math::Float(x), Math::Float(y), Math::Float(1)));
+		}
+	}
+
+	// Output image to temporary directory
+	namespace fs = boost::filesystem;
+	const std::string path = (fs::temp_directory_path() / "lightmetrica.test.hdr").string();
+	if (fs::exists(path))
+	{
+		EXPECT_TRUE(fs::remove(path));
+	}
+
+	// Save
+	EXPECT_TRUE(film.Save(path));
+
+	// Image data of #film
+	std::vector<Math::Float> data;
+	film.InternalData(data);
+
+	// Load image and check data
+	auto* bitmap = FreeImage_Load(FIF_HDR, path.c_str(), 0);
+	EXPECT_NE(nullptr, bitmap);
+	int width = FreeImage_GetWidth(bitmap);
+	int height = FreeImage_GetHeight(bitmap);
+	EXPECT_EQ(film.Width(), width);
+	EXPECT_EQ(film.Height(), height);
+	for (int y = 0; y < height; y++)
+	{
+		FIRGBF* bits = reinterpret_cast<FIRGBF*>(FreeImage_GetScanLine(bitmap, y));
+		for (int x = 0; x < width; x++)
+		{
+			int i = y * width + x;
+			EXPECT_TRUE(ExpectNear(data[3*i  ], Math::Float(bits[x].red)));
+			EXPECT_TRUE(ExpectNear(data[3*i+1], Math::Float(bits[x].green)));
+			EXPECT_TRUE(ExpectNear(data[3*i+2], Math::Float(bits[x].blue)));
+		}
+	}
+
+	// Clean up
+	FreeImage_Unload(bitmap);
+	if (fs::exists(path))
+	{
+		EXPECT_TRUE(fs::remove(path));
+	}
+}
+
+TEST_F(HDRBitmapFilmTest, Clone)
+{
+	// Create a film
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
+	for (int y = 0; y < film.Height(); y++)
+	{
+		for (int x = 0; x < film.Width(); x++)
+		{
+			Math::Vec2 rasterPos(
+				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film.Width()),
+				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film.Height()));
+			film.RecordContribution(rasterPos, Math::Vec3(Math::Float(1)));
+		}
+	}
+
+	// Clone to #film2
+	HDRBitmapFilm* film2;
+	ASSERT_NO_THROW(film2 = dynamic_cast<HDRBitmapFilm*>(film.Clone()));
+	EXPECT_NE(nullptr, film2);
+	EXPECT_NE(&film, film2);
+
+	// Check data
+	std::vector<Math::Float> data;
+	film2->InternalData(data);
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		EXPECT_TRUE(ExpectNear(Math::Float(1), data[i]));
+	}
+
+	LM_SAFE_DELETE(film2);
+}
 
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

@@ -31,6 +31,7 @@
 #include <lightmetrica/film.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/ray.h>
+#include <lightmetrica/math.transform.h>
 
 namespace
 {
@@ -67,7 +68,7 @@ public:
 	StubFilm(const std::string& id) : Film(id) {}
 	virtual int Width() const { return 200; }
 	virtual int Height() const { return 100; }
-	virtual bool Save() const { return true; }
+	virtual bool Save(const std::string& path) const { return true; }
 	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Film* film ) {}
@@ -147,25 +148,45 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
 }
 
-TEST_F(PerspectiveCameraTest, RegisterPrimitive)
+TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 {
-	FAIL() << "Not implemented";
+	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
+
+	Math::Vec2 rasterPosition;
+
+	// Primitive 1
+	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
+	camera.RegisterPrimitive(primitive1.get());
+
+	// Ray { p = (0, 0, 0), d = (0, 0, -1) }
+	// -> Raster position (0.5, 0.5)
+	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(0, 0, -1)), rasterPosition));
+	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(0.5), rasterPosition));
+
+	// Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
+	// -> Raster position (1, 1)
+	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(2, 1, -1)), rasterPosition));
+	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(1), rasterPosition));
+	
+	// Primitive 2
+	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
+	camera.RegisterPrimitive(primitive2.get());
+
+	// Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
+	// -> Raster position (0.5, 0.5)
+	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(1), Math::Normalize(Math::Vec3(-1)), rasterPosition));
+	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(0.5), rasterPosition));
 }
 
-TEST_F(PerspectiveCameraTest, SamplePosition)
-{
-	FAIL() << "Not implemented";
-}
-
-TEST_F(PerspectiveCameraTest, EvaluateWe)
-{
-	FAIL() << "Not implemented";
-}
-
-TEST_F(PerspectiveCameraTest, RasterPosition)
-{
-	FAIL() << "Not implemented";
-}
+//TEST_F(PerspectiveCameraTest, SamplePosition)
+//{
+//	FAIL() << "Not implemented";
+//}
+//
+//TEST_F(PerspectiveCameraTest, EvaluateWe)
+//{
+//	FAIL() << "Not implemented";
+//}
 
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

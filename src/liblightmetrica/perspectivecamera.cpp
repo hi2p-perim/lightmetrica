@@ -77,19 +77,6 @@ PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
 
 bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
-	// Check name and type
-	if (node.Name() != self->Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid camera type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Resolve reference to film
 	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.Child("film"), "film"));
 	if (!film)
@@ -97,15 +84,14 @@ bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& a
 		return false;
 	}
 
-	// Find 'fovy'
-	auto fovyNode = node.Child("fovy");
-	if (fovyNode.Empty())
-	{
-		LM_LOG_ERROR("Missing 'fovy' element");
-		return false;
-	}
-	Math::Float fovy = fovyNode.Value<Math::Float>();
+	// 'fovy'
+	Math::Float fovy;
+	if (!node.ChildValue("fovy", fovy)) return false;
+
+	// Aspect ratio
 	Math::Float aspect = Math::Float(film->Width()) / Math::Float(film->Height());
+
+	// --------------------------------------------------------------------------------
 
 	// Projection matrix and its inverse
 	projectionMatrix = Math::Perspective(fovy, aspect, Math::Float(1), Math::Float(1000));
