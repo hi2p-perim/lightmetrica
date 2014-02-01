@@ -180,13 +180,15 @@ private:
 
 };
 
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API std::string ConfigNode::Value<std::string>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API int ConfigNode::Value<int>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API Math::Vec3 ConfigNode::Value<Math::Vec3>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API Math::Mat4 ConfigNode::Value<Math::Mat4>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API std::vector<Math::Float> ConfigNode::Value<std::vector<Math::Float>>() const;
-LM_EXTERN_TEMPLATE template LM_PUBLIC_API std::vector<unsigned int> ConfigNode::Value<std::vector<unsigned int>>() const;
+#ifndef LM_EXPORTS
+extern template LM_PUBLIC_API std::string ConfigNode::Value<std::string>() const;
+extern template LM_PUBLIC_API int ConfigNode::Value<int>() const;
+extern template LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const;
+extern template LM_PUBLIC_API Math::Vec3 ConfigNode::Value<Math::Vec3>() const;
+extern template LM_PUBLIC_API Math::Mat4 ConfigNode::Value<Math::Mat4>() const;
+extern template LM_PUBLIC_API std::vector<Math::Float> ConfigNode::Value<std::vector<Math::Float>>() const;
+extern template LM_PUBLIC_API std::vector<unsigned int> ConfigNode::Value<std::vector<unsigned int>>() const;
+#endif
 
 LM_NAMESPACE_END
 
