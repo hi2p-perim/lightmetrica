@@ -98,6 +98,12 @@ public:
 
 };
 
+TEST_F(ConfigNodeTest, GetConfig)
+{
+	const auto node = config.LoadFromStringAndGetFirstChild(ConfigNodeData_1);
+	EXPECT_EQ(&config, node.GetConfig());
+}
+
 TEST_F(ConfigNodeTest, Empty)
 {
 	const auto node = config.LoadFromStringAndGetFirstChild(ConfigNodeData_1);

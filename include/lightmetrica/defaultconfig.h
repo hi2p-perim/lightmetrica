@@ -46,6 +46,7 @@ public:
 	virtual bool Load( const std::string& path );
 	virtual bool LoadFromString( const std::string& data );
 	virtual ConfigNode Root() const;
+	virtual std::string BasePath() const;
 
 private:
 

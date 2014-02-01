@@ -41,6 +41,8 @@ class StubConfig : public Config
 public:
 
 	virtual bool Load( const std::string& path ) { return false; }
+	virtual ConfigNode Root() const { return ConfigNode(doc.root().internal_object(), this); }
+	virtual std::string BasePath() const { return ""; }
 
 	virtual bool LoadFromString( const std::string& data )
 	{
@@ -48,8 +50,6 @@ public:
 		if (!result) LM_LOG_ERROR(result.description());
 		return result;
 	}
-
-	virtual ConfigNode Root() const { return ConfigNode(doc.root().internal_object(), this); }
 
 public:
 

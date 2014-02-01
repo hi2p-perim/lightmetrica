@@ -70,21 +70,8 @@ protected:
 
 TEST_F(DefaultConfigTest, Load)
 {
-	// Use temporary path for output directory
-	const std::string filename = (fs::temp_directory_path() / "test.nanon").string();
-	if (fs::exists(filename))
-	{
-		EXPECT_TRUE(fs::remove(filename));
-	}
-
-	// Write to the file
-	std::ofstream ofs(filename);
-	EXPECT_TRUE(ofs.is_open());
-	ofs << ConfigData_Success;
-	ofs.close();
-
-	// Open file
-	EXPECT_TRUE(config.Load(filename));
+	TemporaryFile file("test.lm.xml", ConfigData_Success);
+	EXPECT_TRUE(config.Load(file.Path()));
 }
 
 TEST_F(DefaultConfigTest, Load_Failed_MissingFile)
@@ -109,5 +96,12 @@ TEST_F(DefaultConfigTest, LoadString_Failed)
 	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion));
 }
 	
+TEST_F(DefaultConfigTest, BasePath)
+{
+	TemporaryFile file("test.lm.xml", ConfigData_Success);
+	EXPECT_TRUE(config.Load(file.Path()));
+	EXPECT_EQ(fs::canonical(fs::path(file.Path()).parent_path()), config.BasePath());
+}
+
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

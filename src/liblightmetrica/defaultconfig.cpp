@@ -47,6 +47,7 @@ public:
 	bool Load(const std::string& path);
 	bool LoadFromString(const std::string& data);
 	const ConfigNode Root() const;
+	std::string BasePath() const;
 
 private:
 
@@ -57,6 +58,7 @@ public:
 	DefaultConfig* self;
 
 	bool loaded;
+	std::string path;
 	pugi::xml_document doc;
 	pugi::xml_node assetsNode;
 	pugi::xml_node sceneNode;
@@ -84,6 +86,8 @@ bool DefaultConfig::Impl::Load( const std::string& path )
 		LM_LOG_ERROR("Configuration is already loaded");
 		return false;
 	}
+
+	this->path = path;
 
 	LM_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
@@ -163,6 +167,12 @@ const ConfigNode DefaultConfig::Impl::Root() const
 	return ConfigNode(rootNode.internal_object(), self);
 }
 
+std::string DefaultConfig::Impl::BasePath() const
+{
+	namespace fs = boost::filesystem;
+	return fs::canonical(fs::path(path).parent_path()).string();
+}
+
 // --------------------------------------------------------------------------------
 
 DefaultConfig::DefaultConfig()
@@ -189,6 +199,11 @@ bool DefaultConfig::LoadFromString( const std::string& data )
 ConfigNode DefaultConfig::Root() const
 {
 	return p->Root();
+}
+
+std::string DefaultConfig::BasePath() const
+{
+	return p->BasePath();
 }
 
 LM_NAMESPACE_END

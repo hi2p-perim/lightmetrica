@@ -87,7 +87,7 @@ bool PathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& a
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
-		numThreads = std::thread::hardware_concurrency();
+		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
 	}
 	node.ChildValueOrDefault("samples_per_block", 100, samplesPerBlock);
 	if (samplesPerBlock <= 0)

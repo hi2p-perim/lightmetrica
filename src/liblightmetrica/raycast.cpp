@@ -130,7 +130,7 @@ bool RaycastRenderer::Impl::Configure( const ConfigNode& node, const Assets& ass
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
-		numThreads = std::thread::hardware_concurrency();
+		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
 	}
 
 	return true;

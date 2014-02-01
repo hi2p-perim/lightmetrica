@@ -66,6 +66,12 @@ public:
 public:
 
 	/*!
+		Get config.
+		\return Config.
+	*/
+	const Config* GetConfig() const;
+
+	/*!
 		Check if the node is empty.
 		\retval true Node is empty.
 		\retval false Node is not empty.

@@ -132,6 +132,11 @@ std::string ConfigNode::Name() const
 	return p->node.name();
 }
 
+const Config* ConfigNode::GetConfig() const
+{
+	return p->config;
+}
+
 template <>
 LM_PUBLIC_API std::string ConfigNode::Value<std::string>() const
 {

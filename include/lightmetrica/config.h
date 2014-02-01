@@ -74,6 +74,13 @@ public:
 	*/
 	virtual ConfigNode Root() const = 0;
 
+	/*!
+		Get base path.
+		Returns the base path of the assets.
+		\return Base path.
+	*/
+	virtual std::string BasePath() const = 0;
+
 };
 
 LM_NAMESPACE_END
