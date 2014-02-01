@@ -91,8 +91,13 @@
 	#endif
 	#define LM_HIDDEN_API
 #elif defined(LM_COMPILER_GCC)
-	#define LM_PUBLIC_API __attribute__ ((visibility("default")))
-	#define LM_HIDDEN_API __attribute__ ((visibility("hidden")))
+	#ifdef LM_EXPORTS
+		#define LM_PUBLIC_API __attribute__ ((visibility("default")))
+		#define LM_HIDDEN_API __attribute__ ((visibility("hidden")))
+	#else
+		#define LM_PUBLIC_API
+		#define LM_HIDDEN_API
+	#endif
 #else
 	#define LM_PUBLIC_API
 	#define LM_HIDDEN_API
