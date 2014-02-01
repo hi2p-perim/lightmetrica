@@ -26,8 +26,7 @@
 #include <lightmetrica/assets.h>
 #include <lightmetrica/asset.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/pugihelper.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -41,29 +40,29 @@ Assets::~Assets()
 
 }
 
-Asset* Assets::ResolveReferenceToAsset( const pugi::xml_node& node, const std::string& name ) const
+Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
 {
 	// The element must have 'ref' attribute
-	auto refAttr = node.attribute("ref");
-	if (!refAttr)
+	auto refAttr = node.AttributeValue("ref");
+	if (refAttr.empty())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("'%s' element in 'node' must have 'ref' attribute") % name));
-		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR("'" + name + "' element in 'node' must have 'ref' attribute");
+		//LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 
 	// Find the light specified by 'ref'
-	auto* asset = GetAssetByName(refAttr.as_string());
+	auto* asset = GetAssetByName(refAttr);
 	if (!asset)
 	{
-		LM_LOG_ERROR(boost::str(boost::format("The asset referenced by '%s' is not found") % refAttr.as_string()));
-		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR("The asset referenced by '" + refAttr + "' is not found");
+		//LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 	else if (asset->Name() != name)
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid asset name '%s' (expected '%s')") % asset->Name() % name));
-		LM_LOG_ERROR(PugiHelper::StartElementInString(node));
+		LM_LOG_ERROR("Invalid asset name '" + asset->Name() + "' (expected '" + name + "')");
+		//LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 		return nullptr;
 	}
 

@@ -26,10 +26,9 @@
 #include <lightmetrica/asset.h>
 #include <lightmetrica/defaultassets.h>
 #include <lightmetrica/assetfactory.h>
-#include <lightmetrica/config.h>
+#include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/pugihelper.h>
-#include <pugixml.hpp>
 #include <thread>
 
 LM_NAMESPACE_BEGIN
@@ -40,7 +39,7 @@ public:
 
 	Impl(DefaultAssets* self);
 	~Impl();
-	bool Load(const pugi::xml_node& node);
+	bool Load(const ConfigNode& node);
 	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 	Asset* GetAssetByName(const std::string& name) const;
 	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func);
@@ -56,7 +55,7 @@ private:
 	boost::unordered_map<std::string, size_t> assetFactoryMap;
 
 	std::vector<Asset*> assetInstances;
-	std::vector<pugi::xml_node> assetInstanceNodes;
+	std::vector<ConfigNode> assetInstanceNodes;
 	boost::unordered_map<std::string, size_t> assetIndexMap;
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
@@ -107,15 +106,15 @@ void DefaultAssets::Impl::InitializeAssetFactories()
 	}
 }
 
-bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
+bool DefaultAssets::Impl::Load( const ConfigNode& node )
 {
 	// Initialize asset factories
 	InitializeAssetFactories();
 
 	// Element name must be 'assets'
-	if (std::strcmp(node.name(), "assets") != 0)
+	if (node.Name() != "assets")
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'assets')") % node.name()));
+		LM_LOG_ERROR("Invalid element name '" + node.Name() + "' (expected 'assets')");
 		return false;
 	}
 
@@ -128,17 +127,17 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 		for (auto& factoryEntry : assetFactoryEntries)
 		{
 			// Find the element under 'assets'
-			auto assetGroupNode = node.child(factoryEntry.name.c_str());
-			if (assetGroupNode)
+			auto assetGroupNode = node.Child(factoryEntry.name.c_str());
+			if (!assetGroupNode.Empty())
 			{
 				LM_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % factoryEntry.name));
 				LM_LOG_INDENTER();
 
 				// For each child of the node, create an instance of the asset
-				for (auto assetNode : assetGroupNode.children())
+				for (auto assetNode = assetGroupNode.FirstChild(); !assetNode.Empty(); assetNode = assetNode.NextChild())
 				{
 					// Check asset name
-					auto name = assetNode.name();
+					auto name = assetNode.Name();
 					if (name != factoryEntry.child)
 					{
 						LM_LOG_ERROR(boost::str(boost::format("Invlaid element name '%s'") % factoryEntry.child));
@@ -146,33 +145,32 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 					}
 
 					// Type of the asset
-					auto typeAttribute = assetNode.attribute("type");
-					if (!typeAttribute)
+					auto typeAttribute = assetNode.AttributeValue("type");
+					if (typeAttribute.empty())
 					{
 						LM_LOG_ERROR("Missing attribute 'type'.");
 						return false;
 					}
 
-					auto idAttribute = assetNode.attribute("id");
-					if (!idAttribute)
+					auto idAttribute = assetNode.AttributeValue("id");
+					if (idAttribute.empty())
 					{
 						LM_LOG_ERROR("Missing attribute 'id'.");
 						return false;
 					}
 
 					{
-						LM_LOG_INFO(boost::str(boost::format("Processing asset (id : '%s', type : '%s')") % idAttribute.value() % typeAttribute.value()));
+						LM_LOG_INFO("Processing asset (id : '" + idAttribute + "', type : '" + typeAttribute + "')");
 						LM_LOG_INDENTER();
 
 						// Check if the 'id' is already registered
-						std::string id = idAttribute.value();
-						if (assetIndexMap.find(id) != assetIndexMap.end())
+						if (assetIndexMap.find(idAttribute) != assetIndexMap.end())
 						{
-							LM_LOG_ERROR(boost::str(boost::format("ID '%s' is already registered.") % id));
+							LM_LOG_ERROR("ID '" + idAttribute + "' is already registered.");
 							return false;
 						}
 
-						auto* asset = factoryEntry.factory->Create(id, typeAttribute.value());
+						auto* asset = factoryEntry.factory->Create(idAttribute, typeAttribute);
 						if (asset == nullptr)
 						{
 							LM_LOG_ERROR("Failed to create the asset.");
@@ -180,7 +178,7 @@ bool DefaultAssets::Impl::Load( const pugi::xml_node& node )
 						}
 
 						// Register the instance
-						assetIndexMap[id] = assetInstances.size();
+						assetIndexMap[idAttribute] = assetInstances.size();
 						assetInstances.push_back(asset);
 						assetInstanceNodes.push_back(assetNode);
 					}
@@ -244,14 +242,9 @@ DefaultAssets::~DefaultAssets()
 	LM_SAFE_DELETE(p);
 }
 
-bool DefaultAssets::Load( const pugi::xml_node& node )
+bool DefaultAssets::Load( const ConfigNode& node )
 {
 	return p->Load(node);
-}
-
-bool DefaultAssets::Load( const Config& config )
-{
-	return p->Load(config.AssetsElement());
 }
 
 bool DefaultAssets::RegisterAssetFactory( const AssetFactoryEntry& entry )

@@ -30,14 +30,10 @@
 #include <functional>
 #include <boost/signals2.hpp>
 
-namespace pugi
-{
-	class xml_node;
-};
-
 LM_NAMESPACE_BEGIN
 
 class Asset;
+class ConfigNode;
 
 /*!
 	Collection of assets.
@@ -71,7 +67,7 @@ public:
 		\param node A XML element which consists of the \a ref attribute.
 		\param name Target asset type, e.g. triangle_mesh.
 	*/
-	virtual Asset* ResolveReferenceToAsset(const pugi::xml_node& node, const std::string& name) const;
+	virtual Asset* ResolveReferenceToAsset(const ConfigNode& node, const std::string& name) const;
 
 public:
 

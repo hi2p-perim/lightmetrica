@@ -47,7 +47,7 @@ class StubAsset_Success : public StubAsset
 public:
 	
 	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return true; }
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return true; }
 	virtual std::string Type() const { return "success"; }
 
 };
@@ -57,7 +57,7 @@ class StubAsset_FailOnCreate : public StubAsset
 public:
 
 	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return false; }
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return false; }
 	virtual std::string Type() const { return "fail_on_create"; }
 
 };

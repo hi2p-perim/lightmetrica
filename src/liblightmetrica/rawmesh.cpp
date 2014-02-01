@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <lightmetrica/rawmesh.h>
 #include <lightmetrica/logger.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -37,12 +37,7 @@ public:
 
 public:
 
-	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
-
-private:
-
-	void ParseFloatArray(const pugi::xml_node& node, std::vector<Math::Float>& v);
-	void ParseUIntArray(const pugi::xml_node& node, std::vector<unsigned int>& v);
+	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 
 public:
 
@@ -60,64 +55,32 @@ RawMesh::Impl::Impl( RawMesh* self )
 
 }
 
-bool RawMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool RawMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	// 'positions' required
-	auto positionsNode = node.child("positions");
-	if (!positionsNode)
+	if (!node.ChildValue("positions", positions))
 	{
-		LM_LOG_ERROR("Missing 'positions' element");
 		return false;
 	}
-	ParseFloatArray(positionsNode, positions);
 
 	// 'normals' required
-	auto normalsNode = node.child("normals");
-	if (!normalsNode)
+	if (!node.ChildValue("normals", normals))
 	{
-		LM_LOG_ERROR("Missing 'normals' element");
 		return false;
 	}
-	ParseFloatArray(normalsNode, normals);
 
-	// 'texcoords'
-	auto texcoordsNode = node.child("texcoords");
-	if (texcoordsNode)
-	{
-		ParseFloatArray(texcoordsNode, texcoords);
-	}
+	// 'texcoords' optional
+	node.ChildValue("texcoords", texcoords);								
 
 	// 'faces' required
-	auto facesNode = node.child("faces");
-	if (!facesNode)
+	if (!node.ChildValue("faces", faces))
 	{
-		LM_LOG_ERROR("Missing 'faces' element");
 		return false;
 	}
-	ParseUIntArray(facesNode, faces);
 
 	return true;
 }
 
-void RawMesh::Impl::ParseFloatArray( const pugi::xml_node& node, std::vector<Math::Float>& v )
-{
-	std::stringstream ss(node.child_value());
-	double t;
-	while (ss >> t)
-	{
-		v.push_back(Math::Float(t));
-	}
-}
-
-void RawMesh::Impl::ParseUIntArray( const pugi::xml_node& node, std::vector<unsigned int>& v )
-{
-	std::stringstream ss(node.child_value());
-	unsigned int t;
-	while (ss >> t)
-	{
-		v.push_back(t);
-	}
-}
 
 // --------------------------------------------------------------------------------
 
@@ -133,7 +96,7 @@ RawMesh::~RawMesh()
 	LM_SAFE_DELETE(p);
 }
 
-bool RawMesh::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool RawMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

@@ -42,7 +42,7 @@ public:
 public:
 
 	virtual std::string Type() const { return "raw"; }
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
 
 public:
 

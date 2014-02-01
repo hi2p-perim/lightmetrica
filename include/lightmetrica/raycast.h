@@ -42,7 +42,7 @@ public:
 public:
 
 	virtual std::string Type() const { return "raycast"; }
-	virtual bool Configure(const pugi::xml_node& node, const Assets& assets);
+	virtual bool Configure(const ConfigNode& node, const Assets& assets);
 	virtual bool Render(const Scene& scene);	
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 

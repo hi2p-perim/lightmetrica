@@ -45,7 +45,7 @@ public:
 
 public:
 
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
 
 public:
 

@@ -35,6 +35,7 @@ set(
 	"${_INCLUDE_DIR}/stub.assets.h"
 	"${_INCLUDE_DIR}/stub.trianglemesh.h"
 	"${_INCLUDE_DIR}/stub.bsdf.h"
+	"${_INCLUDE_DIR}/stub.config.h"
 )
 set(
 	_SOURCE_FILES

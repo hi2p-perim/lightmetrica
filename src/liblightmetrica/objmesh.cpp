@@ -26,7 +26,7 @@
 #include <lightmetrica/objmesh.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/pugihelper.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 #include <assimp/Importer.hpp>
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
@@ -83,7 +83,7 @@ class ObjMesh::Impl : public Object
 public:
 
 	Impl(ObjMesh* self);
-	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 
 public:
 
@@ -101,18 +101,13 @@ ObjMesh::Impl::Impl( ObjMesh* self )
 
 }
 
-bool ObjMesh::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool ObjMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	namespace fs = boost::filesystem;
 
 	// Find 'path' element
-	auto pathNode = node.child("path");
-	if (!pathNode)
-	{
-		LM_LOG_ERROR("Missing 'path' element");
-		return false;
-	}
-	std::string path = pathNode.child_value();
+	std::string path;
+	if (!node.ChildValue("path", path)) return false;
 	auto fsPath = fs::path(path);
 
 	//if (fsPath.is_absolute())
@@ -221,7 +216,7 @@ ObjMesh::~ObjMesh()
 	LM_SAFE_DELETE(p);
 }
 
-bool ObjMesh::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool ObjMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

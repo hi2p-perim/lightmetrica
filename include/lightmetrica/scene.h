@@ -41,7 +41,7 @@ namespace pugi
 LM_NAMESPACE_BEGIN
 
 class Assets;
-class Config;
+class ConfigNode;
 class Camera;
 class Light;
 struct Primitive;
@@ -74,17 +74,7 @@ public:
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
 	*/
-	bool Load(const pugi::xml_node& node, Assets& assets);
-
-	/*!
-		Load the asset from the configuration.
-		Get the \a scene element from the configuration and load the assets.
-		The function is not reentrant.
-		\param config Configuration.
-		\retval true Succeeded to load the scene.
-		\retval false Failed to load the scene.
-	*/
-	bool Load(const Config& config, Assets& assets);
+	bool Load(const ConfigNode& node, Assets& assets);
 
 	/*!
 		Configure the scene.
@@ -92,15 +82,7 @@ public:
 		\retval true Succeeded to configure the scene.
 		\retval false Failed to configure the scene.
 	*/
-	virtual bool Configure(const pugi::xml_node& node) = 0;
-
-	/*!
-		Configure the scene.
-		\param config Configuration.
-		\retval true Succeeded to configure the scene.
-		\retval false Failed to configure the scene.
-	*/
-	bool Configure(const Config& config);
+	virtual bool Configure(const ConfigNode& node) = 0;
 
 	/*!
 		Build acceleration structure.

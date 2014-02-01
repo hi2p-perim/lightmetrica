@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/objmesh.h>
 
 namespace
@@ -81,9 +82,9 @@ public:
 
 	}
 
-	pugi::xml_node GenerateNode(const std::string& path)
+	ConfigNode GenerateNode(const std::string& path)
 	{
-		return LoadXMLBuffer(boost::str(boost::format(ObjMeshNode_Template) % path));
+		return config.LoadFromStringAndGetFirstChild(boost::str(boost::format(ObjMeshNode_Template) % path));
 	}
 
 	Math::Vec3 PositionFromIndex(unsigned int i)
@@ -96,6 +97,7 @@ protected:
 
 	ObjMesh mesh;
 	StubAssets assets;
+	StubConfig config;
 
 };
 
@@ -117,7 +119,7 @@ TEST_F(ObjMeshTest, Load_Success)
 TEST_F(ObjMeshTest, Load_Fail)
 {
 	TemporaryFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
-	EXPECT_FALSE(mesh.Load(LoadXMLBuffer(ObjMeshNode_Fail_MissingPathElement), assets));
+	EXPECT_FALSE(mesh.Load(config.LoadFromStringAndGetFirstChild(ObjMeshNode_Fail_MissingPathElement), assets));
 	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 }
 

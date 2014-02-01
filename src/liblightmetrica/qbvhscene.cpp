@@ -32,7 +32,7 @@
 #include <lightmetrica/aabb.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/triangleref.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -307,7 +307,7 @@ public:
 	bool Build();
 	bool Intersect( Ray& ray, Intersection& isect ) const;
 	boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
-	bool Configure( const pugi::xml_node& node );
+	bool Configure( const ConfigNode& node );
 	void ResetScene();
 
 private:
@@ -379,27 +379,27 @@ void QBVHScene::Impl::ResetScene()
 	nodes.clear();
 }
 
-bool QBVHScene::Impl::Configure( const pugi::xml_node& node )
+bool QBVHScene::Impl::Configure( const ConfigNode& node )
 {
-	auto intersectionModeNode = node.child("intersection_mode");
-	if (!intersectionModeNode)
+	auto intersectionModeNode = node.Child("intersection_mode");
+	if (intersectionModeNode.Empty())
 	{
 		mode = IntersectionMode::SSE;
 		LM_LOG_WARN("Using default value 'intersection_mode' = 'triaccel'");
 	}
 	else
 	{
-		if (std::strcmp("sse", intersectionModeNode.child_value()) == 0)
+		if (intersectionModeNode.Value() == "sse")
 		{
 			mode = IntersectionMode::SSE;
 		}
-		else if (std::strcmp("triaccel", intersectionModeNode.child_value()) == 0)
+		else if (intersectionModeNode.Value() == "triaccel")
 		{
 			mode = IntersectionMode::Triaccel;
 		}
 		else
 		{
-			LM_LOG_ERROR(boost::str(boost::format("Invalid intersection mode '%s'") % intersectionModeNode.child_value()));
+			LM_LOG_ERROR("Invalid intersection mode '" + intersectionModeNode.Value() + "'");
 			return false;
 		}
 	}
@@ -936,7 +936,7 @@ boost::signals2::connection QBVHScene::Connect_ReportBuildProgress( const std::f
 	return p->Connect_ReportBuildProgress(func);
 }
 
-bool QBVHScene::Configure( const pugi::xml_node& node )
+bool QBVHScene::Configure( const ConfigNode& node )
 {
 	return p->Configure(node);
 }

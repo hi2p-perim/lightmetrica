@@ -31,7 +31,7 @@
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/math.functions.h>
 #include <lightmetrica/logger.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 #include <atomic>
 #include <thread>
 #include <omp.h>
@@ -42,16 +42,27 @@ class RaycastRenderer::Impl : public Object
 {
 public:
 
+	Impl(RaycastRenderer* self);
+
+public:
+
 	bool Render(const Scene& scene);
-	bool Configure(const pugi::xml_node& node, const Assets& assets);
+	bool Configure(const ConfigNode& node, const Assets& assets);
 	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
+	RaycastRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	int numThreads;		// Number of threads
+	int numThreads;
 
 };
+
+RaycastRenderer::Impl::Impl( RaycastRenderer* self )
+	: self(self)
+{
+	
+}
 
 bool RaycastRenderer::Impl::Render(const Scene& scene)
 {
@@ -106,22 +117,20 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 	return true;
 }
 
-bool RaycastRenderer::Impl::Configure( const pugi::xml_node& node, const Assets& assets )
+bool RaycastRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
 {
-	// 'num_threads'
-	auto numThreadsNode = node.child("num_threads");
-	if (!numThreadsNode)
+	// Check type
+	if (node.AttributeValue("type") != self->Type())
+	{
+		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
+		return false;
+	}
+
+	// Load parameters
+	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
+	if (numThreads <= 0)
 	{
 		numThreads = std::thread::hardware_concurrency();
-		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_threads' = %d") % numThreads));
-	}
-	else
-	{
-		numThreads = std::stoi(numThreadsNode.child_value());
-		if (numThreads <= 0)
-		{
-			numThreads = std::thread::hardware_concurrency();
-		}
 	}
 
 	return true;
@@ -130,7 +139,7 @@ bool RaycastRenderer::Impl::Configure( const pugi::xml_node& node, const Assets&
 // --------------------------------------------------------------------------------
 
 RaycastRenderer::RaycastRenderer()
-	: p(new Impl)
+	: p(new Impl(this))
 {
 
 }
@@ -145,7 +154,7 @@ bool RaycastRenderer::Render(const Scene& scene)
 	return p->Render(scene);
 }
 
-bool RaycastRenderer::Configure( const pugi::xml_node& node, const Assets& assets )
+bool RaycastRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	return p->Configure(node, assets);
 }

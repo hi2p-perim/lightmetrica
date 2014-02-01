@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/rawmesh.h>
 
 namespace
@@ -83,12 +84,13 @@ protected:
 
 	RawMesh mesh;
 	StubAssets assets;
+	StubConfig config;
 
 };
 
 TEST_F(RawMeshTest, Load_Success)
 {
-	EXPECT_TRUE(mesh.Load(LoadXMLBuffer(RawMeshNode_Success), assets));
+	EXPECT_TRUE(mesh.Load(config.LoadFromStringAndGetFirstChild(RawMeshNode_Success), assets));
 	ASSERT_EQ(6, mesh.NumFaces());
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh.Faces()[0])));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[1])));

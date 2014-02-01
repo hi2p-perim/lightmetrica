@@ -34,7 +34,7 @@
 #include <lightmetrica/light.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/bsdf.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -49,7 +49,7 @@ public:
 
 public:
 
-	bool Configure( const pugi::xml_node& node, const Assets& assets );
+	bool Configure( const ConfigNode& node, const Assets& assets );
 	bool Render( const Scene& scene );
 	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
@@ -71,70 +71,28 @@ LighttraceRenderer::Impl::Impl( LighttraceRenderer* self )
 
 }
 
-bool LighttraceRenderer::Impl::Configure( const pugi::xml_node& node, const Assets& assets )
+bool LighttraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Check type
-	if (node.attribute("type").as_string() != self->Type())
+	if (node.AttributeValue("type") != self->Type())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid renderer type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
 		return false;
 	}
 
-	// 'num_samples'
-	auto numSamplesNode = node.child("num_samples");
-	if (!numSamplesNode)
-	{
-		numSamples = 1;
-		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_samples' = %d") % numSamples));
-	}
-	else
-	{
-		numSamples = std::stoi(numSamplesNode.child_value());
-	}
-
-	// 'rr_depth'
-	auto rrDepthNode = node.child("rr_depth");
-	if (!rrDepthNode)
-	{
-		rrDepth = 1;
-		LM_LOG_WARN(boost::str(boost::format("Using default value 'rr_depth' = %d") % rrDepth));
-	}
-	else
-	{
-		rrDepth = std::stoi(rrDepthNode.child_value());
-	}
-
-	// 'num_threads'
-	auto numThreadsNode = node.child("num_threads");
-	if (!numThreadsNode)
+	// Load parameters
+	node.ChildValueOrDefault("num_samples", 1, numSamples);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
+	if (numThreads <= 0)
 	{
 		numThreads = std::thread::hardware_concurrency();
-		LM_LOG_WARN(boost::str(boost::format("Using default value 'num_threads' = %d") % numThreads));
 	}
-	else
+	node.ChildValueOrDefault("samples_per_block", 100, samplesPerBlock);
+	if (samplesPerBlock <= 0)
 	{
-		numThreads = std::stoi(numThreadsNode.child_value());
-		if (numThreads <= 0)
-		{
-			numThreads = std::thread::hardware_concurrency();
-		}
-	}
-
-	// 'samples_per_block'
-	auto samplesPerBlockNode = node.child("samples_per_block");
-	if (!samplesPerBlockNode)
-	{
-		samplesPerBlock = 100;
-		LM_LOG_WARN(boost::str(boost::format("Using default value 'samples_per_block' = %d") % samplesPerBlock));
-	}
-	else
-	{
-		samplesPerBlock = std::stoi(samplesPerBlockNode.child_value());
-		if (samplesPerBlock <= 0)
-		{
-			LM_LOG_ERROR("Invalid value for 'samples_per_block'");
-			return false;
-		}
+		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+		return false;
 	}
 
 	return true;
@@ -394,7 +352,7 @@ LighttraceRenderer::~LighttraceRenderer()
 	LM_SAFE_DELETE(p);
 }
 
-bool LighttraceRenderer::Configure( const pugi::xml_node& node, const Assets& assets )
+bool LighttraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	return p->Configure(node, assets);
 }

@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/perspectivecamera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/primitive.h>
@@ -70,7 +71,7 @@ public:
 	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Film* film ) {}
-	virtual bool LoadAsset( const pugi::xml_node& node, const Assets& assets ) { return true; }
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return true; }
 	virtual std::string Type() const { return "stub"; }
 	virtual Film* Clone() const { return nullptr; }
 
@@ -92,25 +93,26 @@ public:
 protected:
 
 	StubAssets assets;
+	StubConfig config;
 	PerspectiveCamera camera;
 
 };
 
 TEST_F(PerspectiveCameraTest, Load_Success)
 {
-	EXPECT_TRUE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Success), assets));
+	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 	EXPECT_EQ(assets.GetAssetByName("stub"), camera.GetFilm());
 }
 
 TEST_F(PerspectiveCameraTest, Load_Fail)
 {
-	EXPECT_FALSE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Fail_InvalidType), assets));
-	EXPECT_FALSE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Fail_InvalidProperty), assets));
+	EXPECT_FALSE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Fail_InvalidType), assets));
+	EXPECT_FALSE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Fail_InvalidProperty), assets));
 }
 
 TEST_F(PerspectiveCameraTest, SampleRay)
 {
-	EXPECT_TRUE(camera.Load(LoadXMLBuffer(PerspectiveCameraNode_Success), assets));
+	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 
 	Ray ray;
 	Math::PDFEval _;

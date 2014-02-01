@@ -23,30 +23,29 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_NAIVE_SCENE_H__
-#define __LIB_LIGHTMETRICA_NAIVE_SCENE_H__
+#ifndef __LIB_LIGHTMETRICA_DEFAULT_CONFIG_H__
+#define __LIB_LIGHTMETRICA_DEFAULT_CONFIG_H__
 
-#include "scene.h"
+#include "config.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
+	Default config.
+	Default implementation of the config class.
 */
-class LM_PUBLIC_API NaiveScene : public Scene
+class LM_PUBLIC_API DefaultConfig : public Config
 {
 public:
 
-	NaiveScene();
-	virtual ~NaiveScene();
+	DefaultConfig();
+	~DefaultConfig();
 
 public:
 
-	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect) const;
-	virtual std::string Type() const { return "naive"; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func);
-	virtual bool Configure( const ConfigNode& node ) { return true; }
-	virtual void ResetScene() {}
+	virtual bool Load( const std::string& path );
+	virtual bool LoadFromString( const std::string& data );
+	virtual ConfigNode Root() const;
 
 private:
 
@@ -57,4 +56,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_NAIVE_SCENE_H__
+#endif // __LIB_LIGHTMETRICA_DEFAULT_CONFIG_H__

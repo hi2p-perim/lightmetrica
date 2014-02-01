@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <lightmetrica/asset.h>
 #include <lightmetrica/logger.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -75,18 +75,18 @@ std::string Asset::ID() const
 	return p->ID();
 }
 
-bool Asset::Load( const pugi::xml_node& node, const Assets& assets )
+bool Asset::Load( const ConfigNode& node, const Assets& assets )
 {
 	// Check name and type
-	if (node.name() != Name())
+	if (node.Name() != Name())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
 		return false;
 	}
 
-	if (node.attribute("type").as_string() != Type())
+	if (node.AttributeValue("type") != Type())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR("Invalid camera type '" + node.AttributeValue("type") + "'");
 		return false;
 	}
 

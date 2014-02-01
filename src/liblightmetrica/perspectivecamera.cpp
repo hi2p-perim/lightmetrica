@@ -30,7 +30,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/math.functions.h>
 #include <lightmetrica/ray.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -39,7 +39,7 @@ class PerspectiveCamera::Impl : public Object
 public:
 
 	Impl(PerspectiveCamera* self);
-	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 	Film* GetFilm() const { return film; }
 	void RegisterPrimitive(const Primitive* primitive);
 	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf) const;
@@ -75,36 +75,36 @@ PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
 
 }
 
-bool PerspectiveCamera::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	// Check name and type
-	if (node.name() != self->Name())
+	if (node.Name() != self->Name())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
+		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
 		return false;
 	}
 
-	if (node.attribute("type").as_string() != self->Type())
+	if (node.AttributeValue("type") != self->Type())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid camera type '%s'") % node.attribute("type").as_string()));
+		LM_LOG_ERROR("Invalid camera type '" + node.AttributeValue("type") + "'");
 		return false;
 	}
 
 	// Resolve reference to film
-	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.child("film"), "film"));
+	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.Child("film"), "film"));
 	if (!film)
 	{
 		return false;
 	}
 
 	// Find 'fovy'
-	auto fovyNode = node.child("fovy");
-	if (!fovyNode)
+	auto fovyNode = node.Child("fovy");
+	if (fovyNode.Empty())
 	{
 		LM_LOG_ERROR("Missing 'fovy' element");
 		return false;
 	}
-	Math::Float fovy = Math::Float(std::stod(fovyNode.child_value()));
+	Math::Float fovy = fovyNode.Value<Math::Float>();
 	Math::Float aspect = Math::Float(film->Width()) / Math::Float(film->Height());
 
 	// Projection matrix and its inverse
@@ -243,7 +243,7 @@ void PerspectiveCamera::RegisterPrimitive( const Primitive* primitive )
 	return p->RegisterPrimitive(primitive);
 }
 
-bool PerspectiveCamera::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

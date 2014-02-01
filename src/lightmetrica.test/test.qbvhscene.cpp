@@ -27,6 +27,7 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.trianglemesh.h>
 #include <lightmetrica.test/stub.bsdf.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/qbvhscene.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/ray.h>
@@ -69,7 +70,7 @@ protected:
 		// Load & configure & build
 		scene.Reset();
 		EXPECT_TRUE(scene.LoadPrimitives(primitives));
-		EXPECT_TRUE(scene.Configure(LoadXMLBuffer(boost::str(boost::format(SceneNode_Template) % mode))));
+		EXPECT_TRUE(scene.Configure(config.LoadFromStringAndGetFirstChild(boost::str(boost::format(SceneNode_Template) % mode))));
 		EXPECT_TRUE(scene.Build());
 	}
 
@@ -77,6 +78,7 @@ protected:
 
 	QBVHScene scene;
 	StubBSDF bsdf;
+	StubConfig config;
 
 };
 

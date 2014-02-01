@@ -48,7 +48,7 @@ public:
 	virtual bool Intersect(Ray& ray, Intersection& isect) const;
 	virtual std::string Type() const { return "bvh"; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func);
-	virtual bool Configure( const pugi::xml_node& node ) { return true; }
+	virtual bool Configure( const ConfigNode& node ) { return true; }
 	virtual void ResetScene() {}
 
 private:

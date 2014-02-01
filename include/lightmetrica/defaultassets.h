@@ -32,7 +32,8 @@
 LM_NAMESPACE_BEGIN
 
 class AssetFactory;
-class Config;
+class DefaultConfig;
+class ConfigNode;
 
 /*!
 	An entry for the asset factory.
@@ -92,16 +93,7 @@ public:
 		\retval true Succeeded to load assets.
 		\retval false Failed to load assets.
 	*/
-	bool Load(const pugi::xml_node& node);
-
-	/*!
-		Load assets from the configuration.
-		Get the \a assets element from the configuration and load the assets.
-		\param config Configuration.
-		\retval true Succeeded to load assets.
-		\retval false Failed to load assets.
-	*/
-	bool Load(const Config& config);
+	bool Load(const ConfigNode& node);
 
 private:
 	

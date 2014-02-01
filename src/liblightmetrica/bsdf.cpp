@@ -26,7 +26,6 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/intersection.h>
-#include <pugixml.hpp>
 
 LM_NAMESPACE_BEGIN
 

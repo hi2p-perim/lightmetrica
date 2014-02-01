@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/stub.asset.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/defaultassets.h>
 
 namespace
@@ -49,19 +50,20 @@ class AssetTest : public TestBase
 protected:
 
 	StubAssets assets;
+	StubConfig config;
 
 };
 
 TEST_F(AssetTest, Load)
 {
 	StubAsset_Success asset("");
-	EXPECT_TRUE(asset.Load(LoadXMLBuffer(Asset_Success), assets));
+	EXPECT_TRUE(asset.Load(config.LoadFromStringAndGetFirstChild(Asset_Success), assets));
 }
 
 TEST_F(AssetTest, Create_Failed)
 {
 	StubAsset_FailOnCreate asset("");
-	EXPECT_FALSE(asset.Load(LoadXMLBuffer(Asset_FailOnCreate), assets));
+	EXPECT_FALSE(asset.Load(config.LoadFromStringAndGetFirstChild(Asset_FailOnCreate), assets));
 }
 
 LM_TEST_NAMESPACE_END

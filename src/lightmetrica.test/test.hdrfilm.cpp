@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/hdrfilm.h>
 
 namespace
@@ -36,7 +37,7 @@ namespace
 			<width>40</width>
 			<height>30</height>
 			<path>test.hdr</path>
-		<\film>
+		</film>
 	);
 
 	const std::string FilmNode_Blank = LM_TEST_MULTILINE_LITERAL(
@@ -44,14 +45,14 @@ namespace
 			<width>40</width>
 			<height>30</height>
 			<path>%s</path>
-		<\film>
+		</film>
 	);
 
 	const std::string FilmNode_Fail_MissingElement = LM_TEST_MULTILINE_LITERAL(
 		<film id="test" type="hdr">
 			<height>30</height>
 			<path>test.hdr</path>
-		<\film>
+		</film>
 	);
 
 }
@@ -73,24 +74,25 @@ protected:
 
 	HDRBitmapFilm film;
 	StubAssets assets;
+	StubConfig config;
 
 };
 
 TEST_F(HDRBitmapFilmTest, Load)
 {
-	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success), assets));
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_Success), assets));
 	EXPECT_EQ(40, film.Width());
 	EXPECT_EQ(30, film.Height());
 }
 
 TEST_F(HDRBitmapFilmTest, Load_Fail)
 {
-	EXPECT_FALSE(film.Load(LoadXMLBuffer(FilmNode_Fail_MissingElement), assets));
+	EXPECT_FALSE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_Fail_MissingElement), assets));
 }
 
 TEST_F(HDRBitmapFilmTest, RecordContribution)
 {
-	EXPECT_TRUE(film.Load(LoadXMLBuffer(FilmNode_Success), assets));
+	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_Success), assets));
 
 	for (int y = 0; y < film.Height(); y++)
 	{

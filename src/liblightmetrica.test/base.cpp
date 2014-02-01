@@ -45,12 +45,6 @@ void TestBase::TearDown()
 	
 }
 
-pugi::xml_node TestBase::LoadXMLBuffer( const std::string& data )
-{
-	doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
-	return doc.first_child();
-}
-
 // --------------------------------------------------------------------------------
 
 TemporaryFile::TemporaryFile( const std::string& filename, const std::string& content )

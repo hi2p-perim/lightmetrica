@@ -31,16 +31,11 @@
 #include <functional>
 #include <boost/signals2.hpp>
 
-namespace pugi
-{
-	class xml_node;
-};
-
 LM_NAMESPACE_BEGIN
 
 class Assets;
 class Scene;
-class Config;
+class ConfigNode;
 
 /*!
 	Renderer class.
@@ -50,8 +45,8 @@ class LM_PUBLIC_API Renderer : public Object
 {
 public:
 
-	Renderer();
-	virtual ~Renderer();
+	Renderer() {}
+	virtual ~Renderer() {}
 
 private:
 
@@ -66,16 +61,7 @@ public:
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
-	virtual bool Configure(const pugi::xml_node& node, const Assets& assets) = 0;
-
-	/*!
-		Configure the renderer from the configuration.
-		Get the \a renderer element from the configuration and configure the renderer.
-		\retval config Configuration.
-		\retval true Succeeded to configure.
-		\retval false Failed to configure.
-	*/
-	bool Configure(const Config& config, const Assets& assets);
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
 
 	/*!
 		Get the scene type.
@@ -100,11 +86,6 @@ public:
 		\param func Slot function.
 	*/
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
-
-private:
-
-	class Impl;
-	Impl* p;
 
 };
 

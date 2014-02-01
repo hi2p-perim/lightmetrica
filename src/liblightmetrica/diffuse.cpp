@@ -25,9 +25,8 @@
 #include "pch.h"
 #include <lightmetrica/diffuse.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/pugihelper.h>
 #include <lightmetrica/math.stats.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -36,7 +35,7 @@ class DiffuseBSDF::Impl
 public:
 
 	Impl(DiffuseBSDF* self);
-	bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	bool LoadAsset( const ConfigNode& node, const Assets& assets );
 	bool Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const;
 	Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const;
 	Math::PDFEval Pdf( const BSDFEvaluateQuery& query ) const;
@@ -54,28 +53,9 @@ DiffuseBSDF::Impl::Impl( DiffuseBSDF* self )
 
 }
 
-bool DiffuseBSDF::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool DiffuseBSDF::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
-	// 'diffuse_reflectance'
-	auto diffuseReflectanceNode = node.child("diffuse_reflectance");
-	if (!diffuseReflectanceNode)
-	{
-		diffuseReflectance = Math::Vec3(Math::Float(1));
-		LM_LOG_WARN("Using default value for 'diffuse_reflectance'");
-	}
-	else
-	{
-		// 'rgb'
-		auto rgbNode = diffuseReflectanceNode.child("rgb");
-		if (!rgbNode)
-		{
-			LM_LOG_ERROR("Missing 'rgb'");
-			return false;
-		}
-
-		diffuseReflectance = PugiHelper::ParseVec3(rgbNode);
-	}
-
+	node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), diffuseReflectance);
 	return true;
 }
 
@@ -137,7 +117,7 @@ DiffuseBSDF::~DiffuseBSDF()
 	LM_SAFE_DELETE(p);
 }
 
-bool DiffuseBSDF::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool DiffuseBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

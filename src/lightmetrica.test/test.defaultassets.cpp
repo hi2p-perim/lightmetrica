@@ -26,6 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/stub.asset.h>
 #include <lightmetrica.test/stub.assetfactory.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/defaultassets.h>
 
 namespace
@@ -76,6 +77,7 @@ protected:
 protected:
 
 	DefaultAssets assets;
+	StubConfig config;
 
 };
 
@@ -100,7 +102,7 @@ TEST_F(AssetsTest, RegisterAssetFactory_Failed)
 
 TEST_F(AssetsTest, Load)
 {
-	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
+	EXPECT_TRUE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
 
 	auto* id1 = assets.GetAssetByName("id1");
 	ASSERT_NE(nullptr, id1);
@@ -117,13 +119,13 @@ TEST_F(AssetsTest, Load)
 
 TEST_F(AssetsTest, Load_Failed)
 {
-	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_InvalidElementName)));
-	EXPECT_FALSE(assets.Load(LoadXMLBuffer(AssetsNode_Fail_SameID)));
+	EXPECT_FALSE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_InvalidElementName)));
+	EXPECT_FALSE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_SameID)));
 }
 
 TEST_F(AssetsTest, GetAssetByName_Failed)
 {
-	EXPECT_TRUE(assets.Load(LoadXMLBuffer(AssetsNode_Success)));
+	EXPECT_TRUE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
 	EXPECT_FALSE(assets.GetAssetByName("id3"));
 }
 

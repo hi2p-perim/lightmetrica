@@ -24,8 +24,7 @@
 
 #include "pch.h"
 #include <lightmetrica.test/base.h>
-#include <lightmetrica.test/base.math.h>
-#include <lightmetrica/config.h>
+#include <lightmetrica/defaultconfig.h>
 
 namespace fs = boost::filesystem;
 
@@ -56,28 +55,20 @@ namespace
 		</nanon>
 	);
 
-	const std::string ConfigNodeData_1 = LM_TEST_MULTILINE_LITERAL(
-		<test id="hello">
-			<a>10</a>
-			<b>1.5</b>
-			<c>world</c>
-		</test>
-	);
-
 }
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class ConfigTest : public TestBase
+class DefaultConfigTest : public TestBase
 {
 protected:
 
-	Config config;
+	DefaultConfig config;
 
 };
 
-TEST_F(ConfigTest, Load)
+TEST_F(DefaultConfigTest, Load)
 {
 	// Use temporary path for output directory
 	const std::string filename = (fs::temp_directory_path() / "test.nanon").string();
@@ -96,7 +87,7 @@ TEST_F(ConfigTest, Load)
 	EXPECT_TRUE(config.Load(filename));
 }
 
-TEST_F(ConfigTest, Load_Failed_MissingFile)
+TEST_F(DefaultConfigTest, Load_Failed_MissingFile)
 {
 	const std::string filename = (fs::temp_directory_path() / "test.nanon").string();
 	if (fs::exists(filename))
@@ -107,94 +98,16 @@ TEST_F(ConfigTest, Load_Failed_MissingFile)
 	EXPECT_FALSE(config.Load(filename));
 }
 
-TEST_F(ConfigTest, LoadString)
+TEST_F(DefaultConfigTest, LoadString)
 {
 	EXPECT_TRUE(config.LoadFromString(ConfigData_Success));
 }
 
-TEST_F(ConfigTest, LoadString_Failed)
+TEST_F(DefaultConfigTest, LoadString_Failed)
 {
 	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_MissingElement));
 	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion));
 }
-
-// --------------------------------------------------------------------------------
-
-class ConfigNodeTest : public TestBase
-{
-protected:
-
-	const ConfigNode LoadConfigNode(const std::string& data)
-	{
-		return ConfigNode(LoadXMLBuffer(data).internal_object(), nullptr);
-	}
-
-};
-
-TEST_F(ConfigNodeTest, Empty)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-	EXPECT_FALSE(node.Empty());
-	EXPECT_TRUE(ConfigNode().Empty());
-}
-
-TEST_F(ConfigNodeTest, Child)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-	auto a = node.Child("a");
-	auto d = node.Child("d");
-	EXPECT_FALSE(a.Empty());
-	EXPECT_TRUE(d.Empty());
-}
-
-TEST_F(ConfigNodeTest, Value)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-	EXPECT_EQ(10, node.Child("a").Value<int>());
-	EXPECT_TRUE(ExpectNear(Math::Float(1.5), node.Child("b").Value<Math::Float>()));
-	EXPECT_EQ("world", node.Child("c").Value());
-	EXPECT_EQ("world", node.Child("c").Value<std::string>());
-}
-
-TEST_F(ConfigNodeTest, Value_Failed)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-	EXPECT_ANY_THROW(node.Child("c").Value<int>());
-}
-
-TEST_F(ConfigNodeTest, AttributeValue)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-	EXPECT_EQ("hello", node.AttributeValue("id"));
-}
-
-TEST_F(ConfigNodeTest, ChildValue)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-
-	int v1;
-	ASSERT_TRUE(node.ChildValue("a", v1));
-	EXPECT_EQ(10, v1);
-
-	Math::Float v2;
-	ASSERT_TRUE(node.ChildValue("b", v2));
-	EXPECT_TRUE(ExpectNear(Math::Float(1.5), v2));
-
-	std::string v3;
-	ASSERT_TRUE(node.ChildValue("c", v3));
-	EXPECT_EQ("world", v3);
-}
-
-TEST_F(ConfigNodeTest, ChildValueOrDefault)
-{
-	const auto node = LoadConfigNode(ConfigNodeData_1);
-
-	int v1;
-	ASSERT_TRUE(node.ChildValueOrDefault("a", 42, v1));
-	EXPECT_EQ(10, v1);
-	ASSERT_FALSE(node.ChildValueOrDefault("d", 42, v1));
-	EXPECT_EQ(42, v1);
-}
-
+	
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

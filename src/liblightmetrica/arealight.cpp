@@ -31,7 +31,7 @@
 #include <lightmetrica/pugihelper.h>
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/math.linalgebra.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -39,7 +39,7 @@ class AreaLight::Impl : public Object
 {
 public:
 
-	bool LoadAsset( const pugi::xml_node& node, const Assets& assets );
+	bool LoadAsset( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -57,17 +57,9 @@ private:
 
 };
 
-bool AreaLight::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool AreaLight::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
-	// 'luminance'
-	auto luminanceNode = node.child("luminance");
-	if (!luminanceNode)
-	{
-		LM_LOG_DEBUG("Missing 'luminance' element");
-		return false;
-	}
-	Le = PugiHelper::ParseVec3(luminanceNode);
-
+	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
 	return true;
 }
 
@@ -176,7 +168,7 @@ void AreaLight::RegisterPrimitives(const std::vector<Primitive*>& primitives)
 	p->RegisterPrimitives(primitives);
 }
 
-bool AreaLight::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool AreaLight::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

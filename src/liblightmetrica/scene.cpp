@@ -33,11 +33,10 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/math.h>
-#include <lightmetrica/pugihelper.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -51,7 +50,7 @@ public:
 public:
 	
 	void Reset();
-	bool Load(const pugi::xml_node& node, Assets& assets);
+	bool Load(const ConfigNode& node, Assets& assets);
 	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
 	int NumPrimitives() const { return static_cast<int>(primitives.size()); }
 	const Primitive* PrimitiveByIndex(int index) const;
@@ -64,10 +63,10 @@ public:
 private:
 
 	// Traverse the scene and create primitives.
-	bool Traverse(const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform);
+	bool Traverse(const ConfigNode& node, Assets& assets, const Math::Mat4& parentWorldTransform);
 
 	// Create transformation from the element 'transform'
-	Math::Mat4 ParseTransform(const pugi::xml_node& transformNode);
+	Math::Mat4 ParseTransform(const ConfigNode& transformNode);
 
 private:
 
@@ -102,7 +101,7 @@ void Scene::Impl::Reset()
 	idPrimitiveIndexMap.clear();
 }
 
-bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
+bool Scene::Impl::Load( const ConfigNode& node, Assets& assets )
 {
 	if (loaded)
 	{
@@ -111,22 +110,22 @@ bool Scene::Impl::Load( const pugi::xml_node& node, Assets& assets )
 	}
 
 	// Check the element name
-	if (std::strcmp(node.name(), "scene") != 0)
+	if (node.Name() != "scene")
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid element name '%s' (expected 'scene')") % node.name()));
+		LM_LOG_ERROR("Invalid element name '" + node.Name() + "' (expected 'scene')");
 		return false;
 	}
 
 	// Check the scene type
-	if (self->Type() != node.attribute("type").as_string())
+	if (node.AttributeValue("type") != self->Type())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid scene type '%s' (expected '%s')") % node.attribute("type").as_string() % self->Type()));
+		LM_LOG_ERROR("Invalid scene type '" + node.AttributeValue("type") + "' (expected '" + self->Type() + "')");
 		return false;
 	}
 
 	// Traverse 'root' element
-	auto rootNode = node.child("root");
-	if (!rootNode)
+	auto rootNode = node.Child("root");
+	if (rootNode.Empty())
 	{
 		LM_LOG_ERROR("Missing 'root' node");
 		return false;
@@ -199,7 +198,7 @@ bool Scene::Impl::LoadPrimitives( const std::vector<Primitive*>& primitives )
 	return true;
 }
 
-bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Math::Mat4& parentWorldTransform )
+bool Scene::Impl::Traverse( const ConfigNode& node, Assets& assets, const Math::Mat4& parentWorldTransform )
 {
 	//
 	// Process transform
@@ -207,31 +206,31 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	// Local transform
 	Math::Mat4 localTransform;
-	auto transformNode = node.child("transform");
-	if (transformNode)
-	{
-		// Create transform from the node
-		localTransform = ParseTransform(transformNode);
-	}
-	else
+	auto transformNode = node.Child("transform");
+	if (transformNode.Empty())
 	{
 		// If 'transform' node does not exists, use identity as local transform
 		localTransform = Math::Mat4::Identity();
 	}
+	else
+	{
+		// Create transform from the node
+		localTransform = ParseTransform(transformNode);
+	}
 
 	// World transform
 	Math::Mat4 transform;
-	auto globalTransformNode = node.child("global_transform");
-	if (globalTransformNode)
+	auto globalTransformNode = node.Child("global_transform");
+	if (globalTransformNode.Empty())
+	{
+		// Apply local transform
+		transform = parentWorldTransform * localTransform;
+	}
+	else
 	{
 		// If the 'global_transform' node exists, use it as the transform of the node.
 		// Local transform is ignored.
 		transform = ParseTransform(globalTransformNode);
-	}
-	else
-	{
-		// Apply local transform
-		transform = parentWorldTransform * localTransform;
 	}
 
 	// --------------------------------------------------------------------------------
@@ -243,19 +242,19 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	// Transform must be specified beforehand
 	std::unique_ptr<Primitive> primitive(new Primitive(transform));
 
-	auto cameraNode = node.child("camera");
-	auto lightNode = node.child("light");
+	auto cameraNode = node.Child("camera");
+	auto lightNode = node.Child("light");
 
 	// Camera and light element cannot be used in the same time
-	if (cameraNode && lightNode)
+	if (!cameraNode.Empty() && !lightNode.Empty())
 	{
 		LM_LOG_ERROR("'camera' and 'light' elements cannot be used in the same time");
-		LM_LOG_ERROR(PugiHelper::ElementInString(node));
+		//LM_LOG_ERROR(PugiHelper::ElementInString(node));
 		return false;
 	}
 
 	// Process light
-	if (lightNode)
+	if (!lightNode.Empty())
 	{
 		// Resolve the reference to the light
 		primitive->light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
@@ -270,7 +269,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	// Process camera
 	// If the camera is already found, ignore the seconds one
-	if (cameraNode && !mainCamera)
+	if (!cameraNode.Empty() && !mainCamera)
 	{
 		// Resolve the reference to the camera
 		primitive->camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
@@ -284,15 +283,15 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	}
 
 	// Process triangle mesh
-	auto triangleMeshNode = node.child("triangle_mesh");
-	if (triangleMeshNode)
+	auto triangleMeshNode = node.Child("triangle_mesh");
+	if (!triangleMeshNode.Empty())
 	{
 		// Triangle mesh must be associated with a bsdf
-		auto bsdfNode = node.child("bsdf");
-		if (!bsdfNode)
+		auto bsdfNode = node.Child("bsdf");
+		if (bsdfNode.Empty())
 		{
 			LM_LOG_ERROR("Missing 'bsdf' element");
-			LM_LOG_ERROR(PugiHelper::ElementInString(node));
+			//LM_LOG_ERROR(PugiHelper::ElementInString(node));
 			return false;
 		}
 
@@ -313,8 +312,7 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 
 	if (primitive->camera || primitive->light || primitive->mesh)
 	{
-		auto idAttr = node.attribute("id");
-		std::string id = idAttr.as_string();
+		auto id = node.AttributeValue("id");
 
 		LM_LOG_INFO("Creating primitive (id : '" + id + "')");
 		{
@@ -333,13 +331,13 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 			primitives.push_back(std::move(primitive));
 
 			// Optionally, register ID for the primitive, if 'id' attribute exists
-			if (idAttr)
+			if (!id.empty())
 			{
 				// Check if already exists
 				if (idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end())
 				{
 					LM_LOG_ERROR(boost::str(boost::format("ID '%s' for the node is already used") % id));
-					LM_LOG_ERROR(PugiHelper::StartElementInString(node));
+					//LM_LOG_ERROR(PugiHelper::StartElementInString(node));
 					return false;
 				}
 
@@ -355,16 +353,16 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	//
 
 	// Leaf node cannot have children
-	bool isLeaf = lightNode || cameraNode || triangleMeshNode;
-	if (node.child("node") && isLeaf)
+	bool isLeaf = !lightNode.Empty() || !cameraNode.Empty() || !triangleMeshNode.Empty();
+	if (!node.Child("node").Empty() && isLeaf)
 	{
 		LM_LOG_ERROR("Leaf node cannot have children");
-		LM_LOG_ERROR(PugiHelper::ElementInString(node));
+		//LM_LOG_ERROR(PugiHelper::ElementInString(node));
 		return false;
 	}
 
 	// Process children
-	for (auto child : node.children("node"))
+	for (auto child = node.Child("node"); !child.Empty(); child = child.NextChild("node"))
 	{
 		if (!Traverse(child, assets, transform))
 		{
@@ -375,27 +373,27 @@ bool Scene::Impl::Traverse( const pugi::xml_node& node, Assets& assets, const Ma
 	return true;
 }
 
-Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
+Math::Mat4 Scene::Impl::ParseTransform( const ConfigNode& transformNode )
 {
 	// Default transform
 	auto transform = Math::Mat4::Identity();
 
 	// The element 'matrix' specifies column major, 4x4 matrix
-	auto matrixNode = transformNode.child("matrix");
-	if (matrixNode)
+	auto matrixNode = transformNode.Child("matrix");
+	if (!matrixNode.Empty())
 	{
-		transform = PugiHelper::ParseMat4(matrixNode);
+		transform = matrixNode.Value<Math::Mat4>();
 	}
 	else
 	{
 		// The element 'lookat' offers useful transform especially for the camera node
-		auto lookAtNode = transformNode.child("lookat");
-		if (lookAtNode)
+		auto lookAtNode = transformNode.Child("lookat");
+		if (!lookAtNode.Empty())
 		{
 			// Position, center, up
-			auto position = PugiHelper::ParseVec3(lookAtNode.child("position"));
-			auto center = PugiHelper::ParseVec3(lookAtNode.child("center"));
-			auto up = PugiHelper::ParseVec3(lookAtNode.child("up"));
+			auto position = lookAtNode.Child("position").Value<Math::Vec3>();
+			auto center = lookAtNode.Child("center").Value<Math::Vec3>();
+			auto up = lookAtNode.Child("up").Value<Math::Vec3>();
 
 			// Create transform
 			transform = Math::LookAt(position, center, up);
@@ -408,27 +406,27 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 			auto scaleMat = Math::Mat4::Identity();
 
 			// 'translate' node 
-			auto translateNode = transformNode.child("translate");
-			if (translateNode)
+			auto translateNode = transformNode.Child("translate");
+			if (!translateNode.Empty())
 			{
-				translateMat = Math::Translate(PugiHelper::ParseVec3(translateNode));
+				translateMat = Math::Translate(translateNode.Value<Math::Vec3>());
 			}
 
 			// 'rotate' node
-			auto rotateNode = transformNode.child("rotate");
-			if (rotateNode)
+			auto rotateNode = transformNode.Child("rotate");
+			if (!rotateNode.Empty())
 			{
 				// 'matrix' node
-				auto matrixNode = rotateNode.child("matrix");
-				if (matrixNode)
+				auto matrixNode = rotateNode.Child("matrix");
+				if (!matrixNode.Empty())
 				{
-					rotateMat = PugiHelper::ParseMat4(matrixNode);
+					rotateMat = matrixNode.Value<Math::Mat4>();
 				}
 				else
 				{
 					// 'quat' node
-					auto quatNode = rotateNode.child("quat");
-					if (quatNode)
+					auto quatNode = rotateNode.Child("quat");
+					if (!quatNode.Empty())
 					{
 						throw std::runtime_error("not implemented");
 						//translateMat = ;
@@ -436,18 +434,18 @@ Math::Mat4 Scene::Impl::ParseTransform( const pugi::xml_node& transformNode )
 					else
 					{
 						// 'angle' and 'axis'
-						auto angle = Math::Float(std::stod(rotateNode.child("angle").child_value()));
-						auto axis = PugiHelper::ParseVec3(rotateNode.child("axis"));
+						auto angle = rotateNode.Child("angle").Value<Math::Float>();
+						auto axis = rotateNode.Child("axis").Value<Math::Vec3>();
 						rotateMat = Math::Rotate(angle, axis);
 					}
 				}
 			}
 
 			// 'scale' node
-			auto scaleNode = transformNode.child("scale");
-			if (scaleNode)
+			auto scaleNode = transformNode.Child("scale");
+			if (!scaleNode.Empty())
 			{
-				scaleMat = Math::Scale(PugiHelper::ParseVec3(scaleNode));
+				scaleMat = Math::Scale(scaleNode.Value<Math::Vec3>());
 			}
 
 			// Create combined transform
@@ -537,14 +535,9 @@ Scene::~Scene()
 	LM_SAFE_DELETE(p);
 }
 
-bool Scene::Load( const pugi::xml_node& node, Assets& assets )
+bool Scene::Load( const ConfigNode& node, Assets& assets )
 {
 	return p->Load(node, assets);
-}
-
-bool Scene::Load( const Config& config, Assets& assets )
-{
-	return p->Load(config.SceneElement(), assets);
 }
 
 void Scene::Reset()
@@ -583,11 +576,6 @@ const Camera* Scene::MainCamera() const
 void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
 {
 	p->StoreIntersectionFromBarycentricCoords(primitiveIndex, triangleIndex, ray, b, isect);
-}
-
-bool Scene::Configure( const Config& config )
-{
-	return Configure(config.SceneElement());
 }
 
 int Scene::NumLights() const

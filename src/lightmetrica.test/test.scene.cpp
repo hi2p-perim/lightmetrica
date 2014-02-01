@@ -29,6 +29,7 @@
 #include <lightmetrica.test/stub.bsdf.h>
 #include <lightmetrica.test/stub.trianglemesh.h>
 #include <lightmetrica.test/stub.assets.h>
+#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/trianglemesh.h>
@@ -124,7 +125,7 @@ public:
 	virtual bool Intersect( Ray& ray, Intersection& isect ) const { return false; }
 	virtual std::string Type() const { return "stub"; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
-	virtual bool Configure( const pugi::xml_node& node ) { return true; }
+	virtual bool Configure( const ConfigNode& node ) { return true; }
 	virtual void ResetScene() {}
 
 };
@@ -147,12 +148,13 @@ protected:
 
 	StubAssets_SceneTest assets;
 	StubScene scene;
+	StubConfig config;
 
 };
 
 TEST_F(SceneTest, Load)
 {
-	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success), assets));
+	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success), assets));
 
 	const auto* node1 = scene.PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
@@ -169,7 +171,7 @@ TEST_F(SceneTest, Load)
 
 TEST_F(SceneTest, Load_WithTransformByMatrix)
 {
-	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransformByMatrix), assets));
+	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransformByMatrix), assets));
 	
 	const auto* node1 = scene.PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
@@ -186,7 +188,7 @@ TEST_F(SceneTest, Load_WithTransformByMatrix)
 
 TEST_F(SceneTest, Load_WithTransform)
 {
-	EXPECT_TRUE(scene.Load(LoadXMLBuffer(SceneNode_Success_WithTransform), assets));
+	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransform), assets));
 
 	const auto* node1 = scene.PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);

@@ -22,7 +22,8 @@
 	THE SOFTWARE.
 */
 
-#include <lightmetrica/config.h>
+#include <lightmetrica/defaultconfig.h>
+#include <lightmetrica/confignode.h>
 #include <lightmetrica/rendererdispatcher.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/defaultassets.h>
@@ -244,7 +245,7 @@ bool NanonApplication::Run()
 	// --------------------------------------------------------------------------------
 
 	// Load input file
-	Config config;
+	DefaultConfig config;
 	LM_LOG_INFO("Entering : Configuration loading");
 	{
 		LM_LOG_INDENTER();
@@ -276,7 +277,7 @@ bool NanonApplication::Run()
 		auto conn = assets.Connect_ReportProgress(std::bind(&NanonApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
 		
 		LM_LOG_INDENTER();
-		if (!assets.Load(config))
+		if (!assets.Load(config.Root().Child("assets")))
 		{
 			return false;
 		}
@@ -293,7 +294,7 @@ bool NanonApplication::Run()
 
 	// Create scene
 	SceneFactory sceneFactory;
-	std::unique_ptr<Scene> scene(sceneFactory.Create(config.SceneType()));
+	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
 	if (scene == nullptr)
 	{
 		return false;
@@ -303,7 +304,7 @@ bool NanonApplication::Run()
 	LM_LOG_INFO("Entering : Scene loading");
 	{
 		LM_LOG_INDENTER();
-		if (!scene->Load(config, assets))
+		if (!scene->Load(config.Root().Child("scene"), assets))
 		{
 			return false;
 		}
@@ -316,7 +317,7 @@ bool NanonApplication::Run()
 	{
 		LM_LOG_INDENTER();
 		LM_LOG_INFO("Scene type : '" + scene->Type() + "'");
-		if (!scene->Configure(config))
+		if (!scene->Configure(config.Root().Child("scene")))
 		{
 			return false;
 		}
@@ -349,7 +350,7 @@ bool NanonApplication::Run()
 
 	// Create renderer
 	RendererFactory rendererFactory;
-	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.RendererType()));
+	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.Root().Child("renderer").AttributeValue("type")));
 	if (renderer == nullptr)
 	{
 		return false;
@@ -360,7 +361,7 @@ bool NanonApplication::Run()
 	{
 		LM_LOG_INDENTER();
 		LM_LOG_INFO("Renderer type : '" + renderer->Type() + "'");
-		if (!renderer->Configure(config, assets))
+		if (!renderer->Configure(config.Root().Child("renderer"), assets))
 		{
 			return false;
 		}

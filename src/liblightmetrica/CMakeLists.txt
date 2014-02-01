@@ -33,6 +33,8 @@ set(
 	"${_INCLUDE_DIR}/object.h"
 	"${_INCLUDE_DIR}/align.h"
 	"${_INCLUDE_DIR}/config.h"
+	"${_INCLUDE_DIR}/confignode.h"
+	"${_INCLUDE_DIR}/defaultconfig.h"
 	"${_INCLUDE_DIR}/logger.h"
 	"${_INCLUDE_DIR}/version.h"
 	"${_INCLUDE_DIR}/pugihelper.h"
@@ -48,7 +50,8 @@ set(
 	_SOURCE_FILES
 	"object.cpp"
 	"align.cpp"
-	"config.cpp"
+	"confignode.cpp"
+	"defaultconfig.cpp"
 	"logger.cpp"
 	"version.cpp"
 	"pugihelper.cpp"
@@ -253,7 +256,6 @@ set(
 )
 set(
 	_RENDERER_SOURCES
-	"renderer.cpp"
 	"rendererfactory.cpp"
 	"raycast.cpp"
 	"pathtrace.cpp"

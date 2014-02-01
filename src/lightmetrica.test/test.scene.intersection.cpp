@@ -33,6 +33,7 @@
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/math.functions.h>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
@@ -74,7 +75,7 @@ protected:
 
 		// Load & build
 		EXPECT_TRUE(scene->LoadPrimitives(primitives));
-		EXPECT_TRUE(scene->Configure(pugi::xml_node()));
+		EXPECT_TRUE(scene->Configure(ConfigNode()));
 		EXPECT_TRUE(scene->Build());
 
 		return std::shared_ptr<Scene>(scene);
@@ -194,7 +195,7 @@ TEST_F(SceneIntersectionTest, Consistency)
 
 			// Load & configure & build
 			EXPECT_TRUE(scene->LoadPrimitives(primitives));
-			EXPECT_TRUE(scene->Configure(pugi::xml_node()));
+			EXPECT_TRUE(scene->Configure(ConfigNode()));
 			EXPECT_TRUE(scene->Build());
 
 			for (int i = 1; i < Steps; i++)

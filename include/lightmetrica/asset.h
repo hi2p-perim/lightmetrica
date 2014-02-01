@@ -28,14 +28,10 @@
 
 #include "object.h"
 
-namespace pugi
-{
-	class xml_node;
-};
-
 LM_NAMESPACE_BEGIN
 
 class Assets;
+class ConfigNode;
 
 /*!
 	Asset.
@@ -68,7 +64,7 @@ public:
 		\param node XML node for the configuration.
 		\param assets Asset manager.
 	*/
-	bool Load(const pugi::xml_node& node, const Assets& assets);
+	bool Load(const ConfigNode& node, const Assets& assets);
 
 	/*!
 		Get ID of the asset.
@@ -94,10 +90,10 @@ protected:
 
 	/*!
 		Implementation specific load function.
-		\param node XML node for the configuration.
+		\param node Configuration node.
 		\param assets Asset manager.
 	*/
-	virtual bool LoadAsset(const pugi::xml_node& node, const Assets& assets) = 0;
+	virtual bool LoadAsset(const ConfigNode& node, const Assets& assets) = 0;
 
 private:
 

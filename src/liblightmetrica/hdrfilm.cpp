@@ -25,7 +25,7 @@
 #include "pch.h"
 #include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/logger.h>
-#include <pugixml.hpp>
+#include <lightmetrica/confignode.h>
 #include <FreeImage.h>
 
 LM_NAMESPACE_BEGIN
@@ -41,7 +41,7 @@ class HDRBitmapFilm::Impl : public Object
 public:
 
 	Impl(HDRBitmapFilm* self);
-	bool LoadAsset(const pugi::xml_node& node, const Assets& assets);
+	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 	int Width() const { return width; }
 	int Height() const { return height; }
 	bool Save();
@@ -72,72 +72,34 @@ HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
 	
 }
 
-bool HDRBitmapFilm::Impl::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
-	// Check name and type
-	if (node.name() != self->Name())
-	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid node name '%s'") % node.name()));
-		return false;
-	}
-
-	if (node.attribute("type").as_string() != self->Type())
-	{
-		LM_LOG_ERROR(boost::str(boost::format("Invalid film type '%s'") % node.attribute("type").as_string()));
-		return false;
-	}
-
-	// Find 'width' element
-	auto widthNode = node.child("width");
-	if (!widthNode)
-	{
-		LM_LOG_ERROR("Missing 'width' element");
-		return false;
-	}
-
-	// Find 'height' element
-	auto heightNode = node.child("height");
-	if (!heightNode)
-	{
-		LM_LOG_ERROR("Missing 'height' element");
-		return false;
-	}
-
-	// Find 'path' element
-	auto pathNode = node.child("path");
-	if (!pathNode)
-	{
-		LM_LOG_ERROR("Missing 'path' element");
-		return false;
-	}
-
-	// Store values
-	width = std::stoi(widthNode.child_value());
-	height = std::stoi(heightNode.child_value());
-	path = pathNode.child_value();
+	if (!node.ChildValue("width",	width))		return false;
+	if (!node.ChildValue("height",	height))	return false;
+	if (!node.ChildValue("path",	path))		return false;
 
 	// Find 'image_type' element (optional)
-	auto imageTypeNode = node.child("imagetype");
-	if (!imageTypeNode)
+	auto imageTypeNode = node.Child("imagetype");
+	if (imageTypeNode.Empty())
 	{
 		// Use .hdr as default type
 		type = ImageType::RadianceHDR;
 	}
 	else
 	{
-		if (std::strcmp("radiancehdr", imageTypeNode.child_value()) == 0)
+		if (imageTypeNode.Value() == "radiancehdr")
 		{
 			// Image type is .hdr (Radiance HDR)
 			type = ImageType::RadianceHDR;
 		}
-		else if (std::strcmp("openexr", imageTypeNode.child_value()) == 0)
+		else if (imageTypeNode.Value() == "openexr")
 		{
 			// Image type is .exr (OpenEXR)
 			type = ImageType::OpenEXR;
 		}
 		else
 		{
-			LM_LOG_ERROR(boost::str(boost::format("Invalid image type '%s'") % imageTypeNode.child_value()));
+			LM_LOG_ERROR("Invalid image type '" + imageTypeNode.Value() + "'");
 			return false;
 		}
 	}
@@ -341,7 +303,7 @@ void HDRBitmapFilm::AccumulateContribution( const Film* film )
 	p->AccumulateContribution(film);
 }
 
-bool HDRBitmapFilm::LoadAsset( const pugi::xml_node& node, const Assets& assets )
+bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }

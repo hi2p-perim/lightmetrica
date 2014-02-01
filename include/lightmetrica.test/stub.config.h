@@ -22,53 +22,50 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/renderer.h>
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
+#define __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
+
+#include "common.h"
 #include <lightmetrica/config.h>
-#include <lightmetrica/assets.h>
+#include <lightmetrica/confignode.h>
+#include <lightmetrica/logger.h>
 #include <pugixml.hpp>
+#include <gtest/gtest.h>
 
 LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-class Renderer::Impl : public Object
+class StubConfig : public Config
 {
 public:
 
-	Impl();
-	~Impl();
+	virtual bool Load( const std::string& path ) { return false; }
+
+	virtual bool LoadFromString( const std::string& data )
+	{
+		auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
+		if (!result) LM_LOG_ERROR(result.description());
+		return result;
+	}
+
+	virtual ConfigNode Root() const { return ConfigNode(doc.root().internal_object(), this); }
+
+public:
+
+	ConfigNode LoadFromStringAndGetFirstChild(const std::string& data)
+	{
+		EXPECT_TRUE(LoadFromString(data));
+		return ConfigNode(doc.first_child().internal_object(), this);
+	}
 
 private:
 
-	
+	pugi::xml_document doc;
 
 };
 
-Renderer::Impl::Impl()
-{
-
-}
-
-Renderer::Impl::~Impl()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-Renderer::Renderer()
-	: p(new Impl)
-{
-
-}
-
-Renderer::~Renderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool Renderer::Configure( const Config& config, const Assets& assets )
-{
-	return Configure(config.RendererElement(), assets);
-}
-
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
