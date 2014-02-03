@@ -267,7 +267,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 								if (!Math::IsZero(bsdf))
 								{
 									// Compute geometry factor
-									// TODO : Think about the case with the position of E is not degenerated
+									// TODO : Think about the case that the position of E is not degenerated
 									Math::Float G = Math::CosThetaZUp(bsdfEQ.wo) / dl / dl;
 
 									// Evaluate contribution and accumulate
