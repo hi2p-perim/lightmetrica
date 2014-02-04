@@ -117,6 +117,7 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 
 	Ray ray;
 	Math::PDFEval _;
+	Math::Vec3 gn;
 
 	// Primitive 1
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
@@ -124,15 +125,15 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (0, 0, 0), d = (0, 0, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, _);
-	camera.SampleDirection(Math::Vec2(0.5), ray.o, ray.d, _);
+	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
+	camera.SampleDirection(Math::Vec2(0.5), ray.o, gn, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, -1), ray.d));
 
 	// Raster position (1, 1)
 	// -> Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, _);
-	camera.SampleDirection(Math::Vec2(1), ray.o, ray.d, _);
+	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
+	camera.SampleDirection(Math::Vec2(1), ray.o, gn, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), ray.d));
 
@@ -142,8 +143,8 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 	
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, _);
-	camera.SampleDirection(Math::Vec2(0.5), ray.o, ray.d, _);
+	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
+	camera.SampleDirection(Math::Vec2(0.5), ray.o, gn, ray.d, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1), ray.o));
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
 }

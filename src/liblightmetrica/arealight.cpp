@@ -46,6 +46,10 @@ public:
 	Math::Vec3 EvaluateLe(const Math::Vec3& d, const Math::Vec3& gn) const;
 	void RegisterPrimitives(const std::vector<Primitive*>& primitives);
 	void Sample(const LightSampleQuery& query, LightSampleResult& result) const;
+	Math::Vec3 EvaluatePositionalLe(const Math::Vec3& p) const;
+	void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const;
+	void SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const;
+	Math::Vec3 EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const;
 	
 private:
 
@@ -144,6 +148,56 @@ void AreaLight::Impl::Sample( const LightSampleQuery& query, LightSampleResult& 
 		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
+Math::Vec3 AreaLight::Impl::EvaluatePositionalLe( const Math::Vec3& p ) const
+{
+	return Le * Math::Constants::Pi();
+}
+
+Math::Vec3 AreaLight::Impl::EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const
+{
+	return Math::Dot(d, gn) < Math::Float(0)
+		? Math::Vec3()
+		: Math::Vec3(Math::Constants::InvPi());
+}
+
+void AreaLight::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
+{
+	Math::Vec2 ps(sampleP);
+
+	// Choose a primitive according to the area
+	int index =
+		Math::Clamp(
+		static_cast<int>(std::upper_bound(triangleAreaCdf.begin(), triangleAreaCdf.end(), ps.y) - triangleAreaCdf.begin() - 1),
+		0, static_cast<int>(triangleAreaCdf.size()) - 2);
+
+	// Reuse sample
+	ps.y = (ps.y - triangleAreaCdf[index]) / (triangleAreaCdf[index+1] - triangleAreaCdf[index]);
+
+	// Triangle vertex positions
+	const auto& p1 = std::get<0>(triangles[index]);
+	const auto& p2 = std::get<1>(triangles[index]);
+	const auto& p3 = std::get<2>(triangles[index]);
+
+	// Sample position
+	auto b = Math::UniformSampleTriangle(ps);
+	p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
+	gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+	pdf = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Discrete);
+}
+
+void AreaLight::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
+{
+	// Sample direction
+	Math::Vec3 s, t;
+	Math::OrthonormalBasis(gn, s, t);
+	auto localToWorld = Math::Mat3(s, t, gn);
+	auto localDir = Math::CosineSampleHemisphere(sampleD);
+	d = localToWorld * localDir;
+
+	// Note : Here we use solid angle measure
+	pdf = Math::PDFEval(Math::CosineSampleHemispherePDF(localDir).v, Math::ProbabilityMeasure::SolidAngle);
+}
+
 // --------------------------------------------------------------------------------
 
 AreaLight::AreaLight(const std::string& id)
@@ -176,6 +230,26 @@ bool AreaLight::LoadAsset( const ConfigNode& node, const Assets& assets )
 void AreaLight::Sample( const LightSampleQuery& query, LightSampleResult& result ) const
 {
 	return p->Sample(query, result);
+}
+
+Math::Vec3 AreaLight::EvaluatePositionalLe( const Math::Vec3& p ) const
+{
+	return this->p->EvaluatePositionalLe(p);
+}
+
+void AreaLight::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
+{
+	this->p->SamplePosition(sampleP, p, gn, pdf);
+}
+
+void AreaLight::SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
+{
+	this->p->SampleDirection(sampleD, p, gn, d, pdf);
+}
+
+Math::Vec3 AreaLight::EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const
+{
+	return this->p->EvaluateDirectionalLe(p, gn, d);
 }
 
 LM_NAMESPACE_END

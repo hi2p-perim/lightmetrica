@@ -41,17 +41,72 @@
 
 LM_NAMESPACE_BEGIN
 
+enum Subpath
+{
+	E = 0,		//!< Eye sub-path.
+	L = 1		//!< Light sub-path.
+};
+
+struct GeneralizedBSDFSampleQuery
+{
+
+	Math::Vec2 sample;				//!< Uniform random numbers.
+
+	int subpath;					//!< Which sub-path to be evaluated?
+	int pathLength;					//!< Path length of specified sub-path.
+	
+	Math::Vec3 p;					//!< Current position.
+	Math::Vec3 gn;					//!< Geometry normal at #p.
+	Math::Vec3 wi;					//!< Input direction.
+
+	const Camera* camera;			//!< Camera.
+	const Light* light;				//!< Light.
+	Intersection isect;				//!< Current intersection structure for specified sub-path.
+
+};
+
+struct GeneralizedBSDFSampleResult
+{
+
+	Math::Vec3 wo;					//!< Sampled outgoing direction.
+	Math::PDFEval pdf;				//!< Evaluated PDF.
+
+};
+
+struct GeneralizedBSDFEvaluateQuery
+{
+
+	GeneralizedBSDFEvaluateQuery() {}
+	GeneralizedBSDFEvaluateQuery(const GeneralizedBSDFSampleQuery& query, const GeneralizedBSDFSampleResult& result)
+		: subpath(query.subpath)
+		, pathLength(query.pathLength)
+		, p(query.p)
+		, gn(query.gn)
+		, wi(query.wi)
+		, wo(result.wo)
+		, camera(query.camera)
+		, light(query.light)
+		, isect(query.isect)
+	{
+
+	}
+
+	int subpath;					//!< Which sub-path to be evaluated?
+	int pathLength;					//!< Path length of specified sub-path.
+
+	Math::Vec3 p;					//!< Current position.
+	Math::Vec3 gn;					//!< Geometry normal at #p.
+	Math::Vec3 wi;					//!< Input direction.
+	Math::Vec3 wo;					//!< Outgoing direction.
+
+	const Camera* camera;			//!< Camera.
+	const Light* light;				//!< Light.
+	Intersection isect;				//!< Current intersection structure for specified sub-path.
+
+};
+
 class SimpleBidirectionalPathtraceRenderer::Impl : public Object
 {
-public:
-
-	//! Identifier of sub-paths.
-	enum Subpath
-	{
-		E = 0,		//!< Eye sub-path.
-		L = 1		//!< Light sub-path.
-	};
-
 public:
 
 	Impl(SimpleBidirectionalPathtraceRenderer* self);
@@ -69,7 +124,19 @@ private:
 		Ordinary BSDF + directional component of We and Le,
 		which reduces troublesome case analysis.
 	*/
-	Math::Vec3 EvaluateGeneralizedBSDF(int subpath, Math::Vec3 currP[2], Math::Vec3 prevP[2], int pathLength[2], Intersection currIsect[2], const Light* camera, const Light* light) const;
+	Math::Vec3 EvaluateGeneralizedBSDF(const GeneralizedBSDFEvaluateQuery& query) const;
+
+	/*
+		Sample generalized BSDF.
+		Sampling from ordinary BSDF or We or Le according to path length.
+	*/
+	bool SampleGeneralizedBSDF(const GeneralizedBSDFSampleQuery& query, GeneralizedBSDFSampleResult& result) const;
+
+	/*
+		Evaluate generalized geometry term.
+		Ordinary geometry term + degeneration support.
+	*/
+	Math::Float EvaluateGeneralizedGeometryTerm(Math::Vec3 currP[2], Math::Vec3 currGN[2], int pathLength[2]) const;
 
 private:
 
@@ -82,6 +149,12 @@ private:
 	int samplesPerBlock;	// Samples to be processed per block
 
 };
+
+SimpleBidirectionalPathtraceRenderer::Impl::Impl( SimpleBidirectionalPathtraceRenderer* self )
+	: self(self)
+{
+
+}
 
 bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
 {
@@ -152,10 +225,11 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 		for (int sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			Math::Vec3 pE;
+			Math::Vec3 gnE;
 			Math::PDFEval pdfPE;
 
 			// Sample position on the camera
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, pdfPE);
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, gnE, pdfPE);
 			
 			// Evaluate We^{(0)} (positional component of We)
 			auto positionalWe = scene.MainCamera()->EvaluatePositionalWe(pE);
@@ -163,13 +237,14 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			// --------------------------------------------------------------------------------
 
 			Math::Vec3 pL;
+			Math::Vec3 gnL;
 			Math::PDFEval pdfPL;
 
 			// Sample a position on the light
 			auto lightSampleP = rng->NextVec2();
 			Math::PDFEval lightSelectionPdf;
 			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-			light->SamplePosition(lightSampleP, pE, pdfPL);
+			light->SamplePosition(lightSampleP, pL, gnL, pdfPL);
 			pdfPL.v /= lightSelectionPdf.v;
 
 			// Evaluate Le^{(0)} (positional component of Le)
@@ -186,48 +261,84 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			// Current intersection structures
 			Intersection currIsect[2];
 
-			// Current and previous positions
+			// Current and previous positions and geometry normals
 			Math::Vec3 currP[2] = { pE, pL };
-			Math::Vec3 prevP[2];
+			Math::Vec3 currGN[2] = { gnE, gnL };
+			Math::Vec3 currWi[2];
 
 			// Flag of zero contribution
 			bool zeroContrb = false;
 
+			// Raster position
+			Math::Vec2 rasterPos;
+
 			while (true)
 			{
-				// Two sub-paths increase its length alternatively
-				bool lengthChanged[2] = { 0 };
-				for (int subpath = 0; subpath < 2; subpath++)
-				{
-					// Check connectivity between #pE and #pL
-					Ray shadowRay;
-					auto pEpL = currIsect[Subpath::L].p - currIsect[Subpath::E].p;
-					auto pEpL_Length = Math::Length(pEpL);
-					shadowRay.o = pE;
-					shadowRay.d = pEpL / pEpL_Length;
-					shadowRay.minT = Math::Constants::Eps();
-					shadowRay.maxT = pEpL_Length * (Math::Float(1) - Math::Constants::Eps());
+				// Check connectivity between #pE and #pL
+				Ray shadowRay;
+				auto pEpL = currP[Subpath::L] - currP[Subpath::E];
+				auto pEpL_Length = Math::Length(pEpL);
+				shadowRay.o = currP[Subpath::E];
+				shadowRay.d = pEpL / pEpL_Length;
+				shadowRay.minT = Math::Constants::Eps();
+				shadowRay.maxT = pEpL_Length * (Math::Float(1) - Math::Constants::Eps());
 
-					Intersection shadowIsect;
-					if (!scene.Intersect(shadowRay, shadowIsect))
+				Intersection shadowIsect;
+				if (!scene.Intersect(shadowRay, shadowIsect))
+				{
+					bool visible = true;
+					if (pathLength[Subpath::E] == 0)
+					{
+						// If the length of eye sub-path is zero, compute raster position here
+						visible = scene.MainCamera()->RayToRasterPosition(shadowRay.o, shadowRay.d, rasterPos);
+					}
+
+					// If visible in the screen ..
+					if (visible)
 					{
 						// Generalized BSDFs
-						auto fsE = EvaluateGeneralizedBSDF(Subpath::E, pathLength, currIsect, light);
-						auto fsL = EvaluateGeneralizedBSDF(Subpath::L, pathLength, currIsect, light);
+						GeneralizedBSDFEvaluateQuery bsdfEQ;
+						bsdfEQ.camera = scene.MainCamera();
+						bsdfEQ.light = light;
+
+						// fsE
+						bsdfEQ.subpath = Subpath::E;
+						bsdfEQ.pathLength = pathLength[Subpath::E];
+						bsdfEQ.p = currP[Subpath::E];
+						bsdfEQ.gn = currGN[Subpath::E];
+						bsdfEQ.wi = currWi[Subpath::E];
+						bsdfEQ.wo = shadowRay.d;
+						bsdfEQ.isect = currIsect[Subpath::E];
+						auto fsE = EvaluateGeneralizedBSDF(bsdfEQ);
+
+						// fsL
+						bsdfEQ.subpath = Subpath::L;
+						bsdfEQ.pathLength = pathLength[Subpath::L];
+						bsdfEQ.p = currP[Subpath::L];
+						bsdfEQ.gn = currGN[Subpath::L];
+						bsdfEQ.wi = currWi[Subpath::L];
+						bsdfEQ.wo = -shadowRay.d;
+						bsdfEQ.isect = currIsect[Subpath::L];
+						auto fsL = EvaluateGeneralizedBSDF(bsdfEQ);
 
 						// Geometry term
-						auto G = EvaluateGeneralizedGeometryTerm();
+						auto G = EvaluateGeneralizedGeometryTerm(currP, currGN, pathLength);
 
 						// Evaluate contribution and accumulate to film
 						auto contrb = throughput[Subpath::E] * fsE * G * fsL * throughput[Subpath::L];
 						film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 					}
+				}
 
-					// --------------------------------------------------------------------------------
+				// --------------------------------------------------------------------------------
 
+				// Two sub-paths increase its length alternatively
+				bool lengthChanged[2] = { 0 };
+				for (int subpath = 0; subpath < 1; subpath++)
+				{
 					// Russian roulette
-					if (pathLength[subpath] >= rrDepth)
-					{
+					//if (pathLength[subpath] >= rrDepth)
+					//{
 						auto p = Math::Min(Math::Float(0.5), Math::Luminance(throughput[subpath]));
 						if (rng->Next() > p)
 						{
@@ -240,25 +351,55 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 							lengthChanged[subpath] = true;
 							throughput[subpath] /= p;
 						}
-					}
+					//}
 
 					// --------------------------------------------------------------------------------
 
 					// Sample generalized BSDF
-					Ray ray;
-					if (!SampleGeneralizedBSDF())
+					GeneralizedBSDFSampleQuery bsdfSQ;
+					bsdfSQ.sample = rng->NextVec2();
+					bsdfSQ.subpath = subpath;
+					bsdfSQ.pathLength = pathLength[subpath];
+					bsdfSQ.gn = currGN[subpath];
+					bsdfSQ.wi = currWi[subpath];
+					bsdfSQ.camera = scene.MainCamera();
+					bsdfSQ.light = light;
+					bsdfSQ.isect = currIsect[subpath];
+
+					GeneralizedBSDFSampleResult bsdfSR;
+					if (!SampleGeneralizedBSDF(bsdfSQ, bsdfSR))
 					{
 						zeroContrb = true;
 						break;
 					}
 					
 					// Evaluate generalized BSDF
-					auto fs = EvaluateGeneralizedBSDF();
-					
+					auto fs = EvaluateGeneralizedBSDF(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR));
+					if (Math::IsZero(fs))
+					{
+						zeroContrb = true;
+						break;
+					}
+
 					// Update throughput
-					throughput[subpath] *= fs * Math::CosThetaZUp(wo) / bsdfPdf.pdf.v;
+					// Evaluation of generalized BSDF may evaluate its PDF in two measures (for degeneration support)
+					if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
+					{
+						throughput[subpath] *= fs * Math::Dot(currGN[subpath], bsdfSR.wo) / bsdfSR.pdf.v;
+					}
+					else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
+					{
+						throughput[subpath] *= fs / bsdfSR.pdf.v;
+					}
 
 					// --------------------------------------------------------------------------------
+
+					// Setup next ray
+					Ray ray;
+					ray.d = bsdfSR.wo;
+					ray.o = currP[subpath];
+					ray.minT = Math::Constants::Eps();
+					ray.maxT = Math::Constants::Inf();
 
 					// Intersection query
 					Intersection isect;
@@ -268,12 +409,25 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 						break;
 					}
 
-					// Update #pE or #pL and intersection structure
+					// --------------------------------------------------------------------------------
+
+					// Compute raster position if current length of eye sub-path is zero
+					if (subpath == Subpath::E && pathLength[Subpath::E] == 0 && !scene.MainCamera()->RayToRasterPosition(ray.o, ray.d, rasterPos))
+					{
+						zeroContrb = true;
+						break;
+					}
+
+					// Update information
+					// TODO : It seems very ugly... Somehow fix it
 					currIsect[subpath] = isect;
-					prevP[subpath] = currP[subpath];
 					currP[subpath] = isect.p;
+					currGN[subpath] = isect.gn;
+					currWi[subpath] = -ray.d;
 					pathLength[subpath]++;
 				}
+
+				// --------------------------------------------------------------------------------
 
 				// Terminates if the lengths of the sub-paths do not change
 				// or the path with zero contribution is generated
@@ -299,51 +453,95 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-Math::Vec3 SimpleBidirectionalPathtraceRenderer::Impl::EvaluateGeneralizedBSDF( int subpath, Math::Vec3 currP[2], Math::Vec3 prevP[2], int pathLength[2], Intersection currIsect[2], const Light* camera, const Light* light ) const
+Math::Vec3 SimpleBidirectionalPathtraceRenderer::Impl::EvaluateGeneralizedBSDF( const GeneralizedBSDFEvaluateQuery& query ) const
 {
-	// Current and previous positions
-	// Order : ppE -> pE -> pL -> ppL
-	const auto& pE = currP[Subpath::E];
-	const auto& pL = currP[Subpath::L];
-	const auto& ppE = prevP[Subpath::E];
-	const auto& ppL = prevP[Subpath::L];
-
-	// Intersections
-	const auto& isectE = currIsect[Subpath::E];
-	const auto& isectL = currIsect[Subpath::L];
-
-	if (subpath == Subpath::E)
+	if (query.pathLength == 0)
 	{
-		// Query for eye sub-path
-		if (pathLength[Subpath::E] == 0)
+		if (query.subpath == Subpath::E)
 		{
 			// Evaluate directional component of We
-			return camera->EvaluateDirectionalWe(pE, Math::Normalize(pL - pE));
+			return query.camera->EvaluateDirectionalWe(query.p, query.wo);
 		}
 		else
 		{
-			// Evaluate BSDF
-			BSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.transportDir = TransportDirection::CameraToLight;
-			bsdfEQ.type = BSDFType::All;
-			bsdfEQ.wi = isectE.worldToShading * Math::Normalize(ppE - pE);
-			bsdfEQ.wo = isectE.worldToShading * Math::Normalize(pL - pE);
-			return isectE.primitive->bsdf->Evaluate(bsdfEQ, isectE);
+			// Evaluate directional component of Le
+			return query.light->EvaluateDirectionalLe(query.p, query.gn, query.wo);
 		}
 	}
 	else
 	{
-		// Query for light sub-path
-		if (pathLength[Subpath::L] == 0)
+		// Evaluate BSDF
+		BSDFEvaluateQuery bsdfEQ;
+		bsdfEQ.transportDir = static_cast<TransportDirection>(query.subpath);
+		bsdfEQ.type = BSDFType::All;
+		bsdfEQ.wi = query.isect.worldToShading * query.wi;
+		bsdfEQ.wo = query.isect.worldToShading * query.wo;
+		return query.isect.primitive->bsdf->Evaluate(bsdfEQ, query.isect);
+	}
+}
+
+Math::Float SimpleBidirectionalPathtraceRenderer::Impl::EvaluateGeneralizedGeometryTerm( Math::Vec3 currP[2], Math::Vec3 currGN[2], int pathLength[2] ) const
+{
+	// Note : we currently assume #camera is
+	// - positionally degenerated
+	// - directionally non-degenerated
+	// and #light is
+	// - positionally non-degenerated
+	// - directionally non-degenerated
+	// this assumption may be changed in future implementation.
+
+	const auto& pE = currP[Subpath::E];
+	const auto& pL = currP[Subpath::L];
+	auto pEpL = pL - pE;
+	auto pEpL_Length = Math::Length(pEpL);
+	auto pEpL_Length2 = Math::Length2(pEpL);
+	pEpL /= pEpL_Length;
+
+	if (pathLength[Subpath::E] == 0)
+	{
+		return Math::Dot(currGN[Subpath::L], -pEpL) / pEpL_Length2;
+	}
+	else
+	{
+		return Math::Dot(currGN[Subpath::E], pEpL) * Math::Dot(currGN[Subpath::L], -pEpL) / pEpL_Length2;
+	}
+}
+
+bool SimpleBidirectionalPathtraceRenderer::Impl::SampleGeneralizedBSDF( const GeneralizedBSDFSampleQuery& query, GeneralizedBSDFSampleResult& result ) const
+{
+	if (query.pathLength == 0)
+	{
+		if (query.subpath == Subpath::E)
 		{
-			// Evaluate directional component of Le
-			return light->EvaluateDirectionalLe();
+			// Sample directional component from camera
+			query.camera->SampleDirection(query.sample, query.p, query.gn, result.wo, result.pdf);
 		}
 		else
 		{
-
+			// Sample directional component of light
+			query.light->SampleDirection(query.sample, query.p, query.gn, result.wo, result.pdf);
 		}
 	}
+	else
+	{
+		// Sample BSDF
+		BSDFSampleQuery bsdfSQ;
+		bsdfSQ.sample = query.sample;
+		bsdfSQ.type = BSDFType::All;
+		bsdfSQ.transportDir = static_cast<TransportDirection>(query.subpath);
+		bsdfSQ.wi = query.isect.worldToShading * query.wi;
+
+		BSDFSampleResult bsdfSR;
+		if (!query.isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR))
+		{
+			return false;
+		}
+
+		result.wo = query.isect.shadingToWorld * bsdfSR.wo;
+		result.pdf = bsdfSR.pdf;
+	}
+
+	return true;
 }
 
 // --------------------------------------------------------------------------------

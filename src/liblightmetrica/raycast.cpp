@@ -89,9 +89,10 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 
 			// Generate ray
 			// Note : position sampling is not used here (thus DoF is disabled)
-			Math::PDFEval _;
-			scene.MainCamera()->SamplePosition(Math::Vec2(), ray.o, _);
-			scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, _);
+			Math::Vec3 _gnE;
+			Math::PDFEval _pdfE;
+			scene.MainCamera()->SamplePosition(Math::Vec2(), ray.o, _gnE, _pdfE);
+			scene.MainCamera()->SampleDirection(rasterPos, ray.o, _gnE, ray.d, _pdfE);
 
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();

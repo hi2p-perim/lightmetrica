@@ -42,9 +42,11 @@ public:
 	bool LoadAsset(const ConfigNode& node, const Assets& assets);
 	Film* GetFilm() const { return film; }
 	void RegisterPrimitive(const Primitive* primitive);
-	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf) const;
-	void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf) const;
+	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf) const;
+	void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf) const;
 	Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const;
+	Math::Vec3 EvaluatePositionalWe(const Math::Vec3& p) const;
+	Math::Vec3 EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const;
 	bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const;
 
 private:
@@ -126,7 +128,7 @@ void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
 	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
-void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf ) const
+void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
 {
 	p = position;
 	pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
@@ -190,7 +192,7 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 	return invA * invCosTheta * invCosTheta * invCosTheta;
 }
 
-void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf ) const
+void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
 {
 	// Raster position in [-1, 1]^2
 	auto ndcRasterPos = Math::Vec3(sampleD * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
@@ -203,6 +205,25 @@ void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const 
 	pdf = Math::PDFEval(
 		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
 		Math::ProbabilityMeasure::ProjectedSolidAngle);
+}
+
+Math::Vec3 PerspectiveCamera::Impl::EvaluatePositionalWe( const Math::Vec3& p ) const
+{
+	return Math::Vec3(Math::Float(1));
+}
+
+Math::Vec3 PerspectiveCamera::Impl::EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+	// Reference point in camera coordinates
+	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
+	auto refCam3 = Math::Vec3(refCam4);
+
+	// Reference point in NDC
+	auto refNdc4 = projectionMatrix * refCam4;
+	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
+
+	// Importance
+	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
 }
 
 // --------------------------------------------------------------------------------
@@ -234,9 +255,9 @@ bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets 
 	return p->LoadAsset(node, assets);
 }
 
-void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf ) const
+void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
 {
-	this->p->SamplePosition(sampleP, p, pdf);
+	this->p->SamplePosition(sampleP, p, gn, pdf);
 }
 
 Math::Vec3 PerspectiveCamera::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
@@ -249,9 +270,19 @@ bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Ve
 	return this->p->RayToRasterPosition(p, d, rasterPos);
 }
 
-void PerspectiveCamera::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf ) const
+void PerspectiveCamera::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
 {
-	this->p->SampleDirection(sampleD, p, d, pdf);
+	this->p->SampleDirection(sampleD, p, gn, d, pdf);
+}
+
+Math::Vec3 PerspectiveCamera::EvaluatePositionalWe( const Math::Vec3& p ) const
+{
+	return this->p->EvaluatePositionalWe(p);
+}
+
+Math::Vec3 PerspectiveCamera::EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const
+{
+	return this->p->EvaluateDirectionalWe(p, d);
 }
 
 LM_NAMESPACE_END

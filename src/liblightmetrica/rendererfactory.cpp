@@ -28,6 +28,7 @@
 #include <lightmetrica/raycast.h>
 #include <lightmetrica/pathtrace.h>
 #include <lightmetrica/lighttrace.h>
+#include <lightmetrica/simplebpt.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -54,6 +55,10 @@ Renderer* RendererFactory::Create( const std::string& type ) const
 	else if (type == "lighttrace")
 	{
 		return new LighttraceRenderer();
+	}
+	else if (type == "simplebpt")
+	{
+		return new SimpleBidirectionalPathtraceRenderer();
 	}
 	else
 	{

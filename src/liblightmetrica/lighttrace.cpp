@@ -165,22 +165,22 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 			// --------------------------------------------------------------------------------
 
 			// Handle LE path
-			Math::Vec3 ep;
-			Math::PDFEval pdfEp;
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), ep, pdfEp);
-			if (!Math::IsZero(pdfEp.v))
+			Math::Vec3 pE, gnE;
+			Math::PDFEval pdfPE;
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, gnE, pdfPE);
+			if (!Math::IsZero(pdfPE.v))
 			{
 				// Calculate raster position
 				Math::Vec2 rasterPos;
-				if (scene.MainCamera()->RayToRasterPosition(ep, lightSR.p - ep, rasterPos))
+				if (scene.MainCamera()->RayToRasterPosition(pE, lightSR.p - pE, rasterPos))
 				{
 					// Evaluate importance
-					auto We = scene.MainCamera()->EvaluateWe(ep, lightSR.p - ep);
+					auto We = scene.MainCamera()->EvaluateWe(pE, lightSR.p - pE);
 					if (!Math::IsZero(We))
 					{
 						// Check visibility between camera position and sampled position in the light
 						Ray shadowRay;
-						auto d = ep - lightSR.p;
+						auto d = pE - lightSR.p;
 						Math::Float dl = Math::Length(d);
 						shadowRay.d = d / dl;
 						shadowRay.o = lightSR.p;
@@ -197,7 +197,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 							Math::Float G = Math::Dot(lightSR.gn, shadowRay.d) / dl / dl;
 
 							// Evaluate contribution and accumulate
-							auto contrb = Le * G * We / pdfEp.v;
+							auto contrb = Le * G * We / pdfPE.v;
 							film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 						}
 					}
@@ -231,22 +231,22 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 				// ----------------------------------------------------------------------
 
 				// Sample a position
-				Math::Vec3 ep;
-				Math::PDFEval pdfEp;
-				scene.MainCamera()->SamplePosition(rng->NextVec2(), ep, pdfEp);
-				if (!Math::IsZero(pdfEp.v))
+				Math::Vec3 pE, gnE;
+				Math::PDFEval pdfPE;
+				scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, gnE, pdfPE);
+				if (!Math::IsZero(pdfPE.v))
 				{
 					// Calculate raster position
 					Math::Vec2 rasterPos;
-					if (scene.MainCamera()->RayToRasterPosition(ep, isect.p - ep, rasterPos))
+					if (scene.MainCamera()->RayToRasterPosition(pE, isect.p - pE, rasterPos))
 					{
 						// Evaluate importance
-						auto We = scene.MainCamera()->EvaluateWe(ep, isect.p - ep);
+						auto We = scene.MainCamera()->EvaluateWe(pE, isect.p - pE);
 						if (!Math::IsZero(We))
 						{
 							// Check visibility between camera position and sampled position in the light
 							Ray shadowRay;
-							auto d = ep - isect.p;
+							auto d = pE - isect.p;
 							Math::Float dl = Math::Length(d);
 							shadowRay.d = d / dl;
 							shadowRay.o = isect.p;
@@ -271,7 +271,7 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 									Math::Float G = Math::CosThetaZUp(bsdfEQ.wo) / dl / dl;
 
 									// Evaluate contribution and accumulate
-									auto contrb = throughput * bsdf * G * We / pdfEp.v;
+									auto contrb = throughput * bsdf * G * We / pdfPE.v;
 									film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 								}
 							}

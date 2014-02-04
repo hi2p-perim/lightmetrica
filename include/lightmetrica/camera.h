@@ -56,18 +56,20 @@ public:
 		Sample a position on the camera.
 		\param sampleP Position sample.
 		\param p Sampled position.
+		\param gn Geometry normal at #p (if defined).
 		\param pdf Evaluated PDF (area measure).
 	*/
-	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf) const = 0;
+	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf) const = 0;
 
 	/*!
-		Sample the direction of the outgoing ray.
+		Sample a outgoing direction.
 		\param sampleD Direction sample (same as raster position).
 		\param p Origin of the ray.
+		\param gn Geometry normal at #p (if defined).
 		\param d Sampled direction.
 		\param pdf Evaluated PDF (solid angle measure).
 	*/
-	virtual void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf) const = 0;
+	virtual void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf) const = 0;
 
 	/*!
 		Evaluate the importance.
@@ -77,6 +79,21 @@ public:
 		\return Importance.
 	*/
 	virtual Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const = 0;
+
+	/*!
+		Evaluate the positional component of the importance.
+		\param p Position on the camera.
+		\return Positional component of the importance.
+	*/
+	virtual Math::Vec3 EvaluatePositionalWe(const Math::Vec3& p) const = 0;
+
+	/*!
+		Evaluate the directional component of the importance.
+		\param p Position on the camera.
+		\param d Outgoing direction at #p.
+		\return Directional component of the importance.
+	*/
+	virtual Math::Vec3 EvaluateDirectionalWe(const Math::Vec3& p, const Math::Vec3& d) const = 0;
 
 	/*!
 		Convert a ray to a raster position.

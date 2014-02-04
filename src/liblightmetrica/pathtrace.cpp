@@ -147,9 +147,10 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			auto rasterPos = rng->NextVec2();
 
 			// Generate camera ray
+			Math::Vec3 gnE;
 			Math::PDFEval pdfP, pdfD;
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), ray.o, pdfP);
-			scene.MainCamera()->SampleDirection(rasterPos, ray.o, ray.d, pdfD);
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), ray.o, gnE, pdfP);
+			scene.MainCamera()->SampleDirection(rasterPos, ray.o, gnE, ray.d, pdfD);
 
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();

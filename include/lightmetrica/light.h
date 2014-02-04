@@ -74,6 +74,25 @@ public:
 public:
 
 	/*!
+		Sample a position on the light.
+		\param sampleP Position sample.
+		\param p Sampled position.
+		\param gn Geometry normal at #p (if defined).
+		\param pdf Evaluated PDF (area measure).
+	*/
+	virtual void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf) const = 0;
+
+	/*!
+		Sample a outgoing direction.
+		\param sampleD Direction sample.
+		\param p Origin of the ray.
+		\param gn Geometry normal at #p (if defined).
+		\param d Sampled direction.
+		\param pdf Evaluated PDF (solid angle measure).
+	*/
+	virtual void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf) const = 0;
+
+	/*!
 		Sample a position and a direction.
 		The function samples
 		 - a position in the light source p_A(x_0) from the distribution as area measure
@@ -91,6 +110,21 @@ public:
 	*/
 	virtual Math::Vec3 EvaluateLe(const Math::Vec3& d, const Math::Vec3& gn) const = 0;
 	
+	/*!
+		Evaluate the positional component of the emitted radiance.
+		\param p Position on the camera.
+		\return Positional component of the emitted radiance.
+	*/
+	virtual Math::Vec3 EvaluatePositionalLe(const Math::Vec3& p) const = 0;
+
+	/*!
+		Evaluate the directional component of the emitted radiance.
+		\param p Position on the light.
+		\param d Outgoing direction at #p.
+		\return Directional component of the emitted radiance.
+	*/
+	virtual Math::Vec3 EvaluateDirectionalLe(const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d) const = 0;
+
 	/*!
 		Register an reference to the primitive.
 		Some implementation of camera needs transformed mesh information for sampling.

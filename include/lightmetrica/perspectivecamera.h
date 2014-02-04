@@ -50,9 +50,11 @@ public:
 
 	virtual Film* GetFilm() const;
 	virtual void RegisterPrimitive( const Primitive* primitive );
-	virtual void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::PDFEval& pdf ) const;
-	virtual void SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, Math::Vec3& d, Math::PDFEval& pdf ) const;
+	virtual void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const;
+	virtual void SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const;
 	virtual Math::Vec3 EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const;
+	virtual Math::Vec3 EvaluatePositionalWe(const Math::Vec3& p) const;
+	virtual Math::Vec3 EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const;
 	virtual bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
 
 private:

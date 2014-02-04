@@ -52,6 +52,10 @@ public:
 	virtual Math::Vec3 EvaluateLe( const Math::Vec3& d, const Math::Vec3& gn ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
 	virtual void Sample( const LightSampleQuery& query, LightSampleResult& result ) const;
+	virtual Math::Vec3 EvaluatePositionalLe( const Math::Vec3& p ) const;
+	virtual void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const;
+	virtual void SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const;
+	virtual Math::Vec3 EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const;
 
 private:
 
