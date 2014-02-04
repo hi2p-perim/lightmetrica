@@ -157,6 +157,16 @@ public:
 	*/
 	const Light* LightByIndex(int index) const;
 
+	/*!
+		Choose a light included in the scene.
+		Note that only the x component of #lightSampleP is used
+		and reusable in the following procedure, e.g. positional sampling on the light.
+		\param lightSampleP Light sample.
+		\param selectionPdf PDF evaluation of the selection (discrete measure).
+		\return Selected light.
+	*/
+	const Light* SampleLightSelection(Math::Vec2& lightSampleP, Math::PDFEval& selectionPdf) const;
+
 public:
 
 	/*!

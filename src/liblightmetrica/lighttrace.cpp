@@ -330,6 +330,8 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
 	}
 
+	// --------------------------------------------------------------------------------
+
 	// Accumulate rendered results for all threads to one film
 	for (auto& f : films)
 	{

@@ -588,4 +588,13 @@ const Light* Scene::LightByIndex( int index ) const
 	return p->LightByIndex(index);
 }
 
+const Light* Scene::SampleLightSelection( Math::Vec2& lightSampleP, Math::PDFEval& selectionPdf ) const
+{
+	int nl = NumLights();
+	int li = Math::Min(static_cast<int>(lightSampleP.x * nl), nl - 1);
+	lightSampleP.x = lightSampleP.x * nl - Math::Float(li);
+	selectionPdf = Math::PDFEval(Math::Float(1.0 / nl), Math::ProbabilityMeasure::Discrete);
+	return LightByIndex(li);
+}
+
 LM_NAMESPACE_END

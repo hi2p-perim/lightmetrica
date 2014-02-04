@@ -36,10 +36,10 @@ LM_NAMESPACE_BEGIN
 	For some BSDF types, the light transport type must be specified.
 	For details, see [Veach 1997].
 */
-enum class TransportDirection
+enum TransportDirection
 {
-	LightToCamera,		//!< Transport direction is from light to camera (a.k.a. importance transport, or adjoint transport)
-	CameraToLight		//!< Transport direction is from camera to light (a.k.a. radiance transport, or non-adjoint transport)
+	CameraToLight = 0,		//!< Transport direction is from camera to light (a.k.a. radiance transport, or non-adjoint transport)
+	LightToCamera = 1,		//!< Transport direction is from light to camera (a.k.a. importance transport, or adjoint transport)
 };
 
 /*!
