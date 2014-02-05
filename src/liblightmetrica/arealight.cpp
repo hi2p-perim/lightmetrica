@@ -32,6 +32,7 @@
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/math.linalgebra.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/align.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -54,7 +55,8 @@ public:
 private:
 
 	Math::Vec3 Le;
-	std::vector<std::tuple<Math::Vec3, Math::Vec3, Math::Vec3>> triangles;
+	typedef std::tuple<Math::Vec3, Math::Vec3, Math::Vec3> TrianglePosition;
+	std::vector<TrianglePosition, aligned_allocator<TrianglePosition, std::alignment_of<TrianglePosition>::value>> triangles;
 	std::vector<Math::Float> triangleAreaCdf;
 	Math::Float area;
 	Math::Vec3 power;
@@ -132,7 +134,7 @@ void AreaLight::Impl::Sample( const LightSampleQuery& query, LightSampleResult& 
 	auto b = Math::UniformSampleTriangle(ps);
 	result.p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
 	result.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
-	result.pdfP = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Discrete);
+	result.pdfP = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
 
 	// Sample direction
 	Math::Vec3 s, t;
@@ -182,7 +184,7 @@ void AreaLight::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, 
 	auto b = Math::UniformSampleTriangle(ps);
 	p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
 	gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
-	pdf = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Discrete);
+	pdf = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
 }
 
 void AreaLight::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const

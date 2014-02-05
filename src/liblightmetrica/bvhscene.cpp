@@ -31,11 +31,12 @@
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/aabb.h>
+#include <lightmetrica/align.h>
 #include <thread>
 
 LM_NAMESPACE_BEGIN
 
-struct BVHNode
+struct BVHNode : public Object
 {
 
 	enum class NodeType
@@ -77,8 +78,10 @@ struct BVHNode
 
 struct BVHBuildData
 {
-	std::vector<AABB> triBounds;					// Bounds of the triangles
-	std::vector<Math::Vec3> triBoundCentroids;		// Centroids of the bounds of the triangles
+	// Bounds of the triangles
+	std::vector<AABB, aligned_allocator<AABB, std::alignment_of<AABB>::value>> triBounds;
+	// Centroids of the bounds of the triangles
+	std::vector<Math::Vec3, aligned_allocator<Math::Vec3, std::alignment_of<Math::Vec3>::value>> triBoundCentroids;
 };
 
 class CompareToBucket
@@ -270,7 +273,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 	if (numPrimitives == 1)
 	{
 		// Leaf node
-		node = std::make_shared<BVHNode>(begin, end, bound);
+		node = std::shared_ptr<BVHNode>(new BVHNode(begin, end, bound));
 		ReportProgress(begin, end);
 	}
 	else
@@ -290,7 +293,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 		// If the centroid bound according to the split axis is degenerated, take the node as a leaf.
 		if (centroidBound.min[splitAxis] == centroidBound.max[splitAxis])
 		{
-			node = std::make_shared<BVHNode>(begin, end, bound);
+			node = std::shared_ptr<BVHNode>(new BVHNode(begin, end, bound));
 			ReportProgress(begin, end);
 		}
 		else
@@ -360,12 +363,12 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 			if (minCost < Math::Float(numPrimitives) || numPrimitives > maxTriInNode)
 			{
 				int mid = static_cast<int>(std::partition(&bvhTriIndices[begin], &bvhTriIndices[end - 1] + 1, CompareToBucket(splitAxis, numBuckets, minCostIdx, data, centroidBound)) - &bvhTriIndices[0]);
-				node = std::make_shared<BVHNode>(splitAxis, Build(data, begin, mid), Build(data, mid, end));
+				node = std::shared_ptr<BVHNode>(new BVHNode(splitAxis, Build(data, begin, mid), Build(data, mid, end)));
 			}
 			else
 			{
 				// Otherwise make leaf node
-				node = std::make_shared<BVHNode>(begin, end, bound);
+				node = std::shared_ptr<BVHNode>(new BVHNode(begin, end, bound));
 				ReportProgress(begin, end);
 			}
 		}

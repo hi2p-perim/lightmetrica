@@ -167,7 +167,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& no
 
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1, numSamples);
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -245,7 +245,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			Math::PDFEval lightSelectionPdf;
 			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 			light->SamplePosition(lightSampleP, pL, gnL, pdfPL);
-			pdfPL.v /= lightSelectionPdf.v;
+			pdfPL.v *= lightSelectionPdf.v;
 
 			// Evaluate Le^{(0)} (positional component of Le)
 			auto positionalLe = light->EvaluatePositionalLe(pL);
@@ -265,9 +265,6 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			Math::Vec3 currP[2] = { pE, pL };
 			Math::Vec3 currGN[2] = { gnE, gnL };
 			Math::Vec3 currWi[2];
-
-			// Flag of zero contribution
-			bool zeroContrb = false;
 
 			// Raster position
 			Math::Vec2 rasterPos;
@@ -332,109 +329,93 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 
 				// --------------------------------------------------------------------------------
 
-				// Two sub-paths increase its length alternatively
-				bool lengthChanged[2] = { 0 };
-				for (int subpath = 0; subpath < 1; subpath++)
+				// Select which sub-path to be extended
+				// This selection might be tricky. TODO : Add some explanation
+				int subpath = rng->Next() < Math::Float(0.5) ? Subpath::E : Subpath::L;
+
+				// Decide if the selected -path is actually extended by Russian roulette
+				// If the sub-path is not extended, terminate the loop.
+				if (pathLength[subpath] >= rrDepth)
 				{
-					// Russian roulette
-					//if (pathLength[subpath] >= rrDepth)
-					//{
-						auto p = Math::Min(Math::Float(0.5), Math::Luminance(throughput[subpath]));
-						if (rng->Next() > p)
-						{
-							lengthChanged[subpath] = false;
-							throughput[subpath] /= Math::Float(1) - p;
-							continue;
-						}
-						else
-						{
-							lengthChanged[subpath] = true;
-							throughput[subpath] /= p;
-						}
-					//}
-
-					// --------------------------------------------------------------------------------
-
-					// Sample generalized BSDF
-					GeneralizedBSDFSampleQuery bsdfSQ;
-					bsdfSQ.sample = rng->NextVec2();
-					bsdfSQ.subpath = subpath;
-					bsdfSQ.pathLength = pathLength[subpath];
-					bsdfSQ.gn = currGN[subpath];
-					bsdfSQ.wi = currWi[subpath];
-					bsdfSQ.camera = scene.MainCamera();
-					bsdfSQ.light = light;
-					bsdfSQ.isect = currIsect[subpath];
-
-					GeneralizedBSDFSampleResult bsdfSR;
-					if (!SampleGeneralizedBSDF(bsdfSQ, bsdfSR))
+					auto p = Math::Min(Math::Float(0.5), Math::Luminance(throughput[subpath]));
+					if (rng->Next() > p)
 					{
-						zeroContrb = true;
 						break;
 					}
-					
-					// Evaluate generalized BSDF
-					auto fs = EvaluateGeneralizedBSDF(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR));
-					if (Math::IsZero(fs))
+					else
 					{
-						zeroContrb = true;
-						break;
+						throughput[subpath] /= p;
 					}
-
-					// Update throughput
-					// Evaluation of generalized BSDF may evaluate its PDF in two measures (for degeneration support)
-					if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
-					{
-						throughput[subpath] *= fs * Math::Dot(currGN[subpath], bsdfSR.wo) / bsdfSR.pdf.v;
-					}
-					else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
-					{
-						throughput[subpath] *= fs / bsdfSR.pdf.v;
-					}
-
-					// --------------------------------------------------------------------------------
-
-					// Setup next ray
-					Ray ray;
-					ray.d = bsdfSR.wo;
-					ray.o = currP[subpath];
-					ray.minT = Math::Constants::Eps();
-					ray.maxT = Math::Constants::Inf();
-
-					// Intersection query
-					Intersection isect;
-					if (!scene.Intersect(ray, isect))
-					{
-						zeroContrb = true;
-						break;
-					}
-
-					// --------------------------------------------------------------------------------
-
-					// Compute raster position if current length of eye sub-path is zero
-					if (subpath == Subpath::E && pathLength[Subpath::E] == 0 && !scene.MainCamera()->RayToRasterPosition(ray.o, ray.d, rasterPos))
-					{
-						zeroContrb = true;
-						break;
-					}
-
-					// Update information
-					// TODO : It seems very ugly... Somehow fix it
-					currIsect[subpath] = isect;
-					currP[subpath] = isect.p;
-					currGN[subpath] = isect.gn;
-					currWi[subpath] = -ray.d;
-					pathLength[subpath]++;
 				}
 
 				// --------------------------------------------------------------------------------
 
-				// Terminates if the lengths of the sub-paths do not change
-				// or the path with zero contribution is generated
-				if (zeroContrb || (!lengthChanged[Subpath::E] && !lengthChanged[Subpath::L]))
+				// Sample generalized BSDF
+				GeneralizedBSDFSampleQuery bsdfSQ;
+				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.subpath = subpath;
+				bsdfSQ.pathLength = pathLength[subpath];
+				bsdfSQ.p = currP[subpath];
+				bsdfSQ.gn = currGN[subpath];
+				bsdfSQ.wi = currWi[subpath];
+				bsdfSQ.camera = scene.MainCamera();
+				bsdfSQ.light = light;
+				bsdfSQ.isect = currIsect[subpath];
+
+				GeneralizedBSDFSampleResult bsdfSR;
+				if (!SampleGeneralizedBSDF(bsdfSQ, bsdfSR))
 				{
 					break;
 				}
+					
+				// Evaluate generalized BSDF
+				auto fs = EvaluateGeneralizedBSDF(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR));
+				if (Math::IsZero(fs))
+				{
+					break;
+				}
+
+				// Update throughput
+				// Evaluation of generalized BSDF may evaluate its PDF in two measures (for degeneration support)
+				if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
+				{
+					throughput[subpath] *= fs * Math::Dot(currGN[subpath], bsdfSR.wo) / bsdfSR.pdf.v;
+				}
+				else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
+				{
+					throughput[subpath] *= fs / bsdfSR.pdf.v;
+				}
+
+				// --------------------------------------------------------------------------------
+
+				// Setup next ray
+				Ray ray;
+				ray.d = bsdfSR.wo;
+				ray.o = currP[subpath];
+				ray.minT = Math::Constants::Eps();
+				ray.maxT = Math::Constants::Inf();
+
+				// Intersection query
+				Intersection isect;
+				if (!scene.Intersect(ray, isect))
+				{
+					break;
+				}
+
+				// --------------------------------------------------------------------------------
+
+				// Compute raster position if current length of eye sub-path is zero
+				if (subpath == Subpath::E && pathLength[Subpath::E] == 0 && !scene.MainCamera()->RayToRasterPosition(ray.o, ray.d, rasterPos))
+				{
+					break;
+				}
+
+				// Update information
+				currIsect[subpath] = isect;
+				currP[subpath] = isect.p;
+				currGN[subpath] = isect.gn;
+				currWi[subpath] = -ray.d;
+				pathLength[subpath]++;
 			}
 		}
 
@@ -513,7 +494,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::SampleGeneralizedBSDF( const Ge
 	{
 		if (query.subpath == Subpath::E)
 		{
-			// Sample directional component from camera
+			// Sample directional component of camera
 			query.camera->SampleDirection(query.sample, query.p, query.gn, result.wo, result.pdf);
 		}
 		else

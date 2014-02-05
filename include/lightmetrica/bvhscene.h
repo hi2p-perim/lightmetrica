@@ -49,7 +49,7 @@ public:
 	virtual std::string Type() const { return "bvh"; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func);
 	virtual bool Configure( const ConfigNode& node ) { return true; }
-	virtual void ResetScene() {}
+	virtual void ResetScene() {}	// TODO : Fix it
 
 private:
 

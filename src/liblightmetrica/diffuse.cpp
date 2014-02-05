@@ -30,7 +30,7 @@
 
 LM_NAMESPACE_BEGIN
 
-class DiffuseBSDF::Impl
+class DiffuseBSDF::Impl : public Object
 {
 public:
 

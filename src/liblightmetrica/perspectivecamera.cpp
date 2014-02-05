@@ -192,7 +192,7 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 	return invA * invCosTheta * invCosTheta * invCosTheta;
 }
 
-void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
+void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& /*p*/, const Math::Vec3& /*gn*/, Math::Vec3& d, Math::PDFEval& pdf ) const
 {
 	// Raster position in [-1, 1]^2
 	auto ndcRasterPos = Math::Vec3(sampleD * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));

@@ -147,7 +147,7 @@ public:
 		const auto child = Child(name);
 		if (child.Empty())
 		{
-			LM_LOG_WARN("Missing '" + name + "' element. Using default.");
+			LM_LOG_WARN("Missing '" + name + "' element. Using default value.");
 			value = defaultValue;
 			return false;
 		}

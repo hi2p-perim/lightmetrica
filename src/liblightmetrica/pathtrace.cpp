@@ -162,6 +162,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			Math::Vec3 throughput = We / pdfD.v / pdfP.v; // = 1 !!
 			int depth = 0;
 				
+			//LM_LOG_DEBUG(std::to_string(throughput.x) + " " + std::to_string(throughput.y) + " " + std::to_string(throughput.z));
+
 			while (true)
 			{
 				// Check intersection
