@@ -163,6 +163,25 @@ LM_PUBLIC_API int ConfigNode::Value<int>() const
 }
 
 template <>
+LM_PUBLIC_API long long ConfigNode::Value<long long>() const
+{
+	try
+	{
+		return std::stoll(Value());
+	}
+	catch (const std::invalid_argument& e)
+	{
+		LM_LOG_WARN(e.what());
+		return 0;
+	}
+	catch (const std::out_of_range& e)
+	{
+		LM_LOG_WARN(e.what());
+		return 0;
+	}
+}
+
+template <>
 LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const
 {
 	try

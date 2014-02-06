@@ -189,6 +189,7 @@ private:
 #ifndef LM_EXPORTS
 extern template LM_PUBLIC_API std::string ConfigNode::Value<std::string>() const;
 extern template LM_PUBLIC_API int ConfigNode::Value<int>() const;
+extern template LM_PUBLIC_API long long ConfigNode::Value<long long>() const;
 extern template LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const;
 extern template LM_PUBLIC_API Math::Vec3 ConfigNode::Value<Math::Vec3>() const;
 extern template LM_PUBLIC_API Math::Mat4 ConfigNode::Value<Math::Mat4>() const;

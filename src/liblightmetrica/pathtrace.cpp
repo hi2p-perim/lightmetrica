@@ -59,10 +59,10 @@ private:
 	PathtraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	int numSamples;		// Number of samples
-	int rrDepth;		// Depth of beginning RR
-	int numThreads;		// Number of threads
-	int samplesPerBlock;	// Samples to be processed per block
+	long long numSamples;		// Number of samples
+	int rrDepth;				// Depth of beginning RR
+	int numThreads;				// Number of threads
+	long long samplesPerBlock;	// Samples to be processed per block
 
 };
 
@@ -82,14 +82,14 @@ bool PathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& a
 	}
 
 	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1, numSamples);
+	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
 		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
 	}
-	node.ChildValueOrDefault("samples_per_block", 100, samplesPerBlock);
+	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
 	if (samplesPerBlock <= 0)
 	{
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
@@ -122,12 +122,12 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 	}
 
 	// Number of blocks to be separated
-	int blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
+	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
 	// --------------------------------------------------------------------------------
 
 	#pragma omp parallel for
-	for (int block = 0; block < blocks; block++)
+	for (long long block = 0; block < blocks; block++)
 	{
 		// Thread ID
 		int threadId = omp_get_thread_num();
@@ -135,10 +135,10 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 		auto& film = films[threadId];
 
 		// Sample range
-		int sampleBegin = samplesPerBlock * block;
-		int sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+		long long sampleBegin = samplesPerBlock * block;
+		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
-		for (int sample = sampleBegin; sample < sampleEnd; sample++)
+		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			Ray ray;
 			Intersection isect;
