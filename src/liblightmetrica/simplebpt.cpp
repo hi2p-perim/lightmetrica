@@ -186,7 +186,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& no
 bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedBlocks(0);
+	std::atomic<long long> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
 
