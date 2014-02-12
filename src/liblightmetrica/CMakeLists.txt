@@ -254,6 +254,7 @@ set(
 	"${_INCLUDE_DIR}/pathtrace.h"
 	"${_INCLUDE_DIR}/lighttrace.h"
 	"${_INCLUDE_DIR}/simplebpt.h"
+	"${_INCLUDE_DIR}/explicitpathtrace.h"
 )
 set(
 	_RENDERER_SOURCES
@@ -262,6 +263,7 @@ set(
 	"pathtrace.cpp"
 	"lighttrace.cpp"
 	"simplebpt.cpp"
+	"explicitpathtrace.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
