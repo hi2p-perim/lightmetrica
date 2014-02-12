@@ -33,6 +33,8 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
+#include <lightmetrica/primitive.h>
+#include <lightmetrica/light.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -58,13 +60,21 @@ struct boost_pool_aligned_allocator
 /*
 	Vertex type.
 */
-enum class PathVertexType
+enum PathVertexType
 {
-	EyePosition,
-	EyeDirection,
-	SurfaceInteraction,
-	LightDirection,
-	LightPosition
+	// Primitive types
+	EyePosition			= 1<<0,
+	EyeDirection		= 1<<1,
+	SurfaceInteraction	= 1<<2,
+	LightDirection		= 1<<3,
+	LightPosition		= 1<<4,
+
+	// Useful flags
+	EndPoint			= EyePosition | LightPosition,
+	IntermediatePoint	= EyeDirection | SurfaceInteraction | LightDirection,
+	
+	// Surface interaction + emitter direction
+	GeneralizedSurfaceInteraction = IntermediatePoint
 };
 
 /*
@@ -306,21 +316,82 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 
 	// EyePosition
 	v = pool.construct();
-	
-	// Sample position on the camera
+	v->type = EyePosition;
 	path.rasterPos = rng.NextVec2(); 
 	scene.MainCamera()->SamplePosition(rng.NextVec2(), v->p, v->gn, v->pdf);
-	
 	path.Add(v);
 
 	// --------------------------------------------------------------------------------
 	
 	// EyeDirection
 	v = pool.construct();
-
-	// Sample ray direction
+	v->type = EyeDirection;
 	scene.MainCamera()->SampleDirection(path.rasterPos, path.vertices[0]->p, v->gn, v->wo, v->pdf);
-	
+	path.Add(v);
+
+	// --------------------------------------------------------------------------------
+
+	Ray ray;
+	int depth = 0;
+
+	while (true)
+	{
+		// Create path vertex
+		v = pool.construct();
+		v->type = PathVertexType::SurfaceInteraction;
+
+		// Check intersection
+		if (!scene.Intersect(ray, v->isect))
+		{
+			break;
+		}
+
+		v->p = v->isect.p;
+		v->gn = v->isect.gn;
+
+		// Intersected vertex is light
+		const auto* light = isect.primitive->light;
+		if (light)
+		{
+			v->type = PathVertexType::LightPosition;
+			break;
+		}
+
+		// Otherwise vertex type is surface interaction
+		v->type = PathVertexType::SurfaceInteraction;
+
+		// --------------------------------------------------------------------------------
+
+		// Sample BSDF
+		BSDFSampleQuery bsdfSQ;
+		bsdfSQ.sample = rng.NextVec2();
+		bsdfSQ.type = BSDFType::All;
+		bsdfSQ.transportDir = TransportDirection::CameraToLight;
+		bsdfSQ.wi = isect.worldToShading * -ray.d;
+
+		BSDFSampleResult bsdfSR;
+		if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
+		{
+			break;
+		}
+
+		
+
+		// --------------------------------------------------------------------------------
+
+		if (++depth >= rrDepth)
+		{
+			// Russian roulette for path termination
+			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
+			if (rng.Next() > p)
+			{
+				break;
+			}
+
+			throughput /= p;
+		}
+	}
+
 	
 
 }
