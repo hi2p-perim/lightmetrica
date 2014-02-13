@@ -51,5 +51,6 @@
 #include <ctime>
 #include <iomanip>
 #include <limits>
+#include <memory>
 
 #endif // __LIB_LIGHTMETRICA_PCH_H__

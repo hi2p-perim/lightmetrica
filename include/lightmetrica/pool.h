@@ -23,39 +23,14 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
-#define __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
+#ifndef __LIB_LIGHTMETRICA_POOL_H__
+#define __LIB_LIGHTMETRICA_POOL_H__
 
-#include "renderer.h"
+#include "common.h"
 
 LM_NAMESPACE_BEGIN
 
-/*!
-	Path tracing with explicit path sampling.
-	This implementation of path tracing samples light paths
-	and estimates LTE by explicitly evaluating the equation f / p.
-*/
-class LM_PUBLIC_API ExplictPathtraceRenderer : public Renderer
-{
-public:
-
-	ExplictPathtraceRenderer();
-	virtual ~ExplictPathtraceRenderer();
-
-public:
-
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual std::string Type() const { return "explicitpt"; }
-	virtual bool Render( const Scene& scene );
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
-
-public:
-
-	class Impl;
-	Impl* p;
-
-};
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
+#endif // __LIB_LIGHTMETRICA_POOL_H__

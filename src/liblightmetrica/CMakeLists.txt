@@ -32,6 +32,8 @@ set(
 	"${_INCLUDE_DIR}/common.h"
 	"${_INCLUDE_DIR}/object.h"
 	"${_INCLUDE_DIR}/align.h"
+	"${_INCLUDE_DIR}/pool.h"
+	"${_INCLUDE_DIR}/assert.h"
 	"${_INCLUDE_DIR}/config.h"
 	"${_INCLUDE_DIR}/confignode.h"
 	"${_INCLUDE_DIR}/defaultconfig.h"

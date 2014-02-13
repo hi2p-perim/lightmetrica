@@ -23,39 +23,17 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
-#define __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
+#ifndef __LM_CORE_ASSERT_H__
+#define __LM_CORE_ASSERT_H__
 
-#include "renderer.h"
+#include "logger.h"
+#include <cassert>
+#include <string>
 
-LM_NAMESPACE_BEGIN
+#ifdef LM_DEBUG_MODE
+	#define LM_ASSERT(cond) if (!(cond)) { LM_LOG_ERROR("Assertion failed : '" + std::string(#cond) + "'"); abort(); }
+#else
+	#define LM_ASSERT(cond)
+#endif
 
-/*!
-	Path tracing with explicit path sampling.
-	This implementation of path tracing samples light paths
-	and estimates LTE by explicitly evaluating the equation f / p.
-*/
-class LM_PUBLIC_API ExplictPathtraceRenderer : public Renderer
-{
-public:
-
-	ExplictPathtraceRenderer();
-	virtual ~ExplictPathtraceRenderer();
-
-public:
-
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual std::string Type() const { return "explicitpt"; }
-	virtual bool Render( const Scene& scene );
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
-
-public:
-
-	class Impl;
-	Impl* p;
-
-};
-
-LM_NAMESPACE_END
-
-#endif // __LIB_LIGHTMETRICA_EXPLICIT_PATH_TRACE_H__
+#endif // __LM_CORE_ASSERT_H__

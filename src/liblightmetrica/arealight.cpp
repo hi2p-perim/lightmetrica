@@ -196,8 +196,10 @@ void AreaLight::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Ve
 	auto localDir = Math::CosineSampleHemisphere(sampleD);
 	d = localToWorld * localDir;
 
-	// Note : Here we use solid angle measure
-	pdf = Math::PDFEval(Math::CosineSampleHemispherePDF(localDir).v, Math::ProbabilityMeasure::SolidAngle);
+	// PDF in projected solid angle measure
+	pdf = Math::PDFEval(
+		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 // --------------------------------------------------------------------------------
