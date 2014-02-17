@@ -22,39 +22,20 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef __LIB_LIGHTMETRICA_DIFFUSE_H__
-#define __LIB_LIGHTMETRICA_DIFFUSE_H__
-
-#include "bsdf.h"
+#include "pch.h"
+#include <lightmetrica/generalizedbsdf.h>
 
 LM_NAMESPACE_BEGIN
 
-/*!
-	Diffuse BSDF.
-	Implements the diffuse BSDF.
-*/
-class LM_PUBLIC_API DiffuseBSDF : public BSDF
+GeneralizedBSDF::GeneralizedBSDF( const std::string& id )
+	: Asset(id)
 {
-public:
 
-	DiffuseBSDF(const std::string& id);
-	~DiffuseBSDF();
+}
 
-public:
+GeneralizedBSDF::~GeneralizedBSDF()
+{
 
-	virtual std::string Type() const { return "diffuse"; }
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-
-private:
-
-	class Impl;
-	Impl* p;
-
-};
+}
 
 LM_NAMESPACE_END
-
-#endif // __LIB_LIGHTMETRICA_DIFFUSE_H__

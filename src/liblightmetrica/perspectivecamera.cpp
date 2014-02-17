@@ -31,6 +31,8 @@
 #include <lightmetrica/math.functions.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/assert.h>
+#include <lightmetrica/surfacegeometry.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -39,15 +41,23 @@ class PerspectiveCamera::Impl : public Object
 public:
 
 	Impl(PerspectiveCamera* self);
+
+public:
+
 	bool LoadAsset(const ConfigNode& node, const Assets& assets);
-	Film* GetFilm() const { return film; }
-	void RegisterPrimitive(const Primitive* primitive);
-	void SamplePosition(const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf) const;
-	void SampleDirection(const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf) const;
-	Math::Vec3 EvaluateWe(const Math::Vec3& p, const Math::Vec3& d) const;
-	Math::Vec3 EvaluatePositionalWe(const Math::Vec3& p) const;
-	Math::Vec3 EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const;
-	bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const;
+
+public:
+
+	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+
+public:
+
+	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
+	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+	bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
+	Film* GetFilm() const;
 
 private:
 
@@ -118,26 +128,62 @@ bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& a
 	return true;
 }
 
-void PerspectiveCamera::Impl::RegisterPrimitive( const Primitive* primitive )
+void PerspectiveCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
 {
+	LM_ASSERT(primitives.size() == 1);
+
 	// View matrix and its inverse
-	viewMatrix = primitive->transform;
+	viewMatrix = primitives.front()->transform;
 	invViewMatrix = Math::Inverse(viewMatrix);
 
 	// Position of the camera (in world coordinates)
 	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
-void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
+void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-	p = position;
+	geom.p = position;
+	geom.degenerated = true;
 	pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
 }
 
-Math::Vec3 PerspectiveCamera::Impl::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
+bool PerspectiveCamera::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	{
+		return false;
+	}
+
+	// Raster position in [-1, 1]^2
+	auto ndcRasterPos = Math::Vec3(query.sample * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
+
+	// Convert raster position to camera coordinates
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
+	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
+
+	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
+	result.pdf = Math::PDFEval(
+		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+	return true;
+}
+
+Math::Vec3 PerspectiveCamera::Impl::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
+{
+	return Math::Vec3(Math::Float(1));
+}
+
+Math::Vec3 PerspectiveCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	if ((query.type & GeneralizedBSDFType::LightDirection) != 0)
+	{
+		return Math::Vec3();
+	}
+
 	// Reference point in camera coordinates
-	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
+	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
 	auto refCam3 = Math::Vec3(refCam4);
 
 	// Reference point in NDC
@@ -192,40 +238,6 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 	return invA * invCosTheta * invCosTheta * invCosTheta;
 }
 
-void PerspectiveCamera::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& /*p*/, const Math::Vec3& /*gn*/, Math::Vec3& d, Math::PDFEval& pdf ) const
-{
-	// Raster position in [-1, 1]^2
-	auto ndcRasterPos = Math::Vec3(sampleD * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
-
-	// Convert raster position to camera coordinates
-	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
-	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
-
-	d = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
-	pdf = Math::PDFEval(
-		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
-		Math::ProbabilityMeasure::ProjectedSolidAngle);
-}
-
-Math::Vec3 PerspectiveCamera::Impl::EvaluatePositionalWe( const Math::Vec3& p ) const
-{
-	return Math::Vec3(Math::Float(1));
-}
-
-Math::Vec3 PerspectiveCamera::Impl::EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const
-{
-	// Reference point in camera coordinates
-	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
-	auto refCam3 = Math::Vec3(refCam4);
-
-	// Reference point in NDC
-	auto refNdc4 = projectionMatrix * refCam4;
-	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
-
-	// Importance
-	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
-}
-
 // --------------------------------------------------------------------------------
 
 PerspectiveCamera::PerspectiveCamera( const std::string& id )
@@ -245,44 +257,39 @@ Film* PerspectiveCamera::GetFilm() const
 	return p->GetFilm();
 }
 
-void PerspectiveCamera::RegisterPrimitive( const Primitive* primitive )
-{
-	return p->RegisterPrimitive(primitive);
-}
-
 bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }
 
-void PerspectiveCamera::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
+bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	this->p->SamplePosition(sampleP, p, gn, pdf);
+	return p->SampleDirection(query, geom, result);
 }
 
-Math::Vec3 PerspectiveCamera::EvaluateWe( const Math::Vec3& p, const Math::Vec3& d ) const
+Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	return this->p->EvaluateWe(p, d);
+	return p->EvaluateDirection(query, geom);
+}
+
+void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
+{
+	p->SamplePosition(sample, geom, pdf);
+}
+
+Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
+{
+	return p->EvaluatePosition(geom);
+}
+
+void PerspectiveCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
+{
+	return p->RegisterPrimitives(primitives);
 }
 
 bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
 {
 	return this->p->RayToRasterPosition(p, d, rasterPos);
-}
-
-void PerspectiveCamera::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
-{
-	this->p->SampleDirection(sampleD, p, gn, d, pdf);
-}
-
-Math::Vec3 PerspectiveCamera::EvaluatePositionalWe( const Math::Vec3& p ) const
-{
-	return this->p->EvaluatePositionalWe(p);
-}
-
-Math::Vec3 PerspectiveCamera::EvaluateDirectionalWe( const Math::Vec3& p, const Math::Vec3& d ) const
-{
-	return this->p->EvaluateDirectionalWe(p, d);
 }
 
 LM_NAMESPACE_END

@@ -27,6 +27,7 @@
 #define __LIB_LIGHTMETRICA_ASSET_H__
 
 #include "object.h"
+#include <string>
 
 LM_NAMESPACE_BEGIN
 

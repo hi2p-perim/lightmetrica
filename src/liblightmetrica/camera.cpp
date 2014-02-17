@@ -28,7 +28,7 @@
 LM_NAMESPACE_BEGIN
 
 Camera::Camera(const std::string& id)
-	: Asset(id)
+	: Emitter(id)
 {
 
 }

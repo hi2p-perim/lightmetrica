@@ -140,26 +140,38 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			Ray ray;
 			Intersection isect;
 
 			// Raster position
 			auto rasterPos = rng->NextVec2();
 
-			// Generate camera ray
-			Math::Vec3 gnE;
-			Math::PDFEval pdfP, pdfD;
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), ray.o, gnE, pdfP);
-			scene.MainCamera()->SampleDirection(rasterPos, ray.o, gnE, ray.d, pdfD);
+			// Sample position on camera
+			SurfaceGeometry geomE;
+			Math::PDFEval pdfP;
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfP);
 
+			// Sample ray direction
+			GeneralizedBSDFSampleQuery bsdfSQ;
+			GeneralizedBSDFSampleResult bsdfSR;
+			bsdfSQ.sample = rasterPos;
+			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+			scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
+
+			// Construct initial ray
+			Ray ray;
+			ray.o = geomE.p;
+			ray.d = bsdfSR.wo;
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();
 
 			// Evaluate importance
-			auto We = scene.MainCamera()->EvaluateWe(ray.o, ray.d);
+			auto We =
+				scene.MainCamera()->EvaluatePosition(geomE) *
+				scene.MainCamera()->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), geomE);
 
 			Math::Vec3 L;
-			Math::Vec3 throughput = We / pdfD.v / pdfP.v; // = 1 !!
+			Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
 			int depth = 0;
 				
 			//LM_LOG_DEBUG(std::to_string(throughput.x) + " " + std::to_string(throughput.y) + " " + std::to_string(throughput.z));

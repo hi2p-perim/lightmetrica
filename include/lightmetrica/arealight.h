@@ -31,6 +31,8 @@
 LM_NAMESPACE_BEGIN
 
 /*!
+	Area light.
+	Implements an area light source.
 */
 class LM_PUBLIC_API AreaLight : public Light
 {
@@ -49,13 +51,14 @@ public:
 
 public:
 
-	virtual Math::Vec3 EvaluateLe( const Math::Vec3& d, const Math::Vec3& gn ) const;
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+
+public:
+
+	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
+	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
-	virtual void Sample( const LightSampleQuery& query, LightSampleResult& result ) const;
-	virtual Math::Vec3 EvaluatePositionalLe( const Math::Vec3& p ) const;
-	virtual void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const;
-	virtual void SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const;
-	virtual Math::Vec3 EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const;
 
 private:
 

@@ -23,54 +23,55 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_CAMERA_H__
-#define __LIB_LIGHTMETRICA_CAMERA_H__
+#ifndef __LIB_LIGHTMETRICA_EMITTER_H__
+#define __LIB_LIGHTMETRICA_EMITTER_H__
 
-#include "emitter.h"
+#include "generalizedbsdf.h"
 
 LM_NAMESPACE_BEGIN
 
-class Film;
-struct Ray;
+struct Primitive;
+struct SurfaceGeometry;
 
 /*!
-	Camera.
-	A base class of the cameras.
+	Emitter.
+	The base class of Light and Camera.
 */
-class LM_PUBLIC_API Camera : public Emitter
+class LM_PUBLIC_API Emitter : public GeneralizedBSDF
 {
 public:
 
-	Camera(const std::string& id);
-	virtual ~Camera();
-
-public:
-
-	virtual std::string Name() const { return "camera"; }
+	Emitter(const std::string& id);
+	virtual ~Emitter();
 
 public:
 
 	/*!
-		Convert a ray to a raster position.
-		The function calculates the raster position from the outgoing ray.
-		Returns false if calculated raster position is the outside of [0, 1]^2.
-		\param p Position on the camera.
-		\param d Outgoing direction from #p.
-		\param rasterPos Raster position.
-		\return true Succeeded to convert.
-		\return false Failed to convert.
+		Sample a position on the light.
+		\param sample Position sample.
+		\param geom Surface geometry at sampled position #geom.p.
+		\param pdf Evaluated PDF (area measure).
 	*/
-	virtual bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const = 0;
+	virtual void SamplePosition(const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf) const = 0;
 
 	/*!
-		Get film.
-		Returns the film referenced by the camera.
-		\param Film.
+		Evaluate the positional component of the emitted quantity.
+		\param geom Surface geometry at a position on the camera #geom.p.
+		\return Positional component of the emitted quantity.
 	*/
-	virtual Film* GetFilm() const = 0;
+	virtual Math::Vec3 EvaluatePosition(const SurfaceGeometry& geom) const = 0;
+
+	/*!
+		Register an reference to the primitive.
+		Some implementation of camera needs transformed mesh information for sampling.
+		The function registers the reference to the primitive.
+		The function is internally called.
+		\param primitives An list instances of the primitive.
+	*/
+	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_CAMERA_H__
+#endif // __LIB_LIGHTMETRICA_EMITTER_H__

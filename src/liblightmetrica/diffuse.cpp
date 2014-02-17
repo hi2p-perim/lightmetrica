@@ -27,6 +27,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/surfacegeometry.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -35,10 +36,12 @@ class DiffuseBSDF::Impl : public Object
 public:
 
 	Impl(DiffuseBSDF* self);
+
+public:
+
 	bool LoadAsset( const ConfigNode& node, const Assets& assets );
-	bool Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const;
-	Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const;
-	Math::PDFEval Pdf( const BSDFEvaluateQuery& query ) const;
+	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 private:
 
@@ -59,17 +62,19 @@ bool DiffuseBSDF::Impl::LoadAsset( const ConfigNode& node, const Assets& assets 
 	return true;
 }
 
-bool DiffuseBSDF::Impl::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
+bool DiffuseBSDF::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0)
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
 
-	result.wo = Math::CosineSampleHemisphere(query.sample);
-	result.sampledType = BSDFType::DiffuseReflection;
-	result.pdf = Math::CosineSampleHemispherePDF(result.wo);
-	if (result.pdf.v == Math::Float(0))
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+	result.pdf = Math::CosineSampleHemispherePDF(localWo);
+	if (Math::IsZero(result.pdf.v))
 	{
 		return false;
 	}
@@ -77,30 +82,22 @@ bool DiffuseBSDF::Impl::Sample( const BSDFSampleQuery& query, BSDFSampleResult& 
 	return true;
 }
 
-Math::Vec3 DiffuseBSDF::Impl::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+Math::Vec3 DiffuseBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
+	auto localWi = geom.worldToShading * query.wi;
+	auto localWo = geom.worldToShading * query.wo;
+	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
 
-	Math::Float sf = self->ShadingNormalCorrectionFactor(query, isect);
-	if (sf == 0.0)
+	Math::Float sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+	if (Math::IsZero(sf))
 	{
 		return Math::Vec3();
 	}
 
 	return diffuseReflectance * Math::Constants::InvPi() * sf;
-}
-
-Math::PDFEval DiffuseBSDF::Impl::Pdf( const BSDFEvaluateQuery& query ) const
-{
-	if ((query.type & BSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(query.wi) <= 0 || Math::CosThetaZUp(query.wo) <= 0)
-	{
-		return Math::PDFEval();
-	}
-
-	return Math::CosineSampleHemispherePDF(query.wo);
 }
 
 // --------------------------------------------------------------------------------
@@ -122,19 +119,14 @@ bool DiffuseBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
 	return p->LoadAsset(node, assets);
 }
 
-Math::Vec3 DiffuseBSDF::Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	return p->Evaluate(query, isect);
+	return p->SampleDirection(query, geom, result);
 }
 
-Math::PDFEval DiffuseBSDF::Pdf( const BSDFEvaluateQuery& query ) const
+Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	return p->Pdf(query);
-}
-
-bool DiffuseBSDF::Sample( const BSDFSampleQuery& query, BSDFSampleResult& result ) const
-{
-	return p->Sample(query, result);
+	return p->EvaluateDirection(query, geom);
 }
 
 LM_NAMESPACE_END

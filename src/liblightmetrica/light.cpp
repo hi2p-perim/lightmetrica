@@ -28,7 +28,7 @@
 LM_NAMESPACE_BEGIN
 
 Light::Light(const std::string& id)
-	: Asset(id)
+	: Emitter(id)
 {
 
 }

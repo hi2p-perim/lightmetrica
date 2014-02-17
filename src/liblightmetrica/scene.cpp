@@ -487,7 +487,7 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	const auto* faces = mesh->Faces();
 
 	// Intersection point
-	isect.p = ray.o + ray.d * ray.maxT;
+	isect.geom.p = ray.o + ray.d * ray.maxT;
 
 	// Geometry normal
 	int v1 = faces[3*triangleIndex  ];
@@ -496,14 +496,14 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	Math::Vec3 p1(isect.primitive->transform * Math::Vec4(positions[3*v1], positions[3*v1+1], positions[3*v1+2], Math::Float(1)));
 	Math::Vec3 p2(isect.primitive->transform * Math::Vec4(positions[3*v2], positions[3*v2+1], positions[3*v2+2], Math::Float(1)));
 	Math::Vec3 p3(isect.primitive->transform * Math::Vec4(positions[3*v3], positions[3*v3+1], positions[3*v3+2], Math::Float(1)));
-	isect.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+	isect.geom.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
 
 	// Shading normal
 	Math::Mat3 normalTransform(Math::Transpose(Math::Inverse(isect.primitive->transform)));
 	Math::Vec3 n1 = normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
 	Math::Vec3 n2 = normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
 	Math::Vec3 n3 = normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
-	isect.sn = Math::Normalize(n1 * (Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
+	isect.geom.sn = Math::Normalize(n1 * (Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
 
 	// Texture coordinates
 	if (texcoords)
@@ -511,15 +511,14 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 		Math::Vec2 uv1(texcoords[2*v1], texcoords[2*v1+1]);
 		Math::Vec2 uv2(texcoords[2*v2], texcoords[2*v2+1]);
 		Math::Vec2 uv3(texcoords[2*v3], texcoords[2*v3+1]);
-		isect.uv = uv1 * Math::Float(Math::Float(1) - b[0] - b[1]) + uv2 * b[0] + uv3 * b[1];
+		isect.geom.uv = uv1 * Math::Float(Math::Float(1) - b[0] - b[1]) + uv2 * b[0] + uv3 * b[1];
 	}
 
-	// Tangent vectors
-	Math::OrthonormalBasis(isect.sn, isect.ss, isect.st);
+	// Scene surface is not degenerated
+	isect.geom.degenerated = false;
 
-	// Shading coordinates conversion
-	isect.worldToShading = Math::Transpose(Math::Mat3(isect.ss, isect.st, isect.sn));
-	isect.shadingToWorld = Math::Inverse(isect.worldToShading);
+	// Compute tangent space
+	isect.geom.ComputeTangentSpace();
 }
 
 // --------------------------------------------------------------------------------

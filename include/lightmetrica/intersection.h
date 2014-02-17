@@ -27,7 +27,7 @@
 #define __LIB_LIGHTMETRICA_INTERSECTION_H__
 
 #include "common.h"
-#include "math.types.h"
+#include "surfacegeometry.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -42,18 +42,13 @@ struct Primitive;
 struct Intersection
 {
 
+	// Primitive and reference to the triangle
 	const Primitive* primitive;
 	unsigned int primitiveIndex;
 	unsigned int triangleIndex;
 
-	Math::Vec3 p;			//!< Intersection point
-	Math::Vec3 gn;			//!< Geometry normal
-	Math::Vec3 sn;			//!< Shading normal
-	Math::Vec3 ss, st;		//!< Tangent vectors w.r.t. shading normal
-	Math::Vec2 uv;			//!< Texture coordinates
-
-	Math::Mat3 worldToShading;
-	Math::Mat3 shadingToWorld;
+	// Surface geometry information
+	SurfaceGeometry geom;
 
 };
 

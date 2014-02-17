@@ -43,6 +43,7 @@ set(
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/random.h"
+	"${_INCLUDE_DIR}/surfacegeometry.h"
 	
 	# pugixml headers
 	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
@@ -71,6 +72,8 @@ set(
 	"${_INCLUDE_DIR}/assets.h"
 	"${_INCLUDE_DIR}/defaultassets.h"
 	"${_INCLUDE_DIR}/assetfactory.h"
+	"${_INCLUDE_DIR}/emitter.h"
+	"${_INCLUDE_DIR}/generalizedbsdf.h"
 )
 set(
 	_ASSETS_SOURCES
@@ -78,6 +81,8 @@ set(
 	"assets.cpp"
 	"defaultassets.cpp"
 	"assetfactory.cpp"
+	"emitter.cpp"
+	"generalizedbsdf.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets" FILES ${_ASSETS_SOURCES})

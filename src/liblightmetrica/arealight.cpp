@@ -44,14 +44,15 @@ public:
 
 public:
 
-	Math::Vec3 EvaluateLe(const Math::Vec3& d, const Math::Vec3& gn) const;
+	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+
+public:
+
+	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
+	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	void RegisterPrimitives(const std::vector<Primitive*>& primitives);
-	void Sample(const LightSampleQuery& query, LightSampleResult& result) const;
-	Math::Vec3 EvaluatePositionalLe(const Math::Vec3& p) const;
-	void SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const;
-	void SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const;
-	Math::Vec3 EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const;
-	
+
 private:
 
 	Math::Vec3 Le;
@@ -67,13 +68,6 @@ bool AreaLight::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
 	return true;
-}
-
-Math::Vec3 AreaLight::Impl::EvaluateLe( const Math::Vec3& d, const Math::Vec3& gn ) const
-{
-	return Math::Dot(d, gn) < Math::Float(0)
-		? Math::Vec3()
-		: Le;
 }
 
 void AreaLight::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
@@ -112,59 +106,9 @@ void AreaLight::Impl::RegisterPrimitives( const std::vector<Primitive*>& primiti
 	power = Le * Math::Constants::Pi() * area;
 }
 
-void AreaLight::Impl::Sample( const LightSampleQuery& query, LightSampleResult& result ) const
+void AreaLight::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-	Math::Vec2 ps(query.sampleP);
-
-	// Choose a primitive according to the area
-	int index =
-		Math::Clamp(
-			static_cast<int>(std::upper_bound(triangleAreaCdf.begin(), triangleAreaCdf.end(), ps.y) - triangleAreaCdf.begin() - 1),
-			0, static_cast<int>(triangleAreaCdf.size()) - 2);
-
-	// Reuse sample
-	ps.y = (ps.y - triangleAreaCdf[index]) / (triangleAreaCdf[index+1] - triangleAreaCdf[index]);
-
-	// Triangle vertex positions
-	const auto& p1 = std::get<0>(triangles[index]);
-	const auto& p2 = std::get<1>(triangles[index]);
-	const auto& p3 = std::get<2>(triangles[index]);
-
-	// Sample position
-	auto b = Math::UniformSampleTriangle(ps);
-	result.p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
-	result.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
-	result.pdfP = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
-
-	// Sample direction
-	Math::Vec3 s, t;
-	Math::OrthonormalBasis(result.gn, s, t);
-	auto localToWorld = Math::Mat3(s, t, result.gn);
-	auto localDir = Math::CosineSampleHemisphere(query.sampleD);
-	result.d = localToWorld * localDir;
-
-	// Returns direction PDF evaluation in projected solid angle measure,
-	// in order to handle degenerated cases without branching
-	result.pdfD = Math::PDFEval(
-		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
-		Math::ProbabilityMeasure::ProjectedSolidAngle);
-}
-
-Math::Vec3 AreaLight::Impl::EvaluatePositionalLe( const Math::Vec3& p ) const
-{
-	return Le * Math::Constants::Pi();
-}
-
-Math::Vec3 AreaLight::Impl::EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const
-{
-	return Math::Dot(d, gn) < Math::Float(0)
-		? Math::Vec3()
-		: Math::Vec3(Math::Constants::InvPi());
-}
-
-void AreaLight::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
-{
-	Math::Vec2 ps(sampleP);
+	Math::Vec2 ps(sample);
 
 	// Choose a primitive according to the area
 	int index =
@@ -182,24 +126,59 @@ void AreaLight::Impl::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, 
 
 	// Sample position
 	auto b = Math::UniformSampleTriangle(ps);
-	p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
-	gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+	geom.p = p1 * (Math::Float(1) - b.x - b.y) + p2 * b.x + p3 * b.y;
+	
+	// Geometry normal at #p
+	// Shading normal is set to #gn for convenience
+	geom.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
+	geom.sn = geom.gn;
+	geom.ComputeTangentSpace();
+
+	// Not degenerated
+	geom.degenerated = false;
+
+	// Evaluation of PDF
 	pdf = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
 }
 
-void AreaLight::Impl::SampleDirection( const Math::Vec2& sampleD, const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
+bool AreaLight::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0)
+	{
+		return false;
+	}
+
+	// Sampled type is fixed
+	result.sampledType = GeneralizedBSDFType::LightDirection;
+
 	// Sample direction
-	Math::Vec3 s, t;
-	Math::OrthonormalBasis(gn, s, t);
-	auto localToWorld = Math::Mat3(s, t, gn);
-	auto localDir = Math::CosineSampleHemisphere(sampleD);
-	d = localToWorld * localDir;
+	auto localDir = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localDir;
 
 	// PDF in projected solid angle measure
-	pdf = Math::PDFEval(
+	result.pdf = Math::PDFEval(
 		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
 		Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+	return true;
+}
+
+Math::Vec3 AreaLight::Impl::EvaluatePosition( const SurfaceGeometry& geom ) const
+{
+	return Le * Math::Constants::Pi();
+}
+
+//Math::Vec3 AreaLight::Impl::EvaluateDirection( const SurfaceGeometry& geom, const Math::Vec3& d ) const
+Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	if ((query.type & GeneralizedBSDFType::LightDirection) != 0 || Math::Dot(query.wo, geom.gn) <= 0)
+	{
+		return Math::Vec3();
+	}
+	else
+	{
+		return Math::Vec3(Math::Constants::InvPi());
+	}
 }
 
 // --------------------------------------------------------------------------------
@@ -216,44 +195,34 @@ AreaLight::~AreaLight()
 	LM_SAFE_DELETE(p);
 }
 
-Math::Vec3 AreaLight::EvaluateLe( const Math::Vec3& d, const Math::Vec3& gn ) const
-{
-	return p->EvaluateLe(d, gn);
-}
-
-void AreaLight::RegisterPrimitives(const std::vector<Primitive*>& primitives)
-{
-	p->RegisterPrimitives(primitives);
-}
-
 bool AreaLight::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return p->LoadAsset(node, assets);
 }
 
-void AreaLight::Sample( const LightSampleQuery& query, LightSampleResult& result ) const
+bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	return p->Sample(query, result);
+	return p->SampleDirection(query, geom, result);
 }
 
-Math::Vec3 AreaLight::EvaluatePositionalLe( const Math::Vec3& p ) const
+Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	return this->p->EvaluatePositionalLe(p);
+	return p->EvaluateDirection(query, geom);
 }
 
-void AreaLight::SamplePosition( const Math::Vec2& sampleP, Math::Vec3& p, Math::Vec3& gn, Math::PDFEval& pdf ) const
+void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-	this->p->SamplePosition(sampleP, p, gn, pdf);
+	this->p->SamplePosition(sample, geom, pdf);
 }
 
-void AreaLight::SampleDirection( const Math::Vec2& sampleD,const Math::Vec3& p, const Math::Vec3& gn, Math::Vec3& d, Math::PDFEval& pdf ) const
+Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
-	this->p->SampleDirection(sampleD, p, gn, d, pdf);
+	return p->EvaluatePosition(geom);
 }
 
-Math::Vec3 AreaLight::EvaluateDirectionalLe( const Math::Vec3& p, const Math::Vec3& gn, const Math::Vec3& d ) const
+void AreaLight::RegisterPrimitives(const std::vector<Primitive*>& primitives)
 {
-	return this->p->EvaluateDirectionalLe(p, gn, d);
+	p->RegisterPrimitives(primitives);
 }
 
 LM_NAMESPACE_END

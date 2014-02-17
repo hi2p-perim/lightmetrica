@@ -25,12 +25,12 @@
 #include "pch.h"
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/intersection.h>
+#include <lightmetrica/surfacegeometry.h>
 
 LM_NAMESPACE_BEGIN
 
 BSDF::BSDF(const std::string& id)
-	: Asset(id)
+	: GeneralizedBSDF(id)
 {
 
 }
@@ -40,16 +40,16 @@ BSDF::~BSDF()
 
 }
 
-Math::Float BSDF::ShadingNormalCorrectionFactor( const BSDFEvaluateQuery& query, const Intersection& isect ) const
+Math::Float BSDF::ShadingNormalCorrectionFactor( const TransportDirection& transportDir, const SurfaceGeometry& geom, const Math::Vec3& localWi, const Math::Vec3& localWo, const Math::Vec3& worldWi, const Math::Vec3& worldWo ) const
 {
 	// Prevent light leak
 	// In some cases wi and wo are same side according to the shading normal
 	// but opposite side according to the geometry normal.
-	auto worldWi = isect.shadingToWorld * query.wi;
-	auto worldWo = isect.shadingToWorld * query.wo;
-	Math::Float wiDotNg = Math::Dot(worldWi, isect.gn);
-	Math::Float woDotNg = Math::Dot(worldWo, isect.gn);
-	if (wiDotNg * Math::CosThetaZUp(query.wi) <= 0 || woDotNg * Math::CosThetaZUp(query.wo) <= 0)
+	Math::Float wiDotNg = Math::Dot(worldWi, geom.gn);
+	Math::Float woDotNg = Math::Dot(worldWo, geom.gn);
+	Math::Float wiDotNs = Math::CosThetaZUp(localWi);
+	Math::Float woDotNs = Math::CosThetaZUp(localWo);
+	if (wiDotNg * wiDotNs <= 0 || woDotNg * woDotNs <= 0)
 	{
 		return Math::Float(0);
 	}
@@ -57,10 +57,10 @@ Math::Float BSDF::ShadingNormalCorrectionFactor( const BSDFEvaluateQuery& query,
 	// Special handling for adjoint case
 	// Be careful of the difference of the notation between Veach's thesis;
 	// in the framework, wo is always the propagating direction.
-	if (query.transportDir == TransportDirection::LightToCamera)
+	if (transportDir == TransportDirection::LE)
 	{
 		// |w_i, N_s| * |w_o, N_g| / |w_i, N_g| / |w_o, N_s| 
-		return Math::CosThetaZUp(query.wi) * woDotNg / (Math::CosThetaZUp(query.wo) * wiDotNg);
+		return wiDotNs * woDotNg / (woDotNs * wiDotNg);
 	}
 
 	return Math::Float(1);
