@@ -36,6 +36,7 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/assert.h>
+#include <lightmetrica/renderutils.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -53,14 +54,6 @@ public:
 	bool Configure( const ConfigNode& node, const Assets& assets );
 	bool Render( const Scene& scene );
 	boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
-
-private:
-
-	/*
-		Evaluate generalized geometry term.
-		Ordinary geometry term + degeneration support.
-	*/
-	Math::Float EvaluateGeneralizedGeometryTerm(SurfaceGeometry currGeom[]) const;
 
 private:
 
@@ -231,7 +224,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 						auto fsL = currBsdfs[TransportDirection::LE]->EvaluateDirection(bsdfEQ, currGeom[TransportDirection::LE]);
 
 						// Geometry term
-						auto G = EvaluateGeneralizedGeometryTerm(currGeom);
+						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom[TransportDirection::EL], currGeom[TransportDirection::LE]);
 
 						// Evaluate contribution and accumulate to film
 						auto contrb = throughput[TransportDirection::EL] * fsE * G * fsL * throughput[TransportDirection::LE];
@@ -276,7 +269,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 				}
 					
 				// Evaluate generalized BSDF
-				auto fs = currBsdfs[subpath]->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR));
+				auto fs = currBsdfs[subpath]->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom[subpath]);
 				if (Math::IsZero(fs))
 				{
 					break;
@@ -338,28 +331,6 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	}
 
 	return true;
-}
-
-Math::Float SimpleBidirectionalPathtraceRenderer::Impl::EvaluateGeneralizedGeometryTerm( SurfaceGeometry currGeom[] ) const
-{
-	const auto& geomE = currGeom[TransportDirection::EL];
-	const auto& geomL = currGeom[TransportDirection::LE];
-	auto pEpL = geomL.p - geomE.p;
-	auto pEpL_Length2 = Math::Length2(pEpL);
-	auto pEpL_Length = Math::Sqrt(pEpL_Length2);
-	pEpL /= pEpL_Length;
-
-	Math::Float numerator(1);
-	if (!geomE.degenerated)
-	{
-		numerator *= Math::Dot(geomE.gn, pEpL);
-	}
-	if (!geomL.degenerated)
-	{
-		numerator *= Math::Dot(geomL.gn, -pEpL);
-	}
-
-	return numerator / pEpL_Length2;
 }
 
 // --------------------------------------------------------------------------------

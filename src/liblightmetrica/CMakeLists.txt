@@ -257,6 +257,7 @@ set(
 	_RENDERER_HEADERS
 	"${_INCLUDE_DIR}/renderer.h"
 	"${_INCLUDE_DIR}/rendererfactory.h"
+	"${_INCLUDE_DIR}/renderutils.h"
 	"${_INCLUDE_DIR}/raycast.h"
 	"${_INCLUDE_DIR}/pathtrace.h"
 	"${_INCLUDE_DIR}/lighttrace.h"
@@ -266,6 +267,7 @@ set(
 set(
 	_RENDERER_SOURCES
 	"rendererfactory.cpp"
+	"renderutils.cpp"
 	"raycast.cpp"
 	"pathtrace.cpp"
 	"lighttrace.cpp"

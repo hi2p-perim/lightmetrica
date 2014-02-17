@@ -77,9 +77,6 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 	#pragma omp parallel for
 	for (int y = 0; y < film->Height(); y++)
 	{
-		Ray ray;
-		Intersection isect;
-
 		for (int x = 0; x < film->Width(); x++)
 		{
 			// Raster position
@@ -89,19 +86,29 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 
 			// Generate ray
 			// Note : position sampling is not used here (thus DoF is disabled)
-			Math::Vec3 _gnE;
-			Math::PDFEval _pdfE;
-			scene.MainCamera()->SamplePosition(Math::Vec2(), ray.o, _gnE, _pdfE);
-			scene.MainCamera()->SampleDirection(rasterPos, ray.o, _gnE, ray.d, _pdfE);
+			SurfaceGeometry geomE;
+			Math::PDFEval pdfPE, pdfDE;
+			scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
+			
+			GeneralizedBSDFSampleQuery bsdfSQ;
+			GeneralizedBSDFSampleResult bsdfSR;
+			bsdfSQ.sample = rasterPos;
+			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+			scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
 
+			Ray ray;
+			ray.d = bsdfSR.wo;
+			ray.o = geomE.p;
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();
 
 			// Check intersection
+			Intersection isect;
 			if (scene.Intersect(ray, isect))
 			{
 				// Intersected : while color
-				Math::Float c = Math::Abs(Math::Dot(isect.sn, -ray.d));
+				Math::Float c = Math::Abs(Math::Dot(isect.geom.sn, -ray.d));
 				film->RecordContribution(rasterPos, Math::Vec3(c));
 			}
 			else

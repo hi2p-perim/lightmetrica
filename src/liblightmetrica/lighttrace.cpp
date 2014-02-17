@@ -35,6 +35,7 @@
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/renderutils.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -82,7 +83,7 @@ bool LighttraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& 
 
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -139,179 +140,80 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			// Sample a light
+			SurfaceGeometry geomL;
+			Math::PDFEval pdfPL;
 
-			// Random number for light sampling
-			auto ls = rng->NextVec2();
+			// Sample a position on the light
+			auto lightSampleP = rng->NextVec2();
+			Math::PDFEval lightSelectionPdf;
+			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
+			light->SamplePosition(lightSampleP, geomL, pdfPL);
+			pdfPL.v *= lightSelectionPdf.v;
 
-			// Choose a light
-			int nl = scene.NumLights();
-			int li = Math::Min(static_cast<int>(ls.x * nl), nl - 1);
-			ls.x = ls.x * nl - Math::Float(li);
-			const Light* light = scene.LightByIndex(li);
-			Math::PDFEval lightSelectionPdf(Math::Float(1.0 / nl), Math::ProbabilityMeasure::Discrete);
-
-			// Sample a position and a direction on the light
-			LightSampleQuery lightSQ;
-			lightSQ.sampleP = ls;
-			lightSQ.sampleD = rng->NextVec2();
-
-			LightSampleResult lightSR;
-			light->Sample(lightSQ, lightSR);
-
-			// Evaluate Le
-			auto Le = light->EvaluateLe(lightSR.d, lightSR.gn) / lightSR.pdfD.v / lightSR.pdfP.v / lightSelectionPdf.v; // = poweeeeeer!
-
-			// --------------------------------------------------------------------------------
-
-			// Handle LE path
-			Math::Vec3 pE, gnE;
-			Math::PDFEval pdfPE;
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, gnE, pdfPE);
-			if (!Math::IsZero(pdfPE.v))
-			{
-				// Calculate raster position
-				Math::Vec2 rasterPos;
-				if (scene.MainCamera()->RayToRasterPosition(pE, lightSR.p - pE, rasterPos))
-				{
-					// Evaluate importance
-					auto We = scene.MainCamera()->EvaluateWe(pE, lightSR.p - pE);
-					if (!Math::IsZero(We))
-					{
-						// Check visibility between camera position and sampled position in the light
-						Ray shadowRay;
-						auto d = pE - lightSR.p;
-						Math::Float dl = Math::Length(d);
-						shadowRay.d = d / dl;
-						shadowRay.o = lightSR.p;
-						shadowRay.minT = Math::Constants::Eps();
-						shadowRay.maxT = dl * (Math::Float(1) - Math::Constants::Eps());
-
-						Intersection shadowIsect;
-						if (!scene.Intersect(shadowRay, shadowIsect))
-						{
-							// Evaluate Le
-							auto Le = light->EvaluateLe(shadowRay.d, lightSR.gn) / lightSR.pdfP.v / lightSelectionPdf.v;
-
-							// Compute geometry factor
-							Math::Float G = Math::Dot(lightSR.gn, shadowRay.d) / dl / dl;
-
-							// Evaluate contribution and accumulate
-							auto contrb = Le * G * We / pdfPE.v;
-							film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
-						}
-					}
-				}
-			}
-
-			// --------------------------------------------------------------------------------
-
-			// Construct a ray
-			Ray ray;
-			ray.d = lightSR.d;
-			ray.o = lightSR.p;
-			ray.minT = Math::Constants::Eps();
-			ray.maxT = Math::Constants::Inf();
+			// Evaluate positional component of Le
+			auto positionalLe = light->EvaluatePosition(geomL);
 
 			// --------------------------------------------------------------------------------
 
 			// Trace light particle and evaluate importance
-			auto throughput = Le;
-			Intersection isect;
+			auto throughput = positionalLe / pdfPL.v;
+			auto currGeom = geomL;
+			Math::Vec3 currWi;
+			const GeneralizedBSDF* currBsdf = light;
 			int depth = 0;
 
 			while (true)
 			{
-				// Query intersection
-				if (!scene.Intersect(ray, isect))
-				{
-					break;
-				}
-
-				// ----------------------------------------------------------------------
-
-				// Sample a position
-				Math::Vec3 pE, gnE;
+				// Sample a position on camera
+				SurfaceGeometry geomE;
 				Math::PDFEval pdfPE;
-				scene.MainCamera()->SamplePosition(rng->NextVec2(), pE, gnE, pdfPE);
-				if (!Math::IsZero(pdfPE.v))
+				scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfPE);
+
+				// Check connectivity between #geomE.p and #currGeom.p
+				Ray shadowRay;
+				auto ppE = geomE.p - currGeom.p;
+				Math::Float ppEL = Math::Length(ppE);
+				shadowRay.d = ppE / ppEL;
+				shadowRay.o = currGeom.p;
+				shadowRay.minT = Math::Constants::Eps();
+				shadowRay.maxT = ppEL * (Math::Float(1) - Math::Constants::Eps());
+
+				Intersection shadowIsect;
+				if (!scene.Intersect(shadowRay, shadowIsect))
 				{
 					// Calculate raster position
 					Math::Vec2 rasterPos;
-					if (scene.MainCamera()->RayToRasterPosition(pE, isect.p - pE, rasterPos))
+					if (scene.MainCamera()->RayToRasterPosition(geomE.p, currGeom.gn, rasterPos))
 					{
-						// Evaluate importance
-						auto We = scene.MainCamera()->EvaluateWe(pE, isect.p - pE);
-						if (!Math::IsZero(We))
-						{
-							// Check visibility between camera position and sampled position in the light
-							Ray shadowRay;
-							auto d = pE - isect.p;
-							Math::Float dl = Math::Length(d);
-							shadowRay.d = d / dl;
-							shadowRay.o = isect.p;
-							shadowRay.minT = Math::Constants::Eps();
-							shadowRay.maxT = dl * (Math::Float(1) - Math::Constants::Eps());
+						GeneralizedBSDFEvaluateQuery bsdfEQ;
 
-							Intersection shadowIsect;
-							if (!scene.Intersect(shadowRay, shadowIsect))
-							{
-								// Evaluate BSDF
-								BSDFEvaluateQuery bsdfEQ;
-								bsdfEQ.transportDir = TransportDirection::LightToCamera;
-								bsdfEQ.type = BSDFType::All;
-								bsdfEQ.wi = isect.worldToShading * -ray.d;
-								bsdfEQ.wo = isect.worldToShading * shadowRay.d;
+						// fsL
+						bsdfEQ.transportDir = TransportDirection::LE;
+						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+						bsdfEQ.wo = -shadowRay.d;
+						auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
 
-								auto bsdf = isect.primitive->bsdf->Evaluate(bsdfEQ, isect);
-								if (!Math::IsZero(bsdf))
-								{
-									// Compute geometry factor
-									// TODO : Think about the case that the position of E is not degenerated
-									Math::Float G = Math::CosThetaZUp(bsdfEQ.wo) / dl / dl;
+						// fsE
+						bsdfEQ.transportDir = TransportDirection::EL;
+						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.wi = currWi;
+						bsdfEQ.wo = shadowRay.d;
+						auto fsE = currBsdf->EvaluateDirection(bsdfEQ, geomE);
 
-									// Evaluate contribution and accumulate
-									auto contrb = throughput * bsdf * G * We / pdfPE.v;
-									film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
-								}
-							}
-						}
+						// Geometry term
+						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomE);
+
+						// Positional component of We
+						auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
+
+						// Evaluate contribution and accumulate to film
+						auto contrb = throughput * fsL * G * fsE * positionalWe / pdfPE.v;
+						film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 					}
 				}
 
-				// ----------------------------------------------------------------------
-
-				// Sample BSDF
-				BSDFSampleQuery bsdfSQ;
-				bsdfSQ.sample = rng->NextVec2();
-				bsdfSQ.type = BSDFType::All;
-				bsdfSQ.wi = isect.worldToShading * -ray.d;
-				bsdfSQ.transportDir = TransportDirection::LightToCamera;
-
-				BSDFSampleResult bsdfSR;
-				if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
-				{
-					break;
-				}
-
-				// Evaluate BSDF
-				auto bsdf = isect.primitive->bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
-				if (Math::IsZero(bsdf))
-				{
-					break;
-				}
-
-				// Update throughput
-				throughput *= bsdf * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
-
-				// Setup next ray
-				ray.d = isect.shadingToWorld * bsdfSR.wo;
-				ray.o = isect.p;
-				ray.minT = Math::Constants::Eps();
-				ray.maxT = Math::Constants::Inf();
-
-				// ----------------------------------------------------------------------
-
+				// --------------------------------------------------------------------------------
+				
 				if (++depth >= rrDepth)
 				{
 					// Russian roulette for path termination
@@ -323,6 +225,62 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 
 					throughput /= p;
 				}
+
+				// --------------------------------------------------------------------------------
+
+				// Sample generalized BSDF
+				GeneralizedBSDFSampleQuery bsdfSQ;
+				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.transportDir = TransportDirection::LE;
+				bsdfSQ.type = GeneralizedBSDFType::All;
+				bsdfSQ.wi = currWi;
+
+				GeneralizedBSDFSampleResult bsdfSR;
+				if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
+				{
+					break;
+				}
+
+				// Evaluate generalized BSDF
+				auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
+				if (Math::IsZero(fs))
+				{
+					break;
+				}
+
+				// Update throughput
+				if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
+				{
+					throughput *= fs * Math::Dot(currGeom.gn, bsdfSR.wo) / bsdfSR.pdf.v;
+				}
+				else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
+				{
+					throughput *= fs / bsdfSR.pdf.v;
+				}
+
+				// --------------------------------------------------------------------------------
+
+				// Setup next ray
+				Ray ray;
+				ray.d = bsdfSR.wo;
+				ray.o = currGeom.p;
+				ray.minT = Math::Constants::Eps();
+				ray.maxT = Math::Constants::Inf();
+
+				// Intersection query
+				Intersection isect;
+				if (!scene.Intersect(ray, isect))
+				{
+					break;
+				}
+
+				// --------------------------------------------------------------------------------
+
+				// Update information
+				currGeom = isect.geom;
+				currWi = -ray.d;
+				currBsdf = isect.primitive->bsdf;
+				depth++;
 			}
 		}
 

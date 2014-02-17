@@ -87,27 +87,16 @@ struct PathVertex
 	
 	// General information
 	PathVertexType type;					// Vertex type
+	SurfaceGeometry geom;					// Surface geometry information
 	Math::PDFEval pdf;						// PDF evaluation
 
-	// BSDF information
+	// Generalized BSDF information
 	TransportDirection transportDir;		// Transport direction
-	BSDFType bsdfType;						// BSDF type. This variable is used if #type is SurfaceInteraction.
+	const GeneralizedBSDF* bsdf;			// Generalized BSDF
 	
 	// Ray directions
 	Math::Vec3 wi;							// Incoming ray
 	Math::Vec3 wo;							// Outgoing ray in #dir
-
-	// TODO : extract only geometry information from isect possibly creating SurfaceGeometry?
-	// Currently duplicated information might be stored both in #p and #isect.p
-
-	// For endpoints 
-	Math::Vec3 p;
-	Math::Vec3 gn;
-	const Camera* camera;
-	const Light* light;
-
-	// For surface interaction
-	Intersection isect;
 
 };
 
@@ -142,13 +131,6 @@ struct Path
 	/*
 	*/
 	Math::Vec2 RasterPosition() const { return rasterPos; }
-
-	/*
-	*/
-	//Math::PDFEval Pdf() const
-	//{
-	//	return Math::PDFEval();
-	//}
 
 	Math::Vec2 rasterPos;
 	std::vector<PathVertex*> vertices;
@@ -332,18 +314,24 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 	// EyePosition
 	v = pool.construct();
 	v->type = PathVertexType::EyePosition;
-	v->camera = scene.MainCamera();
+	v->bsdf = scene.MainCamera();
 	path.rasterPos = rng.NextVec2(); 
-	scene.MainCamera()->SamplePosition(rng.NextVec2(), v->p, v->gn, v->pdf);
+	scene.MainCamera()->SamplePosition(rng.NextVec2(), v->geom, v->pdf);
 	path.Add(v);
 
 	// EyeDirection
 	v = pool.construct();
 	v->type = PathVertexType::EyeDirection;
-	v->camera = scene.MainCamera();
-	v->p = path.vertices[0]->p;
-	v->gn = path.vertices[0]->gn;
-	scene.MainCamera()->SampleDirection(path.rasterPos, v->p, v->gn, v->wo, v->pdf);
+	v->bsdf = scene.MainCamera();
+	v->geom = path.vertices[0]->geom;
+	GeneralizedBSDFSampleQuery bsdfSQE;
+	bsdfSQE.sample = path.rasterPos;
+	bsdfSQE.transportDir = TransportDirection::EL;
+	bsdfSQE.type = GeneralizedBSDFType::EyeDirection;
+	GeneralizedBSDFSampleResult bsdfSRE;
+	scene.MainCamera()->SampleDirection(bsdfSQE, v->geom, bsdfSRE);
+	v->pdf = bsdfSRE.pdf;
+	v->wo = bsdfSRE.wo;
 	path.Add(v);
 
 	// --------------------------------------------------------------------------------
@@ -357,7 +345,7 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 		Ray ray;
 		auto* pv = path.vertices.back();
 		ray.d = pv->wo;
-		ray.o = pv->p;
+		ray.o = pv->geom.p;
 		ray.minT = Math::Constants::Eps();
 		ray.maxT = Math::Constants::Inf();
 
@@ -366,14 +354,14 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 		v->wi = -ray.d;
 
 		// Check intersection
-		if (!scene.Intersect(ray, v->isect))
+		Intersection isect;
+		if (!scene.Intersect(ray, isect))
 		{
 			pool.destroy(v);
 			break;
 		}
 
-		v->p = v->isect.p;
-		v->gn = v->isect.gn;
+		v->geom = isect.geom;
 
 		const auto* light = v->isect.primitive->light;
 		if (light)
@@ -385,13 +373,13 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 			{
 				// Directional component
 				v->type = PathVertexType::LightDirection;
-				v->light = light;
+				v->bsdf = light;
 				path.Add(v);
 
 				// Positional component
 				v = pool.construct();
 				v->type = PathVertexType::LightPosition;
-				v->light = light;
+				v->bsdf = light;
 				path.Add(v);
 
 				return true;
@@ -400,6 +388,7 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 
 		// Otherwise vertex type is surface interaction
 		v->type = PathVertexType::SurfaceInteraction;
+		v->bsdf = isect.primitive->bsdf;
 
 		// --------------------------------------------------------------------------------
 

@@ -140,8 +140,6 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			Intersection isect;
-
 			// Raster position
 			auto rasterPos = rng->NextVec2();
 
@@ -173,58 +171,54 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			Math::Vec3 L;
 			Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
 			int depth = 0;
-				
-			//LM_LOG_DEBUG(std::to_string(throughput.x) + " " + std::to_string(throughput.y) + " " + std::to_string(throughput.z));
-
+			
 			while (true)
 			{
 				// Check intersection
+				Intersection isect;
 				if (!scene.Intersect(ray, isect))
 				{
-					//// There is no intersection, evaluate environment light if exists
-					//const auto* envLight = scene.GetEnvironmentLight();
-					//if (!envLight)
-					//{
-					//	L += throughput * envLight->Evaluate(-ray.d);
-					//}
 					break;
 				}
 					
 				const auto* light = isect.primitive->light;
 				if (light)
 				{
-					// Emission
-					L += throughput * light->EvaluateLe(-ray.d, isect.gn);
+					// Evaluate Le
+					GeneralizedBSDFEvaluateQuery bsdfEQ;
+					bsdfEQ.transportDir = TransportDirection::LE;
+					bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+					bsdfEQ.wo = -ray.d;
+					L += throughput * light->EvaluateDirection(bsdfEQ, isect.geom) * light->EvaluatePosition(isect.geom);
 				}
 
 				// --------------------------------------------------------------------------------
 
 				// Sample BSDF
-				BSDFSampleQuery bsdfSQ;
+				GeneralizedBSDFSampleQuery bsdfSQ;
 				bsdfSQ.sample = rng->NextVec2();
-				bsdfSQ.type = BSDFType::All;
-				bsdfSQ.transportDir = TransportDirection::CameraToLight;
-				bsdfSQ.wi = isect.worldToShading * -ray.d;
+				bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
+				bsdfSQ.transportDir = TransportDirection::EL;
+				bsdfSQ.wi = -ray.d;
 					
-				BSDFSampleResult bsdfSR;
-				if (!isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
+				GeneralizedBSDFSampleResult bsdfSR;
+				if (!isect.primitive->bsdf->SampleDirection(bsdfSQ, isect.geom, bsdfSR))
 				{
 					break;
 				}
 
-				auto bsdf = isect.primitive->bsdf->Evaluate(BSDFEvaluateQuery(bsdfSQ, bsdfSR), isect);
+				auto bsdf = isect.primitive->bsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), isect.geom);
 				if (Math::IsZero(bsdf))
 				{
 					break;
 				}
 					
 				// Update throughput
-				// weight = f_s(w_i, w_o) * cos(theta_o) / p_\sigma(w_o), where theta_o is the angle between N_s and w_o.
-				throughput *= bsdf * Math::CosThetaZUp(bsdfSR.wo) / bsdfSR.pdf.v;
+				throughput *= bsdf * Math::Dot(isect.geom.gn, bsdfSR.wo) / bsdfSR.pdf.v;
 
 				// Setup next ray
-				ray.d = isect.shadingToWorld * bsdfSR.wo;
-				ray.o = isect.p;
+				ray.d = bsdfSR.wo;
+				ray.o = isect.geom.p;
 				ray.minT = Math::Constants::Eps();
 				ray.maxT = Math::Constants::Inf();
 
