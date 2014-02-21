@@ -139,6 +139,7 @@ bool Scene::Impl::Load( const ConfigNode& node, Assets& assets )
 	// Register the primitive to light or camera
 	// Note that the registration step must be called after creating triangle mesh,
 	// for some implementation of lights or cameras could need its reference.
+	std::vector<Primitive*> referencedPrimitives;
 
 	// Camera
 	if (!mainCamera)
@@ -151,14 +152,15 @@ bool Scene::Impl::Load( const ConfigNode& node, Assets& assets )
 		{
 			if (primitive->camera == mainCamera)
 			{
-				mainCamera->RegisterPrimitive(primitive.get());
+				referencedPrimitives.push_back(primitive.get());
 				break;
 			}
 		}
+		mainCamera->RegisterPrimitives(referencedPrimitives);
 	}
 	
 	// Light
-	std::vector<Primitive*> referencedPrimitives;
+	referencedPrimitives.clear();
 	for (auto* light : lights)
 	{
 		for (auto& primitive : primitives)

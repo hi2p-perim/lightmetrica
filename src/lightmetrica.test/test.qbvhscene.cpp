@@ -115,10 +115,10 @@ TEST_F(QBVHSceneTest, Intersect_Random)
 				ray.maxT = Math::Constants::Inf();
 
 				ASSERT_TRUE(scene.Intersect(ray, isect));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, 0), isect.p));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.gn));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.sn));
-				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.uv));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, 0), isect.geom.p));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.geom.gn));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.geom.sn));
+				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.geom.uv));
 			}
 		}
 	}

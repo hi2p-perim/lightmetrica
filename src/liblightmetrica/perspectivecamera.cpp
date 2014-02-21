@@ -57,7 +57,7 @@ public:
 	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
 	bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
-	Film* GetFilm() const;
+	Film* GetFilm() const { return film; }
 
 private:
 
@@ -177,7 +177,7 @@ Math::Vec3 PerspectiveCamera::Impl::EvaluatePosition( const SurfaceGeometry& /*g
 
 Math::Vec3 PerspectiveCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) != 0)
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
 	{
 		return Math::Vec3();
 	}

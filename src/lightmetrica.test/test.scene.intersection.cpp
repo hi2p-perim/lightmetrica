@@ -116,10 +116,10 @@ TEST_F(SceneIntersectionTest, Intersect_Simple)
 				ray.maxT = Math::Constants::Inf();
 
 				ASSERT_TRUE(scene->Intersect(ray, isect));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, 0), isect.p));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.gn));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.sn));
-				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.uv));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, 0), isect.geom.p));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.geom.gn));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), isect.geom.sn));
+				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.geom.uv));
 			}
 		}
 	}
@@ -152,10 +152,10 @@ TEST_F(SceneIntersectionTest, Intersect_Simple2)
 				ray.maxT = Math::Constants::Inf();
 
 				ASSERT_TRUE(scene->Intersect(ray, isect));
-				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, -x), isect.p));
-				EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(1, 0, 1)), isect.gn));
-				EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(1, 0, 1)), isect.sn));
-				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.uv));
+				EXPECT_TRUE(ExpectVec3Near(Math::Vec3(x, y, -x), isect.geom.p));
+				EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(1, 0, 1)), isect.geom.gn));
+				EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(1, 0, 1)), isect.geom.sn));
+				EXPECT_TRUE(ExpectVec2Near(Math::Vec2(x, y), isect.geom.uv));
 			}
 		}
 	}
@@ -240,12 +240,12 @@ TEST_F(SceneIntersectionTest, Consistency)
 					EXPECT_EQ(isectIK.primitive, isectJK.primitive);
 					EXPECT_EQ(isectIK.primitiveIndex, isectJK.primitiveIndex);
 					EXPECT_EQ(isectIK.triangleIndex, isectJK.triangleIndex);
-					EXPECT_TRUE(ExpectVec3Near(isectIK.p, isectJK.p));
-					EXPECT_TRUE(ExpectVec3Near(isectIK.gn, isectJK.gn));
-					EXPECT_TRUE(ExpectVec3Near(isectIK.sn, isectJK.sn));
-					EXPECT_TRUE(ExpectVec3Near(isectIK.ss, isectJK.ss));
-					EXPECT_TRUE(ExpectVec3Near(isectIK.st, isectJK.st));
-					EXPECT_TRUE(ExpectVec2Near(isectIK.uv, isectJK.uv));
+					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.p, isectJK.geom.p));
+					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.gn, isectJK.geom.gn));
+					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.sn, isectJK.geom.sn));
+					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.ss, isectJK.geom.ss));
+					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.st, isectJK.geom.st));
+					EXPECT_TRUE(ExpectVec2Near(isectIK.geom.uv, isectJK.geom.uv));
 				}
 			}
 		}

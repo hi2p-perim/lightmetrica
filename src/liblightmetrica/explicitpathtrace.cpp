@@ -62,21 +62,10 @@ struct boost_pool_aligned_allocator
 /*
 	Vertex type.
 */
-enum PathVertexType
+enum class PathVertexType
 {
-	// Primitive types
-	EyePosition			= 1<<0,
-	EyeDirection		= 1<<1,
-	SurfaceInteraction	= 1<<2,
-	LightDirection		= 1<<3,
-	LightPosition		= 1<<4,
-
-	// Useful flags
-	EndPoint			= EyePosition | LightPosition,
-	IntermediatePoint	= EyeDirection | SurfaceInteraction | LightDirection,
-	
-	// Surface interaction + emitter direction
-	GeneralizedSurfaceInteraction = IntermediatePoint
+	EndPoint,
+	IntermediatePoint,
 };
 
 /*
@@ -94,6 +83,9 @@ struct PathVertex
 	TransportDirection transportDir;		// Transport direction
 	const GeneralizedBSDF* bsdf;			// Generalized BSDF
 	
+	// For #type is EndPoint
+	const Emitter* emitter;
+
 	// Ray directions
 	Math::Vec3 wi;							// Incoming ray
 	Math::Vec3 wo;							// Outgoing ray in #dir
@@ -313,7 +305,8 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 
 	// EyePosition
 	v = pool.construct();
-	v->type = PathVertexType::EyePosition;
+	v->type = PathVertexType::EndPoint;
+	v->transportDir = TransportDirection::EL;
 	v->bsdf = scene.MainCamera();
 	path.rasterPos = rng.NextVec2(); 
 	scene.MainCamera()->SamplePosition(rng.NextVec2(), v->geom, v->pdf);
@@ -321,13 +314,16 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 
 	// EyeDirection
 	v = pool.construct();
-	v->type = PathVertexType::EyeDirection;
+	v->type = PathVertexType::IntermediatePoint;
+	v->transportDir = TransportDirection::EL;
 	v->bsdf = scene.MainCamera();
 	v->geom = path.vertices[0]->geom;
+
 	GeneralizedBSDFSampleQuery bsdfSQE;
 	bsdfSQE.sample = path.rasterPos;
 	bsdfSQE.transportDir = TransportDirection::EL;
 	bsdfSQE.type = GeneralizedBSDFType::EyeDirection;
+	
 	GeneralizedBSDFSampleResult bsdfSRE;
 	scene.MainCamera()->SampleDirection(bsdfSQE, v->geom, bsdfSRE);
 	v->pdf = bsdfSRE.pdf;
@@ -351,7 +347,6 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 
 		// Create path vertex
 		v = pool.construct();
-		v->wi = -ray.d;
 
 		// Check intersection
 		Intersection isect;
@@ -361,9 +356,10 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 			break;
 		}
 
+		// Surface geometry
 		v->geom = isect.geom;
 
-		const auto* light = v->isect.primitive->light;
+		const auto* light = isect.primitive->light;
 		if (light)
 		{
 			// If the intersected vertex is light, decide
@@ -372,14 +368,18 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 			if (rng.Next() < Math::Float(0.5))
 			{
 				// Directional component
-				v->type = PathVertexType::LightDirection;
+				v->type = PathVertexType::IntermediatePoint;
+				v->transportDir = TransportDirection::LE;
 				v->bsdf = light;
+				v->wo = -ray.d;
 				path.Add(v);
 
 				// Positional component
 				v = pool.construct();
-				v->type = PathVertexType::LightPosition;
+				v->type = PathVertexType::EndPoint;
+				v->transportDir = TransportDirection::LE;
 				v->bsdf = light;
+				v->geom = path.vertices.back()->geom;
 				path.Add(v);
 
 				return true;
@@ -387,26 +387,28 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 		}
 
 		// Otherwise vertex type is surface interaction
-		v->type = PathVertexType::SurfaceInteraction;
+		v->type = PathVertexType::IntermediatePoint;
+		v->transportDir = TransportDirection::EL;
 		v->bsdf = isect.primitive->bsdf;
+		v->wi = -ray.d;
 
 		// --------------------------------------------------------------------------------
 
 		// Sample BSDF
-		BSDFSampleQuery bsdfSQ;
+		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = rng.NextVec2();
-		bsdfSQ.type = BSDFType::All;
-		bsdfSQ.transportDir = TransportDirection::CameraToLight;
-		bsdfSQ.wi = v->isect.worldToShading * v->wi;
-
-		BSDFSampleResult bsdfSR;
-		if (!v->isect.primitive->bsdf->Sample(bsdfSQ, bsdfSR) || bsdfSR.pdf.measure != Math::ProbabilityMeasure::SolidAngle)
+		bsdfSQ.type = GeneralizedBSDFType::All;
+		bsdfSQ.transportDir = TransportDirection::EL;
+		bsdfSQ.wi = v->wi;
+		
+		GeneralizedBSDFSampleResult bsdfSR;
+		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
 		{
 			pool.destroy(v);
 			break;
 		}
 
-		v->wo = v->isect.shadingToWorld * bsdfSR.wo;
+		v->wo = bsdfSR.wo;
 		v->pdf = bsdfSR.pdf;
 
 		// --------------------------------------------------------------------------------
@@ -414,7 +416,8 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 		if (++depth >= rrDepth)
 		{
 			// Russian roulette for path termination
-			Math::Float p(0.5); // = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
+			// TODO : replace it
+			Math::Float p(0.5);
 			if (rng.Next() > p)
 			{
 				pool.destroy(v);
@@ -436,47 +439,31 @@ Math::Vec3 ExplictPathtraceRenderer::Impl::EvaluatePath( const Path& path, const
 
 	for (const auto* v : path.vertices)
 	{
-		if (v->type == PathVertexType::EyePosition)
+		if (v->type == PathVertexType::EndPoint)
 		{
-			// Evaluate positional component of We
-			contrb *= v->camera->EvaluatePositionalWe(v->p) / v->pdf.v;
+			// Evaluate positional component of emitter
+			contrb *= v->emitter->EvaluatePosition(v->geom) / v->pdf.v;
 			LM_ASSERT(v->pdf.measure == Math::ProbabilityMeasure::Area);
 		}
-		else if (v->type == PathVertexType::LightPosition)
+		else if (v->type == PathVertexType::IntermediatePoint)
 		{
-			// Evaluate positional component of Le
-			contrb *= v->light->EvaluatePositionalLe(v->p);
-		}
-		else if ((v->type & PathVertexType::IntermediatePoint) != 0)
-		{
-			if (v->type == PathVertexType::EyeDirection)
-			{
-				// Evaluate directional component of We
-				contrb *= v->camera->EvaluateDirectionalWe(v->p, v->wo) / v->pdf.v;
-				LM_ASSERT(v->pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-			}
-			else if (v->type == PathVertexType::LightDirection)
-			{
-				// Evaluate directional component of Le
-				contrb *= v->light->EvaluateDirectionalLe(v->p, v->gn, v->wi);
-			}
-			else
-			{
-				// Evaluate BSDF
-				BSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.transportDir = TransportDirection::CameraToLight;
-				bsdfEQ.type = BSDFType::All;
-				bsdfEQ.wi = v->isect.worldToShading * v->wi;
-				bsdfEQ.wo = v->isect.worldToShading * v->wo;
+			// Evaluate generalized BSDF
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.transportDir = v->transportDir;
+			bsdfEQ.type = GeneralizedBSDFType::All;
+			bsdfEQ.wi = v->wi;
+			bsdfEQ.wo = v->wo;
+			auto bsdf = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
 
-				contrb *= v->isect.primitive->bsdf->Evaluate(bsdfEQ, v->isect) * Math::CosThetaZUp(bsdfEQ.wo) / v->pdf.v;
-				LM_ASSERT(v->pdf.measure == Math::ProbabilityMeasure::SolidAngle);
+			// Calculate contribution according to measure
+			if (v->pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
+			{
+				contrb *= bsdf / v->pdf.v;
 			}
-		}
-		else
-		{
-			LM_LOG_ERROR("Invalid vertex type");
-			return Math::Vec3();
+			else if (v->pdf.measure == Math::ProbabilityMeasure::SolidAngle)
+			{
+				contrb *= bsdf * Math::CosThetaZUp(bsdfEQ.wo) / v->pdf.v;
+			}
 		}
 	}
 

@@ -168,10 +168,9 @@ Math::Vec3 AreaLight::Impl::EvaluatePosition( const SurfaceGeometry& geom ) cons
 	return Le * Math::Constants::Pi();
 }
 
-//Math::Vec3 AreaLight::Impl::EvaluateDirection( const SurfaceGeometry& geom, const Math::Vec3& d ) const
-Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 AreaLight::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) != 0 || Math::Dot(query.wo, geom.gn) <= 0)
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || Math::Dot(query.wo, geom.gn) <= 0)
 	{
 		return Math::Vec3();
 	}

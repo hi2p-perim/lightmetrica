@@ -171,7 +171,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			Math::Vec3 L;
 			Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
 			int depth = 0;
-			
+
 			while (true)
 			{
 				// Check intersection
@@ -189,7 +189,14 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					bsdfEQ.transportDir = TransportDirection::LE;
 					bsdfEQ.type = GeneralizedBSDFType::LightDirection;
 					bsdfEQ.wo = -ray.d;
-					L += throughput * light->EvaluateDirection(bsdfEQ, isect.geom) * light->EvaluatePosition(isect.geom);
+					auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
+					auto LeP = light->EvaluatePosition(isect.geom);
+
+					//LM_LOG_DEBUG("T : " + std::to_string(throughput.x) + " " + std::to_string(throughput.y) + " " + std::to_string(throughput.z));
+					//LM_LOG_DEBUG("D : " + std::to_string(LeD.x) + " " + std::to_string(LeD.y) + " " + std::to_string(LeD.z));
+					//LM_LOG_DEBUG("P : " + std::to_string(LeP.x) + " " + std::to_string(LeP.y) + " " + std::to_string(LeP.z));
+
+					L += throughput * LeD * LeP;
 				}
 
 				// --------------------------------------------------------------------------------

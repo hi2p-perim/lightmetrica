@@ -39,10 +39,8 @@ public:
 	StubBSDF(const std::string& id) : BSDF(id) {}
 	virtual bool LoadAsset(const ConfigNode& node, const Assets& assets) { return true; }
 	virtual std::string Type() const { return "stub"; }
-	virtual BSDFType GetBSDFType() const { return BSDFType::All; }
-	virtual bool Sample( const BSDFSampleQuery& query, BSDFSampleResult& sampled ) const { return true; }
-	virtual Math::Vec3 Evaluate( const BSDFEvaluateQuery& query, const Intersection& isect ) const { return Math::Vec3(); }
-	virtual Math::PDFEval Pdf( const BSDFEvaluateQuery& query ) const { return Math::PDFEval(); }
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const { return true; }
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const { return Math::Vec3(); }
 
 };
 

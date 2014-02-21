@@ -32,6 +32,7 @@
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/math.transform.h>
+#include <lightmetrica/surfacegeometry.h>
 
 namespace
 {
@@ -115,38 +116,63 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 {
 	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 
-	Ray ray;
 	Math::PDFEval _;
-	Math::Vec3 gn;
+	SurfaceGeometry geom;
+	std::vector<Primitive*> primitives;
+	GeneralizedBSDFSampleQuery bsdfSQ;
+	GeneralizedBSDFSampleResult bsdfSR;
+
+	// --------------------------------------------------------------------------------
 
 	// Primitive 1
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
-	camera.RegisterPrimitive(primitive1.get());
+	primitives.clear();
+	primitives.push_back(primitive1.get());
+	camera.RegisterPrimitives(primitives);
 
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (0, 0, 0), d = (0, 0, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
-	camera.SampleDirection(Math::Vec2(0.5), ray.o, gn, ray.d, _);
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, -1), ray.d));
+	
+	camera.SamplePosition(Math::Vec2(), geom, _);
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), geom.p));
+	
+	bsdfSQ.sample = Math::Vec2(0.5);
+	bsdfSQ.transportDir = TransportDirection::EL;
+	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, -1), bsdfSR.wo));
 
 	// Raster position (1, 1)
 	// -> Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
-	camera.SampleDirection(Math::Vec2(1), ray.o, gn, ray.d, _);
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), ray.o));
-	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), ray.d));
+
+	camera.SamplePosition(Math::Vec2(), geom, _);
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), geom.p));
+
+	bsdfSQ.sample = Math::Vec2(1);
+	bsdfSQ.transportDir = TransportDirection::EL;
+	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), bsdfSR.wo));
+
+	// --------------------------------------------------------------------------------
 
 	// Primitive 2
 	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
-	camera.RegisterPrimitive(primitive2.get());
+	primitives.clear();
+	primitives.push_back(primitive2.get());
+	camera.RegisterPrimitives(primitives);
 	
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
-	camera.SamplePosition(Math::Vec2(), ray.o, gn, _);
-	camera.SampleDirection(Math::Vec2(0.5), ray.o, gn, ray.d, _);
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1), ray.o));
-	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), ray.d));
+
+	camera.SamplePosition(Math::Vec2(), geom, _);
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1), geom.p));
+
+	bsdfSQ.sample = Math::Vec2(0.5);
+	bsdfSQ.transportDir = TransportDirection::EL;
+	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), bsdfSR.wo));
 }
 
 TEST_F(PerspectiveCameraTest, RayToRasterPosition)
@@ -154,10 +180,15 @@ TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 
 	Math::Vec2 rasterPosition;
+	std::vector<Primitive*> primitives;
+
+	// --------------------------------------------------------------------------------
 
 	// Primitive 1
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
-	camera.RegisterPrimitive(primitive1.get());
+	primitives.clear();
+	primitives.push_back(primitive1.get());
+	camera.RegisterPrimitives(primitives);
 
 	// Ray { p = (0, 0, 0), d = (0, 0, -1) }
 	// -> Raster position (0.5, 0.5)
@@ -169,9 +200,13 @@ TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(2, 1, -1)), rasterPosition));
 	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(1), rasterPosition));
 	
+	// --------------------------------------------------------------------------------
+
 	// Primitive 2
 	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
-	camera.RegisterPrimitive(primitive2.get());
+	primitives.clear();
+	primitives.push_back(primitive2.get());
+	camera.RegisterPrimitives(primitives);
 
 	// Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
 	// -> Raster position (0.5, 0.5)
