@@ -473,7 +473,7 @@ Math::Vec3 ExplictPathtraceRenderer::Impl::EvaluatePath( const Path& path, const
 			}
 			else if (v->pdf.measure == Math::ProbabilityMeasure::SolidAngle)
 			{
-				contrb *= bsdf * Math::CosThetaZUp(bsdfEQ.wo) / v->pdf.v;
+				contrb *= bsdf * Math::Dot(v->geom.gn, bsdfEQ.wo) / v->pdf.v;
 			}
 		}
 	}
