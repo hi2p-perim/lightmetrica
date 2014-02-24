@@ -183,22 +183,22 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 				{
 					// Calculate raster position
 					Math::Vec2 rasterPos;
-					if (scene.MainCamera()->RayToRasterPosition(geomE.p, currGeom.gn, rasterPos))
+					if (scene.MainCamera()->RayToRasterPosition(geomE.p, -shadowRay.d, rasterPos))
 					{
 						GeneralizedBSDFEvaluateQuery bsdfEQ;
 
 						// fsL
 						bsdfEQ.transportDir = TransportDirection::LE;
-						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-						bsdfEQ.wo = -shadowRay.d;
+						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.wi = currWi;
+						bsdfEQ.wo = shadowRay.d;
 						auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
 
 						// fsE
 						bsdfEQ.transportDir = TransportDirection::EL;
-						bsdfEQ.type = GeneralizedBSDFType::All;
-						bsdfEQ.wi = currWi;
-						bsdfEQ.wo = shadowRay.d;
-						auto fsE = currBsdf->EvaluateDirection(bsdfEQ, geomE);
+						bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
+						bsdfEQ.wo = -shadowRay.d;
+						auto fsE = scene.MainCamera()->EvaluateDirection(bsdfEQ, geomE);
 
 						// Geometry term
 						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomE);

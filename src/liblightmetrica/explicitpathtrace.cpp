@@ -64,6 +64,7 @@ struct boost_pool_aligned_allocator
 */
 enum class PathVertexType
 {
+	None,
 	EndPoint,
 	IntermediatePoint,
 };
@@ -73,7 +74,7 @@ enum class PathVertexType
 */
 struct PathVertex
 {
-	
+
 	// General information
 	PathVertexType type;					// Vertex type
 	SurfaceGeometry geom;					// Surface geometry information
@@ -89,6 +90,14 @@ struct PathVertex
 	// Ray directions
 	Math::Vec3 wi;							// Incoming ray
 	Math::Vec3 wo;							// Outgoing ray in #dir
+
+	PathVertex()
+		: type(PathVertexType::None)
+		, bsdf(nullptr)
+		, emitter(nullptr)
+	{
+
+	}
 
 };
 
@@ -307,8 +316,7 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 	v = pool.construct();
 	v->type = PathVertexType::EndPoint;
 	v->transportDir = TransportDirection::EL;
-	v->bsdf = scene.MainCamera();
-	path.rasterPos = rng.NextVec2(); 
+	v->emitter = scene.MainCamera();
 	scene.MainCamera()->SamplePosition(rng.NextVec2(), v->geom, v->pdf);
 	path.Add(v);
 
@@ -320,6 +328,7 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 	v->geom = path.vertices[0]->geom;
 
 	GeneralizedBSDFSampleQuery bsdfSQE;
+	path.rasterPos = rng.NextVec2();
 	bsdfSQE.sample = path.rasterPos;
 	bsdfSQE.transportDir = TransportDirection::EL;
 	bsdfSQE.type = GeneralizedBSDFType::EyeDirection;
@@ -372,14 +381,16 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 				v->transportDir = TransportDirection::LE;
 				v->bsdf = light;
 				v->wo = -ray.d;
+				v->pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::ProjectedSolidAngle);	// TODO : Seems nasty
 				path.Add(v);
 
 				// Positional component
 				v = pool.construct();
 				v->type = PathVertexType::EndPoint;
 				v->transportDir = TransportDirection::LE;
-				v->bsdf = light;
+				v->emitter = light;
 				v->geom = path.vertices.back()->geom;
+				v->pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);	// TODO : Seems nasty
 				path.Add(v);
 
 				return true;
