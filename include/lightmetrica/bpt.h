@@ -22,59 +22,42 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/rendererfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_BPT_H__
+#define __LIB_LIGHTMETRICA_BPT_H__
+
+#include "renderer.h"
 
 LM_NAMESPACE_BEGIN
 
-RendererFactory::RendererFactory()
+/*!
+	Veach's bidirectional path trace renderer.
+	An implementation of bidirectional path tracing (BPT) according to Veach's paper.
+	Reference:
+		Veach, E. and Guibas, L., Bidirectional estimators for light transport,
+		in Proceedings of the Fifth Eurographics Workshop on Rendering, pp. 147-162, 1994.
+*/
+class LM_PUBLIC_API BidirectionalPathtraceRenderer : public Renderer
 {
+public:
 
-}
+	BidirectionalPathtraceRenderer();
+	virtual ~BidirectionalPathtraceRenderer();
 
-RendererFactory::~RendererFactory()
-{
+public:
 
-}
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual std::string Type() const { return "bpt"; }
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 
-Renderer* RendererFactory::Create( const std::string& type ) const
-{
-	if (type == "raycast")
-	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
-		return nullptr;
-	}
-}
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_VBPT_H__

@@ -208,6 +208,21 @@ private:
 
 };
 
+/*!
+	Aligned allocator for boost::pool.
+	\tparam Align Alignment.
+*/
+template <std::size_t Align>
+struct boost_pool_aligned_allocator
+{
+
+	typedef std::size_t size_type;
+	typedef std::ptrdiff_t difference_type;
+	static char* malloc(const size_type bytes) { return static_cast<char*>(aligned_malloc(bytes, Align)); }
+	static void free(const char* block) { aligned_free((void*)block); }
+
+};
+
 LM_NAMESPACE_END
 
 #endif // __LIB_LIGHTMETRICA_ALIGN_H__

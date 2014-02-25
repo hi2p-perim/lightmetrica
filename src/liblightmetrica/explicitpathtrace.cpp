@@ -37,6 +37,7 @@
 #include <lightmetrica/light.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
+#include <lightmetrica/align.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -45,23 +46,6 @@
 
 LM_NAMESPACE_BEGIN
 
-/*
-	Aligned allocator for boost::pool.
-*/
-template <std::size_t Align>
-struct boost_pool_aligned_allocator
-{
-
-	typedef std::size_t size_type;
-	typedef std::ptrdiff_t difference_type;
-	static char* malloc(const size_type bytes) { return static_cast<char*>(aligned_malloc(bytes, Align)); }
-	static void free(const char* block) { aligned_free((void*)block); }
-
-};
-
-/*
-	Vertex type.
-*/
 enum class PathVertexType
 {
 	None,
@@ -69,9 +53,6 @@ enum class PathVertexType
 	IntermediatePoint,
 };
 
-/*
-	Light path vertex.
-*/
 struct PathVertex
 {
 
@@ -104,37 +85,27 @@ struct PathVertex
 // Object pool type for PathVertex.
 typedef boost::object_pool<PathVertex, boost_pool_aligned_allocator<std::alignment_of<PathVertex>::value>> PathVertexPool;
 
-/*
-	Light path.
-*/
 struct Path
 {
 
-	/*
-	*/
+	Math::Vec2 rasterPos;
+	std::vector<PathVertex*> vertices;
+
 	void Add(PathVertex* vertex)
 	{
 		vertices.push_back(vertex);
 	}
 
-	/*
-	*/
 	void Release(PathVertexPool& pool)
 	{
 		for (auto* vertex : vertices)
 		{
 			pool.destroy(vertex);
 		}
-		
 		vertices.clear();
 	}
 
-	/*
-	*/
 	Math::Vec2 RasterPosition() const { return rasterPos; }
-
-	Math::Vec2 rasterPos;
-	std::vector<PathVertex*> vertices;
 
 };
 
@@ -145,6 +116,10 @@ struct Path
 struct ThreadContext
 {
 	
+	std::unique_ptr<Random> rng;			// Random number generator
+	std::unique_ptr<Film> film;				// Film
+	std::unique_ptr<PathVertexPool> pool;	// Memory pool for path vertices
+
 	ThreadContext(Random* rng, Film* film)
 		: rng(rng)
 		, film(film)
@@ -160,10 +135,6 @@ struct ThreadContext
 	{
 
 	}
-
-	std::unique_ptr<Random> rng;			// Random number generator
-	std::unique_ptr<Film> film;				// Film
-	std::unique_ptr<PathVertexPool> pool;	// Memory pool for path vertices
 
 };
 
@@ -354,16 +325,15 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 		ray.minT = Math::Constants::Eps();
 		ray.maxT = Math::Constants::Inf();
 
-		// Create path vertex
-		v = pool.construct();
-
 		// Check intersection
 		Intersection isect;
 		if (!scene.Intersect(ray, isect))
 		{
-			pool.destroy(v);
 			break;
 		}
+
+		// Create path vertex
+		v = pool.construct();
 
 		// Surface geometry
 		v->geom = isect.geom;
