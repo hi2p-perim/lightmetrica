@@ -490,7 +490,17 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 
 void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& eyeSubpath, const BPTPath& lightSubpath )
 {
+	// Although original estimator for Veach's BPT is
+	//     F = \sum_{s \ge 0} \sum_{t \ge 0} w_{s,t}(\bar{x}_{s,t})\frac{f_j(\bar{x}_{s,t})}{p_{s,t}(\bar{x}_{s,t})}
+	// 
 
+	for (size_t s = 0; s < eyeSubpath.vertices.size(); s++)
+	{
+		for (size_t t = 0; t < lightSubpath.vertices.size(); t++)
+		{
+			
+		}
+	}
 }
 
 // --------------------------------------------------------------------------------
