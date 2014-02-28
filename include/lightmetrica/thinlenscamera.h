@@ -23,28 +23,28 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__
-#define __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__
+#ifndef __LIB_LIGHTMETRICA_THIN_LENS_CAMERA_H__
+#define __LIB_LIGHTMETRICA_THIN_LENS_CAMERA_H__
 
 #include "camera.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Perspective camera.
-	A camera with perspective projection. a.k.a. pinhole camera.
+	Thin-lens camera.
+	A camera with depth of field support.
 */
-class LM_PUBLIC_API PerspectiveCamera : public Camera
+class LM_PUBLIC_API ThinLensCamera : public Camera
 {
 public:
 
-	PerspectiveCamera(const std::string& id);
-	~PerspectiveCamera();
+	ThinLensCamera(const std::string& id);
+	~ThinLensCamera();
 
 public:
 
+	virtual std::string Type() const { return "thinlens"; }
 	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
-	virtual std::string Type() const { return "perspective"; }
 
 public:
 
@@ -67,8 +67,8 @@ private:
 	class Impl;
 	Impl* p;
 
-};	
+};
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_PERSPECTIVE_CAMERA_H__
+#endif // __LIB_LIGHTMETRICA_THIN_LENS_CAMERA_H__

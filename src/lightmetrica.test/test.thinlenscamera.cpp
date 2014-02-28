@@ -27,30 +27,18 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/rawmesh.h>
+#include <lightmetrica.test/stub.film.h>
+#include <lightmetrica/thinlenscamera.h>
 
 namespace
 {
 
-	const std::string RawMeshNode_Success = LM_TEST_MULTILINE_LITERAL(
-		<triangle_mesh id="quad" type="raw">
-			<positions>
-				0 1 0
-				0 1 1
-				1 1 0
-				1 1 1
-			</positions>
-			<normals>
-				0 -1 0
-				0 -1 0
-				0 -1 0
-				0 -1 0
-			</normals>
-			<faces>
-				0 1 2
-				0 1 3
-			</faces>
-		</triangle_mesh>
+	const std::string ThinLensCameraNode_Success = LM_TEST_MULTILINE_LITERAL(
+		<camera id="test" type="thinlens">
+			<film ref="stub" />
+			<fovy>90</fovy>
+
+		</camera>
 	);
 
 }
@@ -58,50 +46,28 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class RawMeshTest : public TestBase
+class ThinLensCameraTest : public TestBase
 {
 public:
 
-	RawMeshTest()
-		: mesh("test")
+	ThinLensCameraTest()
+		: camera("test")
 	{
-
-	}
-
-	Math::Vec3 PositionFromIndex(unsigned int i)
-	{
-		const auto* p = mesh.Positions();
-		return Math::Vec3(p[3*i], p[3*i+1], p[3*i+2]);
-	}
-
-	Math::Vec3 NormalFromIndex(unsigned int i)
-	{
-		const auto* n = mesh.Normals();
-		return Math::Vec3(n[3*i], n[3*i+1], n[3*i+2]);
+		// Add assets
+		assets.Add("stub", new StubFilm("stub"));
 	}
 
 protected:
 
-	RawMesh mesh;
 	StubAssets assets;
 	StubConfig config;
+	ThinLensCamera camera;
 
 };
 
-TEST_F(RawMeshTest, Load)
+TEST_F(ThinLensCameraTest, Load)
 {
-	EXPECT_TRUE(mesh.Load(config.LoadFromStringAndGetFirstChild(RawMeshNode_Success), assets));
-	ASSERT_EQ(6, mesh.NumFaces());
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh.Faces()[0])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[1])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 0), PositionFromIndex(mesh.Faces()[2])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh.Faces()[3])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[4])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), PositionFromIndex(mesh.Faces()[5])));
-	for (int i = 0; i < 6; i++)
-	{
-		EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, -1, 0), NormalFromIndex(mesh.Faces()[i])));
-	}
+	
 }
 
 LM_TEST_NAMESPACE_END

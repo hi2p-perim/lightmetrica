@@ -27,6 +27,7 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
+#include <lightmetrica.test/stub.film.h>
 #include <lightmetrica/perspectivecamera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/primitive.h>
@@ -62,25 +63,6 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class StubFilm : public Film
-{
-public:
-
-	StubFilm(const std::string& id) : Film(id) {}
-	virtual int Width() const { return 200; }
-	virtual int Height() const { return 100; }
-	virtual bool Save(const std::string& path) const { return true; }
-	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
-	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
-	virtual void AccumulateContribution( const Film* film ) {}
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return true; }
-	virtual std::string Type() const { return "stub"; }
-	virtual Film* Clone() const { return nullptr; }
-
-};
-
-// --------------------------------------------------------------------------------
-
 class PerspectiveCameraTest : public TestBase
 {
 public:
@@ -100,7 +82,7 @@ protected:
 
 };
 
-TEST_F(PerspectiveCameraTest, Load_Success)
+TEST_F(PerspectiveCameraTest, Load)
 {
 	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 	EXPECT_EQ(assets.GetAssetByName("stub"), camera.GetFilm());

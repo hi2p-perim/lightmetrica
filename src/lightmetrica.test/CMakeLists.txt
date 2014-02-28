@@ -38,6 +38,7 @@ set(
 	"test.rawmesh.cpp"
 	"test.hdrfilm.cpp"
 	"test.perspectivecamera.cpp"
+	"test.thinlenscamera.cpp"
 	"test.math.vector.cpp"
 	"test.math.matrix.cpp"
 	"test.math.basic.cpp"
