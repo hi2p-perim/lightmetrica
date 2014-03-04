@@ -57,7 +57,7 @@ public:
 	const Primitive* PrimitiveByID(const std::string& id) const;
 	const Camera* MainCamera() const { return mainCamera; }
 	void StoreIntersectionFromBarycentricCoords(unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect);
-	int NumLights() const { return lights.size(); }
+	int NumLights() const { return static_cast<int>(lights.size()); }
 	const Light* LightByIndex(int index) const;
 
 private:

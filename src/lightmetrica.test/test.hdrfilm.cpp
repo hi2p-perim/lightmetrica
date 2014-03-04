@@ -84,6 +84,7 @@ TEST_F(HDRBitmapFilmTest, Load)
 	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
 	EXPECT_EQ(40, film.Width());
 	EXPECT_EQ(30, film.Height());
+	EXPECT_EQ(HDRImageType::RadianceHDR, film.GetHDRImageType());
 }
 
 TEST_F(HDRBitmapFilmTest, Load_Fail)
@@ -274,6 +275,19 @@ TEST_F(HDRBitmapFilmTest, Clone)
 	}
 
 	LM_SAFE_DELETE(film2);
+}
+
+TEST_F(HDRBitmapFilmTest, Allocate)
+{
+	film.SetHDRImageType(HDRImageType::RadianceHDR);
+	film.Allocate(40, 30);
+	EXPECT_EQ(40, film.Width());
+	EXPECT_EQ(30, film.Height());
+	EXPECT_EQ(HDRImageType::RadianceHDR, film.GetHDRImageType());
+
+	std::vector<Math::Float> data;
+	film.InternalData(data);
+	EXPECT_EQ(40 * 30 * 3, data.size());
 }
 
 LM_TEST_NAMESPACE_END

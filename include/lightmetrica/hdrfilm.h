@@ -78,11 +78,16 @@ public:
 	void Allocate(int width, int height);
 
 	/*!
-		Set image type.
 		Set HDR image type.
-		\param type Image type.
+		\param type HDR image type.
 	*/
-	void SetImageType(HDRImageType type);
+	void SetHDRImageType(HDRImageType type);
+
+	/*!
+		Get HDR iamge type.
+		\return HDR image type.
+	*/
+	HDRImageType GetHDRImageType() const;
 
 	/*!
 		Get the internal data.
@@ -90,7 +95,7 @@ public:
 		This function is used internally for testing.
 		\param dest An array to store internal data.
 	*/
-	void InternalData(std::vector<Math::Float>& dest);
+	void InternalData(std::vector<Math::Float>& dest) const;
 
 private:
 

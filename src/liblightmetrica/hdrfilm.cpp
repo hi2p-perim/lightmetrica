@@ -42,10 +42,11 @@ public:
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Film* film);
-	void InternalData(std::vector<Math::Float>& dest);
+	void InternalData(std::vector<Math::Float>& dest) const;
 	Film* Clone() const;
 	void Allocate(int width, int height);
-	void SetImageType(HDRImageType type) { this->type = type; }
+	void SetHDRImageType(HDRImageType type) { this->type = type; }
+	HDRImageType GetHDRImageType() const { return type; }
 
 public:
 
@@ -64,8 +65,7 @@ private:
 HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
 	: self(self)
 {
-	// Error handing of FreeImage
-	FreeImage_SetOutputMessage(FreeImageErrorCallback);
+	
 }
 
 bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
@@ -78,19 +78,19 @@ bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 	if (imageTypeNode.Empty())
 	{
 		// Use .hdr as default type
-		SetImageType(HDRImageType::RadianceHDR);
+		SetHDRImageType(HDRImageType::RadianceHDR);
 	}
 	else
 	{
 		if (imageTypeNode.Value() == "radiancehdr")
 		{
 			// Image type is .hdr (Radiance HDR)
-			SetImageType(HDRImageType::RadianceHDR);
+			SetHDRImageType(HDRImageType::RadianceHDR);
 		}
 		else if (imageTypeNode.Value() == "openexr")
 		{
 			// Image type is .exr (OpenEXR)
-			SetImageType(HDRImageType::OpenEXR);
+			SetHDRImageType(HDRImageType::OpenEXR);
 		}
 		else
 		{
@@ -183,6 +183,9 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Film* film )
 
 bool HDRBitmapFilm::Impl::Save(const std::string& path)
 {
+	// Error handing of FreeImage
+	FreeImage_SetOutputMessage(FreeImageErrorCallback);
+
 	// If #path is empty, the default path is used
 	std::string imagePath = path;
 	if (imagePath.empty())
@@ -215,12 +218,12 @@ bool HDRBitmapFilm::Impl::Save(const std::string& path)
 	}
 
 	BOOL result;
-	if (type == ImageType::RadianceHDR)
+	if (type == HDRImageType::RadianceHDR)
 	{
 		// Save image as Radiance HDR format
 		result = FreeImage_Save(FIF_HDR, bitmap, imagePath.c_str(), HDR_DEFAULT);
 	}
-	else if (type == ImageType::OpenEXR)
+	else if (type == HDRImageType::OpenEXR)
 	{
 		// Save image as OpenEXR format
 		result = FreeImage_Save(FIF_EXR, bitmap, imagePath.c_str(), EXR_DEFAULT);
@@ -239,7 +242,7 @@ bool HDRBitmapFilm::Impl::Save(const std::string& path)
 	return true;
 }
 
-void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Float>& dest )
+void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Float>& dest ) const
 {
 	dest.clear();
 	dest.resize(data.size());
@@ -256,7 +259,8 @@ Film* HDRBitmapFilm::Impl::Clone() const
 
 void HDRBitmapFilm::Impl::Allocate( int width, int height )
 {
-	
+	this->width = width;
+	this->height = height;
 	data.assign(width * height * 3, Math::Float(0));
 }
 
@@ -279,7 +283,7 @@ bool HDRBitmapFilm::Save(const std::string& path) const
 	return p->Save(path);
 }
 
-void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest )
+void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest ) const
 {
 	p->InternalData(dest);
 }
@@ -324,9 +328,14 @@ void HDRBitmapFilm::Allocate( int width, int height )
 	p->Allocate(width, height);
 }
 
-void HDRBitmapFilm::SetImageType( HDRImageType type )
+void HDRBitmapFilm::SetHDRImageType( HDRImageType type )
 {
-	p->SetImageType(type);
+	p->SetHDRImageType(type);
+}
+
+HDRImageType HDRBitmapFilm::GetHDRImageType() const
+{
+	return p->GetHDRImageType();
 }
 
 LM_NAMESPACE_END

@@ -28,6 +28,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
+#include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
@@ -319,7 +320,6 @@ private:
 
 	// Films for sub-path images
 	std::vector<std::unique_ptr<Film>> subpathFilms;
-	std::unique_ptr<Film> subpathTableFilm;
 #endif
 
 };
@@ -407,9 +407,6 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			}
 		}
 	}
-
-	// Table
-	subpathTableFilm.reset(new HDRBitmapFilm);
 #endif
 
 	// --------------------------------------------------------------------------------
@@ -493,19 +490,21 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 		}
 
 		// Save sub-path images
-		LM_LOG_INFO("Saving sub-path images");
-		LM_LOG_INDENTER();
-		for (int s = 0; s <= maxSubpathNumVertices; s++)
 		{
-			for (int t = 0; t <= maxSubpathNumVertices; t++)
+			LM_LOG_INFO("Saving sub-path images");
+			LM_LOG_INDENTER();
+			for (int s = 0; s <= maxSubpathNumVertices; s++)
 			{
-				auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("L%02d_S%02d_T%02d.hdr") % (s+t) % s % t);
+				for (int t = 0; t <= maxSubpathNumVertices; t++)
 				{
-					LM_LOG_INFO("Saving " + path.string());
-					LM_LOG_INDENTER();
-					if (!subpathFilms[s*maxSubpathNumVertices+t]->Save(path.string()))
+					auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("s%02dt%02d.hdr") % s % t);
 					{
-						return false;
+						LM_LOG_INFO("Saving " + path.string());
+						LM_LOG_INDENTER();
+						if (!subpathFilms[s*maxSubpathNumVertices+t]->Save(path.string()))
+						{
+							return false;
+						}
 					}
 				}
 			}
@@ -673,9 +672,8 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 				{
 					//LM_LOG_DEBUG("Raster position : " + std::to_string(rasterPosition.x) + " " + std::to_string(rasterPosition.y));
 					//LM_LOG_DEBUG("Cstar : " + std::to_string(Cstar.x) + " " + std::to_string(Cstar.y) + " " + std::to_string(Cstar.z));
-					subpathFilms[s*maxSubpathNumVertices+t]->AccumulateContribution(
-						rasterPosition,
-						Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
+					auto contrb = Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples);
+					subpathFilms[s*maxSubpathNumVertices+t]->AccumulateContribution(rasterPosition, contrb);
 				}
 			}
 #endif
