@@ -69,17 +69,17 @@ ThinLensCamera::Impl::Impl( ThinLensCamera* self )
 
 bool ThinLensCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
-
+	return false;
 }
 
 bool ThinLensCamera::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-
+	return false;
 }
 
 Math::Vec3 ThinLensCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-
+	return Math::Vec3();
 }
 
 void ThinLensCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
@@ -89,7 +89,7 @@ void ThinLensCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeom
 
 Math::Vec3 ThinLensCamera::Impl::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
-
+	return Math::Vec3();
 }
 
 void ThinLensCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
@@ -99,7 +99,7 @@ void ThinLensCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& pr
 
 bool ThinLensCamera::Impl::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
 {
-
+	return false;
 }
 
 // --------------------------------------------------------------------------------

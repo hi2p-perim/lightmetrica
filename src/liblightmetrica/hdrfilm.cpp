@@ -30,12 +30,6 @@
 
 LM_NAMESPACE_BEGIN
 
-enum class ImageType
-{
-	RadianceHDR,	// Radiance HDR
-	OpenEXR			// OpenEXR
-};
-
 class HDRBitmapFilm::Impl : public Object
 {
 public:
@@ -50,6 +44,8 @@ public:
 	void AccumulateContribution(const Film* film);
 	void InternalData(std::vector<Math::Float>& dest);
 	Film* Clone() const;
+	void Allocate(int width, int height);
+	void SetImageType(HDRImageType type) { this->type = type; }
 
 public:
 
@@ -60,7 +56,7 @@ private:
 	HDRBitmapFilm* self;
 	int width;
 	int height;
-	ImageType type;					// Type of the image to be saved
+	HDRImageType type;				// Type of the image to be saved
 	std::vector<Math::Float> data;	// Image data
 
 };
@@ -68,7 +64,8 @@ private:
 HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
 	: self(self)
 {
-	
+	// Error handing of FreeImage
+	FreeImage_SetOutputMessage(FreeImageErrorCallback);
 }
 
 bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
@@ -81,19 +78,19 @@ bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 	if (imageTypeNode.Empty())
 	{
 		// Use .hdr as default type
-		type = ImageType::RadianceHDR;
+		SetImageType(HDRImageType::RadianceHDR);
 	}
 	else
 	{
 		if (imageTypeNode.Value() == "radiancehdr")
 		{
 			// Image type is .hdr (Radiance HDR)
-			type = ImageType::RadianceHDR;
+			SetImageType(HDRImageType::RadianceHDR);
 		}
 		else if (imageTypeNode.Value() == "openexr")
 		{
 			// Image type is .exr (OpenEXR)
-			type = ImageType::OpenEXR;
+			SetImageType(HDRImageType::OpenEXR);
 		}
 		else
 		{
@@ -102,11 +99,8 @@ bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 		}
 	}
 
-	// Initialize image data
-	data.assign(width * height * 3, Math::Float(0));
-
-	// Error handing of FreeImage
-	FreeImage_SetOutputMessage(FreeImageErrorCallback);
+	// Allocate image data
+	Allocate(width, height);
 
 	return true;
 }
@@ -260,6 +254,12 @@ Film* HDRBitmapFilm::Impl::Clone() const
 	return film;
 }
 
+void HDRBitmapFilm::Impl::Allocate( int width, int height )
+{
+	
+	data.assign(width * height * 3, Math::Float(0));
+}
+
 // --------------------------------------------------------------------------------
 
 HDRBitmapFilm::HDRBitmapFilm(const std::string& id)
@@ -317,6 +317,16 @@ bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
 Film* HDRBitmapFilm::Clone() const
 {
 	return p->Clone();
+}
+
+void HDRBitmapFilm::Allocate( int width, int height )
+{
+	p->Allocate(width, height);
+}
+
+void HDRBitmapFilm::SetImageType( HDRImageType type )
+{
+	p->SetImageType(type);
 }
 
 LM_NAMESPACE_END

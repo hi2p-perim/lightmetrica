@@ -38,6 +38,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
+#include <lightmetrica/renderutils.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -127,8 +128,6 @@ struct BPTPathVertex
 				LM_LOG_DEBUG(boost::str(boost::format("Geometry normal : (%f, %f, %f)") % geom.gn.x % geom.gn.y % geom.gn.z));
 				LM_LOG_DEBUG(boost::str(boost::format("Shading normal : (%f, %f, %f)") % geom.sn.x % geom.sn.y % geom.sn.z));
 			}
-		}
-		{
 		}
 
 		if (type == BPTPathVertexType::EndPoint)
@@ -251,10 +250,56 @@ public:
 
 private:
 
+	/*
+		Sample a sub-path.
+		Sample eye sub-subpath or light sub-path according to #transportDir.
+		\param scene Scene.
+		\param rng Random number generator.
+		\param pool Memoryh pool for path vertex.
+		\param transportDir Transport direction.
+		\param subpath Sampled subpath.
+	*/
 	void SampleSubpath(const Scene& scene, Random& rng, PathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath);
-	void EvaluateSubpathCombinations(const Scene& scene, Film& film, const BPTPath& eyeSubpath, const BPTPath& lightSubpath);
-	Math::Float EvaluateMISWeight(int n, int s, const BPTPath& eyeSubpath, const BPTPath& lightSubpath);
-	Math::Vec3 EvaluateUnweightContribution(int n, int s, const BPTPath& eyeSubpath, const BPTPath& lightSubpath, Math::Vec2& rasterPosition);
+
+	/*
+		Evaluate contribution with combination of sub-paths.
+		See [Veach 1997] for details.
+		\param scene Scene.
+		\param film Film.
+		\param lightSubpath Light sub-path.
+		\param eyeSubpath Eye sub-path.
+	*/
+	void EvaluateSubpathCombinations(const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath);
+
+	/*
+		Evaluate MIS weight w_{s,t}.
+		\param s Index of vertex in light sub-path.
+		\param t Index of vertex in eye-subpath.
+		\param lightSubpath Light sub-path.
+		\param eyeSubpath Eye sub-path.
+		\return MIS weight.
+	*/
+	Math::Float EvaluateMISWeight(int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath);
+
+	/*
+		Evaluate unweight contribution C^*_{s,t}.
+		\param s Index of vertex in light sub-path.
+		\param t Index of vertex in eye-subpath.
+		\param lightSubpath Light sub-path.
+		\param eyeSubpath Eye sub-path.
+		\param Contribution.
+	*/
+	Math::Vec3 EvaluateUnweightContribution(const Scene& scene, int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath, Math::Vec2& rasterPosition);
+
+	/*
+		Evaluate alpha of sub-paths.
+		The function is called from #EvaluateUnweightContribution.
+		\param vs Number of vertices in sub-path (#s or #t).
+		\param transportDir Transport direction.
+		\param subpath Light sub-path or eye sub-path.
+		\param rasterPosition Raster position.
+	*/
+	Math::Vec3 EvaluateSubpathAlpha(int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition);
 
 private:
 
@@ -274,6 +319,7 @@ private:
 
 	// Films for sub-path images
 	std::vector<std::unique_ptr<Film>> subpathFilms;
+	std::unique_ptr<Film> subpathTableFilm;
 #endif
 
 };
@@ -361,6 +407,9 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 			}
 		}
 	}
+
+	// Table
+	subpathTableFilm.reset(new HDRBitmapFilm);
 #endif
 
 	// --------------------------------------------------------------------------------
@@ -381,41 +430,41 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 		// Sub-paths are reused in the sample block
 		// but probably it should be shared by per thread configuration
 		// (TODO : check performance gain)
-		BPTPath eyeSubpath;
 		BPTPath lightSubpath;
+		BPTPath eyeSubpath;
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			// Release and clear paths
-			eyeSubpath.Release(*pool);
-			eyeSubpath.Clear();
 			lightSubpath.Release(*pool);
 			lightSubpath.Clear();
+			eyeSubpath.Release(*pool);
+			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			SampleSubpath(scene, *rng, *pool, TransportDirection::EL, eyeSubpath);
 			SampleSubpath(scene, *rng, *pool, TransportDirection::LE, lightSubpath);
+			SampleSubpath(scene, *rng, *pool, TransportDirection::EL, eyeSubpath);
 
 			// Debug print
 #if 0
 			{
 				LM_LOG_DEBUG("Sample #" + std::to_string(sample));
+				{
+					LM_LOG_DEBUG("light subpath");
+					LM_LOG_INDENTER();
+					lightSubpath.DebugPrint();
+				}
 				LM_LOG_INDENTER();
 				{
 					LM_LOG_DEBUG("eye subpath");
 					LM_LOG_INDENTER();
 					eyeSubpath.DebugPrint();
 				}
-				{
-					LM_LOG_DEBUG("light subpath");
-					LM_LOG_INDENTER();
-					lightSubpath.DebugPrint();
-				}
 			}
 #endif
 
 			// Evaluate combination of sub-paths
-			EvaluateSubpathCombinations(scene, *film, eyeSubpath, lightSubpath);
+			EvaluateSubpathCombinations(scene, *film, lightSubpath, eyeSubpath);
 		}
 
 		processedBlocks++;
@@ -486,7 +535,6 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 	else
 	{
 		// LightPosition
-		v = pool.construct();
 		auto lightSampleP = rng.NextVec2();
 		Math::PDFEval lightSelectionPdf;
 		v->emitter = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
@@ -557,6 +605,10 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 		v->geom = isect.geom;
 		v->wi = -pv->wo;
 
+		// Area light or camera
+		v->areaLight = isect.primitive->light;
+		v->areaCamera = isect.primitive->camera;
+
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = rng.NextVec2();
@@ -578,7 +630,7 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 	}
 }
 
-void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& eyeSubpath, const BPTPath& lightSubpath )
+void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
 {
 	// Let n_E and n_L be the number of vertices of eye and light sub-paths respectively.
 	// Rewriting the order of summation of Veach's estimator (equation 10.3 in [Veach 1997]),
@@ -586,28 +638,32 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 	//     I_j = \sum_{n=0}^{n_E+n_L} \sum_{s=0}^l w_{s,n-s}(\bar{x}_{s,n-s})\frac{f_j(\bar{x}_{s,n-s})}{p_{s,l-s}(\bar{x}_{s,n-s})},
 	// where
 	//     - \bar{x}_{s,n-s} : Path sampled from p_{s,n-s}
-	//     - w_{s,n-s} : MIS weight for s=s, t=n-s
+	//     - w_{s,n-s} : MIS weight
 
-	const int nE = static_cast<int>(eyeSubpath.vertices.size()) - 1;
-	const int nL = static_cast<int>(lightSubpath.vertices.size()) - 1;
+	const int nL = static_cast<int>(lightSubpath.vertices.size());
+	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 
 	for (int n = 0; n <= nE + nL; n++)
 	{
 		// Process full-path with length n+1 (sub-path edges + connecting edge)
 		Math::Float sumWeight = 0;
-		const int minS = Math::Max(0, n-nL);
-		const int maxS = Math::Min(n, nE);
+		const int minS = Math::Max(0, n-nE);
+		const int maxS = nL;
 		for (int s = minS; s <= maxS; s++)
 		{
-			int t = n - s;
+			const int t = n - s;
 
-			// Evaluate weighting function w_{s,n-s}
-			Math::Float w = EvaluateMISWeight(n, s, eyeSubpath, lightSubpath);
+			// Evaluate weighting function w_{s,t}
+			Math::Float w = EvaluateMISWeight(s, t, lightSubpath, eyeSubpath);
 			sumWeight += w;
 
-			// Evaluate unweight contribution C^*_{s,l-s}
+			// Evaluate unweight contribution C^*_{s,t}
 			Math::Vec2 rasterPosition;
-			auto Cstar = EvaluateUnweightContribution(n, s, eyeSubpath, lightSubpath, rasterPosition);
+			auto Cstar = EvaluateUnweightContribution(scene, s, t, lightSubpath, eyeSubpath, rasterPosition);
+			if (Math::IsZero(Cstar))
+			{
+				continue;
+			}
 
 #ifdef LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
@@ -615,6 +671,8 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			{
 				#pragma omp critical
 				{
+					//LM_LOG_DEBUG("Raster position : " + std::to_string(rasterPosition.x) + " " + std::to_string(rasterPosition.y));
+					//LM_LOG_DEBUG("Cstar : " + std::to_string(Cstar.x) + " " + std::to_string(Cstar.y) + " " + std::to_string(Cstar.z));
 					subpathFilms[s*maxSubpathNumVertices+t]->AccumulateContribution(
 						rasterPosition,
 						Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
@@ -622,7 +680,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			}
 #endif
 
-			// Evaluate contribution C_{i,l-i}
+			// Evaluate contribution C_{s,t}
 			auto C = w * Cstar;
 
 			// Record to the film
@@ -634,22 +692,197 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 	}
 }
 
-Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateMISWeight( int n, int s, const BPTPath& eyeSubpath, const BPTPath& lightSubpath )
+Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateMISWeight( int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
 {
 	// Simplest weight!!
 	// TODO : Replace with power heuristics
-	const int nE = static_cast<int>(eyeSubpath.vertices.size()) - 1;
-	const int nL = static_cast<int>(lightSubpath.vertices.size()) - 1;
-	const int minS = Math::Max(0, n-nL);
-	const int maxS = Math::Min(n, nE);
+	const int nE = static_cast<int>(eyeSubpath.vertices.size());
+	const int nL = static_cast<int>(lightSubpath.vertices.size());
+	const int n = s + t;
+	const int minS = Math::Max(0, n-nE);
+	const int maxS = nL;
 	return Math::Float(1) / Math::Cast<Math::Float>(maxS - minS + 1);
 }
 
-Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateUnweightContribution( int n, int s, const BPTPath& eyeSubpath, const BPTPath& lightSubpath, Math::Vec2& rasterPosition)
+Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateUnweightContribution( const Scene& scene, int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath, Math::Vec2& rasterPosition )
 {
-	int t = n - s;
+	// Evaluate \alpha^L_s
+	auto alphaL = EvaluateSubpathAlpha(s, TransportDirection::LE, lightSubpath, rasterPosition);
+	if (Math::IsZero(alphaL))
+	{
+		return Math::Vec3();
+	}
 
-	return Math::Colors::White();
+	// Evaluate \alpha^E_t
+	auto alphaE = EvaluateSubpathAlpha(t, TransportDirection::EL, eyeSubpath, rasterPosition);
+	if (Math::IsZero(alphaE))
+	{
+		return Math::Vec3();
+	}
+	
+	// --------------------------------------------------------------------------------
+
+	// Evaluate c_{s,t}
+	Math::Vec3 cst;
+	
+	if (s == 0 && t > 0)
+	{
+		// z_{t-1} is area light
+		auto* v = eyeSubpath.vertices[t-1];
+		if (v->areaLight)
+		{
+			// Camera emitter cannot be an light
+			LM_ASSERT(t >= 1);
+
+			// Evaluate Le^0(z_{t-1})
+			cst = v->areaLight->EvaluatePosition(v->geom);
+
+			// Evaluate Le^1(z_{t-1}\to z_{t-2})
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.wo = v->wi;
+			cst *= v->areaLight->EvaluateDirection(bsdfEQ, v->geom);
+		}
+	}
+	else if (s > 0 && t == 0)
+	{
+		// y_{s-1} is area camera
+		auto* v = lightSubpath.vertices[s-1];
+		if (v->areaCamera)
+		{
+			// Light emitter cannot be an camera
+			LM_ASSERT(s >= 1);
+
+			// Raster position
+			if (v->areaCamera->RayToRasterPosition(v->geom.p, v->wi, rasterPosition))
+			{
+				// Evaluate We^0(y_{s-1})
+				cst = v->areaCamera->EvaluatePosition(v->geom);
+
+				// Evaluate We^1(y_{s-1}\to y_{s-2})
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
+				bsdfEQ.transportDir = TransportDirection::EL;
+				bsdfEQ.wo = v->wi;
+				cst *= v->areaCamera->EvaluateDirection(bsdfEQ, v->geom);
+			}
+		}
+	}
+	else if (s > 0 && t > 0)
+	{
+		auto* vL = lightSubpath.vertices[s-1];
+		auto* vE = eyeSubpath.vertices[t-1];
+
+		// Check connectivity between #vL->geom.p and #vE->geom.p
+		Ray shadowRay;
+		auto pLpE = vE->geom.p - vL->geom.p;
+		auto pLpE_Length = Math::Length(pLpE);
+		shadowRay.d = pLpE / pLpE_Length;
+		shadowRay.o = vL->geom.p;
+		shadowRay.minT = Math::Constants::Eps();
+		shadowRay.maxT = pLpE_Length * (Math::Float(1) - Math::Constants::Eps());
+
+		// Update raster position if #t = 1
+		bool visible = true;
+		if (t == 1)
+		{
+			visible = scene.MainCamera()->RayToRasterPosition(vE->geom.p, -shadowRay.d, rasterPosition);
+		}
+
+		Intersection shadowIsect;
+		if (visible && !scene.Intersect(shadowRay, shadowIsect))
+		{			
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = GeneralizedBSDFType::All;
+
+			// fsL
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.wi = vL->wi;
+			bsdfEQ.wo = shadowRay.d;
+			auto fsL = vL->bsdf->EvaluateDirection(bsdfEQ, vL->geom);
+
+			// fsE
+			bsdfEQ.transportDir = TransportDirection::EL;
+			bsdfEQ.wi = vE->wi;
+			bsdfEQ.wo = -shadowRay.d;
+			auto fsE = vE->bsdf->EvaluateDirection(bsdfEQ, vE->geom);
+
+			// Geometry term
+			auto G = RenderUtils::GeneralizedGeometryTerm(vL->geom, vE->geom);
+
+			cst = fsL * G * fsE;
+		}
+	}
+
+	if (Math::IsZero(cst))
+	{
+		return Math::Vec3();
+	}
+
+	// --------------------------------------------------------------------------------
+
+	// Evaluate contribution C^*_{s,t} = \alpha^L_s * c_{s,t} * \alpha^E_t
+	return alphaL * cst * alphaE;
+}
+
+Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition )
+{
+	Math::Vec3 alpha;
+
+	if (vs == 0)
+	{
+		// \alpha_0 = 1
+		alpha = Math::Vec3(Math::Float(1));
+	}
+	else
+	{
+		BPTPathVertex* v = subpath.vertices[0];
+
+		LM_ASSERT(v->type == BPTPathVertexType::EndPoint);
+		LM_ASSERT(v->emitter != nullptr);
+		LM_ASSERT(v->pdfP.measure == Math::ProbabilityMeasure::Area);
+
+		// Calculate raster position if transport direction is EL
+		bool visible = true;
+		if (transportDir == TransportDirection::EL)
+		{
+			visible = dynamic_cast<const Camera*>(v->emitter)->RayToRasterPosition(v->geom.p, v->wo, rasterPosition);
+		}
+		
+		if (visible)
+		{
+			// Emitter
+			// \alpha^L_1 = Le^0(y0) / p_A(y0) or \alpha^E_1 = We^0(z0) / p_A(z0)
+			alpha = v->emitter->EvaluatePosition(v->geom) / v->pdfP.v;
+
+			for (int i = 0; i < vs - 1; i++)
+			{
+				v = subpath.vertices[i];
+
+				// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.type = GeneralizedBSDFType::All;
+				bsdfEQ.transportDir = transportDir;
+				bsdfEQ.wi = v->wi;
+				bsdfEQ.wo = v->wo;
+				auto fs = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
+
+				// Update #alphaL
+				// TODO : Should we arrange sampled measure?
+				if (v->pdfD.measure == Math::ProbabilityMeasure::SolidAngle)
+				{
+					alpha *= fs * Math::Dot(v->geom.gn, v->wo) / v->pdfD.v;
+				}
+				else if (v->pdfD.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
+				{
+					alpha *= fs / v->pdfD.v;
+				}
+			}
+		}
+	}
+
+	return alpha;
 }
 
 // --------------------------------------------------------------------------------

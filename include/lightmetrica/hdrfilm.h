@@ -31,6 +31,15 @@
 LM_NAMESPACE_BEGIN
 
 /*!
+	HDR image types.
+*/
+enum class HDRImageType
+{
+	RadianceHDR,	// Radiance HDR
+	OpenEXR			// OpenEXR
+};
+
+/*!
 	High dynamic range bitmap film.
 	Implements HDR version of bitmap image recording.
 */
@@ -60,6 +69,20 @@ public:
 	virtual Film* Clone() const;
 
 public:
+
+	/*!
+		Allocate the film with given width and height.
+		\param width Width of the film.
+		\param height Height of the film.
+	*/
+	void Allocate(int width, int height);
+
+	/*!
+		Set image type.
+		Set HDR image type.
+		\param type Image type.
+	*/
+	void SetImageType(HDRImageType type);
 
 	/*!
 		Get the internal data.
