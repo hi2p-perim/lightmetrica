@@ -4,6 +4,7 @@
 
 # Temporary files
 *.swp
+*.pyc
 
 # Project files
 [Bb]uild/

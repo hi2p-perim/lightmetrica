@@ -1,39 +1,15 @@
 # -*- coding: utf-8 -*-
 
-#
-# create_table.py
-# Create table of sub-path images.
-#
+"""
+	create_table.py
+	Create table of sub-path images.
+"""
 
 import os
 import re
-import array
-import smc.freeimage as fi
-from PIL import Image
 import numpy as np
 import cv2
-
-def gamma_correction(a, gamma):
-	return np.power(a, 1/gamma)
-
-def image_size(file):
-	img = fi.Image(file)
-	return (img.width, img.height)
-
-def load_hdr(file):
-	img = fi.Image(file).flipVertical()
-
-	size = img.height * img.pitch
-	raw = img.getRaw()
-	floats = array.array('f', raw)
-
-	a1 = np.array(floats).reshape((img.width, img.height, 3))
-	a2 = np.clip(gamma_correction(a1, 2.2), 0, 1)
-	return (a2 * 255).astype(np.uint8)
-
-def save_image(file, image):
-	img2 = Image.fromarray(image)
-	img2.save(file)
+import exputil as exp
 
 def main():
 
@@ -51,7 +27,7 @@ def main():
 			maxT = max(maxT, int(m.group(2)))
 
 	# Size of the image
-	size = image_size('s00t00.hdr')
+	size = exp.image_size('s00t00.hdr')
 
 	# Allocate image
 	width = size[0] * (maxT + 1)
@@ -61,7 +37,7 @@ def main():
 	# Draw images
 	for s in xrange(0, maxS+1):
 		for t in xrange(0, maxT+1):
-			image = load_hdr('s%02dt%02d.hdr' % (s, t))
+			image = exp.hdr_compression(exp.load_hdr('s%02dt%02d.hdr' % (s, t)))
 			result[t*size[1]:(t+1)*size[1], s*size[0]:(s+1)*size[0]] = image
 
 			# Caption
@@ -73,7 +49,7 @@ def main():
 	for t in xrange(1, maxT+1):
 		cv2.line(result, (t*size[0], 0), (t*size[0], height), (255, 128, 128), 1)
 
-	save_image('table.png', result)
+	exp.save_image('table.png', result)
 
 if __name__ == '__main__':
 	main()

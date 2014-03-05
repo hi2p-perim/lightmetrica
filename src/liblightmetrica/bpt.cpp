@@ -501,7 +501,7 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 					{
 						LM_LOG_INFO("Saving " + path.string());
 						LM_LOG_INDENTER();
-						if (!subpathFilms[s*maxSubpathNumVertices+t]->Save(path.string()))
+						if (!subpathFilms[s*(maxSubpathNumVertices+1)+t]->Save(path.string()))
 						{
 							return false;
 						}
@@ -673,7 +673,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 					//LM_LOG_DEBUG("Raster position : " + std::to_string(rasterPosition.x) + " " + std::to_string(rasterPosition.y));
 					//LM_LOG_DEBUG("Cstar : " + std::to_string(Cstar.x) + " " + std::to_string(Cstar.y) + " " + std::to_string(Cstar.z));
 					auto contrb = Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples);
-					subpathFilms[s*maxSubpathNumVertices+t]->AccumulateContribution(rasterPosition, contrb);
+					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, contrb);
 				}
 			}
 #endif
