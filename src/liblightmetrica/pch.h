@@ -52,5 +52,6 @@
 #include <iomanip>
 #include <limits>
 #include <memory>
+#include <unordered_map>
 
 #endif // __LIB_LIGHTMETRICA_PCH_H__

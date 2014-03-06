@@ -85,6 +85,7 @@ struct BPTPathVertex
 		#type is either EndPoint or IntermediatePoint
 	*/
 	Math::PDFEval pdfD;						// PDF evaluation for directional component
+	Math::PDFEval pdfRR;					// PDF evaluation for Russian roulette
 	TransportDirection transportDir;		// Transport direction
 	const GeneralizedBSDF* bsdf;			// Generalized BSDF
 	const Light* areaLight;					// Light associated with surface
@@ -320,6 +321,8 @@ private:
 
 	// Films for sub-path images
 	std::vector<std::unique_ptr<Film>> subpathFilms;
+	// Per length images
+	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;
 #endif
 
 };
@@ -509,6 +512,24 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 				}
 			}
 		}
+
+		// Save per length images
+		{
+			LM_LOG_INFO("Saving per length images");
+			LM_LOG_INDENTER();
+			for (const auto& kv : perLengthFilms)
+			{
+				auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("l%03d.hdr") % kv.first);
+				{
+					LM_LOG_INFO("Saving " + path.string());
+					LM_LOG_INDENTER();
+					if (!kv.second->Save(path.string()))
+					{
+						return false;
+					}
+				}
+			}
+		}
 	}
 #endif
 
@@ -554,29 +575,16 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 	v->pdfD = bsdfSRE.pdf;
 	v->wo = bsdfSRE.wo;
 
+	// # of vertices is always greater than 1
+	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
+
 	subpath.Add(v);
 
 	// --------------------------------------------------------------------------------
 
-	int depth = 0;
+	int depth = 1;
 	while (true)
 	{
-		// Break if the number of vertices of the sub-path exceeds the maximum
-		if (++depth >= rrDepth)
-		{
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
-			if (enableExperimentalMode && depth >= maxSubpathNumVertices)
-			{
-				break;
-			}
-#endif
-
-			// TODO : Apply RR
-			break;
-		}
-
-		// --------------------------------------------------------------------------------
-
 		// Previous vertex
 		auto* pv = subpath.vertices.back();
 
@@ -607,6 +615,38 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 		// Area light or camera
 		v->areaLight = isect.primitive->light;
 		v->areaCamera = isect.primitive->camera;
+
+		// --------------------------------------------------------------------------------
+
+		// Apply RR
+		int rrDepthT = rrDepth;
+#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+		if (enableExperimentalMode)
+		{
+			// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
+			rrDepthT = Math::Max(rrDepthT, maxSubpathNumVertices);
+		}
+#endif
+
+		if (++depth >= rrDepthT)
+		{
+			// TODO : Replace with the more efficient one
+			auto p = Math::Float(0.5);
+			if (rng.Next() > p)
+			{
+				subpath.Add(v);
+				break;
+			}
+
+			// RR probability
+			v->pdfRR = Math::PDFEval(p, Math::ProbabilityMeasure::Discrete);
+		}
+		else
+		{
+			v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
+		}
+
+		// --------------------------------------------------------------------------------
 
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
@@ -642,12 +682,16 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 	const int nL = static_cast<int>(lightSubpath.vertices.size());
 	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 
-	for (int n = 0; n <= nE + nL; n++)
+	//LM_LOG_DEBUG("nL=" + std::to_string(nL) + " nE=" + std::to_string(nE));
+	//LM_LOG_INDENTER();
+
+	// If n = 0 or 1 no valid path is generated
+	for (int n = 2; n <= nE + nL; n++)
 	{
 		// Process full-path with length n+1 (sub-path edges + connecting edge)
 		Math::Float sumWeight = 0;
 		const int minS = Math::Max(0, n-nE);
-		const int maxS = nL;
+		const int maxS = Math::Min(nL, n);
 		for (int s = minS; s <= maxS; s++)
 		{
 			const int t = n - s;
@@ -655,6 +699,11 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			// Evaluate weighting function w_{s,t}
 			Math::Float w = EvaluateMISWeight(s, t, lightSubpath, eyeSubpath);
 			sumWeight += w;
+
+			//if (n == 3)
+			//{
+			//	LM_LOG_DEBUG("s=" + std::to_string(s) + " t=" + std::to_string(t) + " w=" + std::to_string(w));
+			//}
 
 			// Evaluate unweight contribution C^*_{s,t}
 			Math::Vec2 rasterPosition;
@@ -664,14 +713,21 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 				continue;
 			}
 
+			if (s == 0 && t == 3 && eyeSubpath.vertices[n-1]->areaLight == nullptr && !Math::IsZero(w))
+			{
+				LM_LOG_DEBUG("here 1");
+			}
+			if (s == 3 && t == 0 && lightSubpath.vertices[n-1]->areaCamera == nullptr && !Math::IsZero(w))
+			{
+				LM_LOG_DEBUG("here 2");
+			}
+
 #ifdef LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
 			if (enableExperimentalMode)
 			{
 				#pragma omp critical
 				{
-					//LM_LOG_DEBUG("Raster position : " + std::to_string(rasterPosition.x) + " " + std::to_string(rasterPosition.y));
-					//LM_LOG_DEBUG("Cstar : " + std::to_string(Cstar.x) + " " + std::to_string(Cstar.y) + " " + std::to_string(Cstar.z));
 					auto contrb = Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples);
 					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, contrb);
 				}
@@ -683,6 +739,28 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 
 			// Record to the film
 			film.AccumulateContribution(rasterPosition, C * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
+
+#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+			// Accumulate contribution to per length image
+			if (enableExperimentalMode)
+			{
+				#pragma omp critical
+				{
+					// Extend if needed
+					if (perLengthFilms.find(n) == perLengthFilms.end())
+					{
+						// Create a new film for #n vertices
+						std::unique_ptr<HDRBitmapFilm> newFilm(new HDRBitmapFilm(""));
+						newFilm->SetHDRImageType(HDRImageType::RadianceHDR);
+						newFilm->Allocate(film.Width(), film.Height());
+						perLengthFilms.insert(std::make_pair(n, std::move(newFilm)));
+					}
+
+					// Accumulate
+					perLengthFilms[n]->AccumulateContribution(rasterPosition, C * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
+				}
+			}
+#endif
 		}
 
 		// Sum of MIS weight must be one
@@ -692,14 +770,65 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 
 Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateMISWeight( int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
 {
-	// Simplest weight!!
+	// Simple weight: reciprocal of # of full-paths with positive probability.
 	// TODO : Replace with power heuristics
 	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 	const int nL = static_cast<int>(lightSubpath.vertices.size());
 	const int n = s + t;
-	const int minS = Math::Max(0, n-nE);
-	const int maxS = nL;
+
+	int minS = Math::Max(0, n-nE);
+	int maxS = Math::Min(nL, n);
+
+	return s == minS ? Math::Float(1) : Math::Float(0);
+
+	//if (minS == 0)
+	//{
+	//	return s == 1 ? Math::Float(1) : Math::Float(0);
+	//}
+	//else
+	//{
+	//	return s == minS ? Math::Float(1) : Math::Float(0);
+	//}
+
+	/*
+	if (minS == 0 && eyeSubpath.vertices[n-1]->areaLight == nullptr)
+	{
+		// Use s = 1 because p_{0,n}(x_{0,n}) is zero
+		return s == 1 ? Math::Float(1) : Math::Float(0);
+	}
+	else
+	{
+		return s == minS ? Math::Float(1) : Math::Float(0);
+	}
+	*/
+
+	/*
+	// This is tricky part, in the weight calculation
+	// we need to exclude samples with zero probability.
+	// We note that if the last vertex of sub-path with s=0 or t=0
+	// is not on non-pinhole camera or area light, the path probability is zero.
+	// The reason is that in the positional sampling on the emitter
+	// we sampled from the distribution defined *only* on the emitter surfaces.
+	// We also note that there is no case of zero probability except for the above case.
+	if (minS == 0 && eyeSubpath.vertices[n-1]->areaLight == nullptr)
+	{
+		minS++;
+		if (s == 0)
+		{
+			return Math::Float(0);
+		}
+	}
+	if (maxS == n && lightSubpath.vertices[n-1]->areaCamera == nullptr)
+	{
+		maxS--;
+		if (t == 0)
+		{
+			return Math::Float(0);
+		}
+	}
+
 	return Math::Float(1) / Math::Cast<Math::Float>(maxS - minS + 1);
+	*/
 }
 
 Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateUnweightContribution( const Scene& scene, int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath, Math::Vec2& rasterPosition )
@@ -876,6 +1005,10 @@ Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateSubpathAlpha( int vs, T
 				{
 					alpha *= fs / v->pdfD.v;
 				}
+
+				// RR probability
+				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);
+				alpha /= v->pdfRR.v;
 			}
 		}
 	}
