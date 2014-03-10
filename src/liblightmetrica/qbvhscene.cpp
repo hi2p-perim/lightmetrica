@@ -289,7 +289,7 @@ struct QBVHBuildData
 	std::vector<Math::Vec3> triBoundCentroids;	// Centroids of the bounds of the triangles
 };
 
-enum class IntersectionMode
+enum class QBVHIntersectionMode
 {
 	SSE,			// Use SSE optimized quad triangles for ray-triangle intersection query
 	Triaccel		// Use Triaccels quad triangles for ray-triangle intersection query
@@ -345,7 +345,7 @@ private:
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 	int numProcessedTris;
 
-	IntersectionMode mode;					// Triangle intersection mode
+	QBVHIntersectionMode mode;					// Triangle intersection mode
 	unsigned int maxElementsInLeaf;			// Maximum # of triangle in a node
 
 	std::vector<TriangleRef> triRefs;		// List of triangle references
@@ -386,18 +386,18 @@ bool QBVHScene::Impl::Configure( const ConfigNode& node )
 	auto intersectionModeNode = node.Child("intersection_mode");
 	if (intersectionModeNode.Empty())
 	{
-		mode = IntersectionMode::SSE;
+		mode = QBVHIntersectionMode::SSE;
 		LM_LOG_WARN("Using default value 'intersection_mode' = 'triaccel'");
 	}
 	else
 	{
 		if (intersectionModeNode.Value() == "sse")
 		{
-			mode = IntersectionMode::SSE;
+			mode = QBVHIntersectionMode::SSE;
 		}
 		else if (intersectionModeNode.Value() == "triaccel")
 		{
-			mode = IntersectionMode::Triaccel;
+			mode = QBVHIntersectionMode::Triaccel;
 		}
 		else
 		{
@@ -405,7 +405,7 @@ bool QBVHScene::Impl::Configure( const ConfigNode& node )
 			return false;
 		}
 	}
-	if (mode == IntersectionMode::SSE)
+	if (mode == QBVHIntersectionMode::SSE)
 	{
 		// 2^4 * 4 = 64
 		maxElementsInLeaf = 64;
@@ -427,7 +427,7 @@ bool QBVHScene::Impl::Build()
 
 	{
 		// TODO : replace triaccel with SSE optimized quad triangle intersection
-		LM_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == IntersectionMode::SSE ? "sse" : "triaccel")));
+		LM_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == QBVHIntersectionMode::SSE ? "sse" : "triaccel")));
 		LM_LOG_INDENTER();
 
 		for (int i = 0; i < self->NumPrimitives(); i++)
@@ -577,7 +577,7 @@ void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeInd
 			QBVHNode::ExtractLeafData(childData, size, offset);
 
 			// Recreate triangle elements we actually uses for the intersection query
-			if (mode == IntersectionMode::SSE)
+			if (mode == QBVHIntersectionMode::SSE)
 			{
 				unsigned int quadOffset = static_cast<unsigned int>(quadTris.size());
 
@@ -626,7 +626,7 @@ void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeInd
 
 				node->InitializeLeaf(i, size, quadOffset);
 			}
-			else if (mode == IntersectionMode::Triaccel)
+			else if (mode == QBVHIntersectionMode::Triaccel)
 			{
 				unsigned int triAccelOffset = static_cast<unsigned int>(triAccels.size());
 
@@ -775,12 +775,12 @@ void QBVHScene::Impl::CreateLeafNode( unsigned int begin, unsigned int end, int 
 	// Initialize a leaf for #child
 	// For now, # of quads section of the leaf data is replaced to # of triangles.
 	// TODO : Replace it
-	if (mode == IntersectionMode::SSE)
+	if (mode == QBVHIntersectionMode::SSE)
 	{
 		// Store # of quad triangles as size entry
 		node->InitializeLeaf(child, (end - begin + 3) / 4, begin);
 	}
-	else if (mode == IntersectionMode::Triaccel)
+	else if (mode == QBVHIntersectionMode::Triaccel)
 	{
 		// Store # of triangles as size entry
 		node->InitializeLeaf(child, end - begin, begin);
@@ -850,7 +850,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 			QBVHNode::ExtractLeafData(data, size, offset);
 			for (unsigned int i = offset; i < offset + size; i++)
 			{
-				if (mode == IntersectionMode::SSE)
+				if (mode == QBVHIntersectionMode::SSE)
 				{
 					Math::Vec2 b;
 					unsigned int quadOffset;
@@ -862,7 +862,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 						intersected = true;
 					}
 				}
-				else if (mode == IntersectionMode::Triaccel)
+				else if (mode == QBVHIntersectionMode::Triaccel)
 				{
 					Math::Float t;
 					Math::Vec2 b;
@@ -892,13 +892,13 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	if (intersected)
 	{
 		// Store some information to the intersection structure
-		if (mode == IntersectionMode::SSE)
+		if (mode == QBVHIntersectionMode::SSE)
 		{
 			auto* quad = quadTris[intersectedTriIndex];
 			auto& triRef = triRefs[quad->triRefIndex[intersectedQuadOffset]];
 			self->StoreIntersectionFromBarycentricCoords(triRef.primitiveIndex, triRef.faceIndex, ray, intersectedTriB, isect);
 		}
-		else if (mode == IntersectionMode::Triaccel)
+		else if (mode == QBVHIntersectionMode::Triaccel)
 		{
 			auto& triAccel = triAccels[intersectedTriIndex];
 			self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, intersectedTriB, isect);

@@ -46,11 +46,13 @@ public:
 
 	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
 	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
 	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	void RegisterPrimitives(const std::vector<Primitive*>& primitives);
 
 private:
@@ -168,6 +170,11 @@ Math::Vec3 AreaLight::Impl::EvaluatePosition( const SurfaceGeometry& geom ) cons
 	return Le * Math::Constants::Pi();
 }
 
+Math::PDFEval AreaLight::Impl::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	return Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
+}
+
 Math::Vec3 AreaLight::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || Math::Dot(query.wo, geom.gn) <= 0)
@@ -178,6 +185,12 @@ Math::Vec3 AreaLight::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuer
 	{
 		return Math::Vec3(Math::Constants::InvPi());
 	}
+}
+
+Math::PDFEval AreaLight::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	throw std::logic_error("not implemented");
+	return Math::PDFEval();
 }
 
 // --------------------------------------------------------------------------------
@@ -209,6 +222,11 @@ Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& que
 	return p->EvaluateDirection(query, geom);
 }
 
+Math::PDFEval AreaLight::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	return p->EvaluateDirectionPDF(query, geom);
+}
+
 void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
 	this->p->SamplePosition(sample, geom, pdf);
@@ -217,6 +235,11 @@ void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom,
 Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
 	return p->EvaluatePosition(geom);
+}
+
+Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	return p->EvaluatePositionPDF(geom);
 }
 
 void AreaLight::RegisterPrimitives(const std::vector<Primitive*>& primitives)

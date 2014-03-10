@@ -172,6 +172,14 @@ public:
 	*/
 	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const = 0;
 	
+	/*!
+		Evaluate directional PDF.
+		\param query Query structure.
+		\param geom Surface geometry.
+		\return Evaluated PDF.
+	*/
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const = 0;
+
 };
 
 LM_NAMESPACE_END

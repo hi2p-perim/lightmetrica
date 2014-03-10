@@ -40,8 +40,12 @@ public:
 public:
 
 	bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
 	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 private:
 
@@ -79,6 +83,10 @@ bool DiffuseBSDF::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query
 		return false;
 	}
 
+	// Convert to projected solid angle measure
+	result.pdf.v /= Math::CosThetaZUp(localWo);
+	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+
 	return true;
 }
 
@@ -98,6 +106,22 @@ Math::Vec3 DiffuseBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	}
 
 	return diffuseReflectance * Math::Constants::InvPi() * sf;
+}
+
+Math::PDFEval DiffuseBSDF::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	auto localWi = geom.worldToShading * query.wi;
+	auto localWo = geom.worldToShading * query.wo;
+	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	auto pdfD = Math::CosineSampleHemispherePDF(localWo);
+	pdfD.v /= Math::CosThetaZUp(localWo);
+	pdfD.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+
+	return pdfD;
 }
 
 // --------------------------------------------------------------------------------
@@ -127,6 +151,11 @@ bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, cons
 Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	return p->EvaluateDirection(query, geom);
+}
+
+Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	return p->EvaluateDirectionPDF(query, geom);
 }
 
 LM_NAMESPACE_END

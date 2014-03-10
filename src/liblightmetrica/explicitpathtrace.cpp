@@ -437,14 +437,8 @@ Math::Vec3 ExplictPathtraceRenderer::Impl::EvaluatePath( const Path& path, const
 			auto bsdf = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
 
 			// Calculate contribution according to measure
-			if (v->pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
-			{
-				contrb *= bsdf / v->pdf.v;
-			}
-			else if (v->pdf.measure == Math::ProbabilityMeasure::SolidAngle)
-			{
-				contrb *= bsdf * Math::Dot(v->geom.gn, bsdfEQ.wo) / v->pdf.v;
-			}
+			LM_ASSERT(v->pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+			contrb *= bsdf / v->pdf.v;
 		}
 	}
 

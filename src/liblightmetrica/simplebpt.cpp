@@ -276,15 +276,8 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 				}
 
 				// Update throughput
-				// Evaluation of generalized BSDF may evaluate its PDF in two measures (for degeneration support)
-				if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
-				{
-					throughput[subpath] *= fs * Math::Dot(currGeom[subpath].gn, bsdfSR.wo) / bsdfSR.pdf.v;
-				}
-				else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
-				{
-					throughput[subpath] *= fs / bsdfSR.pdf.v;
-				}
+				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+				throughput[subpath] *= fs / bsdfSR.pdf.v;
 
 				// --------------------------------------------------------------------------------
 				

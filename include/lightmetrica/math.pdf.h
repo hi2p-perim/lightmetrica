@@ -39,6 +39,11 @@ enum class ProbabilityMeasure
 {
 
 	/*!
+		Invalid measure.
+	*/
+	None,
+
+	/*!
 		Solid angle measure.
 		P_\sigma(x\to y).
 	*/
@@ -80,11 +85,19 @@ template <typename T>
 struct TPDFEval
 {
 
-	TPDFEval() {}
+	TPDFEval()
+		: v(T(0))
+		, measure(ProbabilityMeasure::None)
+	{
+
+	}
+
 	TPDFEval(const T& v, ProbabilityMeasure measure)
 		: v(v)
 		, measure(measure)
-	{}
+
+	{
+	}
 
 	T v;							//!< Value of the PDF evaluation.
 	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.

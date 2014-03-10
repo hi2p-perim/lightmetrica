@@ -50,12 +50,17 @@ public:
 
 	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
 	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
 	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+
+public:
+
 	bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
 	Film* GetFilm() const { return film; }
 
@@ -175,6 +180,11 @@ Math::Vec3 PerspectiveCamera::Impl::EvaluatePosition( const SurfaceGeometry& /*g
 	return Math::Vec3(Math::Float(1));
 }
 
+Math::PDFEval PerspectiveCamera::Impl::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) const
+{
+	return Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
+}
+
 Math::Vec3 PerspectiveCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
@@ -238,6 +248,12 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 	return invA * invCosTheta * invCosTheta * invCosTheta;
 }
 
+Math::PDFEval PerspectiveCamera::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	throw std::logic_error("not implemented");
+	return Math::PDFEval();
+}
+
 // --------------------------------------------------------------------------------
 
 PerspectiveCamera::PerspectiveCamera( const std::string& id )
@@ -272,6 +288,11 @@ Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	return p->EvaluateDirection(query, geom);
 }
 
+Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	return p->EvaluateDirectionPDF(query, geom);
+}
+
 void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
 	p->SamplePosition(sample, geom, pdf);
@@ -280,6 +301,11 @@ void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometr
 Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
 	return p->EvaluatePosition(geom);
+}
+
+Math::PDFEval PerspectiveCamera::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	return p->EvaluatePositionPDF(geom);
 }
 
 void PerspectiveCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )

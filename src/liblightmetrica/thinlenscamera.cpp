@@ -42,11 +42,13 @@ public:
 
 	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
 	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
 	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
 
 public:
@@ -82,6 +84,11 @@ Math::Vec3 ThinLensCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluat
 	return Math::Vec3();
 }
 
+Math::PDFEval ThinLensCamera::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	return Math::PDFEval();
+}
+
 void ThinLensCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
 
@@ -90,6 +97,11 @@ void ThinLensCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeom
 Math::Vec3 ThinLensCamera::Impl::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
 	return Math::Vec3();
+}
+
+Math::PDFEval ThinLensCamera::Impl::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	return Math::PDFEval();
 }
 
 void ThinLensCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
@@ -136,6 +148,11 @@ Math::Vec3 ThinLensCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
 	return p->EvaluatePosition(geom);
 }
 
+Math::PDFEval ThinLensCamera::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	throw std::logic_error("The method or operation is not implemented.");
+}
+
 void ThinLensCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
 {
 	return p->RegisterPrimitives(primitives);
@@ -149,6 +166,11 @@ bool ThinLensCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 Math::Vec3 ThinLensCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	return p->EvaluateDirection(query, geom);
+}
+
+Math::PDFEval ThinLensCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+{
+	throw std::logic_error("The method or operation is not implemented.");
 }
 
 bool ThinLensCamera::LoadAsset( const ConfigNode& node, const Assets& assets )

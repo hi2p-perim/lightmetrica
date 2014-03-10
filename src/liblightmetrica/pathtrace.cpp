@@ -36,6 +36,7 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/assert.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -221,7 +222,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 				}
 					
 				// Update throughput
-				throughput *= bsdf * Math::Dot(isect.geom.gn, bsdfSR.wo) / bsdfSR.pdf.v;
+				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+				throughput *= bsdf / bsdfSR.pdf.v;
 
 				// Setup next ray
 				ray.d = bsdfSR.wo;

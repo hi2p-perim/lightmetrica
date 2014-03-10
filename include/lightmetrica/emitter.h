@@ -56,10 +56,17 @@ public:
 
 	/*!
 		Evaluate the positional component of the emitted quantity.
-		\param geom Surface geometry at a position on the camera #geom.p.
+		\param geom Surface geometry.
 		\return Positional component of the emitted quantity.
 	*/
 	virtual Math::Vec3 EvaluatePosition(const SurfaceGeometry& geom) const = 0;
+
+	/*!
+		Evaluate positional PDF.
+		\param geom Surface geometry.
+		\return Evaluated PDF.
+	*/
+	virtual Math::PDFEval EvaluatePositionPDF(const SurfaceGeometry& geom) const = 0;
 
 	/*!
 		Register an reference to the primitive.

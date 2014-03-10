@@ -53,11 +53,13 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
 	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
 	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
 
 private:

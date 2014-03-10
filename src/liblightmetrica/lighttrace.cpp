@@ -36,6 +36,7 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/assert.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -249,14 +250,8 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 				}
 
 				// Update throughput
-				if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::SolidAngle)
-				{
-					throughput *= fs * Math::Dot(currGeom.gn, bsdfSR.wo) / bsdfSR.pdf.v;
-				}
-				else if (bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle)
-				{
-					throughput *= fs / bsdfSR.pdf.v;
-				}
+				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+				throughput *= fs / bsdfSR.pdf.v;
 
 				// --------------------------------------------------------------------------------
 

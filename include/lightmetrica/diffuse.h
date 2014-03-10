@@ -44,9 +44,16 @@ public:
 public:
 
 	virtual std::string Type() const { return "diffuse"; }
+
+public:
+
 	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 private:
 
