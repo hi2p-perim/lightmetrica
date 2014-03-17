@@ -22,64 +22,39 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/rendererfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
-#include <lightmetrica/dagpt.h>
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_DAGPT_H__
+#define __LIB_LIGHTMETRICA_DAGPT_H__
+
+#include "renderer.h"
 
 LM_NAMESPACE_BEGIN
 
-RendererFactory::RendererFactory()
+/*!
+	Directed acyclic graph traversal path tracing (DAGPT).
+	An implementation of DAGPT.
+*/
+class LM_PUBLIC_API DAGPTRenderer : public Renderer
 {
+public:
 
-}
+	DAGPTRenderer();
+	virtual ~DAGPTRenderer();
 
-RendererFactory::~RendererFactory()
-{
+public:
 
-}
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual std::string Type() const { return "dagpt"; }
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 
-Renderer* RendererFactory::Create( const std::string& type ) const
-{
-	if (type == "raycast")
-	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else if (type == "dagpt")
-	{
-		return new DAGPTRenderer();
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
-		return nullptr;
-	}
-}
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_DAGPT_H__

@@ -22,64 +22,66 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/rendererfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
-#include <lightmetrica/dagpt.h>
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__
+#define __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__
+
+#include "common.h"
+#include "align.h"
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
-RendererFactory::RendererFactory()
+/*!
+	DAGPT light transport graph vertex.
+	Represents a light transport vertex used in DAGPTRenderer.
+	The structure is used in both light transport tree and DAG.
+*/
+struct DAGPTLightTransportGraphVertex
+{
+	
+	
+
+};
+
+/*!
+	DAGPT light transport graph edge.
+	Represents a light transport edge used in DAGPTRenderer.
+	The structures is used in both light transport tree and DAG.
+*/
+struct DAGPTLightTransportGraphEdge
 {
 
-}
+};
 
-RendererFactory::~RendererFactory()
+/*!
+	DAGPT light path tree.
+*/
+struct DAGPTLightTransportTree
 {
 
-}
+};
 
-Renderer* RendererFactory::Create( const std::string& type ) const
+/*!
+	List of light path trees.
+*/
+class DAGPTLightTransportTrees
 {
-	if (type == "raycast")
-	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else if (type == "dagpt")
-	{
-		return new DAGPTRenderer();
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
-		return nullptr;
-	}
-}
+	std::vector<DAGPTLightTransportTree> trees;
+};
+
+class DAGPTMemoryPool;
+
+/*!
+	DAGPT light path DAG.
+*/
+struct DAGPTLightTransportDAG
+{
+
+	LM_PUBLIC_API void Release(DAGPTMemoryPool& pool);
+
+};
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__

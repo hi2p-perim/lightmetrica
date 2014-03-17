@@ -23,61 +23,31 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/rendererfactory.h>
+#include <lightmetrica/dagpt.samplerfactory.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
-#include <lightmetrica/dagpt.h>
+#include <lightmetrica/dagpt.pathtrace.h>
 
 LM_NAMESPACE_BEGIN
 
-RendererFactory::RendererFactory()
+DAGPTLightTransportDAGSamplerFactory::DAGPTLightTransportDAGSamplerFactory()
 {
 
 }
 
-RendererFactory::~RendererFactory()
+DAGPTLightTransportDAGSamplerFactory::~DAGPTLightTransportDAGSamplerFactory()
 {
 
 }
 
-Renderer* RendererFactory::Create( const std::string& type ) const
+DAGPTLightTransportDAGSampler* DAGPTLightTransportDAGSamplerFactory::Create( const std::string& type ) const
 {
-	if (type == "raycast")
+	if (type == "raytrace")
 	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else if (type == "dagpt")
-	{
-		return new DAGPTRenderer();
+		return new DAGPTPathtraceDAGSampler();
 	}
 	else
 	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
+		LM_LOG_ERROR("Invalid DAG sampler type '" + type + "'");
 		return nullptr;
 	}
 }

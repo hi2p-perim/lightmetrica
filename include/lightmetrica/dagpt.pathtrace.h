@@ -22,64 +22,37 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/rendererfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
-#include <lightmetrica/dagpt.h>
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_DAGPT_PATHTRACE_H__
+#define __LIB_LIGHTMETRICA_DAGPT_PATHTRACE_H__
+
+#include "dagpt.sampler.h"
 
 LM_NAMESPACE_BEGIN
 
-RendererFactory::RendererFactory()
+/*!
+	Light transport DAG sampler for path tracing.
+	An implementation of path trace DAG sampler.
+*/
+class LM_PUBLIC_API DAGPTPathtraceDAGSampler : public DAGPTLightTransportDAGSampler
 {
+public:
 
-}
+	DAGPTPathtraceDAGSampler();
+	virtual ~DAGPTPathtraceDAGSampler();
 
-RendererFactory::~RendererFactory()
-{
+public:
 
-}
+	virtual std::string Type() const { return "pathtrace"; }
+	virtual void Sample( const Scene& scene, Random& rng, DAGPTMemoryPool& pool, DAGPTLightTransportDAG& dag ) const;
 
-Renderer* RendererFactory::Create( const std::string& type ) const
-{
-	if (type == "raycast")
-	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else if (type == "dagpt")
-	{
-		return new DAGPTRenderer();
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
-		return nullptr;
-	}
-}
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_DAGPT_PATHTRACE_H__
