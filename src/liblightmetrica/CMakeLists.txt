@@ -286,18 +286,20 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 #
 
 set(
-     _RENDERER_DAGPT_HEADERS
-     "${_INCLUDE_DIR}/dagpt.h"
-     "${_INCLUDE_DIR}/dagpt.common.h"
-     "${_INCLUDE_DIR}/dagpt.graph.h"
-     "${_INCLUDE_DIR}/dagpt.eval.h"
-     "${_INCLUDE_DIR}/dagpt.pool.h"
+	_RENDERER_DAGPT_HEADERS
+	"${_INCLUDE_DIR}/dagpt.h"
+	"${_INCLUDE_DIR}/dagpt.common.h"
+	"${_INCLUDE_DIR}/dagpt.graph.h"
+	"${_INCLUDE_DIR}/dagpt.eval.h"
+	"${_INCLUDE_DIR}/dagpt.defaulteval.h"
+	"${_INCLUDE_DIR}/dagpt.pool.h"
 )
 set(
-     _RENDERER_DAGPT_SOURCES
-     "dagpt.cpp"
-     "dagpt.graph.cpp"
-     "dagpt.pool.cpp"
+	_RENDERER_DAGPT_SOURCES
+	"dagpt.cpp"
+	"dagpt.graph.cpp"
+	"dagpt.pool.cpp"
+	"dagpt.defaulteval.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_SOURCES})
