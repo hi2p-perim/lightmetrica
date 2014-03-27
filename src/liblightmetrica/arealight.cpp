@@ -189,8 +189,15 @@ Math::Vec3 AreaLight::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuer
 
 Math::PDFEval AreaLight::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	throw std::logic_error("not implemented");
-	return Math::PDFEval();
+	auto localWo = geom.worldToShading * query.wo;
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || Math::CosThetaZUp(localWo) <= 0)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	return Math::PDFEval(
+		Math::CosineSampleHemispherePDF(localWo).v / Math::CosThetaZUp(localWo),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 // --------------------------------------------------------------------------------

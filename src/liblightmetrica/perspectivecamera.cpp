@@ -250,8 +250,18 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 
 Math::PDFEval PerspectiveCamera::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	throw std::logic_error("not implemented");
-	return Math::PDFEval();
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	// Reference point in camera coordinates
+	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
+	auto refCam3 = Math::Vec3(refCam4);
+
+	return Math::PDFEval(
+		EvaluateImportance(-Math::CosThetaZUp(refCam3)),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 // --------------------------------------------------------------------------------

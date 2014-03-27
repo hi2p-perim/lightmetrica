@@ -60,4 +60,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_VBPT_H__
+#endif // __LIB_LIGHTMETRICA_BPT_H__
