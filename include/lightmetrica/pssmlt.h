@@ -1,4 +1,4 @@
-/*
+﻿/*
 	Lightmetrica : A research-oriented renderer
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
@@ -23,35 +23,36 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_BPT_H__
-#define __LIB_LIGHTMETRICA_BPT_H__
+#ifndef __LIB_LIGHTMETRICA_PSSMLT_H__
+#define __LIB_LIGHTMETRICA_PSSMLT_H__
 
 #include "renderer.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Veach's bidirectional path trace renderer.
-	An implementation of bidirectional path tracing (BPT) according to Veach's paper.
+	Primary sample space Metropolis light transport renderer.
+	An implementation of primary sample space Metropolis light transport (PSSMLT) algorithm.
 	Reference:
-		Veach, E. and Guibas, L., Bidirectional estimators for light transport,
-		In Proceedings of the Fifth Eurographics Workshop on Rendering, pp. 147-162, 1994.
+		Kelemen, C., Szirmay-Kalos, L., Antal, G., and Csonka, F.,
+		A simple and robust mutation strategy for the metropolis light transport algorithm,
+		In Computer Graphics Forum. pp. 531–540, 2002.
 */
-class LM_PUBLIC_API BidirectionalPathtraceRenderer : public Renderer
+class LM_PUBLIC_API PSSMLTRenderer : public Renderer
 {
 public:
 
-	BidirectionalPathtraceRenderer();
-	virtual ~BidirectionalPathtraceRenderer();
+	PSSMLTRenderer();
+	virtual ~PSSMLTRenderer();
 
 public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual std::string Type() const { return "bpt"; }
+	virtual std::string Type() const { return "pssmlt"; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func);
 
-private:
+public:
 
 	class Impl;
 	Impl* p;
@@ -60,4 +61,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_BPT_H__
+#endif // __LIB_LIGHTMETRICA_PSSMLT_H__

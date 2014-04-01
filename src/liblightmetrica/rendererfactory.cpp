@@ -32,6 +32,7 @@
 #include <lightmetrica/explicitpathtrace.h>
 #include <lightmetrica/bpt.h>
 #include <lightmetrica/dagpt.h>
+#include <lightmetrica/pssmlt.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -74,6 +75,10 @@ Renderer* RendererFactory::Create( const std::string& type ) const
 	else if (type == "dagpt")
 	{
 		return new DAGPTRenderer();
+	}
+	else if (type == "pssmlt")
+	{
+		return new PSSMLTRenderer();
 	}
 	else
 	{

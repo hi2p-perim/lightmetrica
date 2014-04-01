@@ -327,7 +327,7 @@ struct BPTThreadContext
 
 	}
 
-	BPTThreadContext (BPTThreadContext&& context)
+	BPTThreadContext(BPTThreadContext&& context)
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
 		, pool(new PathVertexPool(sizeof(BPTPathVertex)))
@@ -940,7 +940,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 		}
 
 		// Sum of MIS weight must be one.
-		// Check only if all sampling strategies is available without terminating by RR.
+		// Check only if all sampling strategies is available except the case terminating by RR.
 		if (minS == 0 && maxS == n)
 		{
 			LM_ASSERT(Math::Abs(sumWeight - Math::Float(1)) < Math::Constants::Eps());
