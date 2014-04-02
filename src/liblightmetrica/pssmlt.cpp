@@ -283,7 +283,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	// --------------------------------------------------------------------------------
 
 	// Rendering
-	std::atomic<long long> processedBlocks = 0;								// # of processes blocks
+	std::atomic<long long> processedBlocks(0);								// # of processes blocks
 	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;	// # of blocks
 	signal_ReportProgress(0, false);
 
