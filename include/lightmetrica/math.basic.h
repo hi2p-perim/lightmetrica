@@ -38,6 +38,7 @@ template <typename T> LM_FORCE_INLINE T Sin(const T& v);
 template <typename T> LM_FORCE_INLINE T Tan(const T& v);
 template <typename T> LM_FORCE_INLINE T Abs(const T& v);
 template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
+template <typename T> LM_FORCE_INLINE T Log(const T& v);
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
 template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max);

@@ -62,22 +62,40 @@ template <size_t Align>
 class Aligned
 {
 public:
-
+	
 	virtual ~Aligned() {}
 
 public:
-
+	
 	void* operator new(std::size_t size) throw (std::bad_alloc)
 	{
-		void* p = aligned_malloc(size, Align);
-		if (!p) throw std::bad_alloc();
+		void* p = aligned_malloc( size, Align);
+		if (!p) throw std:: bad_alloc();
 		return p;
+	} 
+
+	void operator delete( void* p)
+	{
+		aligned_free( p);
 	}
 
-	void operator delete(void* p)
-	{
-		aligned_free(p);
-	}
+};
+
+/*!
+	SIMD aligned type.
+	Inherited class automatically supports aligned version of
+	operator new and delete for SIMD types.
+*/
+class LM_PUBLIC_API SIMDAlignedType
+{
+public:
+
+	virtual ~SIMDAlignedType() {}
+
+public:
+
+	void* operator new(std::size_t size) throw (std::bad_alloc);
+	void operator delete(void* p);
 
 };
 

@@ -286,6 +286,23 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 #
 
 set(
+	_RENDERER_PSSMLT_HEADERS
+	"${_INCLUDE_DIR}/pssmlt.h"
+	"${_INCLUDE_DIR}/pssmlt.sampler.h"
+)
+set(
+	_RENDERER_PSSMLT_SOURCES
+	"pssmlt.cpp"
+	"pssmlt.sampler.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_SOURCES})
+list(APPEND _HEADER_FILES ${_RENDERER_PSSMLT_HEADERS})
+list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
+
+#
+
+set(
 	_RENDERER_DAGPT_HEADERS
 	"${_INCLUDE_DIR}/dagpt.h"
 	"${_INCLUDE_DIR}/dagpt.common.h"

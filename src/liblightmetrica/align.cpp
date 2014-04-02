@@ -23,6 +23,7 @@
 */
 
 #include "pch.h"
+#include "simdsupport.h"
 #include <lightmetrica/align.h>
 #include <lightmetrica/logger.h>
 
@@ -81,6 +82,28 @@ void aligned_free( void* p )
 #else
 	if (!p) return;
 	free((void*)(((uintptr_t*)p)[-1]));
+#endif
+}
+
+void* SIMDAlignedType::operator new(std::size_t size) throw (std::bad_alloc) 
+{
+#if defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)
+	void* p = aligned_malloc(size, 16);
+#elif defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX)
+	void* p = aligned_malloc(size, 32);
+#else
+	void* p = malloc(size);
+#endif
+	if (!p) throw std::bad_alloc();
+	return p;
+}
+
+void SIMDAlignedType::operator delete(void* p)
+{
+#if (defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)) || (defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX))
+	aligned_free(p);
+#else
+	free(p);
 #endif
 }
 

@@ -22,6 +22,10 @@
 	THE SOFTWARE.
 */
 
+#pragma once
+#ifndef __LIB_LIGHTMETRICA_RANDOM_H__
+#define __LIB_LIGHTMETRICA_RANDOM_H__
+
 #include "common.h"
 #include "math.types.h"
 
@@ -55,3 +59,5 @@ private:
 };
 
 LM_NAMESPACE_END
+
+#endif // __LIB_LIGHTMETRICA_RANDOM_H__
