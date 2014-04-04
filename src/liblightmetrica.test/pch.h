@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TEST_PCH_H__
-#define __LIB_LIGHTMETRICA_TEST_PCH_H__
+#ifndef LIB_LIGHTMETRICA_TEST_PCH_H
+#define LIB_LIGHTMETRICA_TEST_PCH_H
 
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
@@ -53,4 +53,4 @@
 
 #include <gtest/gtest.h>
 
-#endif // __LIB_LIGHTMETRICA_TEST_PCH_H__
+#endif // LIB_LIGHTMETRICA_TEST_PCH_H

@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TEST_COMMON_H__
-#define __LIB_LIGHTMETRICA_TEST_COMMON_H__
+#ifndef LIB_LIGHTMETRICA_TEST_COMMON_H
+#define LIB_LIGHTMETRICA_TEST_COMMON_H
 
 #include <lightmetrica/common.h>
 
@@ -38,4 +38,4 @@
 
 #define LM_TEST_MULTILINE_LITERAL(...) #__VA_ARGS__
 
-#endif // __LIB_LIGHTMETRICA_TEST_COMMON_H__
+#endif // LIB_LIGHTMETRICA_TEST_COMMON_H

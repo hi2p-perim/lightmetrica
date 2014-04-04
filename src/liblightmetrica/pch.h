@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PCH_H__
-#define __LIB_LIGHTMETRICA_PCH_H__
+#ifndef LIB_LIGHTMETRICA_PCH_H
+#define LIB_LIGHTMETRICA_PCH_H
 
 #include <lightmetrica/common.h>
 
@@ -54,4 +54,4 @@
 #include <memory>
 #include <unordered_map>
 
-#endif // __LIB_LIGHTMETRICA_PCH_H__
+#endif // LIB_LIGHTMETRICA_PCH_H

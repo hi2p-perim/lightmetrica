@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_TRANSFORM_H__
-#define __LIB_LIGHTMETRICA_MATH_TRANSFORM_H__
+#ifndef LIB_LIGHTMETRICA_MATH_TRANSFORM_H
+#define LIB_LIGHTMETRICA_MATH_TRANSFORM_H
 
 #include "math.matrix.h"
 
@@ -55,4 +55,4 @@ LM_NAMESPACE_END
 
 #include "math.transform.inl"
 
-#endif // __LIB_LIGHTMETRICA_MATH_TRANSFORM_H__
+#endif // LIB_LIGHTMETRICA_MATH_TRANSFORM_H

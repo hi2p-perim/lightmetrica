@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__
-#define __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__
+#ifndef LIB_LIGHTMETRICA_DAGPT_GRAPH_H
+#define LIB_LIGHTMETRICA_DAGPT_GRAPH_H
 
 #include "common.h"
 #include "align.h"
@@ -84,4 +84,4 @@ struct DAGPTLightTransportDAG
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_DAGPT_GRAPH_H__
+#endif // LIB_LIGHTMETRICA_DAGPT_GRAPH_H

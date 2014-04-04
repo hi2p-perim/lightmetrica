@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_RAW_MESH_H__
-#define __LIB_LIGHTMETRICA_RAW_MESH_H__
+#ifndef LIB_LIGHTMETRICA_RAW_MESH_H
+#define LIB_LIGHTMETRICA_RAW_MESH_H
 
 #include "trianglemesh.h"
 
@@ -62,4 +62,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_RAW_MESH_H__
+#endif // LIB_LIGHTMETRICA_RAW_MESH_H

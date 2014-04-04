@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PRIMITIVE_H__
-#define __LIB_LIGHTMETRICA_PRIMITIVE_H__
+#ifndef LIB_LIGHTMETRICA_PRIMITIVE_H
+#define LIB_LIGHTMETRICA_PRIMITIVE_H
 
 #include "object.h"
 #include "math.types.h"
@@ -64,4 +64,4 @@ struct Primitive : public Object
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_PRIMITIVE_H__
+#endif // LIB_LIGHTMETRICA_PRIMITIVE_H

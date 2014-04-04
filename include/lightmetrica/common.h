@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_COMMON_H__
-#define __LIB_LIGHTMETRICA_COMMON_H__
+#ifndef LIB_LIGHTMETRICA_COMMON_H
+#define LIB_LIGHTMETRICA_COMMON_H
 
 // C++ compiler is required
 #ifndef __cplusplus
@@ -153,4 +153,4 @@
 	void operator=(const TypeName&); \
 	void operator=(TypeName&&)
 
-#endif // __LIB_LIGHTMETRICA_COMMON_H__
+#endif // LIB_LIGHTMETRICA_COMMON_H

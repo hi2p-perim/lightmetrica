@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TRIANGLE_REF_H__
-#define __LIB_LIGHTMETRICA_TRIANGLE_REF_H__
+#ifndef LIB_LIGHTMETRICA_TRIANGLE_REF_H
+#define LIB_LIGHTMETRICA_TRIANGLE_REF_H
 
 /*!
 	Reference to triangle information.
@@ -45,4 +45,4 @@ struct TriangleRef
 
 };
 
-#endif // __LIB_LIGHTMETRICA_TRIANGLE_REF_H__
+#endif // LIB_LIGHTMETRICA_TRIANGLE_REF_H

@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_CAST_H__
-#define __LIB_LIGHTMETRICA_MATH_CAST_H__
+#ifndef LIB_LIGHTMETRICA_MATH_CAST_H
+#define LIB_LIGHTMETRICA_MATH_CAST_H
 
 #include "math.common.h"
 
@@ -52,4 +52,4 @@ LM_FORCE_INLINE Dest Cast(const BigFloat& v)
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_MATH_CAST_H__
+#endif // LIB_LIGHTMETRICA_MATH_CAST_H

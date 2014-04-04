@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_RAYCAST_H__
-#define __LIB_LIGHTMETRICA_RAYCAST_H__
+#ifndef LIB_LIGHTMETRICA_RAYCAST_H
+#define LIB_LIGHTMETRICA_RAYCAST_H
 
 #include "renderer.h"
 
@@ -55,4 +55,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_RAYCAST_H__
+#endif // LIB_LIGHTMETRICA_RAYCAST_H

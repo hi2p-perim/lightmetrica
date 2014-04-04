@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_CAMERA_H__
-#define __LIB_LIGHTMETRICA_CAMERA_H__
+#ifndef LIB_LIGHTMETRICA_CAMERA_H
+#define LIB_LIGHTMETRICA_CAMERA_H
 
 #include "emitter.h"
 
@@ -73,4 +73,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_CAMERA_H__
+#endif // LIB_LIGHTMETRICA_CAMERA_H

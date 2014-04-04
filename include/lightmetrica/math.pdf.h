@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_PDF_H__
-#define __LIB_LIGHTMETRICA_MATH_PDF_H__
+#ifndef LIB_LIGHTMETRICA_MATH_PDF_H
+#define LIB_LIGHTMETRICA_MATH_PDF_H
 
 #include "math.common.h"
 
@@ -107,4 +107,4 @@ struct TPDFEval
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_MATH_PDF_H__
+#endif // LIB_LIGHTMETRICA_MATH_PDF_H

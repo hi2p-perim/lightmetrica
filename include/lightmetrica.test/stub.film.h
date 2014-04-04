@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TEST_STUB_FILM_H__
-#define __LIB_LIGHTMETRICA_TEST_STUB_FILM_H__
+#ifndef LIB_LIGHTMETRICA_TEST_STUB_FILM_H
+#define LIB_LIGHTMETRICA_TEST_STUB_FILM_H
 
 #include "common.h"
 #include <lightmetrica/film.h>
@@ -52,4 +52,4 @@ public:
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_TEST_STUB_FILM_H__
+#endif // LIB_LIGHTMETRICA_TEST_STUB_FILM_H

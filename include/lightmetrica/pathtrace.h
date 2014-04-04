@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PATH_TRACE_H__
-#define __LIB_LIGHTMETRICA_PATH_TRACE_H__
+#ifndef LIB_LIGHTMETRICA_PATH_TRACE_H
+#define LIB_LIGHTMETRICA_PATH_TRACE_H
 
 #include "renderer.h"
 
@@ -60,4 +60,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_PATH_TRACE_H__
+#endif // LIB_LIGHTMETRICA_PATH_TRACE_H

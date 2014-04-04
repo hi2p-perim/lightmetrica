@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_ALIGN_H__
-#define __LIB_LIGHTMETRICA_ALIGN_H__
+#ifndef LIB_LIGHTMETRICA_ALIGN_H
+#define LIB_LIGHTMETRICA_ALIGN_H
 
 #include "common.h"
 
@@ -243,4 +243,4 @@ struct boost_pool_aligned_allocator
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_ALIGN_H__
+#endif // LIB_LIGHTMETRICA_ALIGN_H

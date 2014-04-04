@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TEST_BASE_H__
-#define __LIB_LIGHTMETRICA_TEST_BASE_H__
+#ifndef LIB_LIGHTMETRICA_TEST_BASE_H
+#define LIB_LIGHTMETRICA_TEST_BASE_H
 
 #include "common.h"
 #include <lightmetrica/object.h>
@@ -66,4 +66,4 @@ private:
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_TEST_BASE_H__
+#endif // LIB_LIGHTMETRICA_TEST_BASE_H

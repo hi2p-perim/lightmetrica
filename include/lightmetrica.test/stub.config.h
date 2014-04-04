@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
-#define __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
+#ifndef LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H
+#define LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H
 
 #include "common.h"
 #include <lightmetrica/config.h>
@@ -68,4 +68,4 @@ private:
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H__
+#endif // LIB_LIGHTMETRICA_TEST_STUB_CONFIG_H

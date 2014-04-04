@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DAGPT_SAMPLER_H__
-#define __LIB_LIGHTMETRICA_DAGPT_SAMPLER_H__
+#ifndef LIB_LIGHTMETRICA_DAGPT_SAMPLER_H
+#define LIB_LIGHTMETRICA_DAGPT_SAMPLER_H
 
 #include "common.h"
 #include <string>
@@ -72,4 +72,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_DAGPT_SAMPLER_H__
+#endif // LIB_LIGHTMETRICA_DAGPT_SAMPLER_H

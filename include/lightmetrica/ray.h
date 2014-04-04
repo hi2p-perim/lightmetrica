@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_RAY_H__
-#define __LIB_LIGHTMETRICA_RAY_H__
+#ifndef LIB_LIGHTMETRICA_RAY_H
+#define LIB_LIGHTMETRICA_RAY_H
 
 #include "common.h"
 #include "math.types.h"
@@ -46,4 +46,4 @@ struct Ray
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_RAY_H__
+#endif // LIB_LIGHTMETRICA_RAY_H

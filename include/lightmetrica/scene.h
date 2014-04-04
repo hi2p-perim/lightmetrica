@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_SCENE_H__
-#define __LIB_LIGHTMETRICA_SCENE_H__
+#ifndef LIB_LIGHTMETRICA_SCENE_H
+#define LIB_LIGHTMETRICA_SCENE_H
 
 #include "object.h"
 #include "math.types.h"
@@ -218,4 +218,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_SCENE_H__
+#endif // LIB_LIGHTMETRICA_SCENE_H

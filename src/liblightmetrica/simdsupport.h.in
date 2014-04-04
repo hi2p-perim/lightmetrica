@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_SIMD_SUPPORT_H__
-#define __LIB_LIGHTMETRICA_SIMD_SUPPORT_H__
+#ifndef LIB_LIGHTMETRICA_SIMD_SUPPORT_H
+#define LIB_LIGHTMETRICA_SIMD_SUPPORT_H
 
 #cmakedefine LM_USE_SSE
 #cmakedefine LM_USE_SSE2
@@ -35,4 +35,4 @@
 #cmakedefine LM_USE_SSE4A
 #cmakedefine LM_USE_AVX
 
-#endif // __LIB_LIGHTMETRICA_SIMD_SUPPORT_H__
+#endif // LIB_LIGHTMETRICA_SIMD_SUPPORT_H

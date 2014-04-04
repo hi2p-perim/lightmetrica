@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_ASSET_FACTORY_H__
-#define __LIB_LIGHTMETRICA_ASSET_FACTORY_H__
+#ifndef LIB_LIGHTMETRICA_ASSET_FACTORY_H
+#define LIB_LIGHTMETRICA_ASSET_FACTORY_H
 
 #include "object.h"
 #include <string>
@@ -66,4 +66,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_ASSET_FACTORY_H__
+#endif // LIB_LIGHTMETRICA_ASSET_FACTORY_H

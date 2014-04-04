@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_CONFIG_NODE_H__
-#define __LIB_LIGHTMETRICA_CONFIG_NODE_H__
+#ifndef LIB_LIGHTMETRICA_CONFIG_NODE_H
+#define LIB_LIGHTMETRICA_CONFIG_NODE_H
 
 #include "object.h"
 #include "logger.h"
@@ -199,4 +199,4 @@ extern template LM_PUBLIC_API std::vector<unsigned int> ConfigNode::Value<std::v
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_CONFIG_NODE_H__
+#endif // LIB_LIGHTMETRICA_CONFIG_NODE_H

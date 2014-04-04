@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DIFFUSE_H__
-#define __LIB_LIGHTMETRICA_DIFFUSE_H__
+#ifndef LIB_LIGHTMETRICA_DIFFUSE_H
+#define LIB_LIGHTMETRICA_DIFFUSE_H
 
 #include "bsdf.h"
 
@@ -64,4 +64,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_DIFFUSE_H__
+#endif // LIB_LIGHTMETRICA_DIFFUSE_H

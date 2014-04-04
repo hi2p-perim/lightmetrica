@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_BASIC_H__
-#define __LIB_LIGHTMETRICA_MATH_BASIC_H__
+#ifndef LIB_LIGHTMETRICA_MATH_BASIC_H
+#define LIB_LIGHTMETRICA_MATH_BASIC_H
 
 #include "math.common.h"
 
@@ -49,4 +49,4 @@ LM_NAMESPACE_END
 
 #include "math.basic.inl"
 
-#endif // __LIB_LIGHTMETRICA_MATH_BASIC_H__
+#endif // LIB_LIGHTMETRICA_MATH_BASIC_H

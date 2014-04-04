@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_SIMPLE_BPT_H__
-#define __LIB_LIGHTMETRICA_SIMPLE_BPT_H__
+#ifndef LIB_LIGHTMETRICA_SIMPLE_BPT_H
+#define LIB_LIGHTMETRICA_SIMPLE_BPT_H
 
 #include "renderer.h"
 
@@ -59,4 +59,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_SIMPLE_BPT_H__
+#endif // LIB_LIGHTMETRICA_SIMPLE_BPT_H

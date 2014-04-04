@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_PUGI_HELPER_H__
-#define __LIB_LIGHTMETRICA_PUGI_HELPER_H__
+#ifndef LIB_LIGHTMETRICA_PUGI_HELPER_H
+#define LIB_LIGHTMETRICA_PUGI_HELPER_H
 
 #include "common.h"
 #include "math.types.h"
@@ -81,4 +81,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_PUGI_HELPER_H__
+#endif // LIB_LIGHTMETRICA_PUGI_HELPER_H

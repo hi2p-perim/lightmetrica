@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DAGPT_EVAL_H__
-#define __LIB_LIGHTMETRICA_DAGPT_EVAL_H__
+#ifndef LIB_LIGHTMETRICA_DAGPT_EVAL_H
+#define LIB_LIGHTMETRICA_DAGPT_EVAL_H
 
 #include "common.h"
 
@@ -59,4 +59,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_DAGPT_EVAL_H__
+#endif // LIB_LIGHTMETRICA_DAGPT_EVAL_H

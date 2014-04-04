@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_RENDER_UTILS_H__
-#define __LIB_LIGHTMETRICA_RENDER_UTILS_H__
+#ifndef LIB_LIGHTMETRICA_RENDER_UTILS_H
+#define LIB_LIGHTMETRICA_RENDER_UTILS_H
 
 #include "common.h"
 #include "math.types.h"
@@ -62,4 +62,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_RENDER_UTILS_H__
+#endif // LIB_LIGHTMETRICA_RENDER_UTILS_H

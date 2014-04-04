@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LM_TEST_PCH_H__
-#define __LM_TEST_PCH_H__
+#ifndef LM_TEST_PCH_H
+#define LM_TEST_PCH_H
 
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
@@ -54,4 +54,4 @@
 
 #include <gtest/gtest.h>
 
-#endif // __LM_TEST_PCH_H__
+#endif // LM_TEST_PCH_H

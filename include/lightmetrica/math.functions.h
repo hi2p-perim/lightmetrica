@@ -23,12 +23,12 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_FUNCTIONS_H__
-#define __LIB_LIGHTMETRICA_MATH_FUNCTIONS_H__
+#ifndef LIB_LIGHTMETRICA_MATH_FUNCTIONS_H
+#define LIB_LIGHTMETRICA_MATH_FUNCTIONS_H
 
 #include "math.basic.h"
 #include "math.transform.h"
 #include "math.linalgebra.h"
 #include "math.stats.h"
 
-#endif // __LIB_LIGHTMETRICA_MATH_FUNCTIONS_H__
+#endif // LIB_LIGHTMETRICA_MATH_FUNCTIONS_H

@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_TRIACCEL_H__
-#define __LIB_LIGHTMETRICA_TRIACCEL_H__
+#ifndef LIB_LIGHTMETRICA_TRIACCEL_H
+#define LIB_LIGHTMETRICA_TRIACCEL_H
 
 #include "math.functions.h"
 #include "ray.h"
@@ -166,4 +166,4 @@ LM_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Math:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_TRIACCEL_H__
+#endif // LIB_LIGHTMETRICA_TRIACCEL_H

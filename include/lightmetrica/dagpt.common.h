@@ -23,12 +23,12 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DAGPT_COMMON_H__
-#define __LIB_LIGHTMETRICA_DAGPT_COMMON_H__
+#ifndef LIB_LIGHTMETRICA_DAGPT_COMMON_H
+#define LIB_LIGHTMETRICA_DAGPT_COMMON_H
 
 #include "common.h"
 
 ///! Enables experimental mode for DAGPTRenderer.
 #define LM_ENABLE_DAGPT_EXPERIMENTAL
 
-#endif // __LIB_LIGHTMETRICA_DAGPT_COMMON_H__
+#endif // LIB_LIGHTMETRICA_DAGPT_COMMON_H

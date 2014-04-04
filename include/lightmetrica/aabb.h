@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_AABB_H__
-#define __LIB_LIGHTMETRICA_AABB_H__
+#ifndef LIB_LIGHTMETRICA_AABB_H
+#define LIB_LIGHTMETRICA_AABB_H
 
 #include "math.types.h"
 
@@ -60,4 +60,4 @@ LM_NAMESPACE_END
 
 #include "aabb.inl"
 
-#endif // __LIB_LIGHTMETRICA_AABB_H__
+#endif // LIB_LIGHTMETRICA_AABB_H

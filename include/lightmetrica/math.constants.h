@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
-#define __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
+#ifndef LIB_LIGHTMETRICA_MATH_CONSTANTS_H
+#define LIB_LIGHTMETRICA_MATH_CONSTANTS_H
 
 #include "math.common.h"
 
@@ -63,4 +63,4 @@ LM_NAMESPACE_END
 
 #include "math.constants.inl"
 
-#endif // __LIB_LIGHTMETRICA_MATH_CONSTANTS_H__
+#endif // LIB_LIGHTMETRICA_MATH_CONSTANTS_H

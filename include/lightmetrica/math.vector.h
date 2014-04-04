@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_VECTOR_H__
-#define __LIB_LIGHTMETRICA_VECTOR_H__
+#ifndef LIB_LIGHTMETRICA_VECTOR_H
+#define LIB_LIGHTMETRICA_VECTOR_H
 
 #include "math.common.h"
 #include "math.simd.h"
@@ -437,4 +437,4 @@ LM_NAMESPACE_END
 
 #include "math.vector.inl"
 
-#endif // __LIB_LIGHTMETRICA_VECTOR_H__
+#endif // LIB_LIGHTMETRICA_VECTOR_H

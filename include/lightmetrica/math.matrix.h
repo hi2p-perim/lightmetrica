@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_MATRIX_H__
-#define __LIB_LIGHTMETRICA_MATH_MATRIX_H__
+#ifndef LIB_LIGHTMETRICA_MATH_MATRIX_H
+#define LIB_LIGHTMETRICA_MATH_MATRIX_H
 
 #include "math.vector.h"
 
@@ -333,4 +333,4 @@ LM_NAMESPACE_END
 
 #include "math.matrix.inl"
 
-#endif // __LIB_LIGHTMETRICA_MATH_MATRIX_H__
+#endif // LIB_LIGHTMETRICA_MATH_MATRIX_H

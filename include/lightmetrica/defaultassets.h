@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__
-#define __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__
+#ifndef LIB_LIGHTMETRICA_DEFAULT_ASSETS_H
+#define LIB_LIGHTMETRICA_DEFAULT_ASSETS_H
 
 #include "assets.h"
 #include <memory>
@@ -104,4 +104,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // __LIB_LIGHTMETRICA_DEFAULT_ASSETS_H__
+#endif // LIB_LIGHTMETRICA_DEFAULT_ASSETS_H

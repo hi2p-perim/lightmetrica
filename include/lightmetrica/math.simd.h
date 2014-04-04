@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LIB_LIGHTMETRICA_MATH_SIMD_H__
-#define __LIB_LIGHTMETRICA_MATH_SIMD_H__
+#ifndef LIB_LIGHTMETRICA_MATH_SIMD_H
+#define LIB_LIGHTMETRICA_MATH_SIMD_H
 
 #include "simdsupport.h"
 
@@ -61,4 +61,4 @@
 #include <immintrin.h>
 #endif
 
-#endif // __LIB_LIGHTMETRICA_MATH_SIMD_H__
+#endif // LIB_LIGHTMETRICA_MATH_SIMD_H
