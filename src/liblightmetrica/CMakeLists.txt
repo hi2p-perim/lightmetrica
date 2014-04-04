@@ -374,10 +374,12 @@ list(APPEND _SOURCE_FILES ${_SCENE_SOURCES})
 set(
 	_RANDOM_HEADERS
 	"${_INCLUDE_DIR}/random.h"
+	"${_INCLUDE_DIR}/standardmt.h"
 )
 set(
 	_RANDOM_SOURCES
 	"random.cpp"
+	"standardmt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\random" FILES ${_RANDOM_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\random" FILES ${_RANDOM_SOURCES})
@@ -409,12 +411,15 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 
 #
 
-# Proprocessor definition for exporting symbols
-add_definitions(-DLM_EXPORTS)
-
 # Create project
 pch_add_library(liblightmetrica SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(liblightmetrica ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES})
+
+# Proprocessor definition for exporting symbols
+set_target_properties(liblightmetrica PROPERTIES COMPILE_DEFINITIONS "LM_EXPORTS")
+
+# Remove automatic lib- prefix
+set_target_properties(liblightmetrica PROPERTIES PREFIX "")
 
 #
 
