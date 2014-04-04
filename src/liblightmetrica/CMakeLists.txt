@@ -26,7 +26,8 @@ include (PCHTargets)
 
 set(_HEADER_FILES_ROOT "Header Files")
 set(_SOURCE_FILES_ROOT "Source Files")
-set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/lightmetrica)
+set(_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/lightmetrica")
+set(_PUGIXML_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2")
 set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"
@@ -42,12 +43,11 @@ set(
 	"${_INCLUDE_DIR}/pugihelper.h"
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
-	"${_INCLUDE_DIR}/random.h"
 	"${_INCLUDE_DIR}/surfacegeometry.h"
 	
 	# pugixml headers
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugiconfig.hpp"
 )
 set(
 	_SOURCE_FILES
@@ -58,10 +58,9 @@ set(
 	"logger.cpp"
 	"version.cpp"
 	"pugihelper.cpp"
-	"random.cpp"
 	
 	# pugixml sources
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugixml.cpp"
 )
 
 #
@@ -369,6 +368,21 @@ source_group("${_HEADER_FILES_ROOT}\\scene" FILES ${_SCENE_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\scene" FILES ${_SCENE_SOURCES})
 list(APPEND _HEADER_FILES ${_SCENE_HEADERS})
 list(APPEND _SOURCE_FILES ${_SCENE_SOURCES})
+
+#
+
+set(
+	_RANDOM_HEADERS
+	"${_INCLUDE_DIR}/random.h"
+)
+set(
+	_RANDOM_SOURCES
+	"random.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\random" FILES ${_RANDOM_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\random" FILES ${_RANDOM_SOURCES})
+list(APPEND _HEADER_FILES ${_RANDOM_HEADERS})
+list(APPEND _SOURCE_FILES ${_RANDOM_SOURCES})
 
 #
 

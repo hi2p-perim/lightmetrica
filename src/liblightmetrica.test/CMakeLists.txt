@@ -24,7 +24,9 @@
 
 include (PCHTargets)
 
-set(_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/lightmetrica.test)
+set(_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/lightmetrica.test")
+set(_GTEST_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0")
+set(_PUGIXML_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2")
 set(
 	_HEADER_FILES
 	"${_INCLUDE_DIR}/common.h"
@@ -44,13 +46,13 @@ set(
 	"stub.assetfactory.cpp"
 	
 	# gtest
-	"${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0/src/gtest-all.cc"
-	"${PROJECT_SOURCE_DIR}/external/src/gtest-1.7.0/src/gtest_main.cc"
+	"${_GTEST_SOURCE_DIR}/src/gtest-all.cc"
+	"${_GTEST_SOURCE_DIR}/src/gtest_main.cc"
 
 	# pugixml
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugiconfig.hpp"
-	"${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src/pugixml.cpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugiconfig.hpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugixml.cpp"
 )
 
 pch_add_library(liblightmetrica.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
