@@ -345,7 +345,7 @@ private:
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 	int numProcessedTris;
 
-	QBVHIntersectionMode mode;					// Triangle intersection mode
+	QBVHIntersectionMode mode;				// Triangle intersection mode
 	unsigned int maxElementsInLeaf;			// Maximum # of triangle in a node
 
 	std::vector<TriangleRef> triRefs;		// List of triangle references

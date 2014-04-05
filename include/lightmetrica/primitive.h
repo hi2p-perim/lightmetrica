@@ -46,6 +46,7 @@ struct Primitive : public Object
 
 	Primitive(const Math::Mat4& transform)
 		: transform(transform)
+		, normalTransform(Math::Transpose(Math::Inverse(transform)))
 		, mesh(nullptr)
 		, bsdf(nullptr)
 		, camera(nullptr)
@@ -55,6 +56,7 @@ struct Primitive : public Object
 	}
 
 	Math::Mat4 transform;
+	Math::Mat3 normalTransform;
 	TriangleMesh* mesh;
 	BSDF* bsdf;
 	Camera* camera;

@@ -61,8 +61,8 @@ struct SurfaceGeometry
 		Math::OrthonormalBasis(sn, ss, st);
 
 		// Shading coordinates conversion
-		worldToShading = Math::Transpose(Math::Mat3(ss, st, sn));
-		shadingToWorld = Math::Inverse(worldToShading);
+		shadingToWorld = Math::Mat3(ss, st, sn);
+		worldToShading = Math::Transpose(shadingToWorld);
 	}
 
 };
