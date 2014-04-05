@@ -25,7 +25,8 @@
 #include "pch.h"
 #include <lightmetrica/randomfactory.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/standardmt.h>
+#include <lightmetrica/standardmtrand.h>
+#include <lightmetrica/sfmtrand.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -44,6 +45,7 @@ public:
 	RandomFactoryImpl()
 	{
 		AddFactory<StandardMTRandom>();
+		AddFactory<SFMTRandom>();
 	}
 
 public:

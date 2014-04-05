@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(lightmetrica)
 
-#
+################################################################################
 
 # Add module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -47,7 +47,7 @@ if (NOT CMAKE_BUILD_TYPE)
 		"Choose build type (Debug, Release, RelWithDebInfo, or MinSizeRel)" FORCED)
 endif()
 
-#
+################################################################################
 
 # External libraries
 
@@ -121,10 +121,13 @@ endif()
 # Pugixml
 include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
 
+# SFMT
+include_directories("${PROJECT_SOURCE_DIR}/external/src/SFMT-src-1.4.1")
+
 # Add the binary directory to the include directories for generated headers
 include_directories(${PROJECT_BINARY_DIR})
 
-#
+################################################################################
 
 # Build options
 
@@ -155,7 +158,7 @@ if (LM_FORCE_NO_SIMD)
 	add_definitions(-DLM_FORCE_NO_SIMD)
 endif()
 
-#
+################################################################################
 
 if (MSVC)
 	# Ignore linker warnings in VS
@@ -189,7 +192,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
 
-#
+################################################################################
 
 # Version number and codename
 set(LM_VERSION_MAJOR "0")
@@ -205,8 +208,6 @@ execute_process(
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-#
-
 # Current date
 if (WIN32)
 	execute_process(COMMAND "cmd" "/C date /T" OUTPUT_VARIABLE LM_CURRENT_DATE)
@@ -215,7 +216,7 @@ else()
 endif()
 string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" LM_CURRENT_DATE ${LM_CURRENT_DATE})
 
-#
+################################################################################
 
 if (NOT LM_FORCE_NO_SIMD)
 
@@ -260,7 +261,7 @@ if (NOT LM_FORCE_NO_SIMD)
 	endif()
 endif()
 
-#
+################################################################################
 
 # Include directory for libraries
 include_directories("include")

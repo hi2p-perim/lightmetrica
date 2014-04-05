@@ -26,7 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica/pssmlt.sampler.h>
-#include <lightmetrica/standardmt.h>
+#include <lightmetrica/standardmtrand.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN

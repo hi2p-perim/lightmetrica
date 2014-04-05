@@ -22,20 +22,41 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/standardmt.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_SFMT_RAND_H
+#define LIB_LIGHTMETRICA_SFMT_RAND_H
+
+#include "random.h"
 
 LM_NAMESPACE_BEGIN
 
-LM_PUBLIC_API unsigned int StandardMTRandom::NextUInt()
+/*!
+	SFMT random number generator.
+	An random number generator using SIMD-oriented Fast Mersenne Twister (SFMT)  
+	using an implementation by Mutsuo Saito and Makoto Matsumoto:
+	http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/
+*/
+class LM_PUBLIC_API SFMTRandom : public Random
 {
-	return uniformInt(engine);
-}
+public:
 
-LM_PUBLIC_API void StandardMTRandom::SetSeed( unsigned int seed )
-{
-	engine.seed(seed);
-	uniformInt.reset();
-}
+	SFMTRandom();
+	~SFMTRandom();
+
+public:
+
+	virtual unsigned int NextUInt();
+	virtual void SetSeed( unsigned int seed );
+	virtual std::string Type() const { return StaticType(); }
+	static std::string StaticType() { return "sfmt"; }
+
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_SFMT_RAND_H

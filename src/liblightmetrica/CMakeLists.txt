@@ -44,10 +44,6 @@ set(
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/surfacegeometry.h"
-	
-	# pugixml headers
-	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
-	"${_PUGIXML_SOURCE_DIR}/src/pugiconfig.hpp"
 )
 set(
 	_SOURCE_FILES
@@ -59,11 +55,13 @@ set(
 	"version.cpp"
 	"pugihelper.cpp"
 	
-	# pugixml sources
+	# pugixml sources and headers
+	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
+	"${_PUGIXML_SOURCE_DIR}/src/pugiconfig.hpp"
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.cpp"
 )
 
-#
+################################################################################
 
 set(
 	_ASSETS_HEADERS
@@ -88,7 +86,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets" FILES ${_ASSETS_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_CAMERAS_HEADERS
@@ -109,7 +107,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\cameras" FILES ${_ASSETS_CAMERAS_SO
 list(APPEND _HEADER_FILES ${_ASSETS_CAMERAS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_CAMERAS_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_LIGHTS_HEADERS
@@ -128,7 +126,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_SOUR
 list(APPEND _HEADER_FILES ${_ASSETS_LIGHTS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_LIGHTS_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_FILMS_HEADERS
@@ -147,7 +145,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\films" FILES ${_ASSETS_FILMS_SOURCE
 list(APPEND _HEADER_FILES ${_ASSETS_FILMS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_FILMS_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_BSDFS_HEADERS
@@ -166,7 +164,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_SOURCE
 list(APPEND _HEADER_FILES ${_ASSETS_BSDFS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_BSDFS_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_TRIANGLE_MESHES_HEADERS
@@ -187,7 +185,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRI
 list(APPEND _HEADER_FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
 
-#
+################################################################################
 
 set(
 	_ASSETS_TEXTURES_HEADERS
@@ -204,7 +202,7 @@ source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_
 list(APPEND _HEADER_FILES ${_ASSETS_TEXTURES_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})
 
-#
+################################################################################
 
 set(
 	_MATH_HEADERS
@@ -215,7 +213,7 @@ set(
 source_group("${_HEADER_FILES_ROOT}\\math" FILES ${_MATH_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_HEADERS})
 
-#
+################################################################################
 
 set(
 	_MATH_FUNCTIONS_HEADERS
@@ -232,7 +230,7 @@ set(
 source_group("${_HEADER_FILES_ROOT}\\math\\functions" FILES ${_MATH_FUNCTIONS_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_FUNCTIONS_HEADERS})
 
-#
+################################################################################
 
 set(
 	_MATH_TYPES_HEADERS
@@ -252,7 +250,7 @@ set(
 source_group("${_HEADER_FILES_ROOT}\\math\\types" FILES ${_MATH_TYPES_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
 
-#
+################################################################################
 
 set(
 	_RENDERER_HEADERS
@@ -282,7 +280,7 @@ source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
 list(APPEND _HEADER_FILES ${_RENDERER_HEADERS})
 list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 
-#
+################################################################################
 
 set(
 	_RENDERER_PSSMLT_HEADERS
@@ -299,7 +297,7 @@ source_group("${_SOURCE_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_
 list(APPEND _HEADER_FILES ${_RENDERER_PSSMLT_HEADERS})
 list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 
-#
+################################################################################
 
 # set(
 # 	_RENDERER_DAGPT_HEADERS
@@ -322,7 +320,7 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 # list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_HEADERS})
 # list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SOURCES})
 
-#
+################################################################################
 
 # set(
 #      _RENDERER_DAGPT_SAMPLER_HEADERS
@@ -340,7 +338,7 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 # list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_SAMPLER_HEADERS})
 # list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SAMPLER_SOURCES})
 
-#
+################################################################################
 
 set(
 	_SCENE_HEADERS
@@ -369,26 +367,37 @@ source_group("${_SOURCE_FILES_ROOT}\\scene" FILES ${_SCENE_SOURCES})
 list(APPEND _HEADER_FILES ${_SCENE_HEADERS})
 list(APPEND _SOURCE_FILES ${_SCENE_SOURCES})
 
-#
+################################################################################
 
+set(_SFMT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/src/SFMT-src-1.4.1")
 set(
 	_RANDOM_HEADERS
 	"${_INCLUDE_DIR}/random.h"
 	"${_INCLUDE_DIR}/random.inl"
 	"${_INCLUDE_DIR}/randomfactory.h"
-	"${_INCLUDE_DIR}/standardmt.h"
+	"${_INCLUDE_DIR}/standardmtrand.h"
+	"${_INCLUDE_DIR}/sfmtrand.h"
 )
 set(
 	_RANDOM_SOURCES
-	"standardmt.cpp"
 	"randomfactory.cpp"
+	"standardmtrand.cpp"
+	"sfmtrand.cpp"
+
+	# SFMT sources and headers
+	"${_SFMT_SOURCE_DIR}/SFMT.h"
+	"${_SFMT_SOURCE_DIR}/SFMT.c"
+	"${_SFMT_SOURCE_DIR}/SFMT-params.h"
+	"${_SFMT_SOURCE_DIR}/SFMT-params19937.h"
+	"${_SFMT_SOURCE_DIR}/SFMT-sse2.h"
+	"${_SFMT_SOURCE_DIR}/SFMT-sse2-msc.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\random" FILES ${_RANDOM_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\random" FILES ${_RANDOM_SOURCES})
 list(APPEND _HEADER_FILES ${_RANDOM_HEADERS})
 list(APPEND _SOURCE_FILES ${_RANDOM_SOURCES})
 
-#
+################################################################################
 
 # Generate header for the version number
 set(_GENERATED_FILES_ROOT "Generated Files")
@@ -400,7 +409,7 @@ configure_file(
 source_group("${_GENERATED_FILES_ROOT}" FILES ${_GENERATED_VERSION_DEF})
 list(APPEND _SOURCE_FILES ${_GENERATED_VERSION_DEF})
 
-#
+################################################################################
 
 # Generate header for SIMD support
 set(_GENERATED_SIMD_SUPPORT "${PROJECT_BINARY_DIR}/simdsupport.h")
@@ -411,7 +420,7 @@ configure_file(
 source_group("${_GENERATED_FILES_ROOT}" FILES ${_GENERATED_SIMD_SUPPORT})
 list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 
-#
+################################################################################
 
 # Create project
 pch_add_library(liblightmetrica SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
@@ -423,7 +432,7 @@ set_target_properties(liblightmetrica PROPERTIES COMPILE_DEFINITIONS "LM_EXPORTS
 # Remove automatic lib- prefix
 set_target_properties(liblightmetrica PROPERTIES PREFIX "")
 
-#
+################################################################################
 
 # Copy dynamic libaries as post-build events
 if(WIN32)
