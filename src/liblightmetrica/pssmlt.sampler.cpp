@@ -128,7 +128,7 @@ Math::Float PSSMLTPrimarySample::PrimarySample( int i )
 	// Not sampled yet
 	while (i >= (int)u.size())
 	{
-		u.push_back(Sample(rng->Next()));
+		u.emplace_back(rng->Next());
 	}
 
 	// If the modified time of the requested sample is not updated
