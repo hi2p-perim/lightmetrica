@@ -22,54 +22,18 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/rendererfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/raycast.h>
-#include <lightmetrica/pathtrace.h>
-#include <lightmetrica/lighttrace.h>
-#include <lightmetrica/simplebpt.h>
-#include <lightmetrica/explicitpathtrace.h>
-#include <lightmetrica/bpt.h>
-#include <lightmetrica/pssmlt.h>
+#include "random.h"
 
 LM_NAMESPACE_BEGIN
 
-Renderer* RendererFactory::Create( const std::string& type ) const
+LM_FORCE_INLINE Math::Float Random::Next()
 {
-	if (type == "raycast")
-	{
-		return new RaycastRenderer();
-	}
-	else if (type == "pathtrace")
-	{
-		return new PathtraceRenderer();
-	}
-	else if (type == "lighttrace")
-	{
-		return new LighttraceRenderer();
-	}
-	else if (type == "simplebpt")
-	{
-		return new SimpleBidirectionalPathtraceRenderer();
-	}
-	else if (type == "explicitpt")
-	{
-		return new ExplictPathtraceRenderer();
-	}
-	else if (type == "bpt")
-	{
-		return new BidirectionalPathtraceRenderer();
-	}
-	else if (type == "pssmlt")
-	{
-		return new PSSMLTRenderer();
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + type + "'");
-		return nullptr;
-	}
+	return Math::Float(NextUInt() * (1.0/4294967296.0));
+}
+
+LM_FORCE_INLINE Math::Vec2 Random::NextVec2()
+{
+	return Math::Vec2(Next(), Next());
 }
 
 LM_NAMESPACE_END

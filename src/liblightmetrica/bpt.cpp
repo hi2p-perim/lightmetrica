@@ -30,6 +30,7 @@
 #include <lightmetrica/film.h>
 #include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/random.h>
+#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -433,6 +434,7 @@ private:
 	int rrDepth;								// Depth of beginning RR
 	int numThreads;								// Number of threads
 	long long samplesPerBlock;					// Samples to be processed per block
+	std::string rngType;						// Type of random number generator
 	
 	BPTMISWeightMode misWeightMode;				// MIS weight function
 	Math::Float misPowerHeuristicsBetaCoeff;	// Beta coefficient for power heuristics
@@ -478,6 +480,12 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	if (samplesPerBlock <= 0)
 	{
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+		return false;
+	}
+	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
+	if (!RandomFactory::CheckSupport(rngType))
+	{
+		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
 	}
 
@@ -552,7 +560,8 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		contexts.emplace_back(new Random(seed + i), masterFilm->Clone());
+		contexts.emplace_back(RandomFactory::Create(rngType), masterFilm->Clone());
+		contexts.back().rng->SetSeed(seed + i);
 	}
 
 	// Number of blocks to be separated

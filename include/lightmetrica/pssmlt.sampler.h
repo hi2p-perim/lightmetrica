@@ -70,8 +70,8 @@ class PSSMLTRestorableSampler : public PSSMLTSampler
 {
 public:
 
-	LM_PUBLIC_API PSSMLTRestorableSampler(unsigned int seed);
-	LM_PUBLIC_API PSSMLTRestorableSampler(const PSSMLTRestorableSampler& sampler);
+	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, unsigned int seed);
+	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, const PSSMLTRestorableSampler& sampler);
 
 public:
 

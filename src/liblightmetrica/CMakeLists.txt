@@ -301,44 +301,44 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 
 #
 
-set(
-	_RENDERER_DAGPT_HEADERS
-	"${_INCLUDE_DIR}/dagpt.h"
-	"${_INCLUDE_DIR}/dagpt.common.h"
-	"${_INCLUDE_DIR}/dagpt.graph.h"
-	"${_INCLUDE_DIR}/dagpt.eval.h"
-	"${_INCLUDE_DIR}/dagpt.defaulteval.h"
-	"${_INCLUDE_DIR}/dagpt.pool.h"
-)
-set(
-	_RENDERER_DAGPT_SOURCES
-	"dagpt.cpp"
-	"dagpt.graph.cpp"
-	"dagpt.pool.cpp"
-	"dagpt.defaulteval.cpp"
-)
-source_group("${_HEADER_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_HEADERS})
-source_group("${_SOURCE_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_SOURCES})
-list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_HEADERS})
-list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SOURCES})
+# set(
+# 	_RENDERER_DAGPT_HEADERS
+# 	"${_INCLUDE_DIR}/dagpt.h"
+# 	"${_INCLUDE_DIR}/dagpt.common.h"
+# 	"${_INCLUDE_DIR}/dagpt.graph.h"
+# 	"${_INCLUDE_DIR}/dagpt.eval.h"
+# 	"${_INCLUDE_DIR}/dagpt.defaulteval.h"
+# 	"${_INCLUDE_DIR}/dagpt.pool.h"
+# )
+# set(
+# 	_RENDERER_DAGPT_SOURCES
+# 	"dagpt.cpp"
+# 	"dagpt.graph.cpp"
+# 	"dagpt.pool.cpp"
+# 	"dagpt.defaulteval.cpp"
+# )
+# source_group("${_HEADER_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_HEADERS})
+# source_group("${_SOURCE_FILES_ROOT}\\renderer\\dagpt" FILES ${_RENDERER_DAGPT_SOURCES})
+# list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_HEADERS})
+# list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SOURCES})
 
 #
 
-set(
-     _RENDERER_DAGPT_SAMPLER_HEADERS
-     "${_INCLUDE_DIR}/dagpt.sampler.h"
-     "${_INCLUDE_DIR}/dagpt.samplerfactory.h"
-     "${_INCLUDE_DIR}/dagpt.pathtrace.h"
-)
-set(
-     _RENDERER_DAGPT_SAMPLER_SOURCES
-     "dagpt.samplerfactory.cpp"
-     "dagpt.pathtrace.cpp"
-)
-source_group("${_HEADER_FILES_ROOT}\\renderer\\dagpt\\sampler" FILES ${_RENDERER_DAGPT_SAMPLER_HEADERS})
-source_group("${_SOURCE_FILES_ROOT}\\renderer\\dagpt\\sampler" FILES ${_RENDERER_DAGPT_SAMPLER_SOURCES})
-list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_SAMPLER_HEADERS})
-list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SAMPLER_SOURCES})
+# set(
+#      _RENDERER_DAGPT_SAMPLER_HEADERS
+#      "${_INCLUDE_DIR}/dagpt.sampler.h"
+#      "${_INCLUDE_DIR}/dagpt.samplerfactory.h"
+#      "${_INCLUDE_DIR}/dagpt.pathtrace.h"
+# )
+# set(
+#      _RENDERER_DAGPT_SAMPLER_SOURCES
+#      "dagpt.samplerfactory.cpp"
+#      "dagpt.pathtrace.cpp"
+# )
+# source_group("${_HEADER_FILES_ROOT}\\renderer\\dagpt\\sampler" FILES ${_RENDERER_DAGPT_SAMPLER_HEADERS})
+# source_group("${_SOURCE_FILES_ROOT}\\renderer\\dagpt\\sampler" FILES ${_RENDERER_DAGPT_SAMPLER_SOURCES})
+# list(APPEND _HEADER_FILES ${_RENDERER_DAGPT_SAMPLER_HEADERS})
+# list(APPEND _SOURCE_FILES ${_RENDERER_DAGPT_SAMPLER_SOURCES})
 
 #
 
@@ -374,12 +374,14 @@ list(APPEND _SOURCE_FILES ${_SCENE_SOURCES})
 set(
 	_RANDOM_HEADERS
 	"${_INCLUDE_DIR}/random.h"
+	"${_INCLUDE_DIR}/random.inl"
+	"${_INCLUDE_DIR}/randomfactory.h"
 	"${_INCLUDE_DIR}/standardmt.h"
 )
 set(
 	_RANDOM_SOURCES
-	"random.cpp"
 	"standardmt.cpp"
+	"randomfactory.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\random" FILES ${_RANDOM_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\random" FILES ${_RANDOM_SOURCES})

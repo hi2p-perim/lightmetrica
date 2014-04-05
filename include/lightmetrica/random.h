@@ -39,9 +39,8 @@ class LM_PUBLIC_API Random
 {
 public:
 
-	Random();
-	Random(unsigned int seed);
-	~Random();
+	Random() {}
+	virtual ~Random() {}
 
 private:
 
@@ -49,9 +48,37 @@ private:
 
 public:
 
-	Math::Float Next();
-	Math::Vec2 NextVec2() { return Math::Vec2(Next(), Next()); }
-	void SetSeed(unsigned int seed);
+	/*!
+		Generate pseudorandom number as unsigned integer type.
+		\return Generated number.
+	*/
+	virtual unsigned int NextUInt() = 0;
+
+	/*!
+		Set seed and initialize internal state.
+		\param seed Seed.
+	*/
+	virtual void SetSeed(unsigned int seed) = 0;
+
+	/*!
+		Get the type of the random number generator.
+		\return Type in string.
+	*/
+	virtual std::string Type() const = 0;
+
+public:
+
+	/*!
+		Generate pseudorandom number as floating point type.
+		\return Generated number.
+	*/
+	LM_FORCE_INLINE Math::Float Next();
+
+	/*!
+		Generate pseudorandom number as Vec2 type.
+		\return Generated number.
+	*/
+	LM_FORCE_INLINE Math::Vec2 NextVec2();
 
 private:
 
@@ -61,5 +88,7 @@ private:
 };
 
 LM_NAMESPACE_END
+
+#include "random.inl"
 
 #endif // LIB_LIGHTMETRICA_RANDOM_H

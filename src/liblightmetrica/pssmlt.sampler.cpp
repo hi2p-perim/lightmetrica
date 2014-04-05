@@ -26,20 +26,20 @@
 
 LM_NAMESPACE_BEGIN
 
-LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( unsigned int seed )
+LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, unsigned int seed )
 	: initialSeed(seed)
-	, rng(new Random(seed))
+	, rng(rng)
 	, currentIndex(0)
 {
-
+	rng->SetSeed(seed);
 }
 
-LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( const PSSMLTRestorableSampler& sampler )
+LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, const PSSMLTRestorableSampler& sampler )
 	: initialSeed(sampler.initialSeed)
-	, rng(new Random(sampler.initialSeed))
+	, rng(rng)
 	, currentIndex(0)
 {
-
+	rng->SetSeed(sampler.initialSeed);
 }
 
 LM_PUBLIC_API Math::Float PSSMLTRestorableSampler::Next()

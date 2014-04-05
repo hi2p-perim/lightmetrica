@@ -26,7 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica/pssmlt.sampler.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/standardmt.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
@@ -36,7 +36,7 @@ class PSSMLTRestorableSamplerTest : public TestBase {};
 TEST_F(PSSMLTRestorableSamplerTest, GenerateAndRestore)
 {
 	// Initialize using seed 1
-	PSSMLTRestorableSampler sampler(1);
+	PSSMLTRestorableSampler sampler(new StandardMTRandom, 1);
 
 	// Generate some samples
 	const int Count = 1<<9;
@@ -83,7 +83,8 @@ protected:
 TEST_F(PSSMLTPrimarySampleTest, Reject)
 {
 	// Set random number generator
-	Random rng(1);
+	StandardMTRandom rng;
+	rng.SetSeed(1);
 	primarySample.SetRng(&rng);
 
 	// Generate initial samples
@@ -118,7 +119,8 @@ TEST_F(PSSMLTPrimarySampleTest, Reject)
 TEST_F(PSSMLTPrimarySampleTest, Accept)
 {
 	// Set random number generator
-	Random rng(1);
+	StandardMTRandom rng;
+	rng.SetSeed(1);
 	primarySample.SetRng(&rng);
 
 	// Generate initial samples
@@ -153,7 +155,8 @@ TEST_F(PSSMLTPrimarySampleTest, Accept)
 TEST_F(PSSMLTPrimarySampleTest, Sequence)
 {
 	// Set random number generator
-	Random rng(1);
+	StandardMTRandom rng;
+	rng.SetSeed(1);
 	primarySample.SetRng(&rng);
 
 	// Generate initial samples

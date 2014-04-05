@@ -22,61 +22,49 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/random.h>
-#include <random>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_RANDOM_FACTORY_H
+#define LIB_LIGHTMETRICA_RANDOM_FACTORY_H
+
+#include "common.h"
+#include <string>
 
 LM_NAMESPACE_BEGIN
 
-class Random::Impl
+class Random;
+
+/*!
+	Random number generator factory.
+	A factory class for random number generator implementations.
+*/
+class LM_PUBLIC_API RandomFactory
 {
-public:
-
-	Impl() {}
-	Impl(unsigned int seed) { SetSeed(seed); }
-	Math::Float Next() { return Math::Float(uniformReal(engine)); }
-	void SetSeed(unsigned int seed);
-
 private:
 
-	std::mt19937 engine;
-	std::uniform_real_distribution<double> uniformReal;
+	RandomFactory() {}
+	LM_DISABLE_COPY_AND_MOVE(RandomFactory);
+
+public:
+
+	/*!
+		Create instance of a random number generator.
+		The function creates an instance of the random number generator specified by #type.
+		\param type Type of the random number generator.
+		\return Instance.
+	*/
+	static Random* Create(const std::string& type);
+
+	/*!
+		Check support.
+		Checks if given #type of random number generator is supported.
+		\param type Type of the random number generator.
+		\retval true #type is supported.
+		\retval false #type is not supported.
+	*/
+	static bool CheckSupport(const std::string& type);
 
 };
 
-void Random::Impl::SetSeed( unsigned int seed )
-{
-	engine.seed(seed);
-	uniformReal.reset();
-}
-
-// --------------------------------------------------------------------------------
-
-Random::Random()
-	: p(new Impl)
-{
-
-}
-
-Random::Random( unsigned int seed )
-	: p(new Impl(seed))
-{
-
-}
-
-Random::~Random()
-{
-	LM_SAFE_DELETE(p);
-}
-
-Math::Float Random::Next()
-{
-	return p->Next();
-}
-
-void Random::SetSeed( unsigned int seed )
-{
-	p->SetSeed(seed);
-}
-
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_RANDOM_FACTORY_H

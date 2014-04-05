@@ -26,22 +26,23 @@
 #ifndef LIB_LIGHTMETRICA_RENDERER_FACTORY_H
 #define LIB_LIGHTMETRICA_RENDERER_FACTORY_H
 
-#include "object.h"
+#include "common.h"
 #include <string>
-#include <memory>
 
 LM_NAMESPACE_BEGIN
 
 class Renderer;
 
 /*!
+	Renderer factory.
+	A factory class for renderer implementations.
 */
-class LM_PUBLIC_API RendererFactory : public Object
+class LM_PUBLIC_API RendererFactory
 {
 public:
 
-	RendererFactory();
-	~RendererFactory();
+	RendererFactory() {}
+	~RendererFactory() {}
 
 private:
 
@@ -50,6 +51,10 @@ private:
 public:
 
 	/*!
+		Create instance of a renderer.
+		The function creates an instance of the renderer specified by #type.
+		\param type Type of the asset.
+		\return Instance.
 	*/
 	Renderer* Create(const std::string& type) const;
 

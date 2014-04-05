@@ -31,6 +31,7 @@
 #include <lightmetrica/film.h>
 #include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/random.h>
+#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -151,6 +152,7 @@ private:
 	int rrDepth;								// Depth of beginning RR
 	int numThreads;								// Number of threads
 	long long samplesPerBlock;					// Samples to be processed per block
+	std::string rngType;						// Type of random number generator
 
 	PSSMLTEstimatorMode estimatorMode;			// Estimator mode
 	long long numSeedSamples;					// Number of seed samples
@@ -187,6 +189,12 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 	if (samplesPerBlock <= 0)
 	{
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+		return false;
+	}
+	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
+	if (!RandomFactory::CheckSupport(rngType))
+	{
+		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
 	}
 
@@ -237,7 +245,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	Math::Float B;
 	std::vector<PSSMLTPathSeed> seeds;
 	int seed = static_cast<int>(std::time(nullptr));
-	PSSMLTRestorableSampler restorableSampler(seed++);
+	PSSMLTRestorableSampler restorableSampler(RandomFactory::Create(rngType), seed++);
 
 	{
 		LM_LOG_INFO("Preprocessing");
@@ -257,9 +265,10 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 		// Add a entry to the context
 		contexts.emplace_back(
 			new PSSMLTThreadContext(
-				new Random(seed++),
+				RandomFactory::Create(rngType),
 				masterFilm->Clone(),
 				new PSSMLTPrimarySample(kernelSizeS1, kernelSizeS2)));
+		contexts.back()->rng->SetSeed(seed++);
 		
 		// Setup initial state of the primary sample space sampler
 		// by restoring the state of the initial path.

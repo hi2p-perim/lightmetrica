@@ -27,9 +27,29 @@
 #define LIB_LIGHTMETRICA_STANDARD_MT_H
 
 #include "random.h"
+#include <random>
 
 LM_NAMESPACE_BEGIN
 
+/*!
+	Standard Mersenne Twister random number generator.
+	An implementation of random number generator using std::mt19937.
+*/
+class StandardMTRandom : public Random
+{
+public:
+
+	LM_PUBLIC_API virtual unsigned int NextUInt();
+	LM_PUBLIC_API virtual void SetSeed( unsigned int seed );
+	virtual std::string Type() const { return StaticType(); }
+	static std::string StaticType() { return "standardmt"; }
+
+private:
+
+	std::mt19937 engine;
+	std::uniform_int_distribution<unsigned int> uniformInt;
+
+};
 
 LM_NAMESPACE_END
 

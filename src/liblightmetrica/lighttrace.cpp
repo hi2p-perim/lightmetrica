@@ -31,6 +31,7 @@
 #include <lightmetrica/film.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/random.h>
+#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/bsdf.h>
@@ -64,6 +65,7 @@ private:
 	int rrDepth;				// Depth of beginning RR
 	int numThreads;				// Number of threads
 	long long samplesPerBlock;	// Samples to be processed per block
+	std::string rngType;		// Type of random number generator
 
 };
 
@@ -96,6 +98,12 @@ bool LighttraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& 
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
+	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
+	if (!RandomFactory::CheckSupport(rngType))
+	{
+		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+		return false;
+	}
 
 	return true;
 }
@@ -118,8 +126,9 @@ bool LighttraceRenderer::Impl::Render( const Scene& scene )
 	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		rngs.push_back(std::unique_ptr<Random>(new Random(seed + i)));
-		films.push_back(std::unique_ptr<Film>(masterFilm->Clone()));
+		rngs.emplace_back(RandomFactory::Create(rngType));
+		rngs.back()->SetSeed(seed + i);
+		films.emplace_back(masterFilm->Clone());
 	}
 
 	// Number of blocks to be separated
