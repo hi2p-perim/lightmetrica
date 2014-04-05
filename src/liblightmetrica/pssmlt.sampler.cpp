@@ -140,7 +140,7 @@ Math::Float PSSMLTPrimarySample::PrimarySample( int i )
 			// Large step case
 
 			// Save sample in order to restore previous state
-			prevSamples.push_back(std::make_tuple(i, u[i]));
+			prevSamples.emplace_back(i, u[i]);
 
 			// Update the modified time and value
 			u[i].modify = time;
@@ -168,7 +168,7 @@ Math::Float PSSMLTPrimarySample::PrimarySample( int i )
 			}
 
 			// Save state
-			prevSamples.push_back(std::make_tuple(i, u[i]));
+			prevSamples.emplace_back(i, u[i]);
 
 			// Update the modified time and value
 			u[i].value = Mutate(u[i].value);
