@@ -501,9 +501,9 @@ void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitive
 	isect.geom.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
 
 	// Shading normal
-	Math::Vec3 n1 = isect.primitive->normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]);
-	Math::Vec3 n2 = isect.primitive->normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]);
-	Math::Vec3 n3 = isect.primitive->normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]);
+	Math::Vec3 n1(isect.primitive->normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]));
+	Math::Vec3 n2(isect.primitive->normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]));
+	Math::Vec3 n3(isect.primitive->normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]));
 	isect.geom.sn = Math::Normalize(n1 * (Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
 
 	// Texture coordinates
