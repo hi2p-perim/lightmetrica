@@ -28,6 +28,7 @@
 #include <lightmetrica/pugihelper.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/config.h>
+#include <lightmetrica/pathutils.h>
 #include <assimp/Importer.hpp>
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
@@ -113,19 +114,8 @@ bool ObjMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 	
-	// Convert the path to the absolute path if required
-	fs::path tmpPath(path);
-	if (tmpPath.is_absolute())
-	{
-		// If the 'path' is absolute use the value as it is
-		// This is not a recommended style so we display a warning message
-		LM_LOG_WARN("Using absolute path may break compatibility between environments.");
-	}
-	else if (tmpPath.is_relative())
-	{
-		// If the 'path' is relative, use the path relative to the configuration file
-		path = fs::canonical(tmpPath, node.GetConfig()->BasePath()).string();
-	}
+	// Resolve the path
+	path = PathUtils::ResolveAssetPath(*node.GetConfig(), path);
 
 	// Find 'group' element and get its value (this is optional)
 	//std::string groupName = node.child("group").child_value();

@@ -22,76 +22,58 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_BITMAP_TEXTURE_H
+#define LIB_LIGHTMETRICA_BITMAP_TEXTURE_H
+
+#include "texture.h"
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-class Asset::Impl
+/*!
+	Bitmap texture.
+	Implements a bitmap texture.
+*/
+class LM_PUBLIC_API BitmapTexture : public Texture
 {
 public:
 
-	Impl(const std::string& id);
-	~Impl();
+	BitmapTexture();
+	BitmapTexture(const std::string& id);
+	virtual ~BitmapTexture();
 
 public:
 
-	std::string ID() const { return id; }
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual std::string Type() const { return "bitmap"; }
+
+public:
+
+	/*
+		Load a bitmap texture.
+		\param path Path to a texture.
+		\param verticalFlip If true, loaded image is flipped vertically.
+		\retval true Succeeded to load.
+		\retval false Failed to load.
+	*/
+	bool LoadAsset(const std::string& path, bool verticalFlip = false);
+
+	/*!
+		Get the internal data.
+		Copy the internal data to the given array #dest.
+		This function is used internally for testing.
+		\param dest An array to store internal data.
+	*/
+	void InternalData(std::vector<Math::Float>& dest) const;
 
 private:
 
-	std::string id;
+	class Impl;
+	Impl* p;
 
 };
 
-Asset::Impl::Impl( const std::string& id )
-	: id(id)
-{
-
-}
-
-Asset::Impl::~Impl()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-Asset::Asset(const std::string& id)
-	: p(new Impl(id))
-{
-
-}
-
-Asset::~Asset()
-{
-	LM_SAFE_DELETE(p);
-}
-
-std::string Asset::ID() const
-{
-	return p->ID();
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != Type())
-	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
-}
-
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_BITMAP_TEXTURE_H

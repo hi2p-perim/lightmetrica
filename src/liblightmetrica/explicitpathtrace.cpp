@@ -282,7 +282,7 @@ bool ExplictPathtraceRenderer::Impl::Render( const Scene& scene )
 	// Accumulate rendered results for all threads to one film
 	for (auto& context : contexts)
 	{
-		masterFilm->AccumulateContribution(context.film.get());
+		masterFilm->AccumulateContribution(*context.film.get());
 	}
 
 	return true;

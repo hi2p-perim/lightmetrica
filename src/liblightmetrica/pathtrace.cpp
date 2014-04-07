@@ -267,7 +267,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 	// Accumulate rendered results for all threads to one film
 	for (auto& f : films)
 	{
-		masterFilm->AccumulateContribution(f.get());
+		masterFilm->AccumulateContribution(*f.get());
 	}
 
 	return true;

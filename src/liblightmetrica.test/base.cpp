@@ -47,14 +47,6 @@ void TestBase::TearDown()
 
 // --------------------------------------------------------------------------------
 
-TemporaryFile::TemporaryFile( const std::string& filename, const std::string& content )
-{
-	path = (fs::temp_directory_path() / filename).string();
-	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
-	EXPECT_TRUE(ofs.is_open());
-	ofs << content;
-}
-
 TemporaryFile::~TemporaryFile()
 {
 	if (fs::exists(path))
@@ -63,9 +55,20 @@ TemporaryFile::~TemporaryFile()
 	}
 }
 
-std::string TemporaryFile::Path() const
+TemporaryTextFile::TemporaryTextFile( const std::string& filename, const std::string& content )
 {
-	return path;
+	path = (fs::temp_directory_path() / filename).string();
+	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+	EXPECT_TRUE(ofs.is_open());
+	ofs << content;
+}
+
+TemporaryBinaryFile::TemporaryBinaryFile( const std::string& filename, const unsigned char* content, unsigned int length )
+{
+	path = (fs::temp_directory_path() / filename).string();
+	std::ofstream ofs(path, std::ios::out | std::ios::binary);
+	EXPECT_TRUE(ofs.is_open());
+	ofs.write((const char*)content, length);
 }
 
 LM_TEST_NAMESPACE_END

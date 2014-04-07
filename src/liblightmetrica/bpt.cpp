@@ -440,6 +440,7 @@ private:
 	Math::Float misPowerHeuristicsBetaCoeff;	// Beta coefficient for power heuristics
 
 #ifdef LM_ENABLE_BPT_EXPERIMENTAL
+
 	// Experimental parameters
 	bool enableExperimentalMode;				// Enables experimental mode if true
 	int maxSubpathNumVertices;					// Maximum number of vertices of sub-paths
@@ -449,6 +450,7 @@ private:
 	std::vector<std::unique_ptr<Film>> subpathFilms;
 	// Per length images
 	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;
+
 #endif
 
 };
@@ -526,6 +528,7 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	}
 
 #ifdef LM_ENABLE_BPT_EXPERIMENTAL
+
 	// Experimental parameters
 	auto experimentalNode = node.Child("experimental");
 	if (!experimentalNode.Empty())
@@ -538,6 +541,7 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	{
 		enableExperimentalMode = false;
 	}
+
 #endif
 
 	return true;
@@ -645,7 +649,7 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	// Accumulate rendered results for all threads to one film
 	for (auto& context : contexts)
 	{
-		masterFilm->AccumulateContribution(context.film.get());
+		masterFilm->AccumulateContribution(*context.film.get());
 	}
 
 #ifdef LM_ENABLE_BPT_EXPERIMENTAL

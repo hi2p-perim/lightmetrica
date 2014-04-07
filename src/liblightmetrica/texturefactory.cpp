@@ -24,13 +24,22 @@
 
 #include "pch.h"
 #include <lightmetrica/texturefactory.h>
-#include <lightmetrica/texture.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/bitmaptexture.h>
 
 LM_NAMESPACE_BEGIN
 
 Asset* TextureFactory::Create( const std::string& id, const std::string& type ) const
 {
-	return nullptr;
+	if (type == "bitmap")
+	{
+		return new BitmapTexture(id);
+	}
+	else
+	{
+		LM_LOG_ERROR("Invalid texture type '" + type + "'");
+		return nullptr;
+	}
 }
 
 LM_NAMESPACE_END

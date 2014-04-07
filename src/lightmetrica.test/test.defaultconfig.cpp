@@ -70,7 +70,7 @@ protected:
 
 TEST_F(DefaultConfigTest, Load)
 {
-	TemporaryFile file("test.lm.xml", ConfigData_Success);
+	TemporaryTextFile file("test.lm.xml", ConfigData_Success);
 	EXPECT_TRUE(config.Load(file.Path()));
 }
 
@@ -98,7 +98,7 @@ TEST_F(DefaultConfigTest, LoadString_Failed)
 	
 TEST_F(DefaultConfigTest, BasePath)
 {
-	TemporaryFile file("test.lm.xml", ConfigData_Success);
+	TemporaryTextFile file("test.lm.xml", ConfigData_Success);
 	EXPECT_TRUE(config.Load(file.Path()));
 	EXPECT_EQ(fs::canonical(fs::path(file.Path()).parent_path()), config.BasePath());
 }

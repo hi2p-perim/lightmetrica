@@ -32,6 +32,7 @@ LM_NAMESPACE_BEGIN
 
 /*!
 	HDR image types.
+	Defines output image types.
 */
 enum class HDRImageType
 {
@@ -62,7 +63,8 @@ public:
 	virtual bool Save(const std::string& path) const;
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
-	virtual void AccumulateContribution( const Film* film );
+	virtual void AccumulateContribution( const Film& film );
+	virtual Math::Float EvaluateRMSE( const Film& film ) const;
 
 public:
 

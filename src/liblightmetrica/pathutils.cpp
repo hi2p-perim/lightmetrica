@@ -23,75 +23,28 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/asset.h>
+#include <lightmetrica/pathutils.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#include <lightmetrica/config.h>
 
 LM_NAMESPACE_BEGIN
 
-class Asset::Impl
+std::string PathUtils::ResolveAssetPath( const Config& config, const std::string& path )
 {
-public:
-
-	Impl(const std::string& id);
-	~Impl();
-
-public:
-
-	std::string ID() const { return id; }
-
-private:
-
-	std::string id;
-
-};
-
-Asset::Impl::Impl( const std::string& id )
-	: id(id)
-{
-
-}
-
-Asset::Impl::~Impl()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-Asset::Asset(const std::string& id)
-	: p(new Impl(id))
-{
-
-}
-
-Asset::~Asset()
-{
-	LM_SAFE_DELETE(p);
-}
-
-std::string Asset::ID() const
-{
-	return p->ID();
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
+	// Convert the path to the absolute path if required
+	boost::filesystem::path tmpPath(path);
+	if (tmpPath.is_absolute())
 	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
+		// If the 'path' is absolute use the value as it is
+		// This is not a recommended style so we display a warning message
+		LM_LOG_WARN("Using absolute path may break compatibility between environments.");
+		return path;
 	}
-
-	if (node.AttributeValue("type") != Type())
+	else if (tmpPath.is_relative())
 	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
+		// If the 'path' is relative, use the path relative to the configuration file
+		return boost::filesystem::canonical(tmpPath, config.BasePath()).string();
 	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
 }
 
 LM_NAMESPACE_END

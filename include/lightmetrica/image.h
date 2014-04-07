@@ -22,76 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_IMAGE_H
+#define LIB_LIGHTMETRICA_IMAGE_H
 
-LM_NAMESPACE_BEGIN
 
-class Asset::Impl
-{
-public:
 
-	Impl(const std::string& id);
-	~Impl();
-
-public:
-
-	std::string ID() const { return id; }
-
-private:
-
-	std::string id;
-
-};
-
-Asset::Impl::Impl( const std::string& id )
-	: id(id)
-{
-
-}
-
-Asset::Impl::~Impl()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-Asset::Asset(const std::string& id)
-	: p(new Impl(id))
-{
-
-}
-
-Asset::~Asset()
-{
-	LM_SAFE_DELETE(p);
-}
-
-std::string Asset::ID() const
-{
-	return p->ID();
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != Type())
-	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
-}
-
-LM_NAMESPACE_END
+#endif // LIB_LIGHTMETRICA_IMAGE_H

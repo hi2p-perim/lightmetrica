@@ -182,6 +182,24 @@ LM_PUBLIC_API long long ConfigNode::Value<long long>() const
 }
 
 template <>
+LM_PUBLIC_API bool ConfigNode::Value<bool>() const
+{
+	if (Value() == "true")
+	{
+		return true;
+	}
+	else if (Value() == "false")
+	{
+		return false;
+	}
+	else
+	{
+		LM_LOG_WARN("Invalid boolean value, forced to 'false'");
+		return false;
+	}
+}
+
+template <>
 LM_PUBLIC_API Math::Float ConfigNode::Value<Math::Float>() const
 {
 	try

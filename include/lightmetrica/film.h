@@ -89,9 +89,18 @@ public:
 		Accumulate the contribution to the entire film.
 		This function accumulates the contribution of the other film.
 		The other film must be same size and type.
-		\param film A film.
+		\param film Other film.
 	*/
-	virtual void AccumulateContribution(const Film* film) = 0;
+	virtual void AccumulateContribution(const Film& film) = 0;
+
+	/*!
+		Evaluate RMSE.
+		Evaluate root mean square error (RMSE) to the given #film.
+		The other film must be same size and type.
+		\param film Other film.
+		\return Evaluated RMSE.
+	*/
+	virtual Math::Float EvaluateRMSE(const Film& film) const = 0;
 
 public:
 

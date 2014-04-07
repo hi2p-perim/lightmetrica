@@ -37,6 +37,7 @@ set(
 	"test.objmesh.cpp"
 	"test.rawmesh.cpp"
 	"test.hdrfilm.cpp"
+	"test.bitmaptexture.cpp"
 	"test.perspectivecamera.cpp"
 	"test.thinlenscamera.cpp"
 	"test.pssmlt.sampler.cpp"

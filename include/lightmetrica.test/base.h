@@ -51,15 +51,30 @@ class TemporaryFile
 {
 public:
 
-	TemporaryFile(const std::string& filename, const std::string& content);
-	~TemporaryFile();
+	virtual ~TemporaryFile();
 
 	// Get the full path of the filename
-	std::string Path() const;
+	std::string Path() const { return path; }
 
-private:
+protected:
 
 	std::string path;
+
+};
+
+class TemporaryTextFile : public TemporaryFile
+{
+public:
+
+	TemporaryTextFile(const std::string& filename, const std::string& content);
+
+};
+
+class TemporaryBinaryFile : public TemporaryFile
+{
+public:
+
+	TemporaryBinaryFile(const std::string& filename, const unsigned char* content, unsigned int length);
 
 };
 

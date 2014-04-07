@@ -35,13 +35,23 @@ class HDRBitmapFilm::Impl : public Object
 public:
 
 	Impl(HDRBitmapFilm* self);
+
+public:
+
 	bool LoadAsset(const ConfigNode& node, const Assets& assets);
+
+public:
+
 	int Width() const { return width; }
 	int Height() const { return height; }
 	bool Save(const std::string& path);
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	void AccumulateContribution(const Film* film);
+	void AccumulateContribution(const Film& film);
+	Math::Float EvaluateRMSE(const Film& film) const;
+
+public:
+
 	void InternalData(std::vector<Math::Float>& dest) const;
 	Film* Clone() const;
 	void Allocate(int width, int height);
@@ -157,28 +167,55 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, c
 	data[3 * idx + 2] += contrb[2];
 }
 
-void HDRBitmapFilm::Impl::AccumulateContribution( const Film* film )
+void HDRBitmapFilm::Impl::AccumulateContribution( const Film& film )
 {
 	// Check type
-	if (film->Type() != self->Type())
+	if (film.Type() != self->Type())
 	{
-		LM_LOG_WARN("Invalid image type '" + film->Type() + "', expected '" + self->Type() + "'");
+		LM_LOG_WARN("Invalid image type '" + film.Type() + "', expected '" + self->Type() + "'");
 		return;
 	}
 
 	// Check image size
-	if (film->Width() != width || film->Height() != height)
+	if (film.Width() != width || film.Height() != height)
 	{
 		LM_LOG_WARN("Invalid image size");
 		return;
 	}
 
 	// Accumulate data
-	auto& d = dynamic_cast<const HDRBitmapFilm*>(film)->p->data;
+	const auto& d = dynamic_cast<const HDRBitmapFilm&>(film).p->data;
 	for (size_t i = 0; i < data.size(); i++)
 	{
 		data[i] += d[i];
 	}
+}
+
+Math::Float HDRBitmapFilm::Impl::EvaluateRMSE( const Film& film ) const
+{
+	// Check type
+	if (film.Type() != self->Type())
+	{
+		LM_LOG_WARN("Invalid image type '" + film.Type() + "', expected '" + self->Type() + "'");
+		return Math::Float(0);
+	}
+
+	// Check image size
+	if (film.Width() != width || film.Height() != height)
+	{
+		LM_LOG_WARN("Invalid image size");
+		return Math::Float(0);
+	}
+
+	// Calculate RMSE
+	const auto& d = dynamic_cast<const HDRBitmapFilm&>(film).p->data;
+	Math::Float sum(0);
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		sum += data[i] * data[i] + d[i] * d[i];
+	}
+
+	return Math::Sqrt(sum / Math::Float(data.size()));
 }
 
 bool HDRBitmapFilm::Impl::Save(const std::string& path)
@@ -308,7 +345,7 @@ void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const M
 	p->AccumulateContribution(rasterPos, contrb);
 }
 
-void HDRBitmapFilm::AccumulateContribution( const Film* film )
+void HDRBitmapFilm::AccumulateContribution( const Film& film )
 {
 	p->AccumulateContribution(film);
 }
@@ -336,6 +373,11 @@ void HDRBitmapFilm::SetHDRImageType( HDRImageType type )
 HDRImageType HDRBitmapFilm::GetHDRImageType() const
 {
 	return p->GetHDRImageType();
+}
+
+Math::Float HDRBitmapFilm::EvaluateRMSE( const Film& film ) const
+{
+	return p->EvaluateRMSE(film);
 }
 
 LM_NAMESPACE_END

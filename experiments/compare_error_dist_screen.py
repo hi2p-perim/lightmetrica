@@ -12,6 +12,7 @@ import cv2
 import exputil as exp
 
 def main():
+	
 	# Parse comamnd line arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument('image_1', type=str, help='First input image')

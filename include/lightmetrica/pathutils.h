@@ -22,76 +22,42 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_PATH_UTILS_H
+#define LIB_LIGHTMETRICA_PATH_UTILS_H
+
+#include "common.h"
+#include <string>
 
 LM_NAMESPACE_BEGIN
 
-class Asset::Impl
+class Config;
+
+/*!
+	Path utility.
+	Helper class for path manipulation.
+*/
+class LM_PUBLIC_API PathUtils
 {
-public:
-
-	Impl(const std::string& id);
-	~Impl();
-
-public:
-
-	std::string ID() const { return id; }
-
 private:
 
-	std::string id;
+	PathUtils() {}
+	LM_DISABLE_COPY_AND_MOVE(PathUtils);
+
+public:
+
+	/*!
+		Resolve asset path.
+		If the given #path is absolute, returns the path as it is.
+		Otherwise, returns the path relative to the configuration file.
+		\param config Configuration.
+		\param path A path (absolute or relative).
+		\return A resolved path.
+	*/
+	static std::string ResolveAssetPath(const Config& config, const std::string& path);
 
 };
 
-Asset::Impl::Impl( const std::string& id )
-	: id(id)
-{
-
-}
-
-Asset::Impl::~Impl()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-Asset::Asset(const std::string& id)
-	: p(new Impl(id))
-{
-
-}
-
-Asset::~Asset()
-{
-	LM_SAFE_DELETE(p);
-}
-
-std::string Asset::ID() const
-{
-	return p->ID();
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != Type())
-	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
-}
-
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_PATH_UTILS_H

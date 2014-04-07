@@ -13,6 +13,7 @@ import matplotlib.cm as cm
 import exputil as exp
 
 def main():
+	
 	# Parse command line arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument('image', type=str, help='Input image')

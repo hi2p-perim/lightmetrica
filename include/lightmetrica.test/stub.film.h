@@ -42,7 +42,8 @@ public:
 	virtual bool Save(const std::string& path) const { return true; }
 	virtual void RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb ) {}
-	virtual void AccumulateContribution( const Film* film ) {}
+	virtual void AccumulateContribution( const Film& film ) {}
+	virtual Math::Float EvaluateRMSE( const Film& film ) const { return Math::Float(0); }
 	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return true; }
 	virtual std::string Type() const { return "stub"; }
 	virtual Film* Clone() const { return nullptr; }

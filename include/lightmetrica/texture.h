@@ -31,6 +31,8 @@
 LM_NAMESPACE_BEGIN
 
 /*!
+	Texture.
+	A base class of the textures.
 */
 class LM_PUBLIC_API Texture : public Asset
 {
@@ -38,6 +40,10 @@ public:
 
 	Texture(const std::string& id);
 	virtual ~Texture();
+
+public:
+
+	virtual std::string Name() const { return "texture"; }
 
 };
 

@@ -46,6 +46,8 @@
 #include <atomic>
 #include <omp.h>
 
+#define LM_ENABLE_PSSMLT_EXPERIMENTAL
+
 LM_NAMESPACE_BEGIN
 
 /*
@@ -160,6 +162,15 @@ private:
 	Math::Float kernelSizeS1;					// Minimum kernel size
 	Math::Float kernelSizeS2;					// Maximum kernel size
 
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+
+	bool enableExperimentalMode;
+	std::vector<std::tuple<long long, Math::Float>> profileSamples;
+	long long profileFrequency;
+	std::string referenceImagePath;
+
+#endif
+
 };
 
 PSSMLTRenderer::Impl::Impl( PSSMLTRenderer* self )
@@ -230,6 +241,30 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 	node.ChildValueOrDefault("large_step_prob", Math::Float(0.1), largeStepProb);
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
+
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+
+	// Experimental parameters
+	auto experimentalNode = node.Child("experimental");
+	if (!experimentalNode.Empty())
+	{
+		enableExperimentalMode = true;
+		experimentalNode.ChildValueOrDefault("profile_frequency", 100LL, profileFrequency);
+		if (numThreads == 1)
+		{
+			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
+			numThreads = 1;
+		}
+	}
+	else
+	{
+		LM_LOG_WARN("In experimental mode, configuration must have 'experimental' element");
+		return false;
+		enableExperimentalMode = false;
+		profileFrequency = 100;
+	}
+
+#endif
 
 	return true;
 }
@@ -359,6 +394,14 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 				auto currentI = Math::Luminance(current.L);
 				context->film->AccumulateContribution(current.rasterPos, current.L * B / currentI * coeff);
 			}
+
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+			if (enableExperimentalMode && sample % profileFrequency == 0)
+			{
+				// Compute RMSE of current sample
+				
+			}
+#endif
 		}
 
 		processedBlocks++;
@@ -370,7 +413,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	// Accumulate rendered results for all threads to one film
 	for (auto& context : contexts)
 	{
-		masterFilm->AccumulateContribution(context->film.get());
+		masterFilm->AccumulateContribution(*context->film.get());
 	}
 
 	return true;

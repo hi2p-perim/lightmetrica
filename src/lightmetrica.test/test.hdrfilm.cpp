@@ -176,7 +176,7 @@ TEST_F(HDRBitmapFilmTest, AccumulateContribution_2)
 	EXPECT_TRUE(film.Load(config.LoadFromStringAndGetFirstChild(FilmNode_1), assets));
 	for (int i = 0; i < Count; i++)
 	{
-		film.AccumulateContribution(&film2);
+		film.AccumulateContribution(film2);
 	}
 	
 	// Check data
@@ -186,6 +186,11 @@ TEST_F(HDRBitmapFilmTest, AccumulateContribution_2)
 	{
 		EXPECT_TRUE(ExpectNear(Math::Float(Count), data[i]));
 	}
+}
+
+TEST_F(HDRBitmapFilmTest, EvaluateRMSE)
+{
+	// TODO
 }
 
 TEST_F(HDRBitmapFilmTest, Save)

@@ -23,75 +23,40 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/stub.config.h>
+#include <lightmetrica/pathutils.h>
 
 LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-class Asset::Impl
+class StubConfig_PathUtilsTest : public StubConfig
 {
 public:
 
-	Impl(const std::string& id);
-	~Impl();
-
-public:
-
-	std::string ID() const { return id; }
-
-private:
-
-	std::string id;
+	virtual std::string BasePath() const { return "/tmp/aaa/bbb"; }
 
 };
 
-Asset::Impl::Impl( const std::string& id )
-	: id(id)
+class PathUtilsTest : public TestBase
 {
+protected:
 
+	StubConfig_PathUtilsTest config;
+
+};
+
+TEST_F(PathUtilsTest, ResolveAssetPath_Absolute)
+{
+	EXPECT_EQ("/home/hello.png", PathUtils::ResolveAssetPath(config, "/home/hello.png"));
 }
 
-Asset::Impl::~Impl()
+TEST_F(PathUtilsTest, ResolveAssetPath_Relative)
 {
-
+	EXPECT_EQ("/tmp/aaa/bbb/hello.png", PathUtils::ResolveAssetPath(Config, "hello.png"));
+	EXPECT_EQ("/tmp/aaa/bbb/hello.png", PathUtils::ResolveAssetPath(Config, "./hello.png"));
+	EXPECT_EQ("/tmp/aaa/hello.png", PathUtils::ResolveAssetPath(Config, "../hello.png"));
 }
 
-// --------------------------------------------------------------------------------
-
-Asset::Asset(const std::string& id)
-	: p(new Impl(id))
-{
-
-}
-
-Asset::~Asset()
-{
-	LM_SAFE_DELETE(p);
-}
-
-std::string Asset::ID() const
-{
-	return p->ID();
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != Type())
-	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
-}
-
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

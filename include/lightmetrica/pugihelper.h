@@ -46,8 +46,6 @@ class LM_PUBLIC_API PugiHelper
 private:
 
 	PugiHelper();
-	~PugiHelper();
-
 	LM_DISABLE_COPY_AND_MOVE(PugiHelper);
 
 public:

@@ -41,6 +41,7 @@ set(
 	"${_INCLUDE_DIR}/logger.h"
 	"${_INCLUDE_DIR}/version.h"
 	"${_INCLUDE_DIR}/pugihelper.h"
+	"${_INCLUDE_DIR}/pathutils.h"
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/surfacegeometry.h"
@@ -54,6 +55,7 @@ set(
 	"logger.cpp"
 	"version.cpp"
 	"pugihelper.cpp"
+	"pathutils.cpp"
 	
 	# pugixml sources and headers
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
@@ -191,11 +193,13 @@ set(
 	_ASSETS_TEXTURES_HEADERS
 	"${_INCLUDE_DIR}/texture.h"
 	"${_INCLUDE_DIR}/texturefactory.h"
+	"${_INCLUDE_DIR}/bitmaptexture.h"
 )
 set(
 	_ASSETS_TEXTURES_SOURCES
 	"texture.cpp"
 	"texturefactory.cpp"
+	"bitmaptexture.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_SOURCES})

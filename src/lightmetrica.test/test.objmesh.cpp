@@ -103,8 +103,8 @@ protected:
 
 TEST_F(ObjMeshTest, Load_Success)
 {
-	TemporaryFile tmp1("tmp1.obj", ObjMesh_Triangle_Success);
-	TemporaryFile tmp2("tmp2.obj", ObjMesh_Polygon_Success);
+	TemporaryTextFile tmp1("tmp1.obj", ObjMesh_Triangle_Success);
+	TemporaryTextFile tmp2("tmp2.obj", ObjMesh_Polygon_Success);
 	EXPECT_TRUE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 	ASSERT_EQ(6, mesh.NumFaces());
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[0])));
@@ -118,7 +118,7 @@ TEST_F(ObjMeshTest, Load_Success)
 
 TEST_F(ObjMeshTest, Load_Fail)
 {
-	TemporaryFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
+	TemporaryTextFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
 	EXPECT_FALSE(mesh.Load(config.LoadFromStringAndGetFirstChild(ObjMeshNode_Fail_MissingPathElement), assets));
 	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path()), assets));
 }
