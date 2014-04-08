@@ -42,6 +42,7 @@
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/assets.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -249,19 +250,29 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 	if (!experimentalNode.Empty())
 	{
 		enableExperimentalMode = true;
+
+		// Frequency of the profile
 		experimentalNode.ChildValueOrDefault("profile_frequency", 100LL, profileFrequency);
 		if (numThreads == 1)
 		{
 			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
 			numThreads = 1;
 		}
+
+		// Reference image
+		auto referenceImageNode = experimentalNode.Child("reference_image");
+		if (!referenceImageNode.Empty())
+		{
+			LM_LOG_ERROR("'reference_image' is required");
+			return false;
+		}
+
+		// TODO
 	}
 	else
 	{
 		LM_LOG_WARN("In experimental mode, configuration must have 'experimental' element");
 		return false;
-		enableExperimentalMode = false;
-		profileFrequency = 100;
 	}
 
 #endif
