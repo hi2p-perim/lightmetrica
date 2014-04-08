@@ -23,47 +23,54 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#include <lightmetrica.test/base.h>
+#include <lightmetrica.test/base.math.h>
+#include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-Assets::Assets()
+class BitmapImageTest : public TestBase
 {
+public:
 
-}
-
-Assets::~Assets()
-{
-
-}
-
-Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
-{
-	// The element must have 'ref' attribute
-	auto refAttr = node.AttributeValue("ref");
-	if (refAttr.empty())
+	BitmapImageTest()
 	{
-		LM_LOG_ERROR("'" + name + "' element in 'node' must have 'ref' attribute");
-		return nullptr;
+		auto& data1 = image1.InternalData();
+		data1.push_back(Math::Float(1));
+		data1.push_back(Math::Float(2));
+		data1.push_back(Math::Float(3));
+
+		auto& data2 = image2.InternalData();
+		data2.push_back(Math::Float(3));
+		data2.push_back(Math::Float(2));
+		data2.push_back(Math::Float(1));
 	}
 
-	// Find the light specified by 'ref'
-	auto* asset = GetAssetByName(refAttr);
-	if (!asset)
-	{
-		LM_LOG_ERROR("The asset referenced by '" + refAttr + "' is not found");
-		return nullptr;
-	}
-	else if (asset->Name() != name)
-	{
-		LM_LOG_ERROR("Invalid asset name '" + asset->Name() + "' (expected '" + name + "')");
-		return nullptr;
-	}
+protected:
 
-	return asset;
+	BitmapImage image1;
+	BitmapImage image2;
+
+};
+
+TEST_F(BitmapImageTest, InternalData)
+{
+	auto& data = image1.InternalData();
+	EXPECT_TRUE(ExpectNear(Math::Float(1), data[0]));
+	EXPECT_TRUE(ExpectNear(Math::Float(2), data[1]));
+	EXPECT_TRUE(ExpectNear(Math::Float(3), data[2]));
 }
 
+TEST_F(BitmapImageTest, EvaluateRMSE)
+{
+	// image1 vs. image1
+	EXPECT_TRUE(ExpectNear(Math::Float(0), image1.EvaluateRMSE(image1)));
+
+	// image1 vs. image2
+	auto t = image1.EvaluateRMSE(image2);
+	EXPECT_TRUE(ExpectNear(Math::Float(8), t*t));
+}
+
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

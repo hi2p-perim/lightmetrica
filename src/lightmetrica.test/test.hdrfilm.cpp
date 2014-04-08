@@ -28,6 +28,7 @@
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmap.h>
 #include <FreeImage.h>
 
 namespace
@@ -108,8 +109,7 @@ TEST_F(HDRBitmapFilmTest, RecordContribution)
 	}
 
 	// Check data
-	std::vector<Math::Float> data;
-	film.InternalData(data);
+	const auto& data = film.Bitmap().InternalData();
 	for (size_t i = 0; i < data.size() / 3; i+=3)
 	{
 		size_t x = i % film.Width();
@@ -142,8 +142,7 @@ TEST_F(HDRBitmapFilmTest, AccumulateContribution)
 	}
 	
 	// Check data
-	std::vector<Math::Float> data;
-	film.InternalData(data);
+	const auto& data = film.Bitmap().InternalData();
 
 	EXPECT_TRUE(ExpectNear(Math::Float(Count), data[0]));
 	EXPECT_TRUE(ExpectNear(Math::Float(Count), data[1]));
@@ -180,17 +179,11 @@ TEST_F(HDRBitmapFilmTest, AccumulateContribution_2)
 	}
 	
 	// Check data
-	std::vector<Math::Float> data;
-	film.InternalData(data);
+	const auto& data = film.Bitmap().InternalData();
 	for (size_t i = 0; i < data.size(); i++)
 	{
 		EXPECT_TRUE(ExpectNear(Math::Float(Count), data[i]));
 	}
-}
-
-TEST_F(HDRBitmapFilmTest, EvaluateRMSE)
-{
-	// TODO
 }
 
 TEST_F(HDRBitmapFilmTest, Save)
@@ -216,34 +209,48 @@ TEST_F(HDRBitmapFilmTest, Save)
 		EXPECT_TRUE(fs::remove(path));
 	}
 
-	// Save
-	EXPECT_TRUE(film.Save(path));
-
-	// Image data of #film
-	std::vector<Math::Float> data;
-	film.InternalData(data);
-
-	// Load image and check data
-	auto* bitmap = FreeImage_Load(FIF_HDR, path.c_str(), 0);
-	EXPECT_NE(nullptr, bitmap);
-	int width = FreeImage_GetWidth(bitmap);
-	int height = FreeImage_GetHeight(bitmap);
-	EXPECT_EQ(film.Width(), width);
-	EXPECT_EQ(film.Height(), height);
-	for (int y = 0; y < height; y++)
+	for (int i = 0; i < 2; i++)
 	{
-		FIRGBF* bits = reinterpret_cast<FIRGBF*>(FreeImage_GetScanLine(bitmap, y));
-		for (int x = 0; x < width; x++)
+		Math::Float weight =
+			i == 0
+				? Math::Float(1)	// With weighting
+				: Math::Float(2);	// Without weighting
+
+		// Save
+		if (i == 0)
 		{
-			int i = y * width + x;
-			EXPECT_TRUE(ExpectNear(data[3*i  ], Math::Float(bits[x].red)));
-			EXPECT_TRUE(ExpectNear(data[3*i+1], Math::Float(bits[x].green)));
-			EXPECT_TRUE(ExpectNear(data[3*i+2], Math::Float(bits[x].blue)));
+			EXPECT_TRUE(film.Save(path));
 		}
+		else
+		{
+			EXPECT_TRUE(film.RescaleAndSave(path, weight));
+		}
+
+		// Image data of #film
+		const auto& data = film.Bitmap().InternalData();
+
+		// Load image and check data
+		auto* bitmap = FreeImage_Load(FIF_HDR, path.c_str(), 0);
+		EXPECT_NE(nullptr, bitmap);
+		int width = FreeImage_GetWidth(bitmap);
+		int height = FreeImage_GetHeight(bitmap);
+		EXPECT_EQ(film.Width(), width);
+		EXPECT_EQ(film.Height(), height);
+		for (int y = 0; y < height; y++)
+		{
+			FIRGBF* bits = reinterpret_cast<FIRGBF*>(FreeImage_GetScanLine(bitmap, y));
+			for (int x = 0; x < width; x++)
+			{
+				int i = y * width + x;
+				EXPECT_TRUE(ExpectNear(data[3*i  ] * weight, Math::Float(bits[x].red)));
+				EXPECT_TRUE(ExpectNear(data[3*i+1] * weight, Math::Float(bits[x].green)));
+				EXPECT_TRUE(ExpectNear(data[3*i+2] * weight, Math::Float(bits[x].blue)));
+			}
+		}
+		FreeImage_Unload(bitmap);
 	}
 
 	// Clean up
-	FreeImage_Unload(bitmap);
 	if (fs::exists(path))
 	{
 		EXPECT_TRUE(fs::remove(path));
@@ -272,8 +279,7 @@ TEST_F(HDRBitmapFilmTest, Clone)
 	EXPECT_NE(&film, film2);
 
 	// Check data
-	std::vector<Math::Float> data;
-	film2->InternalData(data);
+	const auto& data = film.Bitmap().InternalData();
 	for (size_t i = 0; i < data.size(); i++)
 	{
 		EXPECT_TRUE(ExpectNear(Math::Float(1), data[i]));
@@ -290,9 +296,32 @@ TEST_F(HDRBitmapFilmTest, Allocate)
 	EXPECT_EQ(30, film.Height());
 	EXPECT_EQ(HDRImageType::RadianceHDR, film.GetHDRImageType());
 
-	std::vector<Math::Float> data;
-	film.InternalData(data);
+	const auto& data = film.Bitmap().InternalData();
 	EXPECT_EQ(40 * 30 * 3, data.size());
+}
+
+TEST_F(HDRBitmapFilmTest, Rescale)
+{
+	// Initialize film
+	film.Allocate(40, 30);
+	for (int y = 0; y < film.Height(); y++)
+	{
+		for (int x = 0; x < film.Width(); x++)
+		{
+			Math::Vec2 rasterPos(
+				(Math::Float(x) + Math::Float(0.5)) / Math::Float(film.Width()),
+				(Math::Float(y) + Math::Float(0.5)) / Math::Float(film.Height()));
+			film.RecordContribution(rasterPos, Math::Vec3(Math::Float(1)));
+		}
+	}
+
+	// Rescale and check original data
+	film.Rescale(Math::Float(2));
+	const auto& data = film.Bitmap().InternalData();
+	for (auto& v : data)
+	{
+		EXPECT_TRUE(ExpectNear(Math::Float(2), v));
+	}
 }
 
 LM_TEST_NAMESPACE_END

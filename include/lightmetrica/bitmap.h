@@ -22,48 +22,62 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_BITMAP_H
+#define LIB_LIGHTMETRICA_BITMAP_H
+
+#include "common.h"
+#include "math.types.h"
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
-Assets::Assets()
+/*!
+	Bitmap image.
+	Interface for the classes which uses bitmap image.
+*/
+class BitmapImage
 {
+public:
 
-}
+	BitmapImage() {}
+	virtual ~BitmapImage() {}
 
-Assets::~Assets()
-{
+public:
 
-}
+	/*!
+		Clear internal data.
+		Clear internal data to empty.
+	*/
+	LM_PUBLIC_API void Clear();
 
-Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
-{
-	// The element must have 'ref' attribute
-	auto refAttr = node.AttributeValue("ref");
-	if (refAttr.empty())
-	{
-		LM_LOG_ERROR("'" + name + "' element in 'node' must have 'ref' attribute");
-		return nullptr;
-	}
+	/*!
+		Get reference to the internal data.
+		\return Reference to the internal data.
+	*/
+	LM_PUBLIC_API std::vector<Math::Float>& InternalData();
 
-	// Find the light specified by 'ref'
-	auto* asset = GetAssetByName(refAttr);
-	if (!asset)
-	{
-		LM_LOG_ERROR("The asset referenced by '" + refAttr + "' is not found");
-		return nullptr;
-	}
-	else if (asset->Name() != name)
-	{
-		LM_LOG_ERROR("Invalid asset name '" + asset->Name() + "' (expected '" + name + "')");
-		return nullptr;
-	}
+	/*!
+		Get reference to the internal data.
+		\return Reference to the internal data.
+	*/
+	LM_PUBLIC_API const std::vector<Math::Float>& InternalData() const;
 
-	return asset;
-}
+	/*!
+		Evaluate RMSE.
+		Evaluate root mean square error (RMSE) to the given #film.
+		The other film must be same size and type.
+		\param bitmap Other bitmap image.
+		\return Evaluated RMSE.
+	*/
+	LM_PUBLIC_API Math::Float EvaluateRMSE(const BitmapImage& bitmap) const;
+
+private:
+
+	std::vector<Math::Float> data;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_BITMAP_H

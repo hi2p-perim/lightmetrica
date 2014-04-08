@@ -51,13 +51,13 @@ public:
 
 	/*!
 		Get the width of the film.
-		\retval Width of the film.
+		\return Width of the film.
 	*/
 	virtual int Width() const = 0;
 
 	/*!
 		Get the height of the film.
-		\retval Height of the film.
+		\return Height of the film.
 	*/
 	virtual int Height() const = 0;
 
@@ -66,8 +66,20 @@ public:
 		Saves the film as image.
 		If #path is empty, the default path is used.
 		\param path Path to the output image.
+		\retval true Succeeded to save the image.
+		\retval false Failed to save the image.
 	*/
 	virtual bool Save(const std::string& path) const = 0;
+
+	/*!
+		Rescale and save as image.
+		Save the film as image after rescaling values for each pixel.
+		\param path Path to the output image.
+		\param weight Rescaling weight.
+		\retval true Succeeded to save the image.
+		\retval false Failed to save the image.
+	*/
+	virtual bool RescaleAndSave(const std::string& path, const Math::Float& weight) const = 0;
 
 	/*!
 		Record the contribution to the raster position.
@@ -94,13 +106,10 @@ public:
 	virtual void AccumulateContribution(const Film& film) = 0;
 
 	/*!
-		Evaluate RMSE.
-		Evaluate root mean square error (RMSE) to the given #film.
-		The other film must be same size and type.
-		\param film Other film.
-		\return Evaluated RMSE.
+		Rescale the pixel values by constant weight.
+		\param weight Rescaling weight.
 	*/
-	virtual Math::Float EvaluateRMSE(const Film& film) const = 0;
+	virtual void Rescale(const Math::Float& weight) = 0;
 
 public:
 

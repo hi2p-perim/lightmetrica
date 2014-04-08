@@ -28,6 +28,7 @@
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/bitmaptexture.h>
+#include <lightmetrica/bitmap.h>
 
 namespace
 {
@@ -138,9 +139,8 @@ TEST_F(BitmapTextureTest, Load)
 		EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path()), assets));
 		
 		// Check data
-		std::vector<Math::Float> data;
 		size_t i = 0;
-		texture.InternalData(data);
+		const auto& data = texture.Bitmap().InternalData();
 
 		// White
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
@@ -172,9 +172,8 @@ TEST_F(BitmapTextureTest, Load_2)
 		EXPECT_TRUE(texture.LoadAsset(tmp.Path()));
 
 		// Check data
-		std::vector<Math::Float> data;
 		size_t i = 0;
-		texture.InternalData(data);
+		const auto& data = texture.Bitmap().InternalData();
 
 		// White
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));

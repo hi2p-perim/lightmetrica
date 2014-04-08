@@ -43,6 +43,7 @@
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
+#include <lightmetrica/bitmaptexture.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -166,9 +167,10 @@ private:
 #ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
 
 	bool enableExperimentalMode;
-	std::vector<std::tuple<long long, Math::Float>> profileSamples;
+	std::vector<std::tuple<long long, Math::Float>> rmsePlot;
 	long long profileFrequency;
-	std::string referenceImagePath;
+	BitmapTexture* referenceImage;
+	std::string experimentalOutputDir;
 
 #endif
 
@@ -253,7 +255,7 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 
 		// Frequency of the profile
 		experimentalNode.ChildValueOrDefault("profile_frequency", 100LL, profileFrequency);
-		if (numThreads == 1)
+		if (numThreads != 1)
 		{
 			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
 			numThreads = 1;
@@ -261,18 +263,25 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 
 		// Reference image
 		auto referenceImageNode = experimentalNode.Child("reference_image");
-		if (!referenceImageNode.Empty())
+		if (referenceImageNode.Empty())
 		{
 			LM_LOG_ERROR("'reference_image' is required");
 			return false;
 		}
 
-		// TODO
+		// Resolve reference
+		referenceImage = dynamic_cast<BitmapTexture*>(assets.ResolveReferenceToAsset(referenceImageNode, "texture"));
+		if (referenceImage == nullptr)
+		{
+			return false;
+		}
+
+		// 'output_dir' element
+		experimentalNode.ChildValueOrDefault("output_dir", std::string("pssmlt.exp"), experimentalOutputDir);
 	}
 	else
 	{
-		LM_LOG_WARN("In experimental mode, configuration must have 'experimental' element");
-		return false;
+		enableExperimentalMode = false;
 	}
 
 #endif
@@ -284,6 +293,21 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 {
 	// Set number of threads
 	omp_set_num_threads(numThreads);
+
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+	if (enableExperimentalMode)
+	{
+		// Create output directory if it does not exists
+		if (!boost::filesystem::exists(experimentalOutputDir))
+		{
+			LM_LOG_INFO("Creating directory " + experimentalOutputDir);
+			if (!boost::filesystem::create_directory(experimentalOutputDir))
+			{
+				return false;
+			}
+		}
+	}
+#endif
 
 	// --------------------------------------------------------------------------------
 
@@ -388,29 +412,50 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 			}
 
 			// Accumulate contribution
-			auto coeff = Math::Float(context->film->Width() * context->film->Height()) / Math::Float(numSamples);
 			if (estimatorMode == PSSMLTEstimatorMode::MeanValueSubstitution)
 			{
-				context->film->AccumulateContribution(current.rasterPos, current.L * (1 - a) * B / currentI * coeff);
-				context->film->AccumulateContribution(proposed.rasterPos, proposed.L * a * B / proposedI * coeff);
+				context->film->AccumulateContribution(
+					current.rasterPos,
+					current.L * (1 - a) * B / currentI);
+				context->film->AccumulateContribution(
+					proposed.rasterPos,
+					proposed.L * a * B / proposedI);
 			}
 			else if (estimatorMode == PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS)
 			{
-				context->film->AccumulateContribution(current.rasterPos, current.L * (1 - a) / (currentI / B + largeStepProb) * coeff);
-				context->film->AccumulateContribution(proposed.rasterPos, proposed.L * (a + (enableLargeStep ? Math::Float(1) : Math::Float(0))) / (proposedI / B + largeStepProb) * coeff);
+				context->film->AccumulateContribution(
+					current.rasterPos,
+					current.L * (1 - a) / (currentI / B + largeStepProb));
+				context->film->AccumulateContribution(
+					proposed.rasterPos,
+					proposed.L * (a + (enableLargeStep ? Math::Float(1) : Math::Float(0))) / (proposedI / B + largeStepProb));
 			}
 			else if (estimatorMode == PSSMLTEstimatorMode::Normal)
 			{
 				auto& current = context->records[context->current];
 				auto currentI = Math::Luminance(current.L);
-				context->film->AccumulateContribution(current.rasterPos, current.L * B / currentI * coeff);
+				context->film->AccumulateContribution(
+					current.rasterPos,
+					current.L * B / currentI);
 			}
 
 #ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
 			if (enableExperimentalMode && sample % profileFrequency == 0)
 			{
 				// Compute RMSE of current sample
-				
+				auto* bitmapFilm = dynamic_cast<HDRBitmapFilm*>(context->film.get());
+				auto rmse = referenceImage->Bitmap().EvaluateRMSE(bitmapFilm->Bitmap());
+				rmsePlot.emplace_back(sample, rmse);
+
+				// Save intermediate image
+				auto path = boost::filesystem::path(experimentalOutputDir) / boost::str(boost::format("%010d.hdr") % sample);
+				LM_LOG_INFO("Saving " + path.string());
+				LM_LOG_INDENTER();
+				bitmapFilm->RescaleAndSave(
+					path.string(),
+					sample > 0
+						? Math::Float(context->film->Width() * context->film->Height()) / Math::Float(sample)
+						: Math::Float(1));
 			}
 #endif
 		}
@@ -426,6 +471,23 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	{
 		masterFilm->AccumulateContribution(*context->film.get());
 	}
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+	if (enableExperimentalMode)
+	{
+		// Save RMSE plot
+		LM_LOG_INFO("Saving RMSE plot");
+		auto path = boost::filesystem::path(experimentalOutputDir) / "rmse.dat";
+		std::ofstream ofs(path.string());
+		for (auto& v : rmsePlot)
+		{
+			ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
+		}
+	}
+#endif
 
 	return true;
 }

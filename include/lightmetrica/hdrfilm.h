@@ -27,8 +27,11 @@
 #define LIB_LIGHTMETRICA_HDR_FILM_H
 
 #include "film.h"
+#include "bitmap.h"
 
 LM_NAMESPACE_BEGIN
+
+class BitmapImage;
 
 /*!
 	HDR image types.
@@ -61,10 +64,11 @@ public:
 	virtual int Width() const;
 	virtual int Height() const;
 	virtual bool Save(const std::string& path) const;
+	virtual bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
 	virtual void AccumulateContribution( const Film& film );
-	virtual Math::Float EvaluateRMSE( const Film& film ) const;
+	virtual void Rescale( const Math::Float& weight );
 
 public:
 
@@ -92,12 +96,10 @@ public:
 	HDRImageType GetHDRImageType() const;
 
 	/*!
-		Get the internal data.
-		Copy the internal data to the given array #dest.
-		This function is used internally for testing.
-		\param dest An array to store internal data.
+		Get internal bitmap data.
+		\return A bitmap.
 	*/
-	void InternalData(std::vector<Math::Float>& dest) const;
+	const BitmapImage& Bitmap() const;
 
 private:
 

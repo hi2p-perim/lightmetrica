@@ -31,6 +31,8 @@
 
 LM_NAMESPACE_BEGIN
 
+class BitmapImage;
+
 /*!
 	Bitmap texture.
 	Implements a bitmap texture.
@@ -60,12 +62,10 @@ public:
 	bool LoadAsset(const std::string& path, bool verticalFlip = false);
 
 	/*!
-		Get the internal data.
-		Copy the internal data to the given array #dest.
-		This function is used internally for testing.
-		\param dest An array to store internal data.
+		Get internal bitmap data.
+		\return A bitmap.
 	*/
-	void InternalData(std::vector<Math::Float>& dest) const;
+	const BitmapImage& Bitmap() const;
 
 private:
 

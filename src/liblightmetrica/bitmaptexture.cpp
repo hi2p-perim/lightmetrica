@@ -27,6 +27,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/pathutils.h>
+#include <lightmetrica/bitmap.h>
 #include <FreeImage.h>
 
 LM_NAMESPACE_BEGIN
@@ -44,7 +45,7 @@ public:
 public:
 
 	bool LoadAsset( const std::string& path, bool verticalFlip );
-	void InternalData(std::vector<Math::Float>& dest) const;
+	const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
 
@@ -55,7 +56,7 @@ private:
 	BitmapTexture* self;
 	int width;
 	int height;
-	std::vector<Math::Float> data;
+	BitmapImage bitmap;
 
 };
 
@@ -108,23 +109,23 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 	}
 
 	// Load image
-	auto* bitmap = FreeImage_Load(format, path.c_str(), 0);
-	if (!bitmap)
+	auto* fibitmap = FreeImage_Load(format, path.c_str(), 0);
+	if (!fibitmap)
 	{
 		LM_LOG_ERROR("Failed to load an image " + path);
 		return false;
 	}
 
 	// Width and height
-	width	= FreeImage_GetWidth(bitmap);
-	height	= FreeImage_GetHeight(bitmap);
+	width	= FreeImage_GetWidth(fibitmap);
+	height	= FreeImage_GetHeight(fibitmap);
 
 	// Image type and bits per pixel (BPP)
-	auto type	= FreeImage_GetImageType(bitmap);
-	auto bpp	= FreeImage_GetBPP(bitmap);
+	auto type	= FreeImage_GetImageType(fibitmap);
+	auto bpp	= FreeImage_GetBPP(fibitmap);
 	if (!(type == FIT_RGBF || type == FIT_RGBAF || (type == FIT_BITMAP && (bpp == 24 || bpp == 32))))
 	{
-		FreeImage_Unload(bitmap);
+		FreeImage_Unload(fibitmap);
 		LM_LOG_ERROR("Unsupportted format");
 		return false;
 	}
@@ -134,16 +135,17 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 	// i.e., y axis is originated from bottom-left point and grows upwards.
 	if (!verticalFlip)
 	{
-		FreeImage_FlipVertical(bitmap);
+		FreeImage_FlipVertical(fibitmap);
 	}
 
 	// Read image data
+	auto& data = bitmap.InternalData();
 	data.clear();
 	for (int y = 0; y < height; y++)
 	{
 		if (type == FIT_RGBF)
 		{
-			auto* bits = (FIRGBF*)FreeImage_GetScanLine(bitmap, y);
+			auto* bits = (FIRGBF*)FreeImage_GetScanLine(fibitmap, y);
 			for (int x = 0; x < width; x++)
 			{
 				data.emplace_back(bits[x].red);
@@ -153,7 +155,7 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 		}
 		else if (type == FIT_RGBAF)
 		{
-			auto* bits = (FIRGBAF*)FreeImage_GetScanLine(bitmap, y);
+			auto* bits = (FIRGBAF*)FreeImage_GetScanLine(fibitmap, y);
 			for (int x = 0; x < width; x++)
 			{
 				data.emplace_back(bits[x].red);
@@ -163,7 +165,7 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 		}
 		else if (type == FIT_BITMAP)
 		{
-			BYTE* bits = (BYTE*)FreeImage_GetScanLine(bitmap, y);
+			BYTE* bits = (BYTE*)FreeImage_GetScanLine(fibitmap, y);
 			for (int x = 0; x < width; x++)
 			{
 				data.push_back(Math::Float(bits[FI_RGBA_RED  ]) / Math::Float(255));
@@ -174,16 +176,9 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 		}
 	}
 
-	FreeImage_Unload(bitmap);
+	FreeImage_Unload(fibitmap);
 
 	return true;
-}
-
-void BitmapTexture::Impl::InternalData( std::vector<Math::Float>& dest ) const
-{
-	dest.clear();
-	dest.resize(data.size());
-	std::copy(data.begin(), data.end(), dest.begin());
 }
 
 // --------------------------------------------------------------------------------
@@ -212,14 +207,14 @@ bool BitmapTexture::LoadAsset( const ConfigNode& node, const Assets& assets )
 	return p->LoadAsset(node, assets);
 }
 
-void BitmapTexture::InternalData( std::vector<Math::Float>& dest ) const
-{
-	p->InternalData(dest);
-}
-
 bool BitmapTexture::LoadAsset( const std::string& path, bool verticalFlip /*= false*/ )
 {
 	return p->LoadAsset(path, verticalFlip);
+}
+
+const BitmapImage& BitmapTexture::Bitmap() const
+{
+	return p->Bitmap();
 }
 
 LM_NAMESPACE_END

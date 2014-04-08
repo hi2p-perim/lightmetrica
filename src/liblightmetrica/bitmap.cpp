@@ -23,47 +23,47 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
+#include <lightmetrica/bitmap.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
-Assets::Assets()
+LM_PUBLIC_API Math::Float BitmapImage::EvaluateRMSE( const BitmapImage& bitmap ) const
 {
+	const auto& data1 = InternalData();
+	const auto& data2 = bitmap.InternalData();
 
+	// Check size
+	if (data1.size() != data2.size())
+	{
+		LM_LOG_WARN("Invalid image size : " + std::to_string(data1.size()) + " != " + std::to_string(data2.size()));
+		return Math::Float(0);
+	}
+
+	// Calculate RMSE
+	Math::Float sum(0);
+	for (size_t i = 0; i < data1.size(); i++)
+	{
+		auto t = data1[i] - data2[i];
+		sum += t * t;
+	}
+
+	return Math::Sqrt(sum / Math::Float(data1.size()));
 }
 
-Assets::~Assets()
+LM_PUBLIC_API std::vector<Math::Float>& BitmapImage::InternalData()
 {
-
+	return data;
 }
 
-Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
+LM_PUBLIC_API const std::vector<Math::Float>& BitmapImage::InternalData() const
 {
-	// The element must have 'ref' attribute
-	auto refAttr = node.AttributeValue("ref");
-	if (refAttr.empty())
-	{
-		LM_LOG_ERROR("'" + name + "' element in 'node' must have 'ref' attribute");
-		return nullptr;
-	}
+	return data;
+}
 
-	// Find the light specified by 'ref'
-	auto* asset = GetAssetByName(refAttr);
-	if (!asset)
-	{
-		LM_LOG_ERROR("The asset referenced by '" + refAttr + "' is not found");
-		return nullptr;
-	}
-	else if (asset->Name() != name)
-	{
-		LM_LOG_ERROR("Invalid asset name '" + asset->Name() + "' (expected '" + name + "')");
-		return nullptr;
-	}
-
-	return asset;
+LM_PUBLIC_API void BitmapImage::Clear()
+{
+	data.clear();
 }
 
 LM_NAMESPACE_END

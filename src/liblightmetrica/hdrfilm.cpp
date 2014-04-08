@@ -25,7 +25,9 @@
 #include "pch.h"
 #include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/logger.h>
+#include <lightmetrica/assert.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/bitmap.h>
 #include <FreeImage.h>
 
 LM_NAMESPACE_BEGIN
@@ -44,19 +46,19 @@ public:
 
 	int Width() const { return width; }
 	int Height() const { return height; }
-	bool Save(const std::string& path);
+	bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
 	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	void AccumulateContribution(const Film& film);
-	Math::Float EvaluateRMSE(const Film& film) const;
+	void Rescale( const Math::Float& weight );
 
 public:
 
-	void InternalData(std::vector<Math::Float>& dest) const;
 	Film* Clone() const;
 	void Allocate(int width, int height);
 	void SetHDRImageType(HDRImageType type) { this->type = type; }
 	HDRImageType GetHDRImageType() const { return type; }
+	const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
 
@@ -68,7 +70,7 @@ private:
 	int width;
 	int height;
 	HDRImageType type;				// Type of the image to be saved
-	std::vector<Math::Float> data;	// Image data
+	BitmapImage bitmap;
 
 };
 
@@ -141,6 +143,7 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 
 	// Record contribution
 	size_t idx = pixelPos.y * width + pixelPos.x;
+	auto& data = bitmap.InternalData();
 	data[3 * idx    ] = contrb[0];
 	data[3 * idx + 1] = contrb[1];
 	data[3 * idx + 2] = contrb[2];
@@ -162,6 +165,7 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, c
 
 	// Accumulate contribution
 	size_t idx = pixelPos.y * width + pixelPos.x;
+	auto& data = bitmap.InternalData();
 	data[3 * idx    ] += contrb[0];
 	data[3 * idx + 1] += contrb[1];
 	data[3 * idx + 2] += contrb[2];
@@ -184,41 +188,16 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Film& film )
 	}
 
 	// Accumulate data
-	const auto& d = dynamic_cast<const HDRBitmapFilm&>(film).p->data;
+	const auto& otherData = dynamic_cast<const HDRBitmapFilm&>(film).p->bitmap.InternalData();
+	auto& data = bitmap.InternalData();
+	LM_ASSERT(data.size() == otherData.size());
 	for (size_t i = 0; i < data.size(); i++)
 	{
-		data[i] += d[i];
+		data[i] += otherData[i];
 	}
 }
 
-Math::Float HDRBitmapFilm::Impl::EvaluateRMSE( const Film& film ) const
-{
-	// Check type
-	if (film.Type() != self->Type())
-	{
-		LM_LOG_WARN("Invalid image type '" + film.Type() + "', expected '" + self->Type() + "'");
-		return Math::Float(0);
-	}
-
-	// Check image size
-	if (film.Width() != width || film.Height() != height)
-	{
-		LM_LOG_WARN("Invalid image size");
-		return Math::Float(0);
-	}
-
-	// Calculate RMSE
-	const auto& d = dynamic_cast<const HDRBitmapFilm&>(film).p->data;
-	Math::Float sum(0);
-	for (size_t i = 0; i < data.size(); i++)
-	{
-		sum += data[i] * data[i] + d[i] * d[i];
-	}
-
-	return Math::Sqrt(sum / Math::Float(data.size()));
-}
-
-bool HDRBitmapFilm::Impl::Save(const std::string& path)
+bool HDRBitmapFilm::Impl::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
 {
 	// Error handing of FreeImage
 	FreeImage_SetOutputMessage(FreeImageErrorCallback);
@@ -234,23 +213,24 @@ bool HDRBitmapFilm::Impl::Save(const std::string& path)
 	// Create bitmap
 	// 128 bit RGBA float image
 	// Note: EXR - FIT_RGBAF, HDR - FIT_RGBF
-	FIBITMAP* bitmap = FreeImage_AllocateT(FIT_RGBF, width, height);
-	if (!bitmap)
+	FIBITMAP* fibitmap = FreeImage_AllocateT(FIT_RGBF, width, height);
+	if (!fibitmap)
 	{
 		LM_LOG_ERROR("Failed to allocate bitmap");
 		return false;
 	}
 
 	// Copy data
+	auto& data = bitmap.InternalData();
 	for (int y = 0; y < height; y++)
 	{
-		FIRGBF* bits = (FIRGBF*)FreeImage_GetScanLine(bitmap, y);
+		FIRGBF* bits = (FIRGBF*)FreeImage_GetScanLine(fibitmap, y);
 		for (int x = 0; x < width; x++)
 		{
 			int idx = y * width + x;
-			bits[x].red		= Math::Cast<float>(data[3 * idx    ]);
-			bits[x].green	= Math::Cast<float>(data[3 * idx + 1]);
-			bits[x].blue	= Math::Cast<float>(data[3 * idx + 2]);
+			bits[x].red		= Math::Cast<float>(data[3 * idx    ] * weight);
+			bits[x].green	= Math::Cast<float>(data[3 * idx + 1] * weight);
+			bits[x].blue	= Math::Cast<float>(data[3 * idx + 2] * weight);
 		}
 	}
 
@@ -258,32 +238,25 @@ bool HDRBitmapFilm::Impl::Save(const std::string& path)
 	if (type == HDRImageType::RadianceHDR)
 	{
 		// Save image as Radiance HDR format
-		result = FreeImage_Save(FIF_HDR, bitmap, imagePath.c_str(), HDR_DEFAULT);
+		result = FreeImage_Save(FIF_HDR, fibitmap, imagePath.c_str(), HDR_DEFAULT);
 	}
 	else if (type == HDRImageType::OpenEXR)
 	{
 		// Save image as OpenEXR format
-		result = FreeImage_Save(FIF_EXR, bitmap, imagePath.c_str(), EXR_DEFAULT);
+		result = FreeImage_Save(FIF_EXR, fibitmap, imagePath.c_str(), EXR_DEFAULT);
 	}
 
 	if (!result)
 	{
 		LM_LOG_DEBUG("Failed to save image : " + imagePath);
-		FreeImage_Unload(bitmap);
+		FreeImage_Unload(fibitmap);
 		return false;
 	}
 
 	LM_LOG_INFO("Successfully saved to " + imagePath);
 
-	FreeImage_Unload(bitmap);
+	FreeImage_Unload(fibitmap);
 	return true;
-}
-
-void HDRBitmapFilm::Impl::InternalData( std::vector<Math::Float>& dest ) const
-{
-	dest.clear();
-	dest.resize(data.size());
-	std::copy(data.begin(), data.end(), dest.begin());
 }
 
 Film* HDRBitmapFilm::Impl::Clone() const
@@ -298,7 +271,16 @@ void HDRBitmapFilm::Impl::Allocate( int width, int height )
 {
 	this->width = width;
 	this->height = height;
-	data.assign(width * height * 3, Math::Float(0));
+	bitmap.InternalData().assign(width * height * 3, Math::Float(0));
+}
+
+void HDRBitmapFilm::Impl::Rescale( const Math::Float& weight )
+{
+	auto& data = bitmap.InternalData();
+	for (auto& v : data)
+	{
+		v *= weight;
+	}
 }
 
 // --------------------------------------------------------------------------------
@@ -317,12 +299,12 @@ HDRBitmapFilm::~HDRBitmapFilm()
 
 bool HDRBitmapFilm::Save(const std::string& path) const
 {
-	return p->Save(path);
+	return p->RescaleAndSave(path, Math::Float(1));
 }
 
-void HDRBitmapFilm::InternalData( std::vector<Math::Float>& dest ) const
+bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
 {
-	p->InternalData(dest);
+	return p->RescaleAndSave(path, weight);
 }
 
 int HDRBitmapFilm::Width() const
@@ -375,9 +357,14 @@ HDRImageType HDRBitmapFilm::GetHDRImageType() const
 	return p->GetHDRImageType();
 }
 
-Math::Float HDRBitmapFilm::EvaluateRMSE( const Film& film ) const
+const BitmapImage& HDRBitmapFilm::Bitmap() const
 {
-	return p->EvaluateRMSE(film);
+	return p->Bitmap();
+}
+
+void HDRBitmapFilm::Rescale( const Math::Float& weight )
+{
+	p->Rescale(weight);
 }
 
 LM_NAMESPACE_END
