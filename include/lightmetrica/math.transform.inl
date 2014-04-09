@@ -119,7 +119,7 @@ LM_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 
 template <>
 LM_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis)
@@ -152,7 +152,7 @@ LM_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 
 template <>
 LM_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis)

@@ -37,12 +37,32 @@
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
 
+// Precision mode
+#ifdef LM_USE_SINGLE_PRECISION
+	#define LM_SINGLE_PRECISION 1
+#else
+	#define LM_SINGLE_PRECISION 0
+#endif
+#ifdef LM_USE_DOUBLE_PRECISION
+	#define LM_DOUBLE_PRECISION 1
+#else
+	#define LM_DOUBLE_PRECISION 0
+#endif
+#ifdef LM_USE_MULTI_PRECISION
+	#define LM_MULTI_PRECISION 1
+#else
+	#define LM_MULTI_PRECISION 0
+#endif
+#if LM_SINGLE_PRECISION + LM_DOUBLE_PRECISION + LM_DOUBLE_PRECISION != 1
+	#error "Invalid precision mode"
+#endif
+
 // Define default floating point types
-#ifdef LM_SINGLE_PRECISION
+#if LM_SINGLE_PRECISION
 	typedef float Float;
-#elif defined(LM_DOUBLE_PRECISION)
+#elif LM_DOUBLE_PRECISION
 	typedef double Float;
-#elif defined(LM_MULTI_PRECISION)
+#elif LM_MULTI_PRECISION
 	#ifndef LM_ENABLE_MULTI_PRECISION
 		#error "Multiprecision support must be enabled"
 	#endif

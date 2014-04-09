@@ -54,9 +54,9 @@
 #include <ctime>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 #include <windows.h>
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 #include <sys/ioctl.h>
 #endif
 
@@ -139,50 +139,18 @@ void LightmetricaApplication::SetAppInfo()
 	appDescription = boost::str(boost::format("%s Version %s (%s)") % appName % Version::Formatted() % Version::Codename());
 	
 	// Enumerate flags
-	std::vector<std::string> flags;
-#ifdef LM_SINGLE_PRECISION
-	flags.push_back("single_precision");
-#endif
-#ifdef LM_DOUBLE_PRECISION
-	flags.push_back("double_precision");
-#endif
-#ifdef LM_MULTI_PRECISION
-	flags.push_back("multi_precision");
-#endif
-#ifdef LM_USE_SSE
-	flags.push_back("sse");
-#endif
-#ifdef LM_USE_SSE2
-	flags.push_back("sse2");
-#endif
-#ifdef LM_USE_SSE3
-	flags.push_back("sse3");
-#endif
-#ifdef LM_USE_SSSE3
-	flags.push_back("ssse3");
-#endif
-#ifdef LM_USE_SSE4_1
-	flags.push_back("sse4.1");
-#endif
-#ifdef LM_USE_SSE4_2
-	flags.push_back("sse4.2");
-#endif
-#ifdef LM_USE_SSE4A
-	flags.push_back("sse4a");
-#endif
-#ifdef LM_USE_AVX
-	flags.push_back("avx");
-#endif
-
 	appFlags = "";
-	for (size_t i = 0; i < flags.size(); i++)
-	{
-		appFlags += flags[i];
-		if (i < flags.size() - 1)
-		{
-			appFlags += " ";
-		}
-	}
+	appFlags += LM_SINGLE_PRECISION	? "single_precision " : "";
+	appFlags += LM_DOUBLE_PRECISION	? "double_precision " : "";
+	appFlags += LM_MULTI_PRECISION	? "multi_precision "  : "";
+	appFlags += LM_SSE    ? "sse "    : "";
+	appFlags += LM_SSE2   ? "sse2 "   : "";
+	appFlags += LM_SSE3   ? "sse3 "   : "";
+	appFlags += LM_SSSE3  ? "ssse3 "  : "";
+	appFlags += LM_SSE4_1 ? "sse4.1 " : "";
+	appFlags += LM_SSE4_2 ? "sse4.2 " : "";
+	appFlags += LM_SSE4A  ? "sse4a "  : "";
+	appFlags += LM_AVX    ? "avx "    : "";
 }
 
 void LightmetricaApplication::PrintHelpMessage( const po::options_description& opt )
@@ -428,12 +396,12 @@ void LightmetricaApplication::StartLogging()
 		{
 			// Console info
 			int consoleWidth;
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 			CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
 			GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
 			consoleWidth = screenBufferInfo.dwSize.X-1;
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 			struct winsize w;
 			ioctl(0, TIOCGWINSZ, &w);
 			consoleWidth = w.ws_col;
@@ -478,15 +446,15 @@ void LightmetricaApplication::StartLogging()
 					}
 
 					std::cout << boost::format("| %s [") % progressTaskName;
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 					std::cout << "\033[32m";
 #endif
 					std::cout << bar;
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 					SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 					std::cout << "\033[0m";
 #endif
 					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
@@ -544,11 +512,11 @@ std::string LightmetricaApplication::CurrentTime()
 	std::stringstream ss;
 	auto now = std::chrono::system_clock::now();
 	auto time = std::chrono::system_clock::to_time_t(now);
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 	struct tm timeinfo;
 	localtime_s(&timeinfo, &time);
 	ss << std::put_time(&timeinfo, "%Y.%m.%d.%H.%M.%S");
-#else
+#elif LM_PLATFORM_LINUX
 	// std::put_time is not implemented
 	char timeStr[256];
 	std::strftime(timeStr, sizeof(timeStr), "%Y.%m.%d.%H.%M.%S", std::localtime(&time));
@@ -603,7 +571,7 @@ int main(int argc, char** argv)
 		app.FinishLogging();
 	}
 
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
 	std::cerr << "Press any key to exit ...";
 	std::cin.get();
 #endif

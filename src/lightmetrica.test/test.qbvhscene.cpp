@@ -47,7 +47,7 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
+#if LM_SSE2 && LM_SINGLE_PRECISION
 
 class QBVHSceneTest : public TestBase
 {

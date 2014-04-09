@@ -30,7 +30,7 @@
 #include <cassert>
 #include <string>
 
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
 	#define LM_ASSERT(cond) if (!(cond)) { LM_LOG_ERROR("Assertion failed : '" + std::string(#cond) + "'"); abort(); }
 #else
 	#define LM_ASSERT(cond)

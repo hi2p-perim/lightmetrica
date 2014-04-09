@@ -24,7 +24,7 @@
 
 #include "pch.h"
 #include <lightmetrica/logger.h>
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
 #include <boost/filesystem.hpp>
@@ -234,7 +234,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 
 	if ((outputMode & Logger::LogOutputMode::Stdout) > 0)
 	{
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 		HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		WORD colorFlag = 0;
 		if (entry->level == Logger::LogLevel::Error)
@@ -246,7 +246,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 		else if (entry->level == Logger::LogLevel::Information)
 			colorFlag = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 		SetConsoleTextAttribute(consoleHandle, colorFlag);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 		if (entry->level == Logger::LogLevel::Error)
 			std::cout << "\033[31m";
 		else if (entry->level == Logger::LogLevel::Warning)
@@ -259,9 +259,9 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 
 		std::cout << line;
 
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 		SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 		std::cout << "\033[0m";
 #endif
 	}
@@ -271,7 +271,7 @@ void LoggerImpl::ProcessSingleEntryForNoFileOutput( const std::shared_ptr<Logger
 		std::cerr << line;
 	}
 
-#if defined(LM_DEBUG_MODE) && defined(LM_PLATFORM_WINDOWS)
+#if LM_DEBUG_MODE && LM_PLATFORM_WINDOWS
 	if ((outputMode & Logger::LogOutputMode::DebugOutput) > 0)
 	{
 		OutputDebugStringA(line.c_str());

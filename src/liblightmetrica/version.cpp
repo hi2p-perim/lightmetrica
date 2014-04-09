@@ -64,18 +64,18 @@ std::string Version::Formatted()
 
 std::string Version::Platform()
 {
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 	return "Windows";
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 	return "Linux";
 #endif
 }
 
 std::string Version::Archtecture()
 {
-#ifdef LM_ARCH_X64
+#if LM_ARCH_X64
 	return "x64";
-#elif defined(LM_ARCH_X86)
+#elif LM_ARCH_X86
 	return "x86";
 #endif
 }

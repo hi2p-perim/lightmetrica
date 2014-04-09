@@ -36,7 +36,7 @@
 
 LM_NAMESPACE_BEGIN
 
-#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
+#if LM_SSE2 && LM_SINGLE_PRECISION
 
 // Quad ray structure in SOA format
 struct LM_ALIGN_16 Ray4

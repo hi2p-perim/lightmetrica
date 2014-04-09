@@ -45,6 +45,11 @@ std::string PathUtils::ResolveAssetPath( const Config& config, const std::string
 		// If the 'path' is relative, use the path relative to the configuration file
 		return boost::filesystem::canonical(tmpPath, config.BasePath()).string();
 	}
+	else
+	{
+		LM_LOG_ERROR("Invalid path : " + path);
+		return path;
+	}
 }
 
 LM_NAMESPACE_END

@@ -146,7 +146,7 @@ typedef TMat4<int> Mat4i;
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 
 /*!
 	SSE optimized 3x3 matrix.
@@ -241,7 +241,7 @@ template <> LM_FORCE_INLINE Mat4f Inverse(const Mat4f& m);
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 
 /*!
 	AVX optimized 3x3 matrix.

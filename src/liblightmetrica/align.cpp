@@ -32,16 +32,16 @@ LM_NAMESPACE_BEGIN
 void* aligned_malloc( size_t size, size_t align )
 {
 	void* p;
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 	p = _aligned_malloc(size, align);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
     if ((align & (align - 1)) == 0 && align % sizeof(void*) == 0)
     {
         int result = posix_memalign(&p, align, size);
         if (result != 0)
         {
             p = nullptr;
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
             if (result == EINVAL)
             {
                 LM_LOG_WARN("Alignment parameter is not a power of two multiple of sizeof(void*) : align = " + std::to_string(align));
@@ -75,9 +75,9 @@ void* aligned_malloc( size_t size, size_t align )
 
 void aligned_free( void* p )
 {
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 	_aligned_free(p);
-#elif defined(LM_PLATFORM_LINUX)
+#elif LM_PLATFORM_LINUX
 	free(p);
 #else
 	if (!p) return;
@@ -87,9 +87,9 @@ void aligned_free( void* p )
 
 void* SIMDAlignedType::operator new(std::size_t size) throw (std::bad_alloc) 
 {
-#if defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)
+#if LM_SINGLE_PRECISION && LM_SSE2
 	void* p = aligned_malloc(size, 16);
-#elif defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX)
+#elif LM_DOUBLE_PRECISION && LM_AVX
 	void* p = aligned_malloc(size, 32);
 #else
 	void* p = malloc(size);
@@ -100,7 +100,7 @@ void* SIMDAlignedType::operator new(std::size_t size) throw (std::bad_alloc)
 
 void SIMDAlignedType::operator delete(void* p)
 {
-#if (defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)) || (defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX))
+#if (LM_SINGLE_PRECISION && LM_SSE2) || (LM_DOUBLE_PRECISION && LM_AVX)
 	aligned_free(p);
 #else
 	free(p);

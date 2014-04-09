@@ -38,6 +38,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/assert.h>
+#include <lightmetrica/expts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>

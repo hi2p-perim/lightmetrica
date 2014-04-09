@@ -47,7 +47,7 @@
 #include <boost/pool/pool.hpp>
 #include <boost/pool/object_pool.hpp>
 
-#define LM_ENABLE_BPT_EXPERIMENTAL
+#define LM_ENABLE_BPT_EXPERIMENTAL 1
 
 LM_NAMESPACE_BEGIN
 
@@ -439,7 +439,7 @@ private:
 	BPTMISWeightMode misWeightMode;				// MIS weight function
 	Math::Float misPowerHeuristicsBetaCoeff;	// Beta coefficient for power heuristics
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 
 	// Experimental parameters
 	bool enableExperimentalMode;				// Enables experimental mode if true
@@ -527,7 +527,7 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 		}
 	}
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 
 	// Experimental parameters
 	auto experimentalNode = node.Child("experimental");
@@ -571,7 +571,7 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	// Number of blocks to be separated
 	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 	// Initialize films for sub-path combinations
 	if (enableExperimentalMode)
 	{
@@ -652,7 +652,7 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 		masterFilm->AccumulateContribution(*context.film.get());
 	}
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 	if (enableExperimentalMode)
 	{
 		// Create output directory if it does not exists
@@ -814,7 +814,7 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 
 		// Apply RR
 		int rrDepthT = rrDepth;
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 		if (enableExperimentalMode)
 		{
 			// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
@@ -911,7 +911,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 				continue;
 			}
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
 			if (enableExperimentalMode && s <= maxSubpathNumVertices && t <= maxSubpathNumVertices)
 			{
@@ -929,7 +929,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			// Record to the film
 			film.AccumulateContribution(rasterPosition, C * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
 
-#ifdef LM_ENABLE_BPT_EXPERIMENTAL
+#if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulate contribution to per length image
 			if (enableExperimentalMode)
 			{

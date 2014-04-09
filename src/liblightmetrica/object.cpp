@@ -31,9 +31,9 @@ LM_NAMESPACE_BEGIN
 
 void* Object::operator new(std::size_t size) throw (std::bad_alloc) 
 {
-#if defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)
+#if LM_SINGLE_PRECISION && LM_SSE2
 	void* p = aligned_malloc(size, 16);
-#elif defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX)
+#elif LM_DOUBLE_PRECISION && LM_AVX
 	void* p = aligned_malloc(size, 32);
 #else
 	void* p = malloc(size);
@@ -44,7 +44,7 @@ void* Object::operator new(std::size_t size) throw (std::bad_alloc)
 
 void Object::operator delete(void* p)
 {
-#if (defined(LM_SINGLE_PRECISION) && defined(LM_USE_SSE2)) || (defined(LM_DOUBLE_PRECISION) && defined(LM_USE_AVX))
+#if (LM_SINGLE_PRECISION && LM_SSE2) || (LM_DOUBLE_PRECISION && LM_AVX)
 	aligned_free(p);
 #else
 	free(p);

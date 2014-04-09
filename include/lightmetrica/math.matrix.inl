@@ -426,7 +426,7 @@ LM_FORCE_INLINE TMat4<T> Inverse(const TMat4<T>& m)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 
 LM_FORCE_INLINE Mat3f::TMat3()
 {
@@ -947,7 +947,7 @@ LM_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
 	//						+ m[0][1] * Inverse[1][0] 
 	//						+ m[0][2] * Inverse[2][0] 
 	//						+ m[0][3] * Inverse[3][0];
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	__m128 Det0 = _mm_dp_ps(m[0].v, Row2, 0xff);
 #else
 #error "TODO"
@@ -967,7 +967,7 @@ LM_FORCE_INLINE Mat4f Inverse(const Mat4f& m)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 
 LM_FORCE_INLINE Mat3d::TMat3()
 {

@@ -27,7 +27,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/naivescene.h>
 #include <lightmetrica/bvhscene.h>
-#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
+#if LM_SSE2 && LM_SINGLE_PRECISION
 #include <lightmetrica/qbvhscene.h>
 #endif
 
@@ -55,7 +55,7 @@ Scene* SceneFactory::Create( const std::string& type ) const
 	}
 	else if (type == "qbvh")
 	{
-#if defined(LM_USE_SSE2) && defined(LM_SINGLE_PRECISION)
+#if LM_SSE2 && LM_SINGLE_PRECISION
 		return new QBVHScene();
 #else
 		LM_LOG_ERROR("QBVH implementation requires SSE2 support and single precision mode");

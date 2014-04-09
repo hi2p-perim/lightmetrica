@@ -28,7 +28,7 @@
 
 #include <lightmetrica/common.h>
 
-//#ifdef LM_PLATFORM_WINDOWS
+//#if LM_PLATFORM_WINDOWS
 //	// Disable LNK4099 : PDB was not found
 //	#pragma comment(linker, "/ignore:4099")
 //#endif

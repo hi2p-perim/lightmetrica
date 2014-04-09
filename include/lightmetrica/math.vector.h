@@ -210,7 +210,7 @@ typedef TVec4<int> Vec4i;
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 
 /*!
 	SSE optimized 3D vector.
@@ -321,7 +321,7 @@ template <> LM_FORCE_INLINE Vec4f Max(const Vec4f& v1, const Vec4f& v2);
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 
 /*!
 	AVX optimized 3D vector.

@@ -35,4 +35,62 @@
 #cmakedefine LM_USE_SSE4A
 #cmakedefine LM_USE_AVX
 
+#ifdef LM_ENABLE_FORCE_NO_SIMD
+	#define LM_FORCE_NO_SIMD 1
+#else
+	#define LM_FORCE_NO_SIMD 0
+#endif
+
+#if LM_FORCE_NO_SIMD
+	#define LM_USE_SSE 0
+	#define LM_USE_SSE2 0
+	#define LM_USE_SSE3 0
+	#define LM_USE_SSSE3 0
+	#define LM_USE_SSE4_1 0
+	#define LM_USE_SSE4_2 0
+	#define LM_USE_SSE4A 0
+	#define LM_USE_AVX 0
+#else
+	#ifdef LM_USE_SSE
+		#define LM_SSE 1
+	#else
+		#define LM_SSE 0
+	#endif
+	#ifdef LM_USE_SSE2
+		#define LM_SSE2 1
+	#else
+		#define LM_SSE2 0
+	#endif
+	#ifdef LM_USE_SSE3
+		#define LM_SSE3 1
+	#else
+		#define LM_SSE3 0
+	#endif
+	#ifdef LM_USE_SSSE3
+		#define LM_SSSE3 1
+	#else
+		#define LM_SSSE3 0
+	#endif
+	#ifdef LM_USE_SSE4_1
+		#define LM_SSE4_1 1
+	#else
+		#define LM_SSE4_1 0
+	#endif
+	#ifdef LM_USE_SSE4_2
+		#define LM_SSE4_2 1
+	#else
+		#define LM_SSE4_2 0
+	#endif
+	#ifdef LM_USE_SSE4A
+		#define LM_SSE4A 1
+	#else
+		#define LM_SSE4A 0
+	#endif
+	#ifdef LM_USE_AVX
+		#define LM_AVX 1
+	#else
+		#define LM_AVX 0
+	#endif
+#endif
+
 #endif // LIB_LIGHTMETRICA_SIMD_SUPPORT_H

@@ -768,7 +768,7 @@ LM_FORCE_INLINE TVec4<T> Max(const TVec4<T>& v1, const TVec4<T>& v2)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 
 LM_FORCE_INLINE Vec3f::TVec3()
 	: v(_mm_setzero_ps())
@@ -928,7 +928,7 @@ LM_FORCE_INLINE Vec3f operator-(const Vec3f& v)
 template <>
 LM_FORCE_INLINE float Length(const Vec3f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v.v, v.v, 0x71)));
 #else
 #error "TODO"
@@ -938,7 +938,7 @@ LM_FORCE_INLINE float Length(const Vec3f& v)
 template <>
 LM_FORCE_INLINE float Length2(const Vec3f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_dp_ps(v.v, v.v, 0x71));
 #else
 #error "TODO"
@@ -948,7 +948,7 @@ LM_FORCE_INLINE float Length2(const Vec3f& v)
 template <>
 LM_FORCE_INLINE Vec3f Normalize(const Vec3f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return Vec3f(_mm_mul_ps(v.v, _mm_rsqrt_ps(_mm_dp_ps(v.v, v.v, 0x7f))));
 #else
 #error "TODO"
@@ -958,7 +958,7 @@ LM_FORCE_INLINE Vec3f Normalize(const Vec3f& v)
 template <>
 LM_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_dp_ps(v1.v, v2.v, 0x71));
 #else
 #error "TODO"
@@ -1144,7 +1144,7 @@ LM_FORCE_INLINE Vec4f operator-(const Vec4f& v)
 template <>
 LM_FORCE_INLINE float Length(const Vec4f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(v.v, v.v, 0xf1)));
 #else
 #error "TODO"
@@ -1154,7 +1154,7 @@ LM_FORCE_INLINE float Length(const Vec4f& v)
 template <>
 LM_FORCE_INLINE float Length2(const Vec4f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_dp_ps(v.v, v.v, 0xf1));
 #else
 #error "TODO"
@@ -1164,7 +1164,7 @@ LM_FORCE_INLINE float Length2(const Vec4f& v)
 template <>
 LM_FORCE_INLINE Vec4f Normalize(const Vec4f& v)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return Vec4f(_mm_mul_ps(v.v, _mm_rsqrt_ps(_mm_dp_ps(v.v, v.v, 0xff))));
 #else
 #error "TODO"
@@ -1174,7 +1174,7 @@ LM_FORCE_INLINE Vec4f Normalize(const Vec4f& v)
 template <>
 LM_FORCE_INLINE float Dot(const Vec4f& v1, const Vec4f& v2)
 {
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 	return _mm_cvtss_f32(_mm_dp_ps(v1.v, v2.v, 0xf1));
 #else
 #error "TODO"
@@ -1197,7 +1197,7 @@ LM_FORCE_INLINE Vec4f Max(const Vec4f& v1, const Vec4f& v2)
 
 // --------------------------------------------------------------------------------
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 
 LM_FORCE_INLINE Vec3d::TVec3()
 	: v(_mm256_setzero_pd())
@@ -1386,7 +1386,7 @@ LM_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2)
 template <>
 LM_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2)
 {
-#ifdef LM_USE_AVX2
+#if LM_AVX2
 
 	return Vec3d(
 		_mm256_sub_pd(

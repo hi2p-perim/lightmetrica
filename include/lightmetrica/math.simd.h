@@ -28,36 +28,25 @@
 
 #include "simdsupport.h"
 
-#ifdef LM_FORCE_NO_SIMD
-	#undef LM_USE_SSE
-	#undef LM_USE_SSE2
-	#undef LM_USE_SSE3
-	#undef LM_USE_SSSE3
-	#undef LM_USE_SSE4_1
-	#undef LM_USE_SSE4_2
-	#undef LM_USE_SSE4A
-	#undef LM_USE_AVX
-#endif
-
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 #include <xmmintrin.h>
 #endif
-#ifdef LM_USE_SSE3
+#if LM_SSE3
 #include <pmmintrin.h>
 #endif
-#ifdef LM_USE_SSSE3
+#if LM_SSSE3
 #include <tmmintrin.h>
 #endif
-#ifdef LM_USE_SSE4_1
+#if LM_SSE4_1
 #include <smmintrin.h>
 #endif
-#ifdef LM_USE_SSE4_2
+#if LM_SSE4_2
 #include <nmmintrin.h>
 #endif
-#ifdef LM_USE_SSE4A
+#if LM_SSE4A
 #include <ammintrin.h>
 #endif
-#ifdef LM_USE_AVX
+#if LM_AVX
 #include <immintrin.h>
 #endif
 

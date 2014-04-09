@@ -33,21 +33,34 @@
 
 // Debug mode?
 #ifndef NDEBUG
-	#define LM_DEBUG_MODE
+	#define LM_DEBUG_MODE 1
+#else
+	#define LM_DEBUG_MODE 0
 #endif
 
 // --------------------------------------------------------------------------------
 
 // Platform
+
+// Windows
 #ifdef _WIN32
-	#define LM_PLATFORM_WINDOWS
-#elif defined(__linux)
-	#define LM_PLATFORM_LINUX
+	#define LM_PLATFORM_WINDOWS 1
 #else
+	#define LM_PLATFORM_WINDOWS 0
+#endif
+
+// Linux
+#ifdef __linux
+	#define LM_PLATFORM_LINUX 1
+#else
+	#define LM_PLATFORM_LINUX 0
+#endif
+
+#if LM_PLATFORM_WINDOWS == LM_PLATFORM_LINUX
 	#error "Unsupportted platform"
 #endif
 
-#ifdef LM_PLATFORM_WINDOWS
+#if LM_PLATFORM_WINDOWS
 	#define NOMINMAX
 	#define WIN32_LEAN_AND_MEAN
 	#pragma warning(disable:4996)	// _SCL_SECURE_NO_WARNINGS
@@ -55,42 +68,70 @@
 	#pragma warning(disable:4290)	// Exception specification ignored
 #endif
 
-// Compiler and architecture
+// --------------------------------------------------------------------------------
+
+// Compiler
+
+// Microsoft Visual C++
 #ifdef _MSC_VER
-	// Microsoft Visual C++
-	#define LM_COMPILER_MSVC
-	#ifdef _M_IX86
-		#define LM_ARCH_X86
-	#elif defined(_M_X64)
-		#define LM_ARCH_X64
-	#else
-		#error "Unsupportted architecture"
-	#endif
-#elif (defined(__GNUC__) || defined(__MINGW32__))
-	// GNU GCC
-	#define LM_COMPILER_GCC
-	#ifdef __i386__
-		#define LM_ARCH_X86
-	#elif defined(__x86_64__)
-		#define LM_ARCH_X64
-	#else
-		#error "Unsupportted architecture"
-	#endif
+	#define LM_COMPILER_MSVC 1
 #else
+	#define LM_COMPILER_MSVC 0
+#endif
+
+// GNU GCC
+#if defined(__GNUC__) || defined(__MINGW32__)
+	#define LM_COMPILER_GCC 1
+#else
+	#define LM_COMPILER_GCC 0
+#endif
+
+#if LM_COMPILER_MSVC == LM_COMPILER_GCC
 	#error "Unsupportted compiler"
 #endif
 
 // --------------------------------------------------------------------------------
 
+// Architecture
+#if LM_COMPILER_MSVC
+	#ifdef _M_IX86
+		#define LM_ARCH_X86 1
+	#else
+		#define LM_ARCH_X86 0
+	#endif
+	#ifdef _M_X64
+		#define LM_ARCH_X64 1
+	#else
+		#define LM_ARCH_X64 0
+	#endif
+#elif LM_COMPILER_GCC
+	#ifdef __i386__
+		#define LM_ARCH_X86 1
+	#else
+		#define LM_ARCH_X86 0
+	#endif
+	#ifdef __x86_64__
+		#define LM_ARCH_X64 1
+	#else
+		#define LM_ARCH_X64 0
+	#endif
+#endif
+
+#if LM_ARCH_X86 == LM_ARCH_X64
+	#error "Unsupportted architecture"
+#endif
+
+// --------------------------------------------------------------------------------
+
 // Library import or export
-#ifdef LM_COMPILER_MSVC
+#if LM_COMPILER_MSVC
 	#ifdef LM_EXPORTS
 		#define LM_PUBLIC_API __declspec(dllexport)
 	#else
 		#define LM_PUBLIC_API __declspec(dllimport)
 	#endif
 	#define LM_HIDDEN_API
-#elif defined(LM_COMPILER_GCC)
+#elif LM_COMPILER_GCC
 	#ifdef LM_EXPORTS
 		#define LM_PUBLIC_API __attribute__ ((visibility("default")))
 		#define LM_HIDDEN_API __attribute__ ((visibility("hidden")))
@@ -104,15 +145,15 @@
 #endif
 
 // In the debug mode, the hidden API is exposed
-#ifdef RF_DEBUG_MODE
+#if LM_DEBUG_MODE
 	#undef RF_HIDDEN_API
 	#define RF_HIDDEN_API RF_PUBLIC_API
 #endif
 
 // Plugin export
-#ifdef LM_COMPILER_MSVC
+#if LM_COMPILER_MSVC
 	#define LM_PLUGIN_API __declspec(dllexport)
-#elif defined(LM_COMPILER_GCC)
+#elif LM_COMPILER_GCC
 	#define LM_PLUGIN_API __attribute__ ((visibility("default")))
 #else
 	#define LM_PLUGIN_API 
@@ -121,16 +162,16 @@
 // --------------------------------------------------------------------------------
 
 // Force inline
-#ifdef LM_COMPILER_MSVC
+#if LM_COMPILER_MSVC
 	#define LM_FORCE_INLINE __forceinline
-#elif defined(LM_COMPILER_GCC)
+#elif LM_COMPILER_GCC
 	#define LM_FORCE_INLINE inline __attribute__((always_inline))
 #endif
 
 // Alignment
-#ifdef LM_COMPILER_MSVC
+#if LM_COMPILER_MSVC
 	#define LM_ALIGN(x) __declspec(align(x))
-#elif defined(LM_COMPILER_GCC)
+#elif LM_COMPILER_GCC
 	#define LM_ALIGN(x) __attribute__((aligned(x)))
 #endif
 #define LM_ALIGN_16 LM_ALIGN(16)

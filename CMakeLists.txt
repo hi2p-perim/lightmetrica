@@ -133,29 +133,29 @@ include_directories(${PROJECT_BINARY_DIR})
 
 include(CMakeDependentOption)
 
-option(LM_SINGLE_PRECISION "Use single presicion floating-point number" ON)
-if (LM_SINGLE_PRECISION)
-	add_definitions(-DLM_SINGLE_PRECISION)
+option(LM_USE_SINGLE_PRECISION "Use single presicion floating-point number" ON)
+if (LM_USE_SINGLE_PRECISION)
+	add_definitions(-DLM_USE_SINGLE_PRECISION)
 endif()
 
 cmake_dependent_option(
-	LM_DOUBLE_PRECISION "Use double precision floating-point number" ON
-	"NOT LM_SINGLE_PRECISION" OFF)
-if (LM_DOUBLE_PRECISION)
-	add_definitions(-DLM_DOUBLE_PRECISION)
+	LM_USE_DOUBLE_PRECISION "Use double precision floating-point number" ON
+	"NOT LM_USE_SINGLE_PRECISION" OFF)
+if (LM_USE_DOUBLE_PRECISION)
+	add_definitions(-DLM_USE_DOUBLE_PRECISION)
 endif()
 
 cmake_dependent_option(
-	LM_MULTI_PRECISION "Use multi precision floating-point number" ON
-	"NOT LM_SINGLE_PRECISION;NOT LM_DOUBLE_PRECISION" OFF)
+	LM_USE_MULTI_PRECISION "Use multi precision floating-point number" ON
+	"NOT LM_USE_SINGLE_PRECISION;NOT LM_USE_DOUBLE_PRECISION" OFF)
 if (LM_MULTI_PRECISION)
 	add_definitions(-DLM_ENABLE_MULTI_PRECISION)
-	add_definitions(-DLM_MULTI_PRECISION)
+	add_definitions(-DLM_USE_MULTI_PRECISION)
 endif()
 
-option(LM_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)
-if (LM_FORCE_NO_SIMD)
-	add_definitions(-DLM_FORCE_NO_SIMD)
+option(LM_ENABLE_FORCE_NO_SIMD "Specified not to use SIMD operations" OFF)
+if (LM_ENABLE_FORCE_NO_SIMD)
+	add_definitions(-DLM_ENABLE_FORCE_NO_SIMD)
 endif()
 
 ################################################################################
@@ -218,7 +218,7 @@ string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" LM_C
 
 ################################################################################
 
-if (NOT LM_FORCE_NO_SIMD)
+if (NOT LM_ENABLE_FORCE_NO_SIMD)
 
 	# SIMD compatibility check
 	try_run(

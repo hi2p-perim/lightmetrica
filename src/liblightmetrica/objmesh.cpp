@@ -125,7 +125,7 @@ bool ObjMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Information), Assimp::Logger::Info);
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Warning), Assimp::Logger::Warn);
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Error), Assimp::Logger::Err);
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Debug), Assimp::Logger::Debugging);
 #endif
 

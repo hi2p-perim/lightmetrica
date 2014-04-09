@@ -139,7 +139,7 @@ LM_FORCE_INLINE bool TriAccel::Intersect(const Ray& ray, Math::Float mint, Math:
 	}
 
 
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
 	if (d_u * n_u + d_v * n_v + d_k == 0)
 	{
 		return false;

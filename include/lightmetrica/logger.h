@@ -280,7 +280,7 @@ LM_NAMESPACE_END
 	Helper macro to add a indentation to the log message in the same scope.
 */
 
-#ifdef LM_DEBUG_MODE
+#if LM_DEBUG_MODE
 	#define LM_LOG_ERROR(message) lightmetrica::Logger::Error(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
 	#define LM_LOG_WARN(message) lightmetrica::Logger::Warn(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));
 	#define LM_LOG_INFO(message) lightmetrica::Logger::Info(message, lightmetrica::Logger::FormattedDebugInfo(__FILE__, __LINE__));

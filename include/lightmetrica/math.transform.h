@@ -40,12 +40,12 @@ template <typename T> LM_FORCE_INLINE TMat4<T> Scale(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE TMat4<T> LookAt(const TVec3<T>& eye, const TVec3<T>& center, const TVec3<T>& up);
 template <typename T> LM_FORCE_INLINE TMat4<T> Perspective(T fovy, T aspect, T zNear, T zFar);
 
-#ifdef LM_USE_SSE2
+#if LM_SSE2
 template <> LM_FORCE_INLINE Mat4f Rotate(const Mat4f& m, float angle, const Vec3f& axis);
 template <> LM_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis);
 #endif
 
-#ifdef LM_USE_AVX
+#if LM_AVX
 template <> LM_FORCE_INLINE Mat4d Rotate(const Mat4d& m, double angle, const Vec3d& axis);
 template <> LM_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis);
 #endif
