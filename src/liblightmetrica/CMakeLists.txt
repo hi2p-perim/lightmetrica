@@ -405,6 +405,25 @@ list(APPEND _SOURCE_FILES ${_RANDOM_SOURCES})
 
 ################################################################################
 
+set(
+	_EXPERIMENTS_HEADERS
+	"${_INCLUDE_DIR}/expts.h"
+	"${_INCLUDE_DIR}/defaultexpts.h"
+	"${_INCLUDE_DIR}/expt.h"
+	"${_INCLUDE_DIR}/expt.rmse.h"
+	"${_INCLUDE_DIR}/expt.saveimage.h"
+)
+set(
+	_EXPERIMENTS_SOURCES
+	"defaultexpts.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})
+list(APPEND _HEADER_FILES ${_EXPERIMENTS_HEADERS})
+list(APPEND _SOURCE_FILES ${_EXPERIMENTS_SOURCES})
+
+################################################################################
+
 # Generate header for the version number
 set(_GENERATED_FILES_ROOT "Generated Files")
 set(_GENERATED_VERSION_DEF "${PROJECT_BINARY_DIR}/versiondef.h")
