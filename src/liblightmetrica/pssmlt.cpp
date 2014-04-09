@@ -165,13 +165,11 @@ private:
 	Math::Float kernelSizeS2;					// Maximum kernel size
 
 #ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-
 	bool enableExperimentalMode;
 	std::vector<std::tuple<long long, Math::Float>> rmsePlot;
 	long long profileFrequency;
 	BitmapTexture* referenceImage;
 	std::string experimentalOutputDir;
-
 #endif
 
 };
@@ -442,20 +440,22 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 #ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
 			if (enableExperimentalMode && sample % profileFrequency == 0)
 			{
+				// Copy current film and rescale
+				std::unique_ptr<HDRBitmapFilm> tempFilm(dynamic_cast<HDRBitmapFilm*>(context->film->Clone()));
+				tempFilm->Rescale(
+					sample > 0
+						? Math::Float(context->film->Width() * context->film->Height()) / Math::Float(sample)
+						: Math::Float(1));
+
 				// Compute RMSE of current sample
-				auto* bitmapFilm = dynamic_cast<HDRBitmapFilm*>(context->film.get());
-				auto rmse = referenceImage->Bitmap().EvaluateRMSE(bitmapFilm->Bitmap());
+				auto rmse = referenceImage->Bitmap().EvaluateRMSE(tempFilm->Bitmap());
 				rmsePlot.emplace_back(sample, rmse);
 
 				// Save intermediate image
 				auto path = boost::filesystem::path(experimentalOutputDir) / boost::str(boost::format("%010d.hdr") % sample);
 				LM_LOG_INFO("Saving " + path.string());
 				LM_LOG_INDENTER();
-				bitmapFilm->RescaleAndSave(
-					path.string(),
-					sample > 0
-						? Math::Float(context->film->Width() * context->film->Height()) / Math::Float(sample)
-						: Math::Float(1));
+				tempFilm->Save(path.string());
 			}
 #endif
 		}

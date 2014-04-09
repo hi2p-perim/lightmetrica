@@ -39,6 +39,13 @@ namespace
 		</texture>
 	);
 
+	const std::string TextureNode_VerticalFlipTest = LM_TEST_MULTILINE_LITERAL(
+		<texture id="test" type="bitmap">
+			<path>%s</path>
+			<vertical_flip>true</vertical_flip>
+		</texture>
+	);
+
 	// --------------------------------------------------------------------------------
 
 	// OpenEXR
@@ -118,9 +125,9 @@ class BitmapTextureTest : public TestBase
 {
 public:
 
-	ConfigNode GenerateNode(const std::string& path)
+	ConfigNode GenerateNode(const std::string& path, const std::string& temp)
 	{
-		return config.LoadFromStringAndGetFirstChild(boost::str(boost::format(TextureNode_1) % path));
+		return config.LoadFromStringAndGetFirstChild(boost::str(boost::format(temp) % path));
 	}
 
 protected:
@@ -136,7 +143,7 @@ TEST_F(BitmapTextureTest, Load)
 	for (int format = 0; format < 3; format++)
 	{
 		TemporaryBinaryFile tmp("test." + Extension[format], Data[format], Length[format]);
-		EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path()), assets));
+		EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path(), TextureNode_1), assets));
 		
 		// Check data
 		size_t i = 0;
@@ -195,6 +202,66 @@ TEST_F(BitmapTextureTest, Load_2)
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
 	}
+}
+
+TEST_F(BitmapTextureTest, Load_VerticalFlip)
+{
+	TemporaryBinaryFile tmp("test." + Extension[0], Data[0], Length[0]);
+	EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path(), TextureNode_VerticalFlipTest), assets));
+
+	// Check data
+	size_t i = 0;
+	const auto& data = texture.Bitmap().InternalData();
+
+	// Blue
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+
+	// Black
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+
+	// White
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+
+	// Red
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+}
+
+TEST_F(BitmapTextureTest, Load_VerticalFlip_2)
+{
+	TemporaryBinaryFile tmp("test." + Extension[0], Data[0], Length[0]);
+	EXPECT_TRUE(texture.LoadAsset(tmp.Path(), true));
+
+	// Check data
+	size_t i = 0;
+	const auto& data = texture.Bitmap().InternalData();
+
+	// Blue
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+
+	// Black
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+
+	// White
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+
+	// Red
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
+	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
 }
 
 LM_TEST_NAMESPACE_END
