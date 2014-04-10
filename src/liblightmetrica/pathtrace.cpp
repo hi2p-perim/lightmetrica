@@ -68,6 +68,10 @@ private:
 	long long samplesPerBlock;	// Samples to be processed per block
 	std::string rngType;		// Type of random number generator
 
+#if LM_EXPERIMENTAL_MODE
+	Experiments expts;			// Experiments manager
+#endif
+
 };
 
 PathtraceRenderer::Impl::Impl( PathtraceRenderer* self )
@@ -106,6 +110,28 @@ bool PathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& a
 		return false;
 	}
 
+#if LM_EXPERIMENTAL_MODE
+	// Experiments
+	auto experimentsNode = node.Child("experiments");
+	if (!experimentsNode.Empty())
+	{
+		LM_LOG_INFO("Configuring experiments");
+		LM_LOG_INDENTER();
+		
+		if (!expts.Configure(experimentsNode, assets))
+		{
+			LM_LOG_ERROR("Failed to configure experiments");
+			return false;
+		}
+
+		if (numThreads != 1)
+		{
+			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
+			numThreads = 1;
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -115,6 +141,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 	std::atomic<long long> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
+
+	LM_EXPT_NOTIFY(expts, StartRender);
 
 	// --------------------------------------------------------------------------------
 
@@ -148,6 +176,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 		// Sample range
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+
+		LM_EXPT_UPDATE_PARAM(expts, "film", &film);
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
@@ -202,11 +232,6 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 					bsdfEQ.wo = -ray.d;
 					auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
 					auto LeP = light->EvaluatePosition(isect.geom);
-
-					//LM_LOG_DEBUG("T : " + std::to_string(throughput.x) + " " + std::to_string(throughput.y) + " " + std::to_string(throughput.z));
-					//LM_LOG_DEBUG("D : " + std::to_string(LeD.x) + " " + std::to_string(LeD.y) + " " + std::to_string(LeD.z));
-					//LM_LOG_DEBUG("P : " + std::to_string(LeP.x) + " " + std::to_string(LeP.y) + " " + std::to_string(LeP.z));
-
 					L += throughput * LeD * LeP;
 				}
 
@@ -257,6 +282,9 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			}
 
 			film->AccumulateContribution(rasterPos, L * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
+
+			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_EMIT_SIGNAL(expts, SampleFinished);
 		}
 
 		processedBlocks++;

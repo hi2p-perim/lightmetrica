@@ -27,8 +27,12 @@
 #define LIB_LIGHTMETRICA_EXPTS_H
 
 #include "common.h"
+#include <string>
 
 LM_NAMESPACE_BEGIN
+
+class ConfigNode;
+class Assets;
 
 /*!
 	Experiments.
@@ -48,16 +52,28 @@ private:
 
 public:
 
-	
+	/*!
+		Configure experiments from configuration node.
+		\param node A configuration node which consists of \a experiment element.
+		\retval true Succeeded to configure.
+		\retval false Failed to configure. 
+	*/
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
+
+	/*!
+	*/
+	virtual void Notify(const std::string& type) = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#ifdef LM_ENABLE_EXPERIMENTAL_MODE
-	#define LM_EXPERIMENTAL_MODE 1
+#if LM_EXPERIMENTAL_MODE
+	#define LM_EXPT_NOTIFY(expts, type) do { if (expts.Enabled()) expts.Notify(type); } while (0);
 #else
-	#define LM_EXPERIMENTAL_MODE 0
+	#define LM_EXPT_NOTIFY(expts, type)
 #endif
+
+#define LM_EXPT_UPDATE_PARAM()
 
 #endif // LIB_LIGHTMETRICA_EXPTS_H

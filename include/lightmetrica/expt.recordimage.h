@@ -31,10 +31,10 @@
 LM_NAMESPACE_BEGIN
 
 /*!
-	Save image experiment.
-	Save images per samples / mutations.
+	Record per sample images.
+	An experiment for recording images per samples / mutations.
 */
-class LM_PUBLIC_API SaveImageExperiment : public Experiment
+class LM_PUBLIC_API RecordImageExperiment : public Experiment
 {
 public:
 

@@ -411,7 +411,7 @@ set(
 	"${_INCLUDE_DIR}/defaultexpts.h"
 	"${_INCLUDE_DIR}/expt.h"
 	"${_INCLUDE_DIR}/expt.rmse.h"
-	"${_INCLUDE_DIR}/expt.saveimage.h"
+	"${_INCLUDE_DIR}/expt.recordimage.h"
 )
 set(
 	_EXPERIMENTS_SOURCES

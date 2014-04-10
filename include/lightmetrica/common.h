@@ -38,6 +38,13 @@
 	#define LM_DEBUG_MODE 0
 #endif
 
+// Experimental mode?
+#ifdef LM_ENABLE_EXPERIMENTAL_MODE
+	#define LM_EXPERIMENTAL_MODE 1
+#else
+	#define LM_EXPERIMENTAL_MODE 0
+#endif
+
 // --------------------------------------------------------------------------------
 
 // Platform
