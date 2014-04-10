@@ -23,34 +23,25 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
-#define LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
+#ifndef LIB_LIGHTMETRICA_DEFAULT_EXPT_FACTORY_H
+#define LIB_LIGHTMETRICA_DEFAULT_EXPT_FACTORY_H
 
-#include "common.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
-#include <string>
-#include <memory>
-#include <boost/unordered_map.hpp>
+#include "exptfactory.h"
 
 LM_NAMESPACE_BEGIN
-LM_TEST_NAMESPACE_BEGIN
 
-class StubAssets : public Assets
+/*!
+	Experiment factory.
+	Default implementation of experiment factory.
+*/
+class LM_PUBLIC_API DefaultExperimentFactory : public ExperimentFactory
 {
 public:
 
-	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
-	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
-
-protected:
-
-	boost::unordered_map<std::string, std::unique_ptr<Asset>> assetInstanceMap;
+	virtual Experiment* Create( const std::string& type ) const;
 
 };
 
-LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
+#endif // LIB_LIGHTMETRICA_DEFAULT_EXPT_FACTORY_H

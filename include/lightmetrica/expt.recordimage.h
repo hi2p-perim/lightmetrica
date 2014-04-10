@@ -26,7 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_EXPT_SAVE_IMAGE_H
 #define LIB_LIGHTMETRICA_EXPT_SAVE_IMAGE_H
 
-#include "expt.saveimage.h"
+#include "expt.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -38,7 +38,20 @@ class LM_PUBLIC_API RecordImageExperiment : public Experiment
 {
 public:
 
-	
+	RecordImageExperiment();
+	~RecordImageExperiment();
+
+public:
+
+	virtual std::string Type() const { return "recordimage"; }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
+
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 

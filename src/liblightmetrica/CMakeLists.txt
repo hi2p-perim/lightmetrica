@@ -409,6 +409,8 @@ set(
 	_EXPERIMENTS_HEADERS
 	"${_INCLUDE_DIR}/expts.h"
 	"${_INCLUDE_DIR}/defaultexpts.h"
+	"${_INCLUDE_DIR}/exptfactory.h"
+	"${_INCLUDE_DIR}/defaultexptfactory.h"
 	"${_INCLUDE_DIR}/expt.h"
 	"${_INCLUDE_DIR}/expt.rmse.h"
 	"${_INCLUDE_DIR}/expt.recordimage.h"
@@ -416,6 +418,8 @@ set(
 set(
 	_EXPERIMENTS_SOURCES
 	"defaultexpts.cpp"
+	"defaultexptfactory.cpp"
+	"expt.recordimage.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})

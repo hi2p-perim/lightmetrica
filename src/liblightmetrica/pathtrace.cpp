@@ -38,7 +38,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/assert.h>
-#include <lightmetrica/expts.h>
+#include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -69,7 +69,7 @@ private:
 	std::string rngType;		// Type of random number generator
 
 #if LM_EXPERIMENTAL_MODE
-	Experiments expts;			// Experiments manager
+	DefaultExperiments expts;	// Experiments manager
 #endif
 
 };
@@ -142,7 +142,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 	signal_ReportProgress(0, false);
 
-	LM_EXPT_NOTIFY(expts, StartRender);
+	LM_EXPT_NOTIFY(expts, "StartRender");
 
 	// --------------------------------------------------------------------------------
 
@@ -284,7 +284,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 			film->AccumulateContribution(rasterPos, L * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-			LM_EXPT_EMIT_SIGNAL(expts, SampleFinished);
+			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;

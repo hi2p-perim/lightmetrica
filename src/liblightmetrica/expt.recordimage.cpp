@@ -22,35 +22,34 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
-#define LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
-
-#include "common.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
-#include <string>
-#include <memory>
-#include <boost/unordered_map.hpp>
+#include "pch.h"
+#include <lightmetrica/expt.recordimage.h>
 
 LM_NAMESPACE_BEGIN
-LM_TEST_NAMESPACE_BEGIN
 
-class StubAssets : public Assets
+RecordImageExperiment::RecordImageExperiment()
 {
-public:
 
-	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
-	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
+}
 
-protected:
+RecordImageExperiment::~RecordImageExperiment()
+{
 
-	boost::unordered_map<std::string, std::unique_ptr<Asset>> assetInstanceMap;
+}
 
-};
+bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
+{
+	throw std::exception("The method or operation is not implemented.");
+}
 
-LM_TEST_NAMESPACE_END
+void RecordImageExperiment::Notify( const std::string& type )
+{
+	throw std::exception("The method or operation is not implemented.");
+}
+
+void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
+{
+	throw std::exception("The method or operation is not implemented.");
+}
+
 LM_NAMESPACE_END
-
-#endif // LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H

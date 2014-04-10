@@ -30,6 +30,7 @@ set(
 	"test.confignode.cpp"
 	"test.defaultconfig.cpp"
 	"test.defaultassets.cpp"
+	"test.defaultexpts.cpp"
 	"test.asset.cpp"
 	"test.scene.cpp"
 	"test.scene.intersection.cpp"

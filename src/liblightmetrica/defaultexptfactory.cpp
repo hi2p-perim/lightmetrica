@@ -23,75 +23,23 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/randomfactory.h>
+#include <lightmetrica/defaultexptfactory.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/standardmtrand.h>
-#include <lightmetrica/sfmtrand.h>
+#include <lightmetrica/expt.recordimage.h>
 
 LM_NAMESPACE_BEGIN
 
-class RandomFactoryImpl
+Experiment* DefaultExperimentFactory::Create( const std::string& type ) const
 {
-public:
-
-	static RandomFactoryImpl& Instance()
+	if (type == "recordimage")
 	{
-		static RandomFactoryImpl instance;
-		return instance;
+		return new RecordImageExperiment();
 	}
-
-public:
-
-	RandomFactoryImpl()
+	else
 	{
-		AddFactory<StandardMTRandom>();
-		AddFactory<SFMTRandom>();
+		LM_LOG_ERROR("Invalid experiment type '" + type + "'");
+		return nullptr;
 	}
-
-public:
-
-	Random* Create(const std::string& type)
-	{
-		if (!CheckSupport(type))
-		{
-			LM_LOG_ERROR("Invalid random number type '" + type + "'");
-			return nullptr;
-		}
-		else
-		{
-			return factoryMap[type]();
-		}
-	}
-
-	bool CheckSupport(const std::string& type)
-	{
-		return factoryMap.find(type) != factoryMap.end();
-	}
-
-private:
-
-	template <typename Impl>
-	void AddFactory()
-	{
-		factoryMap[Impl::StaticType()] = [](){ return new Impl(); };
-	}
-
-private:
-
-	std::unordered_map<std::string, std::function<Random* ()>> factoryMap;
-
-};
-
-// --------------------------------------------------------------------------------
-
-Random* RandomFactory::Create( const std::string& type )
-{
-	return RandomFactoryImpl::Instance().Create(type);
-}
-
-bool RandomFactory::CheckSupport( const std::string& type )
-{
-	return RandomFactoryImpl::Instance().CheckSupport(type);
 }
 
 LM_NAMESPACE_END

@@ -43,8 +43,8 @@ class LM_PUBLIC_API Assets : public Object
 {
 public:
 
-	Assets();
-	virtual ~Assets();
+	Assets() {}
+	virtual ~Assets() {}
 
 private:
 

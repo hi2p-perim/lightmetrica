@@ -27,8 +27,12 @@
 #define LIB_LIGHTMETRICA_EXPT_H
 
 #include "common.h"
+#include <string>
 
 LM_NAMESPACE_BEGIN
+
+class ConfigNode;
+class Assets;
 
 /*!
 	Experiment.
@@ -47,7 +51,32 @@ private:
 
 public:
 
-	
+	/*!
+		Experiment type.
+		\return Type.
+	*/
+	virtual std::string Type() const = 0;
+
+	/*!
+		Configure the experiment.
+		\param node A configuration node which consists of \a experiment element.
+		\retval true Succeeded to configure.
+		\retval false Failed to configure. 
+	*/
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
+
+	/*!
+		Notify an event.
+		\param type Event type.
+	*/
+	virtual void Notify(const std::string& type) = 0;
+
+	/*!
+		Update parameter.
+		\param name Parameter name.
+		\param param Parameter.
+	*/
+	virtual void UpdateParam(const std::string& name, const void* param) = 0;
 
 };
 

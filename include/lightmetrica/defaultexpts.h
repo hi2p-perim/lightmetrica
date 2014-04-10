@@ -27,17 +27,56 @@
 #define LIB_LIGHTMETRICA_DEFAULT_EXPTS_H
 
 #include "expts.h"
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
+class Experiment;
+class ExperimentFactory;
+
 /*!
-	
+	Default experiments.
+	Default implementation for Experiments class.
 */
 class LM_PUBLIC_API DefaultExperiments : public Experiments
 {
 public:
 
+	DefaultExperiments();
+	~DefaultExperiments();
 
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
+	virtual bool CheckConfigured();
+
+public:
+
+	/*!
+		Register an experiment factory.
+		The registered #factory is used for instance creation of experiments.
+		If not specified, #DefaultExperimentFactory is used.
+		\param factory Experiment factory.
+	*/
+	void RegisterExperimentFactory(const ExperimentFactory* factory);
+
+	/*!
+		Load experiments.
+		Load experiment instances.
+		This function is used internally for testing.
+		The ownership of the given pointers is delegated to the experiments manager.
+		We note that it is valid because #Experiment is inherited from #Object
+		and any instances is allocated in the dynamic library side with overloaded operator new.
+		\param experiments List of experiments.
+	*/
+	bool LoadExperiments(const std::vector<Experiment*>& experiments);
+
+private:
+
+	class Impl;
+	Impl* p;
 
 };
 

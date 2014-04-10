@@ -23,34 +23,42 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
-#define LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
+#ifndef LIB_LIGHTMETRICA_EXPT_FACTORY_H
+#define LIB_LIGHTMETRICA_EXPT_FACTORY_H
 
 #include "common.h"
-#include <lightmetrica/assets.h>
-#include <lightmetrica/asset.h>
 #include <string>
-#include <memory>
-#include <boost/unordered_map.hpp>
 
 LM_NAMESPACE_BEGIN
-LM_TEST_NAMESPACE_BEGIN
 
-class StubAssets : public Assets
+class Experiment;
+
+/*!
+	Experiment factory.
+	An interface for experiment factories.
+*/
+class LM_PUBLIC_API ExperimentFactory
 {
 public:
 
-	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
-	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
+	ExperimentFactory() {}
+	virtual ~ExperimentFactory() {}
 
-protected:
+private:
 
-	boost::unordered_map<std::string, std::unique_ptr<Asset>> assetInstanceMap;
+	LM_DISABLE_COPY_AND_MOVE(ExperimentFactory);
+
+public:
+
+	/*!
+		Create instance an experiment.
+		\param type Type of the experiment.
+		\return Instance.
+	*/
+	virtual Experiment* Create(const std::string& type) const = 0;
 
 };
 
-LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_TEST_STUB_ASSETS_H
+#endif // LIB_LIGHTMETRICA_EXPT_FACTORY_H

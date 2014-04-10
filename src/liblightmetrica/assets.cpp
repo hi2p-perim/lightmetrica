@@ -30,16 +30,6 @@
 
 LM_NAMESPACE_BEGIN
 
-Assets::Assets()
-{
-
-}
-
-Assets::~Assets()
-{
-
-}
-
 Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
 {
 	// The element must have 'ref' attribute
