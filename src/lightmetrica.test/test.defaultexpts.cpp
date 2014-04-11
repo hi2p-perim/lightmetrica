@@ -125,15 +125,34 @@ TEST_F(DefaultExperimentsTest, Configure)
 
 TEST_F(DefaultExperimentsTest, Notify)
 {
-	// TODO
 	EXPECT_TRUE(expts.Configure(config.LoadFromStringAndGetFirstChild(ExperimentNode_1), assets));
+
 	LM_EXPT_NOTIFY(expts, "test");
-	EXPECT_TRUE()
+	
+	const auto* expt = dynamic_cast<const StubExperiment*>(expts.ExperimentByName("stub"));
+	EXPECT_TRUE(expt->notified);
 }
 
 TEST_F(DefaultExperimentsTest, UpdateParam)
 {
+	EXPECT_TRUE(expts.Configure(config.LoadFromStringAndGetFirstChild(ExperimentNode_1), assets));
 
+	const int v = 42;
+	LM_EXPT_UPDATE_PARAM(expts, "test", &v);
+
+	const auto* expt = dynamic_cast<const StubExperiment*>(expts.ExperimentByName("stub"));
+	EXPECT_EQ(42, expt->v);
+}
+
+TEST_F(DefaultExperimentsTest, LoadExperiments)
+{
+	std::vector<Experiment*> experiments;
+	experiments.push_back(new StubExperiment);
+
+	EXPECT_TRUE(expts.LoadExperiments(experiments));
+	EXPECT_TRUE(expts.CheckConfigured());
+
+	EXPECT_EQ(experiments[0], expts.ExperimentByName("stub"));
 }
 
 LM_TEST_NAMESPACE_END

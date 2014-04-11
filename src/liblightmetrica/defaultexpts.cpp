@@ -49,6 +49,7 @@ public:
 
 	void RegisterExperimentFactory(const ExperimentFactory* factory) { externalFactory = factory; }
 	bool LoadExperiments(const std::vector<Experiment*>& experiments);
+	const Experiment* ExperimentByName(const std::string& name) const;
 
 private:
 
@@ -90,6 +91,9 @@ bool DefaultExperiments::Impl::Configure( const ConfigNode& node, const Assets& 
 	}
 
 	// Configure experiments
+	experiments.clear();
+	experimentIndexMap.clear();
+
 	for (auto experimentNode = node.FirstChild(); !experimentNode.Empty(); experimentNode = experimentNode.NextChild())
 	{
 		// Element name must be 'experiment'
@@ -169,15 +173,36 @@ bool DefaultExperiments::Impl::LoadExperiments( const std::vector<Experiment*>& 
 		return false;
 	}
 
-	for (size_t i = 0; i < this->experiments.size(); i++)
+	this->experiments.clear();
+	experimentIndexMap.clear();
+
+	for (size_t i = 0; i < experiments.size(); i++)
 	{
 		auto& experiment = experiments[i];
-		this->experimentIndexMap[experiment->Type()] = i;
+		
+		if (experimentIndexMap.find(experiment->Type()) != experimentIndexMap.end())
+		{
+			LM_LOG_ERROR("Experiment type '" + experiment->Type() + "' is already registered");
+			return false;
+		}
+
+		experimentIndexMap[experiment->Type()] = i;
 		this->experiments.emplace_back(experiment);
 	}
 
 	configured = true;
 	return true;
+}
+
+const Experiment* DefaultExperiments::Impl::ExperimentByName( const std::string& name ) const
+{
+	if (experimentIndexMap.find(name) == experimentIndexMap.end())
+	{
+		LM_LOG_ERROR("Experiment '" + name + "' is not found");
+		return nullptr;
+	}
+
+	return experiments[experimentIndexMap.at(name)].get();
 }
 
 // --------------------------------------------------------------------------------
@@ -221,6 +246,11 @@ void DefaultExperiments::RegisterExperimentFactory( const ExperimentFactory* fac
 bool DefaultExperiments::LoadExperiments( const std::vector<Experiment*>& experiments )
 {
 	return p->LoadExperiments(experiments);
+}
+
+const Experiment* DefaultExperiments::ExperimentByName( const std::string& name ) const
+{
+	return p->ExperimentByName(name);
 }
 
 LM_NAMESPACE_END

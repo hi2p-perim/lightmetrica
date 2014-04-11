@@ -73,6 +73,13 @@ public:
 	*/
 	bool LoadExperiments(const std::vector<Experiment*>& experiments);
 
+	/*!
+		Get experiment by name.
+		\param name Experiment name.
+		\return Experiment.
+	*/
+	const Experiment* ExperimentByName(const std::string& name) const;
+
 private:
 
 	class Impl;

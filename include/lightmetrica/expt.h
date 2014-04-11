@@ -26,7 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_EXPT_H
 #define LIB_LIGHTMETRICA_EXPT_H
 
-#include "common.h"
+#include "object.h"
 #include <string>
 
 LM_NAMESPACE_BEGIN
@@ -38,7 +38,7 @@ class Assets;
 	Experiment.
 	The base class of experiments for renderers.
 */
-class LM_PUBLIC_API Experiment
+class LM_PUBLIC_API Experiment : public Object
 {
 public:
 
