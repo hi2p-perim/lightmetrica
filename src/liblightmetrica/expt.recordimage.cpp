@@ -24,32 +24,111 @@
 
 #include "pch.h"
 #include <lightmetrica/expt.recordimage.h>
+#include <lightmetrica/confignode.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/hdrfilm.h>
 
 LM_NAMESPACE_BEGIN
 
+class RecordImageExperiment::Impl
+{
+public:
+
+	bool Configure( const ConfigNode& node, const Assets& assets );
+	void Notify( const std::string& type );
+	void UpdateParam( const std::string& name, const void* param );
+
+private:
+
+	void HandleNotify_StartRender();
+	void HandleNotify_SampleFinished();
+
+private:
+
+	long long frequency;
+	std::string outputDir;
+
+private:
+
+	HDRBitmapFilm* film;
+	long long sample;
+
+};
+
+bool RecordImageExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+{
+	node.ChildValueOrDefault("frequency", 100LL, frequency);
+	node.ChildValueOrDefault("output_dir", std::string("images"), outputDir);
+	return true;
+}
+
+void RecordImageExperiment::Impl::Notify( const std::string& type )
+{
+	if (type == "StartRender") HandleNotify_StartRender();
+	else if (type == "SampleFinished") HandleNotify_SampleFinished();
+}
+
+void RecordImageExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+{
+	if (name == "film") film = (HDRBitmapFilm*)param;
+	else if (name == "sample") sample = *(int*)param;
+}
+
+void RecordImageExperiment::Impl::HandleNotify_StartRender()
+{
+	// Create output directory if it does not exists
+	if (!boost::filesystem::exists(outputDir))
+	{
+		LM_LOG_INFO("Creating directory : " + outputDir);
+		if (!boost::filesystem::create_directory(outputDir))
+		{
+			LM_LOG_WARN("Failed to create output directory : " + outputDir);
+		}
+	}
+}
+
+void RecordImageExperiment::Impl::HandleNotify_SampleFinished()
+{
+	if (sample % frequency == 0)
+	{
+		// Save intermediate image
+		auto path = boost::filesystem::path(outputDir) / boost::str(boost::format("%010d.hdr") % sample);
+		LM_LOG_INFO("Saving " + path.string());
+		LM_LOG_INDENTER();
+		film->RescaleAndSave(
+			path.string(),
+			sample > 0
+				? Math::Float(film->Width() * film->Height()) / Math::Float(sample)
+				: Math::Float(1));
+	}
+}
+
+// --------------------------------------------------------------------------------
+
 RecordImageExperiment::RecordImageExperiment()
+	: p(new Impl)
 {
 
 }
 
 RecordImageExperiment::~RecordImageExperiment()
 {
-
+	LM_SAFE_DELETE(p);
 }
 
 bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
-	throw std::exception("The method or operation is not implemented.");
+	return p->Configure(node, assets);
 }
 
 void RecordImageExperiment::Notify( const std::string& type )
 {
-	throw std::exception("The method or operation is not implemented.");
+	p->Notify(type);
 }
 
 void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
 {
-	throw std::exception("The method or operation is not implemented.");
+	p->UpdateParam(name, param);
 }
 
 LM_NAMESPACE_END

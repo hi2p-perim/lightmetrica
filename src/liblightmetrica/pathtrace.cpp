@@ -177,7 +177,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
-		LM_EXPT_UPDATE_PARAM(expts, "film", &film);
+		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
@@ -281,7 +281,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 				}
 			}
 
-			film->AccumulateContribution(rasterPos, L * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
+			film->AccumulateContribution(rasterPos, L);
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
 			LM_EXPT_NOTIFY(expts, "SampleFinished");
@@ -298,6 +298,9 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 	{
 		masterFilm->AccumulateContribution(*f.get());
 	}
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
 	return true;
 }
