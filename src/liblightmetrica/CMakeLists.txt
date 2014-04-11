@@ -412,14 +412,15 @@ set(
 	"${_INCLUDE_DIR}/exptfactory.h"
 	"${_INCLUDE_DIR}/defaultexptfactory.h"
 	"${_INCLUDE_DIR}/expt.h"
-	"${_INCLUDE_DIR}/expt.rmse.h"
 	"${_INCLUDE_DIR}/expt.recordimage.h"
+	"${_INCLUDE_DIR}/expt.recordrmse.h"
 )
 set(
 	_EXPERIMENTS_SOURCES
 	"defaultexpts.cpp"
 	"defaultexptfactory.cpp"
 	"expt.recordimage.cpp"
+	"expt.recordrmse.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})

@@ -23,14 +23,17 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.recordimage.h>
+#include <lightmetrica/expt.recordrmse.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
+#include <lightmetrica/bitmaptexture.h>
+#include <lightmetrica/assets.h>
 #include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
 
-class RecordImageExperiment::Impl
+class RecordRMSEExperiment::Impl
 {
 public:
 
@@ -42,91 +45,117 @@ private:
 
 	void HandleNotify_RenderStarted();
 	void HandleNotify_SampleFinished();
+	void HandleNotify_RenderFinished();
 
 private:
 
 	long long frequency;
-	std::string outputDir;
+	std::string outputPath;
+	BitmapTexture* referenceTexture;
 
 private:
 
 	HDRBitmapFilm* film;
 	long long sample;
+	Math::Float rmse;
+
+private:
+
+	std::vector<std::tuple<long long, Math::Float>> rmses;
 
 };
 
-bool RecordImageExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordRMSEExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_dir", std::string("images"), outputDir);
+	node.ChildValueOrDefault("output_path", std::string("rmse.txt"), outputPath);
+
+	// Reference image
+	auto referenceImageNode = node.Child("reference_image");
+	if (referenceImageNode.Empty())
+	{
+		LM_LOG_ERROR("'reference_image' is required");
+		return false;
+	}
+
+	// Resolve reference
+	referenceTexture = dynamic_cast<BitmapTexture*>(assets.ResolveReferenceToAsset(referenceImageNode, "texture"));
+	if (referenceTexture == nullptr)
+	{
+		return false;
+	}
+
 	return true;
 }
 
-void RecordImageExperiment::Impl::Notify( const std::string& type )
+void RecordRMSEExperiment::Impl::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
+	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void RecordImageExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void RecordRMSEExperiment::Impl::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "film") film = (HDRBitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
+	else if (name == "rmse") rmse = *(Math::Float*)param;
 }
 
-void RecordImageExperiment::Impl::HandleNotify_RenderStarted()
+void RecordRMSEExperiment::Impl::HandleNotify_RenderStarted()
 {
-	// Create output directory if it does not exists
-	if (!boost::filesystem::exists(outputDir))
-	{
-		LM_LOG_INFO("Creating directory : " + outputDir);
-		if (!boost::filesystem::create_directory(outputDir))
-		{
-			LM_LOG_WARN("Failed to create output directory : " + outputDir);
-		}
-	}
+	rmses.clear();
 }
 
-void RecordImageExperiment::Impl::HandleNotify_SampleFinished()
+void RecordRMSEExperiment::Impl::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
-		// Save intermediate image
-		auto path = boost::filesystem::path(outputDir) / boost::str(boost::format("%010d.hdr") % sample);
-		LM_LOG_INFO("Saving " + path.string());
-		LM_LOG_INDENTER();
-		film->RescaleAndSave(
-			path.string(),
+		// Compute RMSE of current sample
+		auto rmse = referenceTexture->Bitmap().EvaluateRMSE(
+			film->Bitmap(),
 			sample > 0
 				? Math::Float(film->Width() * film->Height()) / Math::Float(sample)
 				: Math::Float(1));
+		rmses.emplace_back(sample, rmse);
+	}
+}
+
+void RecordRMSEExperiment::Impl::HandleNotify_RenderFinished()
+{	
+	// Save RMSE plot
+	LM_LOG_INFO("Saving RMSE plot to " + outputPath);
+	std::ofstream ofs(outputPath);
+	for (auto& v : rmses)
+	{
+		ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
 	}
 }
 
 // --------------------------------------------------------------------------------
 
-RecordImageExperiment::RecordImageExperiment()
+RecordRMSEExperiment::RecordRMSEExperiment()
 	: p(new Impl)
 {
 
 }
 
-RecordImageExperiment::~RecordImageExperiment()
+RecordRMSEExperiment::~RecordRMSEExperiment()
 {
 	LM_SAFE_DELETE(p);
 }
 
-bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	return p->Configure(node, assets);
 }
 
-void RecordImageExperiment::Notify( const std::string& type )
+void RecordRMSEExperiment::Notify( const std::string& type )
 {
 	p->Notify(type);
 }
 
-void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
+void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	p->UpdateParam(name, param);
 }

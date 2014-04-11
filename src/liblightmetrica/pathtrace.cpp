@@ -142,7 +142,7 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 	signal_ReportProgress(0, false);
 
-	LM_EXPT_NOTIFY(expts, "StartRender");
+	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
@@ -301,6 +301,8 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 
 	// Rescale master film
 	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 	return true;
 }

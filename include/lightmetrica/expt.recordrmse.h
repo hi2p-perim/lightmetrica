@@ -22,29 +22,39 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/defaultexptfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/expt.recordimage.h>
-#include <lightmetrica/expt.recordrmse.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_EXPT_RECORD_RMSE_H
+#define LIB_LIGHTMETRICA_EXPT_RECORD_RMSE_H
+
+#include "expt.h"
 
 LM_NAMESPACE_BEGIN
 
-Experiment* DefaultExperimentFactory::Create( const std::string& type ) const
+/*!
+	Experiment for recording RMSE.
+	Records root mean square error (RMSE) per samples / mutations.
+*/
+class LM_PUBLIC_API RecordRMSEExperiment : public Experiment
 {
-	if (type == "recordimage")
-	{
-		return new RecordImageExperiment;
-	}
-	else if (type == "recordrmse")
-	{
-		return new RecordRMSEExperiment;
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid experiment type '" + type + "'");
-		return nullptr;
-	}
-}
+public:
+
+	RecordRMSEExperiment();
+	~RecordRMSEExperiment();
+
+public:
+
+	virtual std::string Type() const { return "recordrmse"; }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
+
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_EXPT_RECORD_RMSE_H

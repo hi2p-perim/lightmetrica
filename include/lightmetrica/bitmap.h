@@ -72,6 +72,16 @@ public:
 	*/
 	LM_PUBLIC_API Math::Float EvaluateRMSE(const BitmapImage& bitmap) const;
 
+	/*!
+		Evaluate RMSE with weight.
+		Evaluate root mean square error (RMSE) to the given #film.
+		The other film must be same size and type and scaled by #weight for each pixel value.
+		\param bitmap Other bitmap image.
+		\param weight Per-pixel weight.
+		\return Evaluated RMSE.
+	*/
+	LM_PUBLIC_API Math::Float EvaluateRMSE(const BitmapImage& bitmap, const Math::Float& weight) const;
+
 private:
 
 	std::vector<Math::Float> data;

@@ -30,6 +30,11 @@ LM_NAMESPACE_BEGIN
 
 LM_PUBLIC_API Math::Float BitmapImage::EvaluateRMSE( const BitmapImage& bitmap ) const
 {
+	return EvaluateRMSE(bitmap, Math::Float(1));
+}
+
+LM_PUBLIC_API Math::Float BitmapImage::EvaluateRMSE(const BitmapImage& bitmap, const Math::Float& weight) const
+{
 	const auto& data1 = InternalData();
 	const auto& data2 = bitmap.InternalData();
 
@@ -44,7 +49,7 @@ LM_PUBLIC_API Math::Float BitmapImage::EvaluateRMSE( const BitmapImage& bitmap )
 	Math::Float sum(0);
 	for (size_t i = 0; i < data1.size(); i++)
 	{
-		auto t = data1[i] - data2[i];
+		auto t = data1[i] - data2[i] * weight;
 		sum += t * t;
 	}
 
