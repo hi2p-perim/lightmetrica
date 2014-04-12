@@ -63,10 +63,11 @@ public:
 		Load the configuration from a string.
 		Use the function to load the configuration from a string.
 		\param data Configuration string.
+		\param basePath Base path for asset loading.
 		\retval true Succeeded to load the configuration.
 		\retval false Failed to load the configuration.
 	*/
-	virtual bool LoadFromString(const std::string& data) = 0;
+	virtual bool LoadFromString(const std::string& data, const std::string& basePath) = 0;
 
 	/*!
 		Get the root node.

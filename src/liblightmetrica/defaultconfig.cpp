@@ -45,9 +45,9 @@ public:
 public:
 
 	bool Load(const std::string& path);
-	bool LoadFromString(const std::string& data);
+	bool LoadFromString(const std::string& data, const std::string& basePath);
 	const ConfigNode Root() const;
-	std::string BasePath() const;
+	std::string BasePath() const { return basePath; }
 
 private:
 
@@ -59,6 +59,7 @@ public:
 
 	bool loaded;
 	std::string path;
+	std::string basePath;
 	pugi::xml_document doc;
 	pugi::xml_node assetsNode;
 	pugi::xml_node sceneNode;
@@ -88,20 +89,23 @@ bool DefaultConfig::Impl::Load( const std::string& path )
 	}
 
 	this->path = path;
+	this->basePath = boost::filesystem::canonical(boost::filesystem::path(path).parent_path()).string();
 
 	LM_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
-	
+
 	return HandleLoadResult(result);
 }
 
-bool DefaultConfig::Impl::LoadFromString( const std::string& data )
+bool DefaultConfig::Impl::LoadFromString( const std::string& data, const std::string& basePath )
 {
 	if (loaded)
 	{
 		LM_LOG_ERROR("Configuration is already loaded");
 		return false;
 	}
+
+	this->basePath = basePath;
 
 	LM_LOG_INFO("Loading configuration");
 	auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
@@ -167,12 +171,6 @@ const ConfigNode DefaultConfig::Impl::Root() const
 	return ConfigNode(rootNode.internal_object(), self);
 }
 
-std::string DefaultConfig::Impl::BasePath() const
-{
-	namespace fs = boost::filesystem;
-	return fs::canonical(fs::path(path).parent_path()).string();
-}
-
 // --------------------------------------------------------------------------------
 
 DefaultConfig::DefaultConfig()
@@ -191,9 +189,9 @@ bool DefaultConfig::Load( const std::string& path )
 	return p->Load(path);
 }
 
-bool DefaultConfig::LoadFromString( const std::string& data )
+bool DefaultConfig::LoadFromString( const std::string& data, const std::string& basePath )
 {
-	return p->LoadFromString(data);
+	return p->LoadFromString(data, basePath);
 }
 
 ConfigNode DefaultConfig::Root() const

@@ -50,7 +50,7 @@ public:
 public:
 	
 	void Reset();
-	bool Load(const ConfigNode& node, Assets& assets);
+	bool Load(const ConfigNode& node, const Assets& assets);
 	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
 	int NumPrimitives() const { return static_cast<int>(primitives.size()); }
 	const Primitive* PrimitiveByIndex(int index) const;
@@ -63,7 +63,7 @@ public:
 private:
 
 	// Traverse the scene and create primitives.
-	bool Traverse(const ConfigNode& node, Assets& assets, const Math::Mat4& parentWorldTransform);
+	bool Traverse(const ConfigNode& node, const Assets& assets, const Math::Mat4& parentWorldTransform);
 
 	// Create transformation from the element 'transform'
 	Math::Mat4 ParseTransform(const ConfigNode& transformNode);
@@ -101,7 +101,7 @@ void Scene::Impl::Reset()
 	idPrimitiveIndexMap.clear();
 }
 
-bool Scene::Impl::Load( const ConfigNode& node, Assets& assets )
+bool Scene::Impl::Load( const ConfigNode& node, const Assets& assets )
 {
 	if (loaded)
 	{
@@ -200,7 +200,7 @@ bool Scene::Impl::LoadPrimitives( const std::vector<Primitive*>& primitives )
 	return true;
 }
 
-bool Scene::Impl::Traverse( const ConfigNode& node, Assets& assets, const Math::Mat4& parentWorldTransform )
+bool Scene::Impl::Traverse( const ConfigNode& node, const Assets& assets, const Math::Mat4& parentWorldTransform )
 {
 	//
 	// Process transform
@@ -535,7 +535,7 @@ Scene::~Scene()
 	LM_SAFE_DELETE(p);
 }
 
-bool Scene::Load( const ConfigNode& node, Assets& assets )
+bool Scene::Load( const ConfigNode& node, const Assets& assets )
 {
 	return p->Load(node, assets);
 }

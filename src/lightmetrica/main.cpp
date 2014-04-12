@@ -63,20 +63,6 @@
 using namespace lightmetrica;
 namespace po = boost::program_options;
 
-template <typename BoolType>
-class scoped_enable
-{
-public:
-
-	scoped_enable(BoolType& f) : flag(f) { flag = true; }
-	~scoped_enable() { flag = false; }
-
-private:
-
-	BoolType& flag;
-
-};
-
 class LightmetricaApplication
 {
 public:
@@ -92,13 +78,24 @@ public:
 
 private:
 
+	bool LoadConfiguration(Config& config);
+	bool LoadAssets(const Config& config, DefaultAssets& assets);
+	bool LoadAndBuildScene(const Config& config, const Assets& assets, Scene& scene);
+	bool ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer);
+
+private:
+
 	void SetAppInfo();
 	void PrintHelpMessage(const po::options_description& opt);
 	void PrintStartMessage();
 	void PrintFinishMessage();
 	std::string CurrentTime();
+
+private:
+
+	void BeginProgress(const std::string& taskName);
+	void EndProgress();
 	void OnReportProgress(double progress, bool done);
-	void ResetProgress(const std::string& taskName);
 
 private:
 
@@ -110,6 +107,8 @@ private:
 	// Command line parameters
 	std::string inputFile;
 	std::string outputImagePath;
+	bool interactiveMode;
+	std::string basePath;
 
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
@@ -168,8 +167,10 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 	po::options_description opt("Allowed options");
 	opt.add_options()
 		("help", "Display help message")
-		("config,i", po::value<std::string>(&inputFile)->required(), "Configuration file")
-		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path");
+		("config,f", po::value<std::string>(&inputFile), "Configuration file")
+		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path")
+		("interactive,i", po::bool_switch(&interactiveMode), "Interactive mode")
+		("base-path,b", po::value<std::string>(&basePath)->default_value(""), "Base path for asset loading");
 
 	// positional arguments
 	po::positional_options_description p;
@@ -194,14 +195,21 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 	catch (po::required_option& e)
 	{
 		// Some options are missing
-		std::cout << "ERROR : " << e.what() << std::endl;
+		std::cerr << "ERROR : " << e.what() << std::endl;
 		PrintHelpMessage(opt);
 		return false;
 	}
 	catch (po::error& e)
 	{
 		// Error on parsing options
-		std::cout << "ERROR : " << e.what() << std::endl;
+		std::cerr << "ERROR : " << e.what() << std::endl;
+		PrintHelpMessage(opt);
+		return false;
+	}
+
+	if (vm.count("config") && interactiveMode)
+	{
+		std::cerr << "Conflicting arguments : 'config' and 'interactive'" << std::endl;
 		PrintHelpMessage(opt);
 		return false;
 	}
@@ -213,26 +221,85 @@ bool LightmetricaApplication::Run()
 {
 	PrintStartMessage();
 
-	// --------------------------------------------------------------------------------
-
-	// Load input file
+	// Load configuration
 	DefaultConfig config;
-	LM_LOG_INFO("Entering : Configuration loading");
+	if (!LoadConfiguration(config))
 	{
-		LM_LOG_INDENTER();
+		return false;
+	}
+
+	// Load assets
+	DefaultAssets assets;
+	if (!LoadAssets(config, assets))
+	{
+		return false;
+	}
+
+	// Create and setup scene
+	SceneFactory sceneFactory;
+	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
+	if (scene == nullptr)
+	{
+		return false;
+	}
+	if (!LoadAndBuildScene(config, assets, *scene))
+	{
+		return false;
+	}
+
+	// Create and configure renderer
+	RendererFactory rendererFactory;
+	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.Root().Child("renderer").AttributeValue("type")));
+	if (renderer == nullptr)
+	{
+		return false;
+	}
+	if (!ConfigureAndDispatchRenderer(config, assets, *scene, *renderer))
+	{
+		return false;
+	}
+
+	PrintFinishMessage();
+
+	return true;
+}
+
+bool LightmetricaApplication::LoadConfiguration( Config& config )
+{
+	LM_LOG_INFO("Entering : Configuration loading");
+	LM_LOG_INDENTER();
+
+	if (interactiveMode)
+	{
+		LM_LOG_INFO("Interactive mode ...");
+
+		// Get scene configuration from standard input
+		std::string content;
+		char c;
+		while ((c = std::getchar()) != EOF)
+		{
+			content += c;
+		}
+
+		// Load configuration from string
+		if (!config.LoadFromString(content, basePath))
+		{
+			return false;
+		}
+	}
+	else
+	{
 		if (!config.Load(inputFile))
 		{
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 	}
-	LM_LOG_INFO("Leaving : Configuration loading");
 
-	// --------------------------------------------------------------------------------
+	return true;
+}
 
-	// Load assets
-	DefaultAssets assets;
-
+bool LightmetricaApplication::LoadAssets( const Config& config, DefaultAssets& assets )
+{
 	// Register default asset factories
 	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
 	assets.RegisterAssetFactory(AssetFactoryEntry("bsdfs", "bsdf", 1, new BSDFFactory));
@@ -241,145 +308,108 @@ bool LightmetricaApplication::Run()
 	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
 	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
 
-	LM_LOG_INFO("Entering : Asset loading")
+	// Load assets
 	{
-		ResetProgress("LOADING ASSETS");
-		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = assets.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
-		
+		LM_LOG_INFO("Entering : Asset loading");
 		LM_LOG_INDENTER();
+
+		BeginProgress("LOADING ASSETS");
+		auto conn = assets.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+
 		if (!assets.Load(config.Root().Child("assets")))
 		{
+			EndProgress();
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 
-		{
-			std::unique_lock<std::mutex> lock(progressMutex);
-			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
-		}
-	}
-	LM_LOG_INFO("Leaving : Asset loading");
-
-	// --------------------------------------------------------------------------------
-
-	// Create scene
-	SceneFactory sceneFactory;
-	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
-	if (scene == nullptr)
-	{
-		return false;
+		EndProgress();
 	}
 
+	return true;
+}
+
+bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Assets& assets, Scene& scene )
+{
 	// Load scene
-	LM_LOG_INFO("Entering : Scene loading");
 	{
+		LM_LOG_INFO("Entering : Scene loading");
 		LM_LOG_INDENTER();
-		if (!scene->Load(config.Root().Child("scene"), assets))
+		if (!scene.Load(config.Root().Child("scene"), assets))
 		{
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 	}
-	LM_LOG_INFO("Leaving : Scene loading");
 
 	// Configure scene
-	LM_LOG_INFO("Entering : Scene configuration");
 	{
+		LM_LOG_INFO("Entering : Scene configuration");
 		LM_LOG_INDENTER();
-		LM_LOG_INFO("Scene type : '" + scene->Type() + "'");
-		if (!scene->Configure(config.Root().Child("scene")))
+		LM_LOG_INFO("Scene type : '" + scene.Type() + "'");
+		if (!scene.Configure(config.Root().Child("scene")))
 		{
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 	}
-	LM_LOG_INFO("Leaving : Scene configuration");
 
 	// Build scene
-	LM_LOG_INFO("Entering : Scene building");
 	{
-		ResetProgress("BUILDING SCENE");
-		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = scene->Connect_ReportBuildProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
-		
+		LM_LOG_INFO("Entering : Scene building");
 		LM_LOG_INDENTER();
-		if (!scene->Build())
+
+		BeginProgress("BUILDING SCENE");
+		auto conn = scene.Connect_ReportBuildProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+
+		if (!scene.Build())
 		{
+			EndProgress();
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 
-		{
-			std::unique_lock<std::mutex> lock(progressMutex);
-			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
-		}
-	}
-	LM_LOG_INFO("Leaving : Scene building");
-
-	// --------------------------------------------------------------------------------
-
-	// Create renderer
-	RendererFactory rendererFactory;
-	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.Root().Child("renderer").AttributeValue("type")));
-	if (renderer == nullptr)
-	{
-		return false;
+		EndProgress();
 	}
 
+	return true;
+}
+
+bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer )
+{
 	// Configure renderer
-	LM_LOG_INFO("Entering : Renderer configuration");
 	{
+		LM_LOG_INFO("Entering : Renderer configuration");
 		LM_LOG_INDENTER();
-		LM_LOG_INFO("Renderer type : '" + renderer->Type() + "'");
-		if (!renderer->Configure(config.Root().Child("renderer"), assets))
+		LM_LOG_INFO("Renderer type : '" + renderer.Type() + "'");
+		if (!renderer.Configure(config.Root().Child("renderer"), assets))
 		{
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 	}
-	LM_LOG_INFO("Leaving : Renderer configuration");
 
 	// Begin rendering
-	LM_LOG_INFO("Entering : Render");
 	{
-		ResetProgress("RENDERING");
-		scoped_enable<std::atomic<bool>> _(enableProgressBar);
-		auto conn = renderer->Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
-
+		LM_LOG_INFO("Entering : Render");
 		LM_LOG_INDENTER();
-		if (!renderer->Render(*scene))
+
+		BeginProgress("RENDERING");
+		auto conn = renderer.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+
+		if (!renderer.Render(scene))
 		{
+			EndProgress();
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 
-		{
-			std::unique_lock<std::mutex> lock(progressMutex);
-			progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
-		}
+		EndProgress();
 	}
-	LM_LOG_INFO("Leaving : Render");
-
-	// --------------------------------------------------------------------------------
 
 	// Save rendered image
-	LM_LOG_INFO("Entering : Save rendered image");
 	{
+		LM_LOG_INFO("Entering : Save rendered image");
 		LM_LOG_INDENTER();
-		auto* film = scene->MainCamera()->GetFilm();
-		if (!film->Save(outputImagePath))
+		if (!scene.MainCamera()->GetFilm()->Save(outputImagePath))
 		{
 			return false;
 		}
-		LM_LOG_INFO("Completed");
 	}
-	LM_LOG_INFO("Leaving : Save rendered image");
-
-	// --------------------------------------------------------------------------------
-
-	// Finish message
-	PrintFinishMessage();
 
 	return true;
 }
@@ -536,7 +566,7 @@ void LightmetricaApplication::OnReportProgress( double progress, bool done )
 	}
 }
 
-void LightmetricaApplication::ResetProgress(const std::string& taskName)
+void LightmetricaApplication::BeginProgress(const std::string& taskName)
 {
 	std::unique_lock<std::mutex> lock(progressMutex);
 	progress = 0;
@@ -544,6 +574,14 @@ void LightmetricaApplication::ResetProgress(const std::string& taskName)
 	progressDone = false;
 	requiresProgressUpdate = true;
 	progressPrintDone = false;
+	enableProgressBar = true;
+}
+
+void LightmetricaApplication::EndProgress()
+{
+	std::unique_lock<std::mutex> lock(progressMutex);
+	progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
+	enableProgressBar = false;
 }
 
 int main(int argc, char** argv)

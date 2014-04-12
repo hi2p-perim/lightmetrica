@@ -44,7 +44,7 @@ public:
 	virtual ConfigNode Root() const { return ConfigNode(doc.root().internal_object(), this); }
 	virtual std::string BasePath() const { return ""; }
 
-	virtual bool LoadFromString( const std::string& data )
+	virtual bool LoadFromString( const std::string& data, const std::string& basePath )
 	{
 		auto result = doc.load_buffer(static_cast<const void*>(data.c_str()), data.size());
 		if (!result) LM_LOG_ERROR(result.description());
@@ -55,7 +55,7 @@ public:
 
 	ConfigNode LoadFromStringAndGetFirstChild(const std::string& data)
 	{
-		EXPECT_TRUE(LoadFromString(data));
+		EXPECT_TRUE(LoadFromString(data, ""));
 		return ConfigNode(doc.first_child().internal_object(), this);
 	}
 

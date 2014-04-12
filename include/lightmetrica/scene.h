@@ -74,7 +74,7 @@ public:
 		\retval true Succeeded to load the scene.
 		\retval false Failed to load the scene.
 	*/
-	bool Load(const ConfigNode& node, Assets& assets);
+	bool Load(const ConfigNode& node, const Assets& assets);
 
 	/*!
 		Configure the scene.

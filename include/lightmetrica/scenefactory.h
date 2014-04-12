@@ -35,6 +35,8 @@ LM_NAMESPACE_BEGIN
 class Scene;
 
 /*!
+	Scene factory.
+	
 */
 class LM_PUBLIC_API SceneFactory : public Object
 {

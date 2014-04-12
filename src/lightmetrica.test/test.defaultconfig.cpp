@@ -87,13 +87,13 @@ TEST_F(DefaultConfigTest, Load_Failed_MissingFile)
 
 TEST_F(DefaultConfigTest, LoadString)
 {
-	EXPECT_TRUE(config.LoadFromString(ConfigData_Success));
+	EXPECT_TRUE(config.LoadFromString(ConfigData_Success, ""));
 }
 
 TEST_F(DefaultConfigTest, LoadString_Failed)
 {
-	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_MissingElement));
-	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion));
+	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_MissingElement, ""));
+	EXPECT_FALSE(config.LoadFromString(ConfigData_Fail_DifferentVersion, ""));
 }
 	
 TEST_F(DefaultConfigTest, BasePath)
