@@ -40,11 +40,13 @@ public:
 		data1.push_back(Math::Float(1));
 		data1.push_back(Math::Float(2));
 		data1.push_back(Math::Float(3));
+		data1.push_back(Math::Float(2));
 
 		auto& data2 = image2.InternalData();
 		data2.push_back(Math::Float(3));
 		data2.push_back(Math::Float(2));
 		data2.push_back(Math::Float(1));
+		data2.push_back(Math::Float(2));
 	}
 
 protected:
@@ -60,6 +62,7 @@ TEST_F(BitmapImageTest, InternalData)
 	EXPECT_TRUE(ExpectNear(Math::Float(1), data[0]));
 	EXPECT_TRUE(ExpectNear(Math::Float(2), data[1]));
 	EXPECT_TRUE(ExpectNear(Math::Float(3), data[2]));
+	EXPECT_TRUE(ExpectNear(Math::Float(2), data[3]));
 }
 
 TEST_F(BitmapImageTest, EvaluateRMSE)
@@ -69,7 +72,7 @@ TEST_F(BitmapImageTest, EvaluateRMSE)
 
 	// image1 vs. image2
 	auto t = image1.EvaluateRMSE(image2);
-	EXPECT_TRUE(ExpectNear(Math::Float(8), t*t));
+	EXPECT_TRUE(ExpectNear(Math::Float(2), t*t));
 }
 
 LM_TEST_NAMESPACE_END
