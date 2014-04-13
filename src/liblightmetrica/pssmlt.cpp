@@ -44,6 +44,7 @@
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/bitmaptexture.h>
+#include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -164,12 +165,8 @@ private:
 	Math::Float kernelSizeS1;					// Minimum kernel size
 	Math::Float kernelSizeS2;					// Maximum kernel size
 
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-	bool enableExperimentalMode;
-	std::vector<std::tuple<long long, Math::Float>> rmsePlot;
-	long long profileFrequency;
-	BitmapTexture* referenceImage;
-	std::string experimentalOutputDir;
+#if LM_EXPERIMENTAL_MODE
+	DefaultExperiments expts;	// Experiments manager
 #endif
 
 };
@@ -243,45 +240,26 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
 
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-
-	// Experimental parameters
-	auto experimentalNode = node.Child("experimental");
-	if (!experimentalNode.Empty())
+#if LM_EXPERIMENTAL_MODE
+	// Experiments
+	auto experimentsNode = node.Child("experiments");
+	if (!experimentsNode.Empty())
 	{
-		enableExperimentalMode = true;
+		LM_LOG_INFO("Configuring experiments");
+		LM_LOG_INDENTER();
 
-		// Frequency of the profile
-		experimentalNode.ChildValueOrDefault("profile_frequency", 100LL, profileFrequency);
+		if (!expts.Configure(experimentsNode, assets))
+		{
+			LM_LOG_ERROR("Failed to configure experiments");
+			return false;
+		}
+
 		if (numThreads != 1)
 		{
 			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
 			numThreads = 1;
 		}
-
-		// Reference image
-		auto referenceImageNode = experimentalNode.Child("reference_image");
-		if (referenceImageNode.Empty())
-		{
-			LM_LOG_ERROR("'reference_image' is required");
-			return false;
-		}
-
-		// Resolve reference
-		referenceImage = dynamic_cast<BitmapTexture*>(assets.ResolveReferenceToAsset(referenceImageNode, "texture"));
-		if (referenceImage == nullptr)
-		{
-			return false;
-		}
-
-		// 'output_dir' element
-		experimentalNode.ChildValueOrDefault("output_dir", std::string("pssmlt.exp"), experimentalOutputDir);
 	}
-	else
-	{
-		enableExperimentalMode = false;
-	}
-
 #endif
 
 	return true;
@@ -292,20 +270,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	// Set number of threads
 	omp_set_num_threads(numThreads);
 
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-	if (enableExperimentalMode)
-	{
-		// Create output directory if it does not exists
-		if (!boost::filesystem::exists(experimentalOutputDir))
-		{
-			LM_LOG_INFO("Creating directory " + experimentalOutputDir);
-			if (!boost::filesystem::create_directory(experimentalOutputDir))
-			{
-				return false;
-			}
-		}
-	}
-#endif
+	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
@@ -377,6 +342,8 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
+		LM_EXPT_UPDATE_PARAM(expts, "film", context->film.get());
+
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			auto& current = context->records[context->current];
@@ -437,27 +404,8 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 					current.L * B / currentI);
 			}
 
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-			if (enableExperimentalMode && sample % profileFrequency == 0)
-			{
-				// Copy current film and rescale
-				std::unique_ptr<HDRBitmapFilm> tempFilm(dynamic_cast<HDRBitmapFilm*>(context->film->Clone()));
-				tempFilm->Rescale(
-					sample > 0
-						? Math::Float(context->film->Width() * context->film->Height()) / Math::Float(sample)
-						: Math::Float(1));
-
-				// Compute RMSE of current sample
-				auto rmse = referenceImage->Bitmap().EvaluateRMSE(tempFilm->Bitmap());
-				rmsePlot.emplace_back(sample, rmse);
-
-				// Save intermediate image
-				auto path = boost::filesystem::path(experimentalOutputDir) / boost::str(boost::format("%010d.hdr") % sample);
-				LM_LOG_INFO("Saving " + path.string());
-				LM_LOG_INDENTER();
-				tempFilm->Save(path.string());
-			}
-#endif
+			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;
@@ -475,19 +423,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	// Rescale master film
 	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-	if (enableExperimentalMode)
-	{
-		// Save RMSE plot
-		LM_LOG_INFO("Saving RMSE plot");
-		auto path = boost::filesystem::path(experimentalOutputDir) / "rmse.dat";
-		std::ofstream ofs(path.string());
-		for (auto& v : rmsePlot)
-		{
-			ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
-		}
-	}
-#endif
+	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 	return true;
 }

@@ -289,7 +289,7 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 	}
 	else
 	{
-		if (!config.Load(inputFile))
+		if (!config.Load(inputFile, basePath))
 		{
 			return false;
 		}

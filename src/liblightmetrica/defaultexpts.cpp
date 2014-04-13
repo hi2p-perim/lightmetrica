@@ -113,7 +113,7 @@ bool DefaultExperiments::Impl::Configure( const ConfigNode& node, const Assets& 
 
 		// Create and configure the experiment
 		{
-			LM_LOG_INFO("Processing experiment (type : '" + typeAttribute + "'");
+			LM_LOG_INFO("Processing experiment (type : '" + typeAttribute + "')");
 			LM_LOG_INDENTER();
 
 			// Check if the experiment with same type is already registered

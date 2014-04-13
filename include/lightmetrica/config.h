@@ -60,6 +60,15 @@ public:
 	virtual bool Load(const std::string& path) = 0;
 
 	/*!
+		Load the configuration file.
+		\param path Path to the configuration file.
+		\param path Base path for asset loading.
+		\retval true Succeeded to load the configuration.
+		\retval false Failed to load the configuration.
+	*/
+	virtual bool Load(const std::string& path, const std::string& basePath) = 0;
+
+	/*!
 		Load the configuration from a string.
 		Use the function to load the configuration from a string.
 		\param data Configuration string.

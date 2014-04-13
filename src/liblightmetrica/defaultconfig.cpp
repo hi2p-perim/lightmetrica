@@ -45,6 +45,7 @@ public:
 public:
 
 	bool Load(const std::string& path);
+	bool Load(const std::string& path, const std::string& basePath);
 	bool LoadFromString(const std::string& data, const std::string& basePath);
 	const ConfigNode Root() const;
 	std::string BasePath() const { return basePath; }
@@ -82,6 +83,11 @@ DefaultConfig::Impl::~Impl()
 
 bool DefaultConfig::Impl::Load( const std::string& path )
 {
+	return Load(path, "");
+}
+
+bool DefaultConfig::Impl::Load( const std::string& path, const std::string& basePath )
+{
 	if (loaded)
 	{
 		LM_LOG_ERROR("Configuration is already loaded");
@@ -89,8 +95,11 @@ bool DefaultConfig::Impl::Load( const std::string& path )
 	}
 
 	this->path = path;
-	this->basePath = boost::filesystem::canonical(boost::filesystem::path(path).parent_path()).string();
+	this->basePath = basePath.empty()
+		? boost::filesystem::canonical(boost::filesystem::path(path).parent_path()).string()
+		: basePath;
 
+	LM_LOG_INFO("Setting asset base path to " + this->basePath);
 	LM_LOG_INFO("Loading configuration from " + path);
 	auto result = doc.load_file(path.c_str());
 
@@ -187,6 +196,11 @@ DefaultConfig::~DefaultConfig()
 bool DefaultConfig::Load( const std::string& path )
 {
 	return p->Load(path);
+}
+
+bool DefaultConfig::Load( const std::string& path, const std::string& basePath )
+{
+	return p->Load(path, basePath);
 }
 
 bool DefaultConfig::LoadFromString( const std::string& data, const std::string& basePath )

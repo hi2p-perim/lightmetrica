@@ -41,6 +41,7 @@ class StubConfig : public Config
 public:
 
 	virtual bool Load( const std::string& path ) { return false; }
+	virtual bool Load( const std::string& path, const std::string& basePath ) { return false; }
 	virtual ConfigNode Root() const { return ConfigNode(doc.root().internal_object(), this); }
 	virtual std::string BasePath() const { return ""; }
 

@@ -41,6 +41,7 @@
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -440,7 +441,6 @@ private:
 	Math::Float misPowerHeuristicsBetaCoeff;	// Beta coefficient for power heuristics
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-
 	// Experimental parameters
 	bool enableExperimentalMode;				// Enables experimental mode if true
 	int maxSubpathNumVertices;					// Maximum number of vertices of sub-paths
@@ -450,7 +450,10 @@ private:
 	std::vector<std::unique_ptr<Film>> subpathFilms;
 	// Per length images
 	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;
+#endif
 
+#if LM_EXPERIMENTAL_MODE
+	DefaultExperiments expts;	// Experiments manager
 #endif
 
 };
@@ -528,7 +531,6 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	}
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-
 	// Experimental parameters
 	auto experimentalNode = node.Child("experimental");
 	if (!experimentalNode.Empty())
@@ -541,7 +543,28 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	{
 		enableExperimentalMode = false;
 	}
+#endif
 
+#if LM_EXPERIMENTAL_MODE
+	// Experiments
+	auto experimentsNode = node.Child("experiments");
+	if (!experimentsNode.Empty())
+	{
+		LM_LOG_INFO("Configuring experiments");
+		LM_LOG_INDENTER();
+
+		if (!expts.Configure(experimentsNode, assets))
+		{
+			LM_LOG_ERROR("Failed to configure experiments");
+			return false;
+		}
+
+		if (numThreads != 1)
+		{
+			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
+			numThreads = 1;
+		}
+	}
 #endif
 
 	return true;
@@ -553,6 +576,8 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	std::atomic<long long> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
+
+	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
@@ -606,6 +631,8 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 		BPTPath lightSubpath;
 		BPTPath eyeSubpath;
 
+		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
+
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			// Release and clear paths
@@ -638,6 +665,9 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 
 			// Evaluate combination of sub-paths
 			EvaluateSubpathCombinations(scene, *film, lightSubpath, eyeSubpath);
+
+			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;
@@ -651,6 +681,11 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	{
 		masterFilm->AccumulateContribution(*context.film.get());
 	}
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	if (enableExperimentalMode)
@@ -677,7 +712,8 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 					{
 						LM_LOG_INFO("Saving " + path.string());
 						LM_LOG_INDENTER();
-						if (!subpathFilms[s*(maxSubpathNumVertices+1)+t]->Save(path.string()))
+						auto& film = subpathFilms[s*(maxSubpathNumVertices+1)+t];
+						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
 						{
 							return false;
 						}
@@ -696,7 +732,8 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 				{
 					LM_LOG_INFO("Saving " + path.string());
 					LM_LOG_INDENTER();
-					if (!kv.second->Save(path.string()))
+					auto& film = kv.second;
+					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
 					{
 						return false;
 					}
@@ -917,8 +954,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			{
 				#pragma omp critical
 				{
-					auto contrb = Cstar * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples);
-					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, contrb);
+					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, Cstar);
 				}
 			}
 #endif
@@ -927,7 +963,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 			auto C = w * Cstar;
 
 			// Record to the film
-			film.AccumulateContribution(rasterPosition, C * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
+			film.AccumulateContribution(rasterPosition, C);
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulate contribution to per length image
@@ -946,7 +982,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 					}
 
 					// Accumulate
-					perLengthFilms[n]->AccumulateContribution(rasterPosition, C * Math::Float(film.Width() * film.Height()) / Math::Float(numSamples));
+					perLengthFilms[n]->AccumulateContribution(rasterPosition, C);
 				}
 			}
 #endif
