@@ -35,14 +35,15 @@ Math::Float RenderUtils::GeneralizedGeometryTerm( const SurfaceGeometry& geom1, 
 	auto p1p2_Length = Math::Sqrt(p1p2_Length2);
 	p1p2 /= p1p2_Length;
 
+	// Be careful to use shading normals instead of geometry normals
 	Math::Float numerator(1);
 	if (!geom1.degenerated)
 	{
-		numerator *= Math::Dot(geom1.gn, p1p2);
+		numerator *= Math::Dot(geom1.sn, p1p2);
 	}
 	if (!geom2.degenerated)
 	{
-		numerator *= Math::Dot(geom2.gn, -p1p2);
+		numerator *= Math::Dot(geom2.sn, -p1p2);
 	}
 
 	return numerator / p1p2_Length2;
