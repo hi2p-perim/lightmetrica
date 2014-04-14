@@ -28,10 +28,11 @@
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/surfacegeometry.h>
+#include <lightmetrica/align.h>
 
 LM_NAMESPACE_BEGIN
 
-class DiffuseBSDF::Impl : public Object
+class DiffuseBSDF::Impl : public SIMDAlignedType
 {
 public:
 

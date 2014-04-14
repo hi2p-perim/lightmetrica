@@ -156,12 +156,14 @@ set(
 	"${_INCLUDE_DIR}/bsdf.h"
 	"${_INCLUDE_DIR}/bsdffactory.h"
 	"${_INCLUDE_DIR}/diffuse.h"
+	"${_INCLUDE_DIR}/dielectric.h"
 )
 set(
 	_ASSETS_BSDFS_SOURCES
 	"bsdf.cpp"
 	"bsdffactory.cpp"
 	"diffuse.cpp"
+	"dielectric.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_SOURCES})

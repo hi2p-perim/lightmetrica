@@ -22,29 +22,46 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bsdffactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/diffuse.h>
-#include <lightmetrica/dielectric.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_DIELECTRIC_H
+#define LIB_LIGHTMETRICA_DIELECTRIC_H
+
+#include "bsdf.h"
 
 LM_NAMESPACE_BEGIN
 
-Asset* BSDFFactory::Create( const std::string& id, const std::string& type ) const
+/*!
+	Dielectric BSDF.
+	Implements dielectric BSDF.
+*/
+class LM_PUBLIC_API DielectricBSDF : public BSDF
 {
-	if (type == "diffuse")
-	{
-		return new DiffuseBSDF(id);
-	}
-	else if (type == "dielectric")
-	{
-		return new DielectricBSDF(id);
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid BSDF type '" + type + "'");
-		return nullptr;
-	}
-}
+public:
+
+	DielectricBSDF(const std::string& id);
+	~DielectricBSDF();
+
+public:
+
+	virtual std::string Type() const { return "dielectric"; }
+
+public:
+
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_DIELECTRIC_H
