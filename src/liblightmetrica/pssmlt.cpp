@@ -343,6 +343,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
 		LM_EXPT_UPDATE_PARAM(expts, "film", context->film.get());
+		LM_EXPT_UPDATE_PARAM(expts, "pssmlt_primary_sample", context->sampler.get());
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{

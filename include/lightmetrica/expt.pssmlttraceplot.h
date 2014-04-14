@@ -22,34 +22,39 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/defaultexptfactory.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/expt.recordimage.h>
-#include <lightmetrica/expt.recordrmse.h>
-#include <lightmetrica/expt.pssmlttraceplot.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_PSSMLT_TRACEPLOT_H
+#define LIB_LIGHTMETRICA_PSSMLT_TRACEPLOT_H
+
+#include "expt.h"
 
 LM_NAMESPACE_BEGIN
 
-Experiment* DefaultExperimentFactory::Create( const std::string& type ) const
+/*!
+	PSSMLT traceplot.
+	Traces sample plots through PSSMLT updates.
+*/
+class LM_PUBLIC_API PSSMLTTraceplotExperiment : public Experiment
 {
-	if (type == "recordimage")
-	{
-		return new RecordImageExperiment;
-	}
-	else if (type == "recordrmse")
-	{
-		return new RecordRMSEExperiment;
-	}
-	else if (type == "pssmlttraceplot")
-	{
-		return new PSSMLTTraceplotExperiment;
-	}
-	else
-	{
-		LM_LOG_ERROR("Invalid experiment type '" + type + "'");
-		return nullptr;
-	}
-}
+public:
+
+	PSSMLTTraceplotExperiment();
+	~PSSMLTTraceplotExperiment();
+
+public:
+
+	virtual std::string Type() const { return "pssmlttraceplot"; }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
+
+private:
+
+	class Impl;
+	Impl* p;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_PSSMLT_TRACEPLOT_H
