@@ -28,6 +28,9 @@
 #include <lightmetrica/expt.recordimage.h>
 #include <lightmetrica/expt.recordrmse.h>
 #include <lightmetrica/expt.pssmlttraceplot.h>
+#include <lightmetrica/expt.pssmltrunningmean.h>
+#include <lightmetrica/expt.pssmltlength.h>
+#include <lightmetrica/expt.pssmltacceptanceratio.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -44,6 +47,18 @@ Experiment* DefaultExperimentFactory::Create( const std::string& type ) const
 	else if (type == "pssmlttraceplot")
 	{
 		return new PSSMLTTraceplotExperiment;
+	}
+	else if (type == "pssmltrunningmean")
+	{
+		return new PSSMLTRunningMeanExperiment;
+	}
+	else if (type == "pssmltlength")
+	{
+		return new PSSMLTLengthExperiment;
+	}
+	else if (type == "pssmltacceptanceratio")
+	{
+		return new PSSMLTAcceptanceRatioExperiment;
 	}
 	else
 	{

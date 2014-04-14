@@ -23,27 +23,30 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
-#define LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
+#ifndef LIB_LIGHTMETRICA_PSSMLT_RUNNING_MEAN_H
+#define LIB_LIGHTMETRICA_PSSMLT_RUNNING_MEAN_H
 
 #include "expt.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	PSSMLT traceplot.
-	Traces sample plots through PSSMLT updates.
+	PSSMLT running mean.
+	Traces running means of primary samples.
+	Running mean is a plot of the iteration against
+	the mean of the draws up to the iteration.
+	Running mean plot is used for the evaluation of the mixing.
 */
-class LM_PUBLIC_API PSSMLTTraceplotExperiment : public Experiment
+class LM_PUBLIC_API PSSMLTRunningMeanExperiment : public Experiment
 {
 public:
 
-	PSSMLTTraceplotExperiment();
-	~PSSMLTTraceplotExperiment();
+	PSSMLTRunningMeanExperiment();
+	~PSSMLTRunningMeanExperiment();
 
 public:
 
-	virtual std::string Type() const { return "pssmlttraceplot"; }
+	virtual std::string Type() const { return "pssmltrunningmean"; }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual void Notify( const std::string& type );
 	virtual void UpdateParam( const std::string& name, const void* param );
@@ -57,4 +60,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
+#endif // LIB_LIGHTMETRICA_PSSMLT_RUNNING_MEAN_H

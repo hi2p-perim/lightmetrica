@@ -228,4 +228,22 @@ LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math:
 	}
 }
 
+LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
+{
+	samples.clear();
+	for (int i = 0; i < numSamples; i++)
+	{
+		if (i < static_cast<int>(u.size()))
+		{
+			samples.push_back(u[i].value);
+		}
+		else
+		{
+			// The sample is not exist, use 0 instead
+			// TODO : Some better way?
+			samples.push_back(Math::Float(0));
+		}
+	}
+}
+
 LM_NAMESPACE_END

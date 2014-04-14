@@ -133,6 +133,7 @@ public:
 	LM_PUBLIC_API bool LargeStep();
 	LM_PUBLIC_API void SetRng(Random* rng);
 	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples) const;
+	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples);
 	
 private:
 

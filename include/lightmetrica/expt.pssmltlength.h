@@ -23,27 +23,27 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
-#define LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
+#ifndef LIB_LIGHTMETRICA_EXPT_PSSMLT_LENGTH_H
+#define LIB_LIGHTMETRICA_EXPT_PSSMLT_LENGTH_H
 
 #include "expt.h"
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	PSSMLT traceplot.
-	Traces sample plots through PSSMLT updates.
+	PSSMLT length.
+	Traces the lengths of light paths.
 */
-class LM_PUBLIC_API PSSMLTTraceplotExperiment : public Experiment
+class LM_PUBLIC_API PSSMLTLengthExperiment : public Experiment
 {
 public:
 
-	PSSMLTTraceplotExperiment();
-	~PSSMLTTraceplotExperiment();
+	PSSMLTLengthExperiment();
+	~PSSMLTLengthExperiment();
 
 public:
 
-	virtual std::string Type() const { return "pssmlttraceplot"; }
+	virtual std::string Type() const { return "pssmltlength"; }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual void Notify( const std::string& type );
 	virtual void UpdateParam( const std::string& name, const void* param );
@@ -57,4 +57,4 @@ private:
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_EXPT_PSSMLT_TRACEPLOT_H
+#endif // LIB_LIGHTMETRICA_EXPT_PSSMLT_LENGTH_H

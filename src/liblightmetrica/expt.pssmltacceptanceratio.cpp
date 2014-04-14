@@ -23,17 +23,13 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.recordrmse.h>
+#include <lightmetrica/expt.pssmltacceptanceratio.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/bitmaptexture.h>
-#include <lightmetrica/assets.h>
-#include <lightmetrica/hdrfilm.h>
-#include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
 
-class RecordRMSEExperiment::Impl
+class PSSMLTAcceptanceRatioExperiment::Impl
 {
 public:
 
@@ -51,115 +47,93 @@ private:
 
 	long long frequency;
 	std::string outputPath;
-	BitmapTexture* referenceTexture;
 
 private:
 
-	HDRBitmapFilm* film;
 	long long sample;
-	Math::Float rmse;
+	Math::Float acceptanceRatio;
 
 private:
 
-	std::vector<std::tuple<long long, Math::Float>> records;
+	std::vector<long long> sampleIndices;
+	std::vector<Math::Float> records;
 
 };
 
-bool RecordRMSEExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTAcceptanceRatioExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_path", std::string("rmse.txt"), outputPath);
-
-	// Reference image
-	auto referenceImageNode = node.Child("reference_image");
-	if (referenceImageNode.Empty())
-	{
-		LM_LOG_ERROR("'reference_image' is required");
-		return false;
-	}
-
-	// Resolve reference
-	referenceTexture = dynamic_cast<BitmapTexture*>(assets.ResolveReferenceToAsset(referenceImageNode, "texture"));
-	if (referenceTexture == nullptr)
-	{
-		return false;
-	}
-
+	node.ChildValueOrDefault("output_path", std::string("pssmlttraceplot.txt"), outputPath);
 	return true;
 }
 
-void RecordRMSEExperiment::Impl::Notify( const std::string& type )
+void PSSMLTAcceptanceRatioExperiment::Impl::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void RecordRMSEExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void PSSMLTAcceptanceRatioExperiment::Impl::UpdateParam( const std::string& name, const void* param )
 {
-	if (name == "film") film = (HDRBitmapFilm*)param;
-	else if (name == "sample") sample = *(int*)param;
-	else if (name == "rmse") rmse = *(Math::Float*)param;
+	if (name == "sample") sample = *(int*)param;
+	else if (name == "pssmlt_acceptance_ratio") acceptanceRatio = *(Math::Float*)param;
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_RenderStarted()
+void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_RenderStarted()
 {
+	sampleIndices.clear();
 	records.clear();
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_SampleFinished()
+void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
-		// Compute RMSE of current sample
-		auto rmse = referenceTexture->Bitmap().EvaluateRMSE(
-			film->Bitmap(),
-			sample > 0
-				? Math::Float(film->Width() * film->Height()) / Math::Float(sample)
-				: Math::Float(1));
-		records.emplace_back(sample, rmse);
+		sampleIndices.push_back(sample);
+		records.push_back(acceptanceRatio);
 	}
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_RenderFinished()
-{	
-	// Save RMSE plot
-	LM_LOG_INFO("Saving RMSE plot to " + outputPath);
+void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_RenderFinished()
+{
+	// Save records
+	LM_LOG_INFO("Saving PSSMLT acceptance ratio to " + outputPath);
 	LM_LOG_INDENTER();
 
 	std::ofstream ofs(outputPath);
-	for (auto& v : records)
+	for (size_t i = 0; i < sampleIndices.size(); i++)
 	{
-		ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
+		ofs << sampleIndices[i] << " " << records[i] << std::endl;
 	}
 
-	LM_LOG_INFO("Successfully saved " + std::to_string(records.size()) + " entries");
+	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
 // --------------------------------------------------------------------------------
 
-RecordRMSEExperiment::RecordRMSEExperiment()
+PSSMLTAcceptanceRatioExperiment::PSSMLTAcceptanceRatioExperiment()
 	: p(new Impl)
 {
 
 }
 
-RecordRMSEExperiment::~RecordRMSEExperiment()
+PSSMLTAcceptanceRatioExperiment::~PSSMLTAcceptanceRatioExperiment()
 {
 	LM_SAFE_DELETE(p);
 }
 
-bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTAcceptanceRatioExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	return p->Configure(node, assets);
 }
 
-void RecordRMSEExperiment::Notify( const std::string& type )
+void PSSMLTAcceptanceRatioExperiment::Notify( const std::string& type )
 {
 	p->Notify(type);
 }
 
-void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
+void PSSMLTAcceptanceRatioExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	p->UpdateParam(name, param);
 }

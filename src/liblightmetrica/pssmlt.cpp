@@ -86,6 +86,7 @@ struct PSSMLTPathSampleRecord : public Object
 
 	Math::Vec2 rasterPos;		// Raster position
 	Math::Vec3 L;				// Sampled radiance
+	int depth;					// Length of the light path
 
 };
 
@@ -146,7 +147,7 @@ public:
 private:
 
 	void GenerateAndSampleSeeds(const Scene& scene, PSSMLTRestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds) const;
-	void SampleAndEvaluatePath(const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos) const;
+	void SampleAndEvaluatePath(const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth) const;
 
 private:
 
@@ -315,7 +316,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 		// Sample a seed light path and initialize the state of Kelemen's lazy sampler
 		context->current = 0;
 		auto& current = context->records[context->current];
-		SampleAndEvaluatePath(scene, *context->sampler, current.L, current.rasterPos);
+		SampleAndEvaluatePath(scene, *context->sampler, current.L, current.rasterPos, current.depth);
 		LM_ASSERT(Math::Abs(seeds[i].I - Math::Luminance(current.L)) < Math::Constants::Eps());
 
 		// Get back to the normal generator
@@ -356,7 +357,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 			context->sampler->SetLargeStep(enableLargeStep);
 
 			// Sample and evaluate proposed path
-			SampleAndEvaluatePath(scene, *context->sampler, proposed.L, proposed.rasterPos);
+			SampleAndEvaluatePath(scene, *context->sampler, proposed.L, proposed.rasterPos, proposed.depth);
 
 			// Compute acceptance ratio
 			auto currentI = Math::Luminance(current.L);
@@ -406,6 +407,8 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 			}
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_path_length", &current.depth);
+			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_acceptance_ratio", &a);
 			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
@@ -445,7 +448,8 @@ void PSSMLTRenderer::Impl::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRes
 		// Sample a light path and evaluate radiance
 		Math::Vec3 L;
 		Math::Vec2 _;
-		SampleAndEvaluatePath(scene, restorableSampler, L, _);
+		int __;
+		SampleAndEvaluatePath(scene, restorableSampler, L, _, __);
 
 		if (!Math::IsZero(L))
 		{
@@ -492,7 +496,7 @@ void PSSMLTRenderer::Impl::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRes
 	}
 }
 
-void PSSMLTRenderer::Impl::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos ) const
+void PSSMLTRenderer::Impl::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth ) const
 {
 	// Raster position
 	rasterPos = sampler.NextVec2();
@@ -524,7 +528,7 @@ void PSSMLTRenderer::Impl::SampleAndEvaluatePath( const Scene& scene, PSSMLTSamp
 
 	L = Math::Vec3();
 	Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
-	int depth = 0;
+	depth = 0;
 
 	while (true)
 	{
