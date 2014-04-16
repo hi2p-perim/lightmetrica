@@ -28,30 +28,9 @@
 
 #include "asset.h"
 #include "math.types.h"
+#include "transportdirection.h"
 
 LM_NAMESPACE_BEGIN
-
-/*!
-	Direction of light transport.
-	For some BSDF types, the light transport type must be specified.
-	For details, see [Veach 1997].
-*/
-enum TransportDirection
-{
-
-	/*!
-		Transport direction is from camera to light,
-		a.k.a. radiance transport, or non-adjoint transport.
-	*/
-	EL = 0,		
-
-	/*!
-		Transport direction is from light to camera,
-		a.k.a. importance transport, or adjoint transport.
-	*/
-	LE = 1,
-
-};
 
 /*!
 	Generalized BSDF type.

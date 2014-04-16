@@ -45,6 +45,7 @@ set(
 	"${_INCLUDE_DIR}/ray.h"
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/surfacegeometry.h"
+	"${_INCLUDE_DIR}/transportdirection.h"
 )
 set(
 	_SOURCE_FILES
@@ -270,7 +271,6 @@ set(
 	"${_INCLUDE_DIR}/lighttrace.h"
 	"${_INCLUDE_DIR}/simplebpt.h"
 	"${_INCLUDE_DIR}/explicitpathtrace.h"
-	"${_INCLUDE_DIR}/bpt.h"
 )
 set(
 	_RENDERER_SOURCES
@@ -281,7 +281,6 @@ set(
 	"lighttrace.cpp"
 	"simplebpt.cpp"
 	"explicitpathtrace.cpp"
-	"bpt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
@@ -304,6 +303,25 @@ source_group("${_HEADER_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_SOURCES})
 list(APPEND _HEADER_FILES ${_RENDERER_PSSMLT_HEADERS})
 list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
+
+################################################################################
+
+set(
+	_RENDERER_BPT_HEADERS
+	"${_INCLUDE_DIR}/bpt.h"
+	"${_INCLUDE_DIR}/bpt.path.h"
+	"${_INCLUDE_DIR}/bpt.pool.h"
+)
+set(
+	_RENDERER_BPT_SOURCES
+	"bpt.cpp"
+	"bpt.path.cpp"
+	"bpt.pool.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_SOURCES})
+list(APPEND _HEADER_FILES ${_RENDERER_BPT_HEADERS})
+list(APPEND _SOURCE_FILES ${_RENDERER_BPT_SOURCES})
 
 ################################################################################
 
