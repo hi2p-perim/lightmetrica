@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef __LM_CORE_LOGGER_H__
-#define __LM_CORE_LOGGER_H__
+#ifndef LIB_LIGHTMETRICA_LOGGER_H
+#define LIB_LIGHTMETRICA_LOGGER_H
 
 #include "common.h"
 #include <string>
@@ -293,4 +293,4 @@ LM_NAMESPACE_END
 #endif
 #define LM_LOG_INDENTER() lightmetrica::LogIndenter _logIndenter;
 
-#endif // __LM_CORE_LOGGER_H__
+#endif // LIB_LIGHTMETRICA_LOGGER_H
