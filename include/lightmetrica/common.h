@@ -153,8 +153,8 @@
 
 // In the debug mode, the hidden API is exposed
 #if LM_DEBUG_MODE
-	#undef RF_HIDDEN_API
-	#define RF_HIDDEN_API RF_PUBLIC_API
+	#undef LM_HIDDEN_API
+	#define LM_HIDDEN_API LM_PUBLIC_API
 #endif
 
 // Plugin export

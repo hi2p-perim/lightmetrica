@@ -25,6 +25,7 @@
 #include "pch.h"
 #include <lightmetrica/bpt.h>
 #include <lightmetrica/bpt.path.h>
+#include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
@@ -46,8 +47,6 @@
 #include <thread>
 #include <atomic>
 #include <omp.h>
-#include <boost/pool/pool.hpp>
-#include <boost/pool/object_pool.hpp>
 
 #define LM_ENABLE_BPT_EXPERIMENTAL 1
 
@@ -60,14 +59,14 @@ LM_NAMESPACE_BEGIN
 struct BPTThreadContext
 {
 	
-	std::unique_ptr<Random> rng;			// Random number generator
-	std::unique_ptr<Film> film;				// Film
-	std::unique_ptr<PathVertexPool> pool;	// Memory pool for path vertices
+	std::unique_ptr<Random> rng;				// Random number generator
+	std::unique_ptr<Film> film;					// Film
+	std::unique_ptr<BPTPathVertexPool> pool;	// Memory pool for path vertices
 
 	BPTThreadContext(Random* rng, Film* film)
 		: rng(rng)
 		, film(film)
-		, pool(new PathVertexPool(sizeof(BPTPathVertex)))
+		, pool(new BPTPathVertexPool)
 	{
 
 	}
@@ -75,7 +74,7 @@ struct BPTThreadContext
 	BPTThreadContext(BPTThreadContext&& context)
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
-		, pool(new PathVertexPool(sizeof(BPTPathVertex)))
+		, pool(new BPTPathVertexPool)
 	{
 
 	}
@@ -113,7 +112,7 @@ private:
 		\param transportDir Transport direction.
 		\param subpath Sampled subpath.
 	*/
-	void SampleSubpath(const Scene& scene, Random& rng, PathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath) const;
+	void SampleSubpath(const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath) const;
 
 	/*
 		Evaluate contribution with combination of sub-paths.
@@ -489,12 +488,12 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Random& rng, PathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath ) const
+void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath ) const
 {
 	BPTPathVertex* v;
 
 	// Initial vertex
-	v = pool.construct();
+	v = pool.Construct();
 	v->type = BPTPathVertexType::EndPoint;
 	v->transportDir = transportDir;
 
@@ -559,7 +558,7 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 		// --------------------------------------------------------------------------------
 
 		// Create path vertex
-		v = pool.construct();
+		v = pool.Construct();
 		v->type = BPTPathVertexType::IntermediatePoint;
 		v->transportDir = transportDir;
 		v->bsdf = isect.primitive->bsdf;

@@ -30,25 +30,27 @@
 #include "math.types.h"
 #include "surfacegeometry.h"
 #include "transportdirection.h"
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
+class GeneralizedBSDF;
 class Emitter;
 class Light;
 class Camera;
 
-/*
+/*!
 	BPT path vertex type.
 	Vertex type of #PathVertex.
 */
 enum class BPTPathVertexType
 {
-	None,									// Uninitialized
-	EndPoint,								// Endpoint (emitter)
-	IntermediatePoint,						// Intermediate point (generalized BSDF)
+	None,									//!< Uninitialized
+	EndPoint,								//!< Endpoint (emitter)
+	IntermediatePoint,						//!< Intermediate point (generalized BSDF)
 };
 
-/*
+/*!
 	BPT path vertex.
 	Represents a light path vertex.
 	TODO : Use unrestricted unions in future implementation.
@@ -57,8 +59,8 @@ struct BPTPathVertex
 {
 
 	// General information
-	BPTPathVertexType type;					// Vertex type
-	SurfaceGeometry geom;					// Surface geometry information
+	BPTPathVertexType type;					//!< Vertex type
+	SurfaceGeometry geom;					//!< Surface geometry information
 
 	/*
 		Variables associated with Emitter.
@@ -71,14 +73,14 @@ struct BPTPathVertex
 		Variables associated with generalized BSDF.
 		#type is either EndPoint or IntermediatePoint
 	*/
-	Math::PDFEval pdfD[2];					// PDF evaluation for directional component for each transport direction
-	Math::PDFEval pdfRR;					// PDF evaluation for Russian roulette
-	TransportDirection transportDir;		// Transport direction
-	const GeneralizedBSDF* bsdf;			// Generalized BSDF
-	const Light* areaLight;					// Light associated with surface
-	const Camera* areaCamera;				// Camera associated with surface
-	Math::Vec3 wi;							// Incoming ray
-	Math::Vec3 wo;							// Outgoing ray in #dir
+	Math::PDFEval pdfD[2];					//!< PDF evaluation for directional component for each transport direction
+	Math::PDFEval pdfRR;					//!< PDF evaluation for Russian roulette
+	TransportDirection transportDir;		//!< Transport direction
+	const GeneralizedBSDF* bsdf;			//!< Generalized BSDF
+	const Light* areaLight;					//!< Light associated with surface
+	const Camera* areaCamera;				//!< Camera associated with surface
+	Math::Vec3 wi;							//!< Incoming ray
+	Math::Vec3 wo;							//!< Outgoing ray in #dir
 
 public:
 
@@ -94,8 +96,9 @@ public:
 
 };
 
-// Object pool type for PathVertex.
-typedef boost::object_pool<BPTPathVertex, boost_pool_aligned_allocator<std::alignment_of<BPTPathVertex>::value>> PathVertexPool;
+// --------------------------------------------------------------------------------
+
+class BPTPathVertexPool;
 
 /*
 	BPT path.
@@ -108,34 +111,14 @@ struct BPTPath
 
 public:
 
-	void Clear()
-	{
-		vertices.clear();
-	}
-
-	void Add(BPTPathVertex* vertex)
-	{
-		vertices.push_back(vertex);
-	}
-
-	void Release(PathVertexPool& pool)
-	{
-		for (auto* vertex : vertices)
-			pool.destroy(vertex);
-		vertices.clear();
-	}
-
-	void DebugPrint()
-	{
-		for (size_t i = 0; i < vertices.size(); i++)
-		{
-			LM_LOG_DEBUG("Vertex #" + std::to_string(i));
-			LM_LOG_INDENTER();
-			vertices[i]->DebugPrint();
-		}
-	}
+	void Clear();
+	void Add(BPTPathVertex* vertex);
+	void Release(BPTPathVertexPool& pool);
+	void DebugPrint();
 
 };
+
+// --------------------------------------------------------------------------------
 
 /*
 	BPT full-path.
@@ -153,84 +136,7 @@ struct BPTFullPath
 
 public:
 
-	BPTFullPath(int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath)
-		: s(s)
-		, t(t)
-		, lightSubpath(lightSubpath)
-		, eyeSubpath(eyeSubpath)
-	{
-		LM_ASSERT(s > 0 || t > 0);
-		LM_ASSERT(s + t >= 2);
-		
-		// Compute #pdfDL and #pdfDE
-		if (s == 0 && t > 0)
-		{
-			// Compute #pdfDE[LE]
-			auto* z = eyeSubpath.vertices[t-1];
-			if (z->areaLight)
-			{
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.transportDir = TransportDirection::LE;
-				bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-				bsdfEQ.wo = z->wi;
-				pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
-			}
-		}
-		else if (s > 0 && t == 0)
-		{
-			// Compute #pdfDL[EL]
-			auto* y = lightSubpath.vertices[s-1];
-			if (y->areaCamera)
-			{
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.transportDir = TransportDirection::EL;
-				bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-				bsdfEQ.wo = y->wi;
-				pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
-			}
-		}
-		else if (s > 0 && t > 0)
-		{
-			auto* y = lightSubpath.vertices[s-1];
-			auto* z = eyeSubpath.vertices[t-1];
-
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.type = GeneralizedBSDFType::All;
-
-			auto yz = Math::Normalize(z->geom.p - y->geom.p);
-			auto zy = -yz;
-
-			// Compute #pdfDL[EL]
-			if (s > 1)
-			{
-				bsdfEQ.transportDir = TransportDirection::EL;
-				bsdfEQ.wi = yz;
-				bsdfEQ.wo = y->wi;
-				pdfDL[TransportDirection::EL] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
-			}
-
-			// Compute #pdfDL[LE]
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.wi = y->wi;
-			bsdfEQ.wo = yz;
-			pdfDL[TransportDirection::LE] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
-
-			// Compute #pdfDE[LE]
-			if (t > 1)
-			{
-				bsdfEQ.transportDir = TransportDirection::LE;
-				bsdfEQ.wi = zy;
-				bsdfEQ.wo = z->wi;
-				pdfDE[TransportDirection::LE] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
-			}
-
-			// Compute #pdfDE[EL]
-			bsdfEQ.transportDir = TransportDirection::EL;
-			bsdfEQ.wi = z->wi;
-			bsdfEQ.wo = zy;
-			pdfDE[TransportDirection::EL] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
-		}
-	}
+	BPTFullPath(int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath);
 
 };
 

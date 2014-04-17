@@ -30,7 +30,7 @@
 
 LM_NAMESPACE_BEGIN
 
-class BPTPathVertex;
+struct BPTPathVertex;
 
 /*!
 	BPT path vertex pool.
@@ -54,13 +54,20 @@ public:
 		Constructs a path vertex.
 		\return Path vertex.
 	*/
-	virtual BPTPathVertex* Construct() = 0;
+	BPTPathVertex* Construct();
+
+	/*!
+		Release.
+		Releases memory.
+		\param v Allocated instance.
+	*/
+	void Release(BPTPathVertex* v);
 
 	/*!
 		Release all.
 		Releases all allocated path vertices.
 	*/
-	virtual void ReleaseAll() = 0;
+	//void ReleaseAll();
 
 private:
 
