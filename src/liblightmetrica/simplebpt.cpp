@@ -30,7 +30,6 @@
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/random.h>
-#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
@@ -99,7 +98,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& no
 		return false;
 	}
 	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!RandomFactory::CheckSupport(rngType))
+	if (!ComponentFactory::CheckRegistered(rngType))
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
@@ -126,7 +125,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		rngs.emplace_back(RandomFactory::Create(rngType));
+		rngs.emplace_back(ComponentFactory::Create<Random>(rngType));
 		rngs.back()->SetSeed(seed + i);
 		films.emplace_back(masterFilm->Clone());
 	}

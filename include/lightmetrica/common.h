@@ -186,9 +186,12 @@
 
 // --------------------------------------------------------------------------------
 
-// Namespace
+// Namespaces
 #define LM_NAMESPACE_BEGIN namespace lightmetrica {
 #define LM_NAMESPACE_END }
+
+#define LM_DETAIL_NAMESPACE_BEGIN namespace detail {
+#define LM_DETAIL_NAMESPACE_END }
 
 // --------------------------------------------------------------------------------
 

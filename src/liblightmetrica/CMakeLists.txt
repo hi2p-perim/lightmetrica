@@ -46,6 +46,7 @@ set(
 	"${_INCLUDE_DIR}/intersection.h"
 	"${_INCLUDE_DIR}/surfacegeometry.h"
 	"${_INCLUDE_DIR}/transportdirection.h"
+	"${_INCLUDE_DIR}/component.h"
 )
 set(
 	_SOURCE_FILES
@@ -57,6 +58,7 @@ set(
 	"version.cpp"
 	"pugihelper.cpp"
 	"pathutils.cpp"
+	"component.cpp"
 	
 	# pugixml sources and headers
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
@@ -401,8 +403,6 @@ set(
 	"${_INCLUDE_DIR}/random.h"
 	"${_INCLUDE_DIR}/random.inl"
 	"${_INCLUDE_DIR}/randomfactory.h"
-	"${_INCLUDE_DIR}/standardmtrand.h"
-	"${_INCLUDE_DIR}/sfmtrand.h"
 )
 set(
 	_RANDOM_SOURCES

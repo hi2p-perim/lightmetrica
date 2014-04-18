@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/sfmtrand.h>
+#include <lightmetrica/random.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/assert.h>
@@ -31,6 +31,36 @@
 
 LM_NAMESPACE_BEGIN
 
+/*!
+	SFMT random number generator.
+	An random number generator using SIMD-oriented Fast Mersenne Twister (SFMT)  
+	using an implementation by Mutsuo Saito and Makoto Matsumoto:
+	http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/
+*/
+class LM_PUBLIC_API SFMTRandom : public Random
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("sfmt");
+
+public:
+
+	virtual unsigned int NextUInt() { return sfmt_genrand_uint32(&sfmt); }
+	virtual void SetSeed( unsigned int seed ) { sfmt_init_gen_rand(&sfmt, seed); }
+
+private:
+
+	sfmt_t sfmt;
+
+};
+
+LM_COMPONENT_REGISTER_IMPL(SFMTRandom);
+
+LM_NAMESPACE_END
+
+// --------------------------------------------------------------------------------
+
+/*
 class SFMTRandom::Impl : public SIMDAlignedType
 {
 public:
@@ -115,5 +145,4 @@ void SFMTRandom::SetSeed( unsigned int seed )
 {
 	p->SetSeed(seed);
 }
-
-LM_NAMESPACE_END
+*/

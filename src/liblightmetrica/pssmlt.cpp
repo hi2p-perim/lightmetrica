@@ -31,7 +31,6 @@
 #include <lightmetrica/film.h>
 #include <lightmetrica/hdrfilm.h>
 #include <lightmetrica/random.h>
-#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -202,7 +201,7 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 		return false;
 	}
 	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!RandomFactory::CheckSupport(rngType))
+	if (!ComponentFactory::CheckRegistered(rngType))
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
@@ -279,7 +278,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	Math::Float B;
 	std::vector<PSSMLTPathSeed> seeds;
 	int seed = static_cast<int>(std::time(nullptr));
-	PSSMLTRestorableSampler restorableSampler(RandomFactory::Create(rngType), seed++);
+	PSSMLTRestorableSampler restorableSampler(ComponentFactory::Create<Random>(rngType), seed++);
 
 	{
 		LM_LOG_INFO("Preprocessing");
@@ -299,7 +298,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 		// Add a entry to the context
 		contexts.emplace_back(
 			new PSSMLTThreadContext(
-				RandomFactory::Create(rngType),
+				ComponentFactory::Create<Random>(rngType),
 				masterFilm->Clone(),
 				new PSSMLTPrimarySample(kernelSizeS1, kernelSizeS2)));
 		contexts.back()->rng->SetSeed(seed++);

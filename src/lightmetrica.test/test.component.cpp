@@ -22,77 +22,63 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_RANDOM_H
-#define LIB_LIGHTMETRICA_RANDOM_H
-
-#include "component.h"
-#include "math.types.h"
+#include "pch.h"
+#include <lightmetrica.test/base.h>
+#include <lightmetrica/component.h>
 
 LM_NAMESPACE_BEGIN
+LM_TEST_NAMESPACE_BEGIN
 
-/*!
-	Random number generator.
-	An interface for uniform random number generators.
-*/
-class LM_PUBLIC_API Random : public Component
+class StubComponentInterface : public Component
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("random");
+	LM_COMPONENT_INTERFACE_DEF("stub_interface");
 
 public:
 
-	Random() {}
-	virtual ~Random() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(Random);
-
-public:
-
-	/*!
-		Generate pseudorandom number as unsigned integer type.
-		\return Generated number.
-	*/
-	virtual unsigned int NextUInt() = 0;
-
-	/*!
-		Set seed and initialize internal state.
-		\param seed Seed.
-	*/
-	virtual void SetSeed(unsigned int seed) = 0;
-
-	/*!
-		Get the type of the random number generator.
-		\return Type in string.
-	*/
-	//virtual std::string Type() const = 0;
-
-public:
-
-	/*!
-		Generate pseudorandom number as floating point type.
-		\return Generated number.
-	*/
-	LM_FORCE_INLINE Math::Float Next();
-
-	/*!
-		Generate pseudorandom number as Vec2 type.
-		\return Generated number.
-	*/
-	LM_FORCE_INLINE Math::Vec2 NextVec2();
-
-private:
-
-	class Impl;
-	Impl* p;
+	virtual int F() = 0;
 
 };
 
+class StubComponentImpl_1 : public StubComponentInterface
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("stub_impl");
+
+public:
+
+	virtual int F() { return 42; }
+
+};
+
+class StubComponentImpl_2 : public StubComponentInterface
+{
+public:
+
+	virtual int F() { return 43; }
+
+};
+
+class ComponentFactoryTest : public TestBase {};
+
+TEST_F(ComponentFactoryTest, HasMemberFunction)
+{
+	EXPECT_EQ(true, detail::has_member_function_ImplTypeName<StubComponentImpl_1>::value);
+	EXPECT_EQ(false, detail::has_member_function_ImplTypeName<StubComponentImpl_2>::value);
+}
+
+TEST_F(ComponentFactoryTest, RegisterAndCreate)
+{
+	EXPECT_TRUE(ComponentFactory::Register(StubComponentImpl_1::ImplTypeName(), [](){ return new StubComponentImpl_1; }));
+	EXPECT_TRUE(ComponentFactory::CheckRegistered(StubComponentImpl_1::ImplTypeName()));
+
+	auto* inst = ComponentFactory::Create<StubComponentInterface>(StubComponentImpl_1::ImplTypeName());
+	EXPECT_EQ(42, inst->F());
+
+	ComponentFactory::Destroy(inst);
+}
+
+LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END
-
-#include "random.inl"
-
-#endif // LIB_LIGHTMETRICA_RANDOM_H

@@ -23,19 +23,37 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/standardmtrand.h>
+#include <lightmetrica/random.h>
+#include <random>
 
 LM_NAMESPACE_BEGIN
 
-LM_PUBLIC_API unsigned int StandardMTRandom::NextUInt()
+/*!
+	Standard Mersenne Twister random number generator.
+	An implementation of random number generator using std::mt19937.
+*/
+class StandardMTRandom : public Random
 {
-	return uniformInt(engine);
-}
+public:
 
-LM_PUBLIC_API void StandardMTRandom::SetSeed( unsigned int seed )
-{
-	engine.seed(seed);
-	uniformInt.reset();
-}
+	LM_COMPONENT_IMPL_DEF("standardmt");
+
+public:
+
+	LM_PUBLIC_API virtual unsigned int NextUInt() { return uniformInt(engine); }
+	LM_PUBLIC_API virtual void SetSeed( unsigned int seed )
+	{
+		engine.seed(seed);
+		uniformInt.reset();
+	}
+
+private:
+
+	std::mt19937 engine;
+	std::uniform_int_distribution<unsigned int> uniformInt;
+
+};
+
+LM_COMPONENT_REGISTER_IMPL(StandardMTRandom);
 
 LM_NAMESPACE_END

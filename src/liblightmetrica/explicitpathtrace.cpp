@@ -29,7 +29,6 @@
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/random.h>
-#include <lightmetrica/randomfactory.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -201,7 +200,7 @@ bool ExplictPathtraceRenderer::Impl::Configure( const ConfigNode& node, const As
 		return false;
 	}
 	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!RandomFactory::CheckSupport(rngType))
+	if (!ComponentFactory::CheckRegistered(rngType))
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
@@ -227,7 +226,7 @@ bool ExplictPathtraceRenderer::Impl::Render( const Scene& scene )
 	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		contexts.emplace_back(RandomFactory::Create(rngType), masterFilm->Clone());
+		contexts.emplace_back(ComponentFactory::Create<Random>(rngType), masterFilm->Clone());
 		contexts.back().rng->SetSeed(seed + i);
 	}
 
