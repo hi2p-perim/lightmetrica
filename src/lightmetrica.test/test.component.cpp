@@ -77,7 +77,7 @@ TEST_F(ComponentFactoryTest, RegisterAndCreate)
 	auto* inst = ComponentFactory::Create<StubComponentInterface>(StubComponentImpl_1::ImplTypeName());
 	EXPECT_EQ(42, inst->F());
 
-	ComponentFactory::Destroy(inst);
+	LM_SAFE_DELETE(inst);
 }
 
 LM_TEST_NAMESPACE_END

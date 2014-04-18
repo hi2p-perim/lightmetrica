@@ -26,7 +26,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica/pssmlt.sampler.h>
-#include <lightmetrica/standardmtrand.h>
+#include <lightmetrica/random.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
@@ -36,7 +36,7 @@ class PSSMLTRestorableSamplerTest : public TestBase {};
 TEST_F(PSSMLTRestorableSamplerTest, GenerateAndRestore)
 {
 	// Initialize using seed 1
-	PSSMLTRestorableSampler sampler(new StandardMTRandom, 1);
+	PSSMLTRestorableSampler sampler(ComponentFactory::Create<Random>("standardmt"), 1);
 
 	// Generate some samples
 	const int Count = 1<<9;
@@ -83,9 +83,9 @@ protected:
 TEST_F(PSSMLTPrimarySampleTest, Reject)
 {
 	// Set random number generator
-	StandardMTRandom rng;
-	rng.SetSeed(1);
-	primarySample.SetRng(&rng);
+	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
+	rng->SetSeed(1);
+	primarySample.SetRng(rng.get());
 
 	// Generate initial samples
 	std::vector<Math::Float> samples;
@@ -119,9 +119,9 @@ TEST_F(PSSMLTPrimarySampleTest, Reject)
 TEST_F(PSSMLTPrimarySampleTest, Accept)
 {
 	// Set random number generator
-	StandardMTRandom rng;
-	rng.SetSeed(1);
-	primarySample.SetRng(&rng);
+	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
+	rng->SetSeed(1);
+	primarySample.SetRng(rng.get());
 
 	// Generate initial samples
 	for (int i = 0; i < Count; i++)
@@ -155,9 +155,9 @@ TEST_F(PSSMLTPrimarySampleTest, Accept)
 TEST_F(PSSMLTPrimarySampleTest, Sequence)
 {
 	// Set random number generator
-	StandardMTRandom rng;
-	rng.SetSeed(1);
-	primarySample.SetRng(&rng);
+	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
+	rng->SetSeed(1);
+	primarySample.SetRng(rng.get());
 
 	// Generate initial samples
 	const int Delta = 10;
@@ -176,7 +176,7 @@ TEST_F(PSSMLTPrimarySampleTest, Sequence)
 		primarySample.GetCurrentSampleState(current);
 
 		// Large step or small step
-		primarySample.SetLargeStep(rng.Next() < Math::Float(0.5));
+		primarySample.SetLargeStep(rng->Next() < Math::Float(0.5));
 		
 		// Generate samples
 		for (int j = 0; j < Delta; j++)
@@ -188,7 +188,7 @@ TEST_F(PSSMLTPrimarySampleTest, Sequence)
 		primarySample.GetCurrentSampleState(proposed);
 
 		// Accept or reject
-		if (rng.Next() < Math::Float(0.5))
+		if (rng->Next() < Math::Float(0.5))
 		{
 			primarySample.Accept();
 			

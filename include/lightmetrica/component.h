@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "logger.h"
+#include "align.h"
 #include <string>
 #include <functional>
 #include <type_traits>
@@ -46,7 +47,7 @@ LM_NAMESPACE_BEGIN
 	in order to provide consistent memory management.
 	All memory allocation is done in the shared object / dynamic library side.
 */
-class LM_PUBLIC_API Component
+class LM_PUBLIC_API Component : public SIMDAlignedType
 {
 public:
 
@@ -108,14 +109,6 @@ public:
 	*/
 	static Component* Create(const std::string& implType);
 
-	/*!	
-		Destroy an component instance.
-		The memory allocation is done in shared library side.
-		If you use instances from outside of the library use the function.
-		\param p Component instance.
-	*/
-	static void Destroy(Component* p);
-
 public:
 
 	/*!
@@ -140,7 +133,7 @@ public:
 		{
 			LM_LOG_ERROR("An instance of type '" + implType +
 				"' is not inherited from '" + InterfaceType::InterfaceTypeName() + "'");
-			Destroy(p1);
+			LM_SAFE_DELETE(p1);
 			return nullptr;
 		}
 

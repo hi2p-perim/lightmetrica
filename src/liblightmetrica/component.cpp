@@ -65,11 +65,6 @@ public:
 		return createFuncMap[implType]();
 	}
 
-	void Destroy(Component* p)
-	{
-		LM_SAFE_DELETE(p);
-	}
-
 private:
 
 	std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> createFuncMap;
@@ -89,11 +84,6 @@ bool ComponentFactory::Register( const std::string& implType, const CreateCompon
 Component* ComponentFactory::Create( const std::string& implType )
 {
 	return ComponentFactoryImpl::Instance().Create(implType);
-}
-
-void ComponentFactory::Destroy( Component* p )
-{
-	ComponentFactoryImpl::Instance().Destroy(p);
 }
 
 LM_NAMESPACE_END

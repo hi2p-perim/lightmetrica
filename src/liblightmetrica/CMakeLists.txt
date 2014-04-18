@@ -402,11 +402,9 @@ set(
 	_RANDOM_HEADERS
 	"${_INCLUDE_DIR}/random.h"
 	"${_INCLUDE_DIR}/random.inl"
-	"${_INCLUDE_DIR}/randomfactory.h"
 )
 set(
 	_RANDOM_SOURCES
-	"randomfactory.cpp"
 	"standardmtrand.cpp"
 	"sfmtrand.cpp"
 
