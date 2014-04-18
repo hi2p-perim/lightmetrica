@@ -40,8 +40,8 @@ public:
 
 public:
 
-	LM_PUBLIC_API virtual unsigned int NextUInt() { return uniformInt(engine); }
-	LM_PUBLIC_API virtual void SetSeed( unsigned int seed )
+	virtual unsigned int NextUInt() { return uniformInt(engine); }
+	virtual void SetSeed( unsigned int seed )
 	{
 		engine.seed(seed);
 		uniformInt.reset();

@@ -47,7 +47,7 @@ LM_NAMESPACE_BEGIN
 	in order to provide consistent memory management.
 	All memory allocation is done in the shared object / dynamic library side.
 */
-class LM_PUBLIC_API Component : public SIMDAlignedType
+class Component : public SIMDAlignedType
 {
 public:
 
@@ -233,13 +233,6 @@ LM_NAMESPACE_END
 	\sa LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION
 */
 
-LM_NAMESPACE_BEGIN
-LM_DETAIL_NAMESPACE_BEGIN
-	template <typename T, T>
-	struct check_func_signature : std::true_type {};
-LM_DETAIL_NAMESPACE_END
-LM_NAMESPACE_END
-
 #define LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(FuncName, Signature)					\
 	template <typename T, typename = std::true_type>									\
 	struct has_member_function_##FuncName : std::false_type {};							\
@@ -258,9 +251,16 @@ LM_NAMESPACE_END
 		has_member_function_##FuncName<Type>::value,									\
 		"Component class of type '" #Type "' must have the member function '" #FuncName "'")
 
+// --------------------------------------------------------------------------------
+
 LM_NAMESPACE_BEGIN
 LM_DETAIL_NAMESPACE_BEGIN
-	LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(ImplTypeName, const char* (*)());
+
+template <typename T, T>
+struct check_func_signature : std::true_type {};
+
+LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(ImplTypeName, const char* (*)());
+
 LM_DETAIL_NAMESPACE_END
 LM_NAMESPACE_END
 

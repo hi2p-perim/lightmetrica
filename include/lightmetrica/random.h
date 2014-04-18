@@ -35,7 +35,7 @@ LM_NAMESPACE_BEGIN
 	Random number generator.
 	An interface for uniform random number generators.
 */
-class LM_PUBLIC_API Random : public Component
+class Random : public Component
 {
 public:
 

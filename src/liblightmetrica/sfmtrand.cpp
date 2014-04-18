@@ -37,7 +37,7 @@ LM_NAMESPACE_BEGIN
 	using an implementation by Mutsuo Saito and Makoto Matsumoto:
 	http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/
 */
-class LM_PUBLIC_API SFMTRandom : public Random
+class SFMTRandom : public Random
 {
 public:
 
@@ -57,92 +57,3 @@ private:
 LM_COMPONENT_REGISTER_IMPL(SFMTRandom);
 
 LM_NAMESPACE_END
-
-// --------------------------------------------------------------------------------
-
-/*
-class SFMTRandom::Impl : public SIMDAlignedType
-{
-public:
-
-	static const int BlockSize = 100000;
-
-public:
-
-	Impl();
-
-public:
-
-	unsigned int NextUInt();
-	void SetSeed( unsigned int seed );
-
-//private:
-//
-//	void GenerateSamples();
-
-private:
-
-	sfmt_t sfmt;
-	//std::unique_ptr<w128_t, std::function<void (w128_t*)>> buffer;
-	//int bufferSampleIndex;
-
-};
-
-SFMTRandom::Impl::Impl()
-	//: buffer(
-	//	(w128_t*)aligned_malloc(sizeof(w128_t) * BlockSize / 4, std::alignment_of<w128_t>::value),
-	//	[](w128_t* p){ aligned_free(p); })
-	//, bufferSampleIndex(0)
-{
-	//LM_ASSERT(sfmt_get_min_array_size32(&sfmt) <= BlockSize);
-}
-
-unsigned int SFMTRandom::Impl::NextUInt()
-{
-	return sfmt_genrand_uint32(&sfmt);
-
-	//if (bufferSampleIndex >= BlockSize)
-	//{
-	//	GenerateSamples();
-	//}
-	//
-	//auto v = buffer.get()[bufferSampleIndex / 4].u[bufferSampleIndex % 4];
-	//bufferSampleIndex++;
-	//return v;
-}
-
-void SFMTRandom::Impl::SetSeed( unsigned int seed )
-{
-	sfmt_init_gen_rand(&sfmt, seed);
-	//GenerateSamples();
-}
-
-//void SFMTRandom::Impl::GenerateSamples()
-//{
-//	sfmt_fill_array32(&sfmt, (uint32_t*)buffer.get(), BlockSize);
-//	bufferSampleIndex = 0;
-//}
-
-// --------------------------------------------------------------------------------
-
-SFMTRandom::SFMTRandom()
-	: p(new Impl)
-{
-
-}
-
-SFMTRandom::~SFMTRandom()
-{
-	LM_SAFE_DELETE(p);
-}
-
-unsigned int SFMTRandom::NextUInt()
-{
-	return p->NextUInt();
-}
-
-void SFMTRandom::SetSeed( unsigned int seed )
-{
-	p->SetSeed(seed);
-}
-*/
