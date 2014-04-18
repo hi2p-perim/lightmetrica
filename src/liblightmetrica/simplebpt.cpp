@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/simplebpt.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
@@ -43,21 +43,27 @@
 
 LM_NAMESPACE_BEGIN
 
-class SimpleBidirectionalPathtraceRenderer::Impl : public Object
+/*!
+	Simple bidirectional path trace renderer.
+	An implementation of bidirectional path tracing (BPT).
+	This simple implementation omits multiple importance sampling between paths
+	which is originally referred in the Veach's thesis.
+*/
+class SimpleBidirectionalPathtraceRenderer : public Renderer
 {
 public:
 
-	Impl(SimpleBidirectionalPathtraceRenderer* self);
+	LM_COMPONENT_IMPL_DEF("simplebpt");
 
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	bool Render( const Scene& scene );
-	boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
-	SimpleBidirectionalPathtraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;			// Number of samples
@@ -68,21 +74,8 @@ private:
 
 };
 
-SimpleBidirectionalPathtraceRenderer::Impl::Impl( SimpleBidirectionalPathtraceRenderer* self )
-	: self(self)
+bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-
-}
-
-bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
-{
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
@@ -107,7 +100,7 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& no
 	return true;
 }
 
-bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
+bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -334,32 +327,6 @@ bool SimpleBidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-// --------------------------------------------------------------------------------
-
-SimpleBidirectionalPathtraceRenderer::SimpleBidirectionalPathtraceRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-SimpleBidirectionalPathtraceRenderer::~SimpleBidirectionalPathtraceRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
-{
-	return p->Render(scene);
-}
-
-boost::signals2::connection SimpleBidirectionalPathtraceRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(SimpleBidirectionalPathtraceRenderer);
 
 LM_NAMESPACE_END

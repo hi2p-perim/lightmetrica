@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/bpt.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/bpt.path.h>
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/confignode.h>
@@ -88,17 +88,25 @@ enum class BPTMISWeightMode
 	PowerHeuristics		// Power heuristics
 };
 
-class BidirectionalPathtraceRenderer::Impl : public Object
+/*!
+	Veach's bidirectional path trace renderer.
+	An implementation of bidirectional path tracing (BPT) according to Veach's paper.
+	Reference:
+		Veach, E. and Guibas, L., Bidirectional estimators for light transport,
+		In Proceedings of the Fifth Eurographics Workshop on Rendering, pp. 147-162, 1994.
+*/
+class BidirectionalPathtraceRenderer : public Renderer
 {
 public:
 
-	Impl(BidirectionalPathtraceRenderer* self);
+	LM_COMPONENT_IMPL_DEF("bpt");
 
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	bool Render( const Scene& scene );
-	boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -169,7 +177,6 @@ private:
 
 private:
 
-	BidirectionalPathtraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;						// Number of samples
@@ -199,21 +206,8 @@ private:
 
 };
 
-BidirectionalPathtraceRenderer::Impl::Impl( BidirectionalPathtraceRenderer* self )
-	: self(self)
+bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-
-}
-
-bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
-{
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -311,7 +305,7 @@ bool BidirectionalPathtraceRenderer::Impl::Configure( const ConfigNode& node, co
 	return true;
 }
 
-bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
+bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -487,7 +481,7 @@ bool BidirectionalPathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath ) const
+void BidirectionalPathtraceRenderer::SampleSubpath( const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath ) const
 {
 	BPTPathVertex* v;
 
@@ -650,7 +644,7 @@ void BidirectionalPathtraceRenderer::Impl::SampleSubpath( const Scene& scene, Ra
 	}
 }
 
-void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
+void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
 {
 	// Let n_E and n_L be the number of vertices of eye and light sub-paths respectively.
 	// Rewriting the order of summation of Veach's estimator (equation 10.3 in [Veach 1997]),
@@ -738,7 +732,7 @@ void BidirectionalPathtraceRenderer::Impl::EvaluateSubpathCombinations( const Sc
 	}
 }
 
-Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateMISWeight( const BPTFullPath& fullPath ) const
+Math::Float BidirectionalPathtraceRenderer::EvaluateMISWeight( const BPTFullPath& fullPath ) const
 {
 	if (misWeightMode == BPTMISWeightMode::Simple)
 	{
@@ -751,7 +745,7 @@ Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateMISWeight( const BPTFu
 	}
 }
 
-Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateSimpleMISWeight( const BPTFullPath& fullPath ) const
+Math::Float BidirectionalPathtraceRenderer::EvaluateSimpleMISWeight( const BPTFullPath& fullPath ) const
 {
 	// Simple weight: reciprocal of # of full-paths with positive probability.
 	const int nE = static_cast<int>(fullPath.eyeSubpath.vertices.size());
@@ -787,7 +781,7 @@ Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateSimpleMISWeight( const
 	return Math::Float(1) / Math::Float(nonZeroProbPaths);
 }
 
-Math::Float BidirectionalPathtraceRenderer::Impl::EvaluatePowerHeuristicsMISWeight( const BPTFullPath& fullPath ) const
+Math::Float BidirectionalPathtraceRenderer::EvaluatePowerHeuristicsMISWeight( const BPTFullPath& fullPath ) const
 {
 	const int n = fullPath.s + fullPath.t;
 
@@ -826,7 +820,7 @@ Math::Float BidirectionalPathtraceRenderer::Impl::EvaluatePowerHeuristicsMISWeig
 	return Math::Float(1) / invWeight;
 }
 
-Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateSubsequentProbRatio( int i, const BPTFullPath& fullPath ) const
+Math::Float BidirectionalPathtraceRenderer::EvaluateSubsequentProbRatio( int i, const BPTFullPath& fullPath ) const
 {
 	int n = fullPath.s + fullPath.t;
 	if (i == 0)
@@ -900,7 +894,7 @@ Math::Float BidirectionalPathtraceRenderer::Impl::EvaluateSubsequentProbRatio( i
 	return Math::Float(0);
 }
 
-const BPTPathVertex* BidirectionalPathtraceRenderer::Impl::FullPathVertex( int i, const BPTFullPath& fullPath ) const
+const BPTPathVertex* BidirectionalPathtraceRenderer::FullPathVertex( int i, const BPTFullPath& fullPath ) const
 {
 	LM_ASSERT(0 <= i && i < fullPath.s + fullPath.t);
 	return
@@ -909,7 +903,7 @@ const BPTPathVertex* BidirectionalPathtraceRenderer::Impl::FullPathVertex( int i
 			: fullPath.eyeSubpath.vertices[fullPath.t-1-(i-fullPath.s)];
 }
 
-Math::PDFEval BidirectionalPathtraceRenderer::Impl::FullPathVertexDirectionPDF( int i, const BPTFullPath& fullPath, TransportDirection transportDir ) const
+Math::PDFEval BidirectionalPathtraceRenderer::FullPathVertexDirectionPDF( int i, const BPTFullPath& fullPath, TransportDirection transportDir ) const
 {
 	LM_ASSERT(0 <= i && i < fullPath.s + fullPath.t);
 	return
@@ -918,7 +912,7 @@ Math::PDFEval BidirectionalPathtraceRenderer::Impl::FullPathVertexDirectionPDF( 
 							: FullPathVertex(i, fullPath)->pdfD[transportDir];
 }
 
-Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateUnweightContribution( const Scene& scene, const BPTFullPath& fullPath, Math::Vec2& rasterPosition ) const
+Math::Vec3 BidirectionalPathtraceRenderer::EvaluateUnweightContribution( const Scene& scene, const BPTFullPath& fullPath, Math::Vec2& rasterPosition ) const
 {
 	// Evaluate \alpha^L_s
 	auto alphaL = EvaluateSubpathAlpha(fullPath.s, TransportDirection::LE, fullPath.lightSubpath, rasterPosition);
@@ -1040,7 +1034,7 @@ Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateUnweightContribution( c
 	return alphaL * cst * alphaE;
 }
 
-Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition ) const
+Math::Vec3 BidirectionalPathtraceRenderer::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition ) const
 {
 	Math::Vec3 alpha;
 
@@ -1096,32 +1090,6 @@ Math::Vec3 BidirectionalPathtraceRenderer::Impl::EvaluateSubpathAlpha( int vs, T
 	return alpha;
 }
 
-// --------------------------------------------------------------------------------
-
-BidirectionalPathtraceRenderer::BidirectionalPathtraceRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-BidirectionalPathtraceRenderer::~BidirectionalPathtraceRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
-{
-	return p->Render(scene);
-}
-
-boost::signals2::connection BidirectionalPathtraceRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(BidirectionalPathtraceRenderer);
 
 LM_NAMESPACE_END

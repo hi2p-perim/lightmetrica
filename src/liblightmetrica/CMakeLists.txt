@@ -266,17 +266,10 @@ list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
 set(
 	_RENDERER_HEADERS
 	"${_INCLUDE_DIR}/renderer.h"
-	"${_INCLUDE_DIR}/rendererfactory.h"
 	"${_INCLUDE_DIR}/renderutils.h"
-	"${_INCLUDE_DIR}/raycast.h"
-	"${_INCLUDE_DIR}/pathtrace.h"
-	"${_INCLUDE_DIR}/lighttrace.h"
-	"${_INCLUDE_DIR}/simplebpt.h"
-	"${_INCLUDE_DIR}/explicitpathtrace.h"
 )
 set(
 	_RENDERER_SOURCES
-	"rendererfactory.cpp"
 	"renderutils.cpp"
 	"raycast.cpp"
 	"pathtrace.cpp"
@@ -293,7 +286,6 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 
 set(
 	_RENDERER_PSSMLT_HEADERS
-	"${_INCLUDE_DIR}/pssmlt.h"
 	"${_INCLUDE_DIR}/pssmlt.sampler.h"
 )
 set(
@@ -310,7 +302,6 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 
 set(
 	_RENDERER_BPT_HEADERS
-	"${_INCLUDE_DIR}/bpt.h"
 	"${_INCLUDE_DIR}/bpt.path.h"
 	"${_INCLUDE_DIR}/bpt.pool.h"
 )

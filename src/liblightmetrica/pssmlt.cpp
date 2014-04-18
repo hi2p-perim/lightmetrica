@@ -1,4 +1,4 @@
-/*
+﻿/*
 	Lightmetrica : A research-oriented renderer
 
 	Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)
@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/pssmlt.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/pssmlt.sampler.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
@@ -131,17 +131,26 @@ enum class PSSMLTEstimatorMode
 	MeanValueSubstitution_LargeStepMIS
 };
 
-class PSSMLTRenderer::Impl
+/*!
+	Primary sample space Metropolis light transport renderer.
+	An implementation of primary sample space Metropolis light transport (PSSMLT) algorithm.
+	Reference:
+		Kelemen, C., Szirmay-Kalos, L., Antal, G., and Csonka, F.,
+		A simple and robust mutation strategy for the metropolis light transport algorithm,
+		In Computer Graphics Forum. pp. 531–540, 2002.
+*/
+class PSSMLTRenderer : public Renderer
 {
 public:
 
-	Impl(PSSMLTRenderer* self);
+	LM_COMPONENT_IMPL_DEF("pssmlt");
 
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	bool Render( const Scene& scene );
-	boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -150,7 +159,6 @@ private:
 
 private:
 
-	PSSMLTRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;						// Number of sample mutations
@@ -171,21 +179,8 @@ private:
 
 };
 
-PSSMLTRenderer::Impl::Impl( PSSMLTRenderer* self )
-	: self(self)
+bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-	
-}
-
-bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
-{
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -265,7 +260,7 @@ bool PSSMLTRenderer::Impl::Configure( const ConfigNode& node, const Assets& asse
 	return true;
 }
 
-bool PSSMLTRenderer::Impl::Render( const Scene& scene )
+bool PSSMLTRenderer::Render( const Scene& scene )
 {
 	// Set number of threads
 	omp_set_num_threads(numThreads);
@@ -431,7 +426,7 @@ bool PSSMLTRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-void PSSMLTRenderer::Impl::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds ) const
+void PSSMLTRenderer::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds ) const
 {
 	// Generate candidates for seeds
 	std::vector<PSSMLTPathSeed> candidates;
@@ -495,7 +490,7 @@ void PSSMLTRenderer::Impl::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRes
 	}
 }
 
-void PSSMLTRenderer::Impl::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth ) const
+void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth ) const
 {
 	// Raster position
 	rasterPos = sampler.NextVec2();
@@ -598,32 +593,6 @@ void PSSMLTRenderer::Impl::SampleAndEvaluatePath( const Scene& scene, PSSMLTSamp
 	}
 }
 
-// --------------------------------------------------------------------------------
-
-PSSMLTRenderer::PSSMLTRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-PSSMLTRenderer::~PSSMLTRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-bool PSSMLTRenderer::Render( const Scene& scene )
-{
-	return p->Render(scene);
-}
-
-boost::signals2::connection PSSMLTRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer);
 
 LM_NAMESPACE_END

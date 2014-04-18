@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/pathtrace.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/ray.h>
@@ -44,21 +44,28 @@
 
 LM_NAMESPACE_BEGIN
 
-class PathtraceRenderer::Impl : public Object
+/*!
+	Path trace renderer.
+	An implementation of path tracing.
+	Reference:
+		Kajiya, J. T., The rendering equation,
+		Proceedings of the 13th annual conference on Computer graphics and interactive techniques, 1986,
+*/
+class PathtraceRenderer : public Renderer
 {
 public:
 
-	Impl(PathtraceRenderer* self);
+	LM_COMPONENT_IMPL_DEF("pathtrace");
 
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	bool Render( const Scene& scene );
-	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
-	PathtraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;		// Number of samples
@@ -73,21 +80,8 @@ private:
 
 };
 
-PathtraceRenderer::Impl::Impl( PathtraceRenderer* self )
-	: self(self)
+bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-
-}
-
-bool PathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
-{
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -134,7 +128,7 @@ bool PathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& a
 	return true;
 }
 
-bool PathtraceRenderer::Impl::Render( const Scene& scene )
+bool PathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -306,32 +300,6 @@ bool PathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-// --------------------------------------------------------------------------------
-
-PathtraceRenderer::PathtraceRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-PathtraceRenderer::~PathtraceRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-bool PathtraceRenderer::Render( const Scene& scene )
-{
-	return p->Render(scene);
-}
-
-boost::signals2::connection PathtraceRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(PathtraceRenderer);
 
 LM_NAMESPACE_END

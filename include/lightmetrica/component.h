@@ -54,10 +54,6 @@ public:
 	Component() {}
 	virtual ~Component() {}
 
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(Component);
-
 };
 
 // --------------------------------------------------------------------------------

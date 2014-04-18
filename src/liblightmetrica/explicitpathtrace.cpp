@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/explicitpathtrace.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
@@ -140,17 +140,23 @@ struct ThreadContext
 
 // --------------------------------------------------------------------------------
 
-class ExplictPathtraceRenderer::Impl : public Object
+/*!
+	Path tracing with explicit path sampling.
+	This implementation of path tracing samples light paths
+	and estimates LTE by explicitly evaluating the equation f / p.
+*/
+class ExplictPathtraceRenderer : public Renderer
 {
 public:
 
-	Impl(ExplictPathtraceRenderer* self);
+	LM_COMPONENT_IMPL_DEF("explicitpathtrace");
 
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	bool Render( const Scene& scene );
-	boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Render( const Scene& scene );
+	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -159,7 +165,6 @@ private:
 
 private:
 
-	ExplictPathtraceRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;			// Number of samples
@@ -170,21 +175,8 @@ private:
 
 };
 
-ExplictPathtraceRenderer::Impl::Impl( ExplictPathtraceRenderer* self )
-	: self(self)
+bool ExplictPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-	
-}
-
-bool ExplictPathtraceRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
-{
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -209,7 +201,7 @@ bool ExplictPathtraceRenderer::Impl::Configure( const ConfigNode& node, const As
 	return true;
 }
 
-bool ExplictPathtraceRenderer::Impl::Render( const Scene& scene )
+bool ExplictPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -287,7 +279,7 @@ bool ExplictPathtraceRenderer::Impl::Render( const Scene& scene )
 	return true;
 }
 
-bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng, PathVertexPool& pool, Path& path, Math::PDFEval& pathDimensionPdf )
+bool ExplictPathtraceRenderer::SamplePath( const Scene& scene, Random& rng, PathVertexPool& pool, Path& path, Math::PDFEval& pathDimensionPdf )
 {
 	PathVertex* v;
 
@@ -422,7 +414,7 @@ bool ExplictPathtraceRenderer::Impl::SamplePath( const Scene& scene, Random& rng
 	return false;
 }
 
-Math::Vec3 ExplictPathtraceRenderer::Impl::EvaluatePath( const Path& path, const Math::PDFEval& pathDimensionPdf )
+Math::Vec3 ExplictPathtraceRenderer::EvaluatePath( const Path& path, const Math::PDFEval& pathDimensionPdf )
 {
 	Math::Vec3 contrb(Math::Float(1));
 
@@ -453,32 +445,6 @@ Math::Vec3 ExplictPathtraceRenderer::Impl::EvaluatePath( const Path& path, const
 	return contrb / pathDimensionPdf.v;
 }
 
-// --------------------------------------------------------------------------------
-
-ExplictPathtraceRenderer::ExplictPathtraceRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-ExplictPathtraceRenderer::~ExplictPathtraceRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool lightmetrica::ExplictPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-bool lightmetrica::ExplictPathtraceRenderer::Render( const Scene& scene )
-{
-	return p->Render(scene);
-}
-
-boost::signals2::connection lightmetrica::ExplictPathtraceRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(ExplictPathtraceRenderer);
 
 LM_NAMESPACE_END

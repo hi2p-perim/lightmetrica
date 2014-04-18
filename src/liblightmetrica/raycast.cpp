@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/raycast.h>
+#include <lightmetrica/renderer.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
@@ -38,33 +38,27 @@
 
 LM_NAMESPACE_BEGIN
 
-class RaycastRenderer::Impl : public Object
+class RaycastRenderer : public Renderer
 {
 public:
 
-	Impl(RaycastRenderer* self);
+	LM_COMPONENT_IMPL_DEF("raycast");
 
 public:
 
-	bool Render(const Scene& scene);
-	bool Configure(const ConfigNode& node, const Assets& assets);
-	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const { return ImplTypeName(); }
+	virtual bool Render(const Scene& scene);
+	virtual bool Configure(const ConfigNode& node, const Assets& assets);
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
-	RaycastRenderer* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 	int numThreads;
 
 };
 
-RaycastRenderer::Impl::Impl( RaycastRenderer* self )
-	: self(self)
-{
-	
-}
-
-bool RaycastRenderer::Impl::Render(const Scene& scene)
+bool RaycastRenderer::Render(const Scene& scene)
 {
 	auto* film = scene.MainCamera()->GetFilm();
 	std::atomic<int> processedLines(0);
@@ -125,15 +119,8 @@ bool RaycastRenderer::Impl::Render(const Scene& scene)
 	return true;
 }
 
-bool RaycastRenderer::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool RaycastRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-	// Check type
-	if (node.AttributeValue("type") != self->Type())
-	{
-		LM_LOG_ERROR("Invalid renderer type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
 	// Load parameters
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
@@ -144,32 +131,6 @@ bool RaycastRenderer::Impl::Configure( const ConfigNode& node, const Assets& ass
 	return true;
 }
 
-// --------------------------------------------------------------------------------
-
-RaycastRenderer::RaycastRenderer()
-	: p(new Impl(this))
-{
-
-}
-
-RaycastRenderer::~RaycastRenderer()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool RaycastRenderer::Render(const Scene& scene)
-{
-	return p->Render(scene);
-}
-
-bool RaycastRenderer::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-boost::signals2::connection RaycastRenderer::Connect_ReportProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(RaycastRenderer);
 
 LM_NAMESPACE_END

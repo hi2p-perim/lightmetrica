@@ -26,9 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_RENDERER_H
 #define LIB_LIGHTMETRICA_RENDERER_H
 
-#include "object.h"
-#include <string>
-#include <functional>
+#include "component.h"
 #include <boost/signals2.hpp>
 
 LM_NAMESPACE_BEGIN
@@ -41,8 +39,12 @@ class ConfigNode;
 	Renderer class.
 	A base class of the renderer.
 */
-class LM_PUBLIC_API Renderer : public Object
+class Renderer : public Component
 {
+public:
+
+	LM_COMPONENT_INTERFACE_DEF("renderer");
+
 public:
 
 	Renderer() {}
@@ -55,6 +57,12 @@ private:
 public:
 
 	/*!
+		Get renderer type.
+		\return Renderer type.
+	*/
+	virtual std::string Type() const = 0;
+
+	/*!
 		Configure the renderer from XML element.
 		This function is used internally or testing.
 		\param node A XML element which consists of \a renderer element.
@@ -62,12 +70,6 @@ public:
 		\retval false Failed to configure.
 	*/
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-
-	/*!
-		Get the scene type.
-		\return Scene type.
-	*/
-	virtual std::string Type() const = 0;
 
 	/*!
 		Start rendering.

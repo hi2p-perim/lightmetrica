@@ -31,7 +31,6 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/scenefactory.h>
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/rendererfactory.h>
 #include <lightmetrica/camerafactory.h>
 #include <lightmetrica/filmfactory.h>
 #include <lightmetrica/lightfactory.h>
@@ -248,10 +247,11 @@ bool LightmetricaApplication::Run()
 	}
 
 	// Create and configure renderer
-	RendererFactory rendererFactory;
-	std::unique_ptr<Renderer> renderer(rendererFactory.Create(config.Root().Child("renderer").AttributeValue("type")));
+	auto rendererType = config.Root().Child("renderer").AttributeValue("type");
+	std::unique_ptr<Renderer> renderer(ComponentFactory::Create<Renderer>(rendererType));
 	if (renderer == nullptr)
 	{
+		LM_LOG_ERROR("Invalid renderer type ''" + rendererType + "'");
 		return false;
 	}
 	if (!ConfigureAndDispatchRenderer(config, assets, *scene, *renderer))
