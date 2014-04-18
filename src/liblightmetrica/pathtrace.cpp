@@ -300,6 +300,6 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(PathtraceRenderer);
+LM_COMPONENT_REGISTER_IMPL(PathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END

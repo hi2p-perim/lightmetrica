@@ -208,10 +208,10 @@ LM_NAMESPACE_END
 	\param Name of the class.
 */
 
-#define LM_COMPONENT_INTERFACE_DEF(Name)												\
+#define LM_COMPONENT_INTERFACE_DEF(Name)	\
 	static const char* InterfaceTypeName() { return Name; }
 
-#define LM_COMPONENT_IMPL_DEF(Name)														\
+#define LM_COMPONENT_IMPL_DEF(Name)			\
 	static const char* ImplTypeName() { return Name; }
 	
 // --------------------------------------------------------------------------------
@@ -226,30 +226,42 @@ LM_NAMESPACE_END
 
 /*!
 	\def LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(Type, FuncName)
-	Checks whether a class with #Type has a member function of #FuncName.
+	Statically checks whether #Type has a member function of #FuncName.
 	Queries function must be registered beforehand.
 	\param Type Type of the class to be checked.
 	\param FuncName Function name.
 	\sa LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION
 */
 
-#define LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(FuncName, Signature)					\
-	template <typename T, typename = std::true_type>									\
-	struct has_member_function_##FuncName : std::false_type {};							\
-																						\
-	template <typename T>																\
-	struct has_member_function_##FuncName<												\
-		T,																				\
-		std::integral_constant<															\
-			bool,																		\
-			check_func_signature<Signature, &T::FuncName>::value						\
-		>																				\
+/*!
+	\def LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType)
+	Statically checks whether #ImplType is inherited from #InterfaceType.
+	\param ImplType Implementation class type.
+	\param InterfaceType Interface class type.
+*/
+
+#define LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(FuncName, Signature)		\
+	template <typename T, typename = std::true_type>						\
+	struct has_member_function_##FuncName : std::false_type {};				\
+																			\
+	template <typename T>													\
+	struct has_member_function_##FuncName<									\
+		T,																	\
+		std::integral_constant<												\
+			bool,															\
+			check_func_signature<Signature, &T::FuncName>::value			\
+		>																	\
 	> : std::true_type {}
 
-#define LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(Type, FuncName)							\
-	static_assert(																		\
-		has_member_function_##FuncName<Type>::value,									\
+#define LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(Type, FuncName)				\
+	static_assert(															\
+		has_member_function_##FuncName<Type>::value,						\
 		"Component class of type '" #Type "' must have the member function '" #FuncName "'")
+
+#define LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType)		\
+	static_assert(															\
+		std::is_base_of<InterfaceType, ImplType>::value,					\
+		"Component class of type '" #ImplType "' must be inherited from the class of type '" #InterfaceType "'")
 
 // --------------------------------------------------------------------------------
 
@@ -260,6 +272,7 @@ template <typename T, T>
 struct check_func_signature : std::true_type {};
 
 LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(ImplTypeName, const char* (*)());
+LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(InterfaceTypeName, const char* (*)());
 
 LM_DETAIL_NAMESPACE_END
 LM_NAMESPACE_END
@@ -276,25 +289,27 @@ LM_NAMESPACE_END
 	\tparam ImplType Component implementation type.
 */
 
-#define LM_COMPONENT_REGISTER_IMPL(ImplType)											\
-	namespace detail {																	\
-	namespace {																			\
-																						\
-		template <typename T>															\
-		class ComponentFactoryEntryInstance;											\
-																						\
-		template <>																		\
-		class ComponentFactoryEntryInstance<ImplType>									\
-		{																				\
-			static const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>& reg;	\
-		};																				\
-																						\
-		const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>&					\
-			ComponentFactoryEntryInstance<ImplType>::reg =								\
-				::lightmetrica::detail::ComponentFactoryEntry<ImplType>::Instance();	\
-																						\
-		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);					\
-																						\
+#define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)									\
+	namespace detail {																		\
+	namespace {																				\
+																							\
+		template <typename T>																\
+		class ComponentFactoryEntryInstance;												\
+																							\
+		template <>																			\
+		class ComponentFactoryEntryInstance<ImplType>										\
+		{																					\
+			static const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>& reg;		\
+		};																					\
+																							\
+		const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>&						\
+			ComponentFactoryEntryInstance<ImplType>::reg =									\
+				::lightmetrica::detail::ComponentFactoryEntry<ImplType>::Instance();		\
+																							\
+		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType);						\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);						\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(InterfaceType, InterfaceTypeName);			\
+																							\
 	}}
 
 #endif // LIB_LIGHTMETRICA_COMPONENT_H

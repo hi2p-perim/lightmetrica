@@ -327,6 +327,6 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(SimpleBidirectionalPathtraceRenderer);
+LM_COMPONENT_REGISTER_IMPL(SimpleBidirectionalPathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END

@@ -335,6 +335,6 @@ bool LighttraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(LighttraceRenderer);
+LM_COMPONENT_REGISTER_IMPL(LighttraceRenderer, Renderer);
 
 LM_NAMESPACE_END

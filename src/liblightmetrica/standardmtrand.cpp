@@ -54,6 +54,6 @@ private:
 
 };
 
-LM_COMPONENT_REGISTER_IMPL(StandardMTRandom);
+LM_COMPONENT_REGISTER_IMPL(StandardMTRandom, Random);
 
 LM_NAMESPACE_END

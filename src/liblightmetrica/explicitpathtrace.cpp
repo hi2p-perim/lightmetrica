@@ -445,6 +445,6 @@ Math::Vec3 ExplictPathtraceRenderer::EvaluatePath( const Path& path, const Math:
 	return contrb / pathDimensionPdf.v;
 }
 
-LM_COMPONENT_REGISTER_IMPL(ExplictPathtraceRenderer);
+LM_COMPONENT_REGISTER_IMPL(ExplictPathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END

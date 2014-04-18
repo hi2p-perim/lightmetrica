@@ -593,6 +593,6 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 	}
 }
 
-LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer);
+LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer, Renderer);
 
 LM_NAMESPACE_END

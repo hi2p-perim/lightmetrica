@@ -131,6 +131,6 @@ bool RaycastRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(RaycastRenderer);
+LM_COMPONENT_REGISTER_IMPL(RaycastRenderer, Renderer);
 
 LM_NAMESPACE_END

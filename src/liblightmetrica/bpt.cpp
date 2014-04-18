@@ -1090,6 +1090,6 @@ Math::Vec3 BidirectionalPathtraceRenderer::EvaluateSubpathAlpha( int vs, Transpo
 	return alpha;
 }
 
-LM_COMPONENT_REGISTER_IMPL(BidirectionalPathtraceRenderer);
+LM_COMPONENT_REGISTER_IMPL(BidirectionalPathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END
