@@ -22,58 +22,42 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
-#include <boost/pool/pool.hpp>
-#include <boost/pool/object_pool.hpp>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_BPT_FULL_PATH_H
+#define LIB_LIGHTMETRICA_BPT_FULL_PATH_H
+
+#include "bpt.common.h"
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-// Object pool type for PathVertex.
-typedef boost::object_pool<BPTPathVertex, boost_pool_aligned_allocator<std::alignment_of<BPTPathVertex>::value>> Pool;
+class BPTSubpath;
 
-class BPTPathVertexPool::Impl
+/*!
+	BPT full-path.
+	Represents a full-path combining light sub-path and eye sub-path.
+*/
+class BPTFullPath
 {
 public:
 
-	Impl()
-		: pool(sizeof(BPTPathVertex))
-	{}
-
-public:
-
-	BPTPathVertex* Construct() { return pool.construct(); }
-	void Release(BPTPathVertex* v) { pool.destroy(v); }
+	BPTFullPath(int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
 
 private:
 
-	Pool pool;
+	LM_DISABLE_COPY_AND_MOVE(BPTFullPath);
+
+public:
+
+	const BPTSubpath& lightSubpath;		//!< Light sub-path
+	const BPTSubpath& eyeSubpath;		//!< Eye sub-path
+	int s;								//!< # of vertices in light sub-path
+	int t;								//!< # of vertices in eye-subpath
+	Math::PDFEval pdfDL[2];				//!< PDF evaluation for y_{s-1}
+	Math::PDFEval pdfDE[2];				//!< PDF evaluation for z_{t-1}
 
 };
 
-// --------------------------------------------------------------------------------
-
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
-{
-
-}
-
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
-
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release( BPTPathVertex* v )
-{
-	p->Release(v);
-}
-
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_BPT_FULL_PATH_H

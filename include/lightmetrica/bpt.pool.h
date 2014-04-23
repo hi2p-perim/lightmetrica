@@ -26,11 +26,11 @@
 #ifndef LIB_LIGHTMETRICA_BPT_POOL_H
 #define LIB_LIGHTMETRICA_BPT_POOL_H
 
-#include "common.h"
+#include "bpt.common.h"
 
 LM_NAMESPACE_BEGIN
 
-struct BPTPathVertex;
+class BPTPathVertex;
 
 /*!
 	BPT path vertex pool.

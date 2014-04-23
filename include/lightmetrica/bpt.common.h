@@ -22,58 +22,12 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
-#include <boost/pool/pool.hpp>
-#include <boost/pool/object_pool.hpp>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_BPT_COMMON_H
+#define LIB_LIGHTMETRICA_BPT_COMMON_H
 
-LM_NAMESPACE_BEGIN
+#include "common.h"
 
-// Object pool type for PathVertex.
-typedef boost::object_pool<BPTPathVertex, boost_pool_aligned_allocator<std::alignment_of<BPTPathVertex>::value>> Pool;
+#define LM_ENABLE_BPT_EXPERIMENTAL 1
 
-class BPTPathVertexPool::Impl
-{
-public:
-
-	Impl()
-		: pool(sizeof(BPTPathVertex))
-	{}
-
-public:
-
-	BPTPathVertex* Construct() { return pool.construct(); }
-	void Release(BPTPathVertex* v) { pool.destroy(v); }
-
-private:
-
-	Pool pool;
-
-};
-
-// --------------------------------------------------------------------------------
-
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
-{
-
-}
-
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
-
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release( BPTPathVertex* v )
-{
-	p->Release(v);
-}
-
-LM_NAMESPACE_END
+#endif // LIB_LIGHTMETRICA_BPT_COMMON_H

@@ -24,7 +24,9 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/bpt.path.h>
+#include <lightmetrica/bpt.subpath.h>
+#include <lightmetrica/bpt.config.h>
+#include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
@@ -47,20 +49,18 @@
 #include <atomic>
 #include <omp.h>
 
-#define LM_ENABLE_BPT_EXPERIMENTAL 1
-
 LM_NAMESPACE_BEGIN
 
-/*
+/*!
 	Per-thread data.
 	Contains data associated with a thread.
 */
 struct BPTThreadContext
 {
 	
-	std::unique_ptr<Random> rng;				// Random number generator
-	std::unique_ptr<Film> film;					// Film
-	std::unique_ptr<BPTPathVertexPool> pool;	// Memory pool for path vertices
+	std::unique_ptr<Random> rng;				//!< Random number generator
+	std::unique_ptr<Film> film;					//!< Film
+	std::unique_ptr<BPTPathVertexPool> pool;	//!< Memory pool for path vertices
 
 	BPTThreadContext(Random* rng, Film* film)
 		: rng(rng)
@@ -78,14 +78,6 @@ struct BPTThreadContext
 
 	}
 
-};
-
-// --------------------------------------------------------------------------------
-
-enum class BPTMISWeightMode
-{
-	Simple,				// Reciprocal of # of non-zero probability sampling strategies
-	PowerHeuristics		// Power heuristics
 };
 
 /*!
@@ -110,18 +102,7 @@ public:
 
 private:
 
-	/*
-		Sample a sub-path.
-		Sample eye sub-subpath or light sub-path according to #transportDir.
-		\param scene Scene.
-		\param rng Random number generator.
-		\param pool Memory pool for path vertex.
-		\param transportDir Transport direction.
-		\param subpath Sampled subpath.
-	*/
-	void SampleSubpath(const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath) const;
-
-	/*
+	/*!
 		Evaluate contribution with combination of sub-paths.
 		See [Veach 1997] for details.
 		\param scene Scene.
@@ -129,11 +110,11 @@ private:
 		\param lightSubpath Light sub-path.
 		\param eyeSubpath Eye sub-path.
 	*/
-	void EvaluateSubpathCombinations(const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath);
+	void EvaluateSubpathCombinations(const Scene& scene, Film& film, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
 
 private:
 
-	/*
+	/*!
 		Evaluate MIS weight w_{s,t}.
 		\param fullPath Full-path.
 		\return MIS weight.
@@ -173,31 +154,16 @@ private:
 		\param subpath Light sub-path or eye sub-path.
 		\param rasterPosition Raster position.
 	*/
-	Math::Vec3 EvaluateSubpathAlpha(int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition) const;
+	Math::Vec3 EvaluateSubpathAlpha(int vs, TransportDirection transportDir, const BPTSubpath& subpath, Math::Vec2& rasterPosition) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-
-	long long numSamples;						// Number of samples
-	int rrDepth;								// Depth of beginning RR
-	int numThreads;								// Number of threads
-	long long samplesPerBlock;					// Samples to be processed per block
-	std::string rngType;						// Type of random number generator
-	
-	BPTMISWeightMode misWeightMode;				// MIS weight function
-	Math::Float misPowerHeuristicsBetaCoeff;	// Beta coefficient for power heuristics
+	BPTConfig config;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-	// Experimental parameters
-	bool enableExperimentalMode;				// Enables experimental mode if true
-	int maxSubpathNumVertices;					// Maximum number of vertices of sub-paths
-	std::string subpathImageDir;				// Output directory of sub-path images
-
-	// Films for sub-path images
-	std::vector<std::unique_ptr<Film>> subpathFilms;
-	// Per length images
-	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;
+	std::vector<std::unique_ptr<Film>> subpathFilms;					// Films for sub-path images
+	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;		// Per length images
 #endif
 
 #if LM_EXPERIMENTAL_MODE
@@ -208,80 +174,12 @@ private:
 
 bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
+	if (!config.Load(node, assets))
 	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
-	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
-	if (samplesPerBlock <= 0)
-	{
-		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
-	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered(rngType))
-	{
-		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
-		return false;
-	}
-
-	// MIS weight function
-	auto misWeightModeNode = node.Child("mis_weight");
-	if (misWeightModeNode.Empty())
-	{
-		misWeightMode = BPTMISWeightMode::PowerHeuristics;
-		misPowerHeuristicsBetaCoeff = Math::Float(2);
-		LM_LOG_WARN("Missing 'mis_weight' element. Using default value.");
-	}
-	else
-	{
-		auto modeNode = misWeightModeNode.Child("mode");
-		if (modeNode.Empty())
-		{
-			misWeightMode = BPTMISWeightMode::PowerHeuristics;
-			misPowerHeuristicsBetaCoeff = Math::Float(2);
-			LM_LOG_WARN("Missing 'mis_weight' element. Using default value.");
-		}
-		else
-		{
-			if (modeNode.Value() == "simple")
-			{
-				misWeightMode = BPTMISWeightMode::Simple;
-			}
-			else if (modeNode.Value() == "power_heuristics")
-			{
-				misWeightMode = BPTMISWeightMode::PowerHeuristics;
-				misWeightModeNode.ChildValueOrDefault("beta_coeff", Math::Float(2), misPowerHeuristicsBetaCoeff);
-			}
-			else
-			{
-				LM_LOG_ERROR("Invalid MIS weight mode '" + modeNode.Value() + "'");
-				return false;
-			}
-		}
-	}
-
-#if LM_ENABLE_BPT_EXPERIMENTAL
-	// Experimental parameters
-	auto experimentalNode = node.Child("experimental");
-	if (!experimentalNode.Empty())
-	{
-		enableExperimentalMode = true;
-		experimentalNode.ChildValueOrDefault("max_subpath_num_vertices", 3, maxSubpathNumVertices);
-		experimentalNode.ChildValueOrDefault<std::string>("subpath_image_dir", "bpt", subpathImageDir);
-	}
-	else
-	{
-		enableExperimentalMode = false;
-	}
-#endif
 
 #if LM_EXPERIMENTAL_MODE
-	// Experiments
 	auto experimentsNode = node.Child("experiments");
 	if (!experimentsNode.Empty())
 	{
@@ -294,10 +192,10 @@ bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const As
 			return false;
 		}
 
-		if (numThreads != 1)
+		if (config.numThreads != 1)
 		{
 			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
+			config.numThreads = 1;
 		}
 	}
 #endif
@@ -317,27 +215,27 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	// --------------------------------------------------------------------------------
 
 	// Set number of threads
-	omp_set_num_threads(numThreads);
+	omp_set_num_threads(config.numThreads);
 
 	// Random number generators and films
 	std::vector<BPTThreadContext> contexts;
 	int seed = static_cast<int>(std::time(nullptr));
-	for (int i = 0; i < numThreads; i++)
+	for (int i = 0; i < config.numThreads; i++)
 	{
-		contexts.emplace_back(ComponentFactory::Create<Random>(rngType), masterFilm->Clone());
+		contexts.emplace_back(ComponentFactory::Create<Random>(config.rngType), masterFilm->Clone());
 		contexts.back().rng->SetSeed(seed + i);
 	}
 
 	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
+	long long blocks = (config.numSamples + config.samplesPerBlock) / config.samplesPerBlock;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	// Initialize films for sub-path combinations
-	if (enableExperimentalMode)
+	if (config.enableExperimentalMode)
 	{
-		for (int s = 0; s <= maxSubpathNumVertices; s++)
+		for (int s = 0; s <= config.maxSubpathNumVertices; s++)
 		{
-			for (int t = 0; t <= maxSubpathNumVertices; t++)
+			for (int t = 0; t <= config.maxSubpathNumVertices; t++)
 			{
 				subpathFilms.emplace_back(masterFilm->Clone());
 			}
@@ -357,14 +255,14 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		auto& pool = contexts[threadId].pool;
 
 		// Sample range
-		long long sampleBegin = samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+		long long sampleBegin = config.samplesPerBlock * block;
+		long long sampleEnd = Math::Min(sampleBegin + config.samplesPerBlock, config.numSamples);
 
 		// Sub-paths are reused in the sample block
 		// but probably it should be shared by per thread configuration
 		// (TODO : check performance gain)
-		BPTPath lightSubpath;
-		BPTPath eyeSubpath;
+		BPTSubpath lightSubpath;
+		BPTSubpath eyeSubpath;
 
 		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
@@ -372,13 +270,11 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		{
 			// Release and clear paths
 			lightSubpath.Release(*pool);
-			lightSubpath.Clear();
 			eyeSubpath.Release(*pool);
-			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			SampleSubpath(scene, *rng, *pool, TransportDirection::LE, lightSubpath);
-			SampleSubpath(scene, *rng, *pool, TransportDirection::EL, eyeSubpath);
+			lightSubpath.SampleSubpath(config, scene, *rng, *pool, TransportDirection::LE);
+			eyeSubpath.SampleSubpath(config, scene, *rng, *pool, TransportDirection::EL);
 
 			// Debug print
 #if 0
@@ -418,18 +314,18 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(config.numSamples));
 
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-	if (enableExperimentalMode)
+	if (config.enableExperimentalMode)
 	{
 		// Create output directory if it does not exists
-		if (!boost::filesystem::exists(subpathImageDir))
+		if (!boost::filesystem::exists(config.subpathImageDir))
 		{
-			LM_LOG_INFO("Creating directory " + subpathImageDir);
-			if (!boost::filesystem::create_directory(subpathImageDir))
+			LM_LOG_INFO("Creating directory " + config.subpathImageDir);
+			if (!boost::filesystem::create_directory(config.subpathImageDir))
 			{
 				return false;
 			}
@@ -439,16 +335,16 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		{
 			LM_LOG_INFO("Saving sub-path images");
 			LM_LOG_INDENTER();
-			for (int s = 0; s <= maxSubpathNumVertices; s++)
+			for (int s = 0; s <= config.maxSubpathNumVertices; s++)
 			{
-				for (int t = 0; t <= maxSubpathNumVertices; t++)
+				for (int t = 0; t <= config.maxSubpathNumVertices; t++)
 				{
-					auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("s%02dt%02d.hdr") % s % t);
+					auto path = boost::filesystem::path(config.subpathImageDir) / boost::str(boost::format("s%02dt%02d.hdr") % s % t);
 					{
 						LM_LOG_INFO("Saving " + path.string());
 						LM_LOG_INDENTER();
-						auto& film = subpathFilms[s*(maxSubpathNumVertices+1)+t];
-						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
+						auto& film = subpathFilms[s*(config.maxSubpathNumVertices+1)+t];
+						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(config.numSamples)))
 						{
 							return false;
 						}
@@ -463,12 +359,12 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			LM_LOG_INDENTER();
 			for (const auto& kv : perLengthFilms)
 			{
-				auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("l%03d.hdr") % kv.first);
+				auto path = boost::filesystem::path(config.subpathImageDir) / boost::str(boost::format("l%03d.hdr") % kv.first);
 				{
 					LM_LOG_INFO("Saving " + path.string());
 					LM_LOG_INDENTER();
 					auto& film = kv.second;
-					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
+					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(config.numSamples)))
 					{
 						return false;
 					}
@@ -481,170 +377,7 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-void BidirectionalPathtraceRenderer::SampleSubpath( const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir, BPTPath& subpath ) const
-{
-	BPTPathVertex* v;
-
-	// Initial vertex
-	v = pool.Construct();
-	v->type = BPTPathVertexType::EndPoint;
-	v->transportDir = transportDir;
-
-	// Positional component
-	if (transportDir == TransportDirection::EL)
-	{
-		// EyePosition
-		v->emitter = scene.MainCamera();
-		v->emitter->SamplePosition(rng.NextVec2(), v->geom, v->pdfP);
-	}
-	else
-	{
-		// LightPosition
-		auto lightSampleP = rng.NextVec2();
-		Math::PDFEval lightSelectionPdf;
-		v->emitter = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-		v->emitter->SamplePosition(lightSampleP, v->geom, v->pdfP);
-		v->pdfP.v *= lightSelectionPdf.v;
-	}
-
-	// Directional component
-	v->bsdf = v->emitter;
-
-	GeneralizedBSDFSampleQuery bsdfSQE;
-	bsdfSQE.sample = rng.NextVec2();
-	bsdfSQE.transportDir = transportDir;
-	bsdfSQE.type = GeneralizedBSDFType::AllEmitter;
-
-	GeneralizedBSDFSampleResult bsdfSRE;
-	v->bsdf->SampleDirection(bsdfSQE, v->geom, bsdfSRE);
-	v->pdfD[transportDir] = bsdfSRE.pdf;
-	v->pdfD[1-transportDir] = Math::PDFEval();
-	v->wo = bsdfSRE.wo;
-
-	// # of vertices is always greater than 1
-	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
-
-	subpath.Add(v);
-
-	// --------------------------------------------------------------------------------
-
-	int depth = 1;
-	while (true)
-	{
-		// Previous vertex
-		auto* pv = subpath.vertices.back();
-
-		// Create ray
-		Ray ray;
-		ray.d = pv->wo;
-		ray.o = pv->geom.p;
-		ray.minT = Math::Constants::Eps();
-		ray.maxT = Math::Constants::Inf();
-
-		// Check intersection
-		Intersection isect;
-		if (!scene.Intersect(ray, isect))
-		{
-			break;
-		}
-
-		// --------------------------------------------------------------------------------
-
-		// Create path vertex
-		v = pool.Construct();
-		v->type = BPTPathVertexType::IntermediatePoint;
-		v->transportDir = transportDir;
-		v->bsdf = isect.primitive->bsdf;
-		v->geom = isect.geom;
-		v->wi = -pv->wo;
-
-		// Area light or camera
-		v->areaLight = isect.primitive->light;
-		v->areaCamera = isect.primitive->camera;
-
-		// Area light or camera should not be associated with the same surfaces
-		LM_ASSERT(v->areaLight == nullptr || v->areaCamera == nullptr);
-		if (v->areaLight)
-		{
-			v->emitter = v->areaLight;
-		}
-		if (v->areaCamera)
-		{
-			v->emitter = v->areaCamera;
-		}
-		if (v->emitter)
-		{
-			// Calculate #pdfP for intersected emitter
-			v->pdfP = v->emitter->EvaluatePositionPDF(v->geom);
-		}
-		else
-		{
-			v->pdfP = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::Area);
-		}
-
-		// --------------------------------------------------------------------------------
-
-		// Apply RR
-		int rrDepthT = rrDepth;
-#if LM_ENABLE_BPT_EXPERIMENTAL
-		if (enableExperimentalMode)
-		{
-			// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
-			rrDepthT = Math::Max(rrDepthT, maxSubpathNumVertices);
-		}
-#endif
-
-		if (++depth >= rrDepthT)
-		{
-			// TODO : Replace with the more efficient one
-			auto p = Math::Float(0.5);
-			if (rng.Next() > p)
-			{
-				subpath.Add(v);
-				break;
-			}
-
-			// RR probability
-			v->pdfRR = Math::PDFEval(p, Math::ProbabilityMeasure::Discrete);
-		}
-		else
-		{
-			v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
-		}
-
-		// --------------------------------------------------------------------------------
-
-		// Sample generalized BSDF
-		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = rng.NextVec2();
-		bsdfSQ.transportDir = transportDir;
-		bsdfSQ.type = GeneralizedBSDFType::All;
-		bsdfSQ.wi = -pv->wo;
-
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
-		{
-			subpath.Add(v);
-			break;
-		}
-
-		v->wo = bsdfSR.wo;
-		v->pdfD[transportDir] = bsdfSR.pdf;
-
-		// Evaluate PDF in the opposite transport direction
-		// TODO : Handle specular case
-		GeneralizedBSDFEvaluateQuery bsdfEQ;
-		bsdfEQ.type = bsdfSR.sampledType;
-		bsdfEQ.transportDir = TransportDirection(1 - transportDir);
-		bsdfEQ.wi = bsdfSR.wo;
-		bsdfEQ.wo = bsdfSQ.wi;
-		v->pdfD[1-transportDir] = v->bsdf->EvaluateDirectionPDF(bsdfEQ, v->geom);
-
-		subpath.Add(v);
-	}
-}
-
-void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTPath& lightSubpath, const BPTPath& eyeSubpath )
+void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath )
 {
 	// Let n_E and n_L be the number of vertices of eye and light sub-paths respectively.
 	// Rewriting the order of summation of Veach's estimator (equation 10.3 in [Veach 1997]),
@@ -685,11 +418,11 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
-			if (enableExperimentalMode && s <= maxSubpathNumVertices && t <= maxSubpathNumVertices)
+			if (config.enableExperimentalMode && s <= config.maxSubpathNumVertices && t <= config.maxSubpathNumVertices)
 			{
 				#pragma omp critical
 				{
-					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, Cstar);
+					subpathFilms[s*(config.maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, Cstar);
 				}
 			}
 #endif
@@ -702,7 +435,7 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulate contribution to per length image
-			if (enableExperimentalMode)
+			if (config.enableExperimentalMode)
 			{
 				#pragma omp critical
 				{
@@ -734,13 +467,13 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 
 Math::Float BidirectionalPathtraceRenderer::EvaluateMISWeight( const BPTFullPath& fullPath ) const
 {
-	if (misWeightMode == BPTMISWeightMode::Simple)
+	if (config.misWeightMode == BPTMISWeightMode::Simple)
 	{
 		return EvaluateSimpleMISWeight(fullPath);
 	}
 	else
 	{
-		LM_ASSERT(misWeightMode == BPTMISWeightMode::PowerHeuristics);
+		LM_ASSERT(config.misWeightMode == BPTMISWeightMode::PowerHeuristics);
 		return EvaluatePowerHeuristicsMISWeight(fullPath);
 	}
 }
@@ -1034,7 +767,7 @@ Math::Vec3 BidirectionalPathtraceRenderer::EvaluateUnweightContribution( const S
 	return alphaL * cst * alphaE;
 }
 
-Math::Vec3 BidirectionalPathtraceRenderer::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTPath& subpath, Math::Vec2& rasterPosition ) const
+Math::Vec3 BidirectionalPathtraceRenderer::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTSubpath& subpath, Math::Vec2& rasterPosition ) const
 {
 	Math::Vec3 alpha;
 

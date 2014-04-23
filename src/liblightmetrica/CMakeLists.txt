@@ -302,13 +302,18 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 
 set(
 	_RENDERER_BPT_HEADERS
-	"${_INCLUDE_DIR}/bpt.path.h"
+	"${_INCLUDE_DIR}/bpt.common.h"
+	"${_INCLUDE_DIR}/bpt.config.h"
+	"${_INCLUDE_DIR}/bpt.subpath.h"
+	"${_INCLUDE_DIR}/bpt.fullpath.h"
 	"${_INCLUDE_DIR}/bpt.pool.h"
 )
 set(
 	_RENDERER_BPT_SOURCES
 	"bpt.cpp"
-	"bpt.path.cpp"
+	"bpt.config.cpp"
+	"bpt.subpath.cpp"
+	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_HEADERS})

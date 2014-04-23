@@ -23,10 +23,10 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_BPT_PATH_H
-#define LIB_LIGHTMETRICA_BPT_PATH_H
+#ifndef LIB_LIGHTMETRICA_BPT_SUBPATH_H
+#define LIB_LIGHTMETRICA_BPT_SUBPATH_H
 
-#include "common.h"
+#include "bpt.common.h"
 #include "math.types.h"
 #include "surfacegeometry.h"
 #include "transportdirection.h"
@@ -55,8 +55,25 @@ enum class BPTPathVertexType
 	Represents a light path vertex.
 	TODO : Use unrestricted unions in future implementation.
 */
-struct BPTPathVertex
+class BPTPathVertex
 {
+public:
+
+	BPTPathVertex();
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(BPTPathVertex);
+
+public:
+
+	/*!
+		Debug print.
+		Prints the summary of the path vertex.
+	*/
+	void DebugPrint() const;
+
+public:
 
 	// General information
 	BPTPathVertexType type;					//!< Vertex type
@@ -66,7 +83,7 @@ struct BPTPathVertex
 		Variables associated with Emitter.
 		#type is EndPoint
 	*/
-	Math::PDFEval pdfP;						// PDF evaluation for positional component
+	Math::PDFEval pdfP;						//!< PDF evaluation for positional component
 	const Emitter* emitter;
 
 	/*
@@ -82,64 +99,58 @@ struct BPTPathVertex
 	Math::Vec3 wi;							//!< Incoming ray
 	Math::Vec3 wo;							//!< Outgoing ray in #dir
 
+};
+
+class BPTPathVertexPool;
+class BPTConfig;
+class Scene;
+class Random;
+
+/*!
+	BPT path.
+	Represents a light path.
+*/
+class BPTSubpath
+{
 public:
 
-	BPTPathVertex();
+	BPTSubpath() {}
+	
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(BPTSubpath);
 
 public:
 
 	/*!
+		Release sampled sub-path.
+		\param pool Memory pool for path vertex.
+	*/
+	void Release(BPTPathVertexPool& pool);
+
+	/*!
 		Debug print.
-		Prints the summary of the path vertex.
+		Prints contents of the sub-path.
 	*/
 	void DebugPrint() const;
 
-};
+	/*!
+		Sample a sub-path.
+		Sample eye sub-path or light sub-path according to #transportDir.
+		\param config BPT configuration.
+		\param scene Scene.
+		\param rng Random number generator.
+		\param pool Memory pool for path vertex.
+		\param transportDir Transport direction.
+	*/
+	void SampleSubpath(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir);
 
-// --------------------------------------------------------------------------------
-
-class BPTPathVertexPool;
-
-/*
-	BPT path.
-	Represents a light path.
-*/
-struct BPTPath
-{
+public:
 
 	std::vector<BPTPathVertex*> vertices;
-
-public:
-
-	void Clear();
-	void Add(BPTPathVertex* vertex);
-	void Release(BPTPathVertexPool& pool);
-	void DebugPrint();
-
-};
-
-// --------------------------------------------------------------------------------
-
-/*
-	BPT full-path.
-	Represents a full-path combining light sub-path and eye sub-path.
-*/
-struct BPTFullPath
-{
-
-	const BPTPath& lightSubpath;	// Light sub-path
-	const BPTPath& eyeSubpath;		// Eye sub-path
-	int s;							// # of vertices in light sub-path
-	int t;							// # of vertices in eye-subpath
-	Math::PDFEval pdfDL[2];			// PDF evaluation for y_{s-1}
-	Math::PDFEval pdfDE[2];			// PDF evaluation for z_{t-1}
-
-public:
-
-	BPTFullPath(int s, int t, const BPTPath& lightSubpath, const BPTPath& eyeSubpath);
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_BPT_PATH_H
+#endif // LIB_LIGHTMETRICA_BPT_SUBPATH_H

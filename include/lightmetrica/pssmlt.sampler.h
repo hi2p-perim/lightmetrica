@@ -35,7 +35,7 @@
 
 LM_NAMESPACE_BEGIN
 
-/*
+/*!
 	PSSMLT sampler.
 	Sampler interface for uniform random number generator
 	used in the PSSMLT implementation.
@@ -61,7 +61,7 @@ public:
 
 // --------------------------------------------------------------------------------
 
-/*
+/*!
 	Restorable sampler.
 	An implementation of uniform random number generator
 	which can be restored in the specified index.
@@ -85,15 +85,15 @@ public:
 
 private:
 
-	unsigned int initialSeed;		// Initial seed
-	std::unique_ptr<Random> rng;	// Random number generator
-	int currentIndex;				// Number of generated samples
+	unsigned int initialSeed;		//!< Initial seed
+	std::unique_ptr<Random> rng;	//!< Random number generator
+	int currentIndex;				//!< Number of generated samples
 
 };
 
 // --------------------------------------------------------------------------------
 
-/*
+/*!
 	Kelemen's primary sample set.
 	A element of the primary sample space.
 	The class works as an implementation of the random number sampler
@@ -111,8 +111,8 @@ public:
 			, modify(0)
 		{}
 
-		Math::Float value;		// Sample value
-		long long modify;		// Last modified time
+		Math::Float value;		//!< Sample value
+		long long modify;		//!< Last modified time
 	};
 
 public:
@@ -142,18 +142,18 @@ private:
 
 private:
 
-	Math::Float s1, s2;									// Kernel size parameters
-	Math::Float logRatio;								// Temporary variable (for efficiency)
+	Math::Float s1, s2;									//!< Kernel size parameters
+	Math::Float logRatio;								//!< Temporary variable (for efficiency)
 
-	Random* rng;										// Random number generator (not managed here)
+	Random* rng;										//!< Random number generator (not managed here)
 
-	long long time;										// Number of accepted mutations
-	long long largeStepTime;							// Time of the last accepted large step
-	bool largeStep;										// Indicates the next mutation is the large step
+	long long time;										//!< Number of accepted mutations
+	long long largeStepTime;							//!< Time of the last accepted large step
+	bool largeStep;										//!< Indicates the next mutation is the large step
 
-	int currentIndex;									// Current sample index
-	std::vector<Sample> u;								// List of current samples
-	std::vector<std::tuple<int, Sample>> prevSamples;	// Temporary list for preserving previous samples (restored if rejected)
+	int currentIndex;									//!< Current sample index
+	std::vector<Sample> u;								//!< List of current samples
+	std::vector<std::tuple<int, Sample>> prevSamples;	//!< Temporary list for preserving previous samples (restored if rejected)
 
 };
 
