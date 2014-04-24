@@ -32,6 +32,7 @@
 LM_NAMESPACE_BEGIN
 
 class BPTSubpath;
+class Scene;
 
 /*!
 	BPT full-path.
@@ -41,11 +42,29 @@ class BPTFullPath
 {
 public:
 
+	/*!
+		Constructor.
+		Constructs a full-path from light sub-path and eye-subpath.
+		\param s Number of vertices in light sub-path.
+		\param t Number of vertices in eye sub-path.
+		\param lightSubpath Light sub-path.
+		\param eyeSubpath Eye sub-path.
+	*/
 	BPTFullPath(int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
 
 private:
 
 	LM_DISABLE_COPY_AND_MOVE(BPTFullPath);
+
+public:
+
+	/*!
+		Evaluate unweight contribution C^*_{s,t}.
+		\param scene Scene.
+		\param rasterPosition Raster position.
+		\return Contribution.
+	*/
+	Math::Vec3 EvaluateUnweightContribution(const Scene& scene, Math::Vec2& rasterPosition) const;
 
 public:
 

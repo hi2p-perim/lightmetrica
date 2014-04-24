@@ -23,75 +23,61 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_RENDERER_H
-#define LIB_LIGHTMETRICA_RENDERER_H
+#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
+#define LIB_LIGHTMETRICA_BPT_MIS_H
 
+#include "bpt.common.h"
 #include "component.h"
-#include <boost/signals2.hpp>
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-class Assets;
-class Scene;
+class BPTFullPath;
 class ConfigNode;
+class Assets;
 
 /*!
-	Renderer class.
-	A base class of the renderer.
+	MIS weighting function for Veach's BPT.
+	Veach's BPT requires to compute weighting function for full-path.
+	Various techniques can be considered so we separated the implmenetations
+	as component classes.
 */
-class Renderer : public Component
+class BPTMISWeight : public Component
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("renderer");
+	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
 
 public:
 
-	Renderer() {}
-	virtual ~Renderer() {}
+	BPTMISWeight() {}
+	virtual ~BPTMISWeight() {}
 
-private:
+public:
 
-	LM_DISABLE_COPY_AND_MOVE(Renderer);
+	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
 
 public:
 
 	/*!
-		Get renderer type.
-		\return Renderer type.
-	*/
-	virtual std::string Type() const = 0;
-
-	/*!
-		Configure the renderer from XML element.
-		This function is used internally or testing.
-		\param node A XML element which consists of \a renderer element.
+		Configure.
+		Configures MIS weighting function.
+		\param node A XML element which consists of \a mis_weight element.
 		\param assets Assets manager.
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-
+	
 	/*!
-		Start rendering.
-		The function starts to render the #scene according to the current configuration.
-		\param scene Scene.
-		\retval true Succeeded to render the scene.
-		\retval true Failed to render the scene.
+		Evaluate MIS weight w_{s,t}.
+		\param fullPath Full-path.
+		\return MIS weight.
 	*/
-	virtual bool Render(const Scene& scene) = 0;
-
-public:
-
-	/*!
-		Connect to ReportProgress signal.
-		The signal is emitted when the progress of asset loading is changed.
-		\param func Slot function.
-	*/
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
+	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_RENDERER_H
+#endif // LIB_LIGHTMETRICA_BPT_MIS_H

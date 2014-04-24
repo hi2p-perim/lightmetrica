@@ -30,6 +30,10 @@
 #include <lightmetrica/light.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/assert.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/renderutils.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -109,6 +113,128 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		bsdfEQ.wo = zy;
 		pdfDE[TransportDirection::EL] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
 	}
+}
+
+Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::Vec2& rasterPosition ) const
+{
+	// Evaluate \alpha^L_s
+	auto alphaL = lightSubpath.EvaluateSubpathAlpha(s, rasterPosition);
+	if (Math::IsZero(alphaL))
+	{
+		return Math::Vec3();
+	}
+
+	// Evaluate \alpha^E_t
+	auto alphaE = eyeSubpath.EvaluateSubpathAlpha(t, rasterPosition);
+	if (Math::IsZero(alphaE))
+	{
+		return Math::Vec3();
+	}
+	
+	// --------------------------------------------------------------------------------
+
+	// Evaluate c_{s,t}
+	Math::Vec3 cst;
+	
+	if (s == 0 && t > 0)
+	{
+		// z_{t-1} is area light
+		auto* v = eyeSubpath.vertices[t-1];
+		if (v->areaLight)
+		{
+			// Camera emitter cannot be an light
+			LM_ASSERT(t >= 1);
+
+			// Evaluate Le^0(z_{t-1})
+			cst = v->areaLight->EvaluatePosition(v->geom);
+
+			// Evaluate Le^1(z_{t-1}\to z_{t-2})
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.wo = v->wi;
+			cst *= v->areaLight->EvaluateDirection(bsdfEQ, v->geom);
+		}
+	}
+	else if (s > 0 && t == 0)
+	{
+		// y_{s-1} is area camera
+		auto* v = lightSubpath.vertices[s-1];
+		if (v->areaCamera)
+		{
+			// Light emitter cannot be an camera
+			LM_ASSERT(s >= 1);
+
+			// Raster position
+			if (v->areaCamera->RayToRasterPosition(v->geom.p, v->wi, rasterPosition))
+			{
+				// Evaluate We^0(y_{s-1})
+				cst = v->areaCamera->EvaluatePosition(v->geom);
+
+				// Evaluate We^1(y_{s-1}\to y_{s-2})
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
+				bsdfEQ.transportDir = TransportDirection::EL;
+				bsdfEQ.wo = v->wi;
+				cst *= v->areaCamera->EvaluateDirection(bsdfEQ, v->geom);
+			}
+		}
+	}
+	else if (s > 0 && t > 0)
+	{
+		auto* vL = lightSubpath.vertices[s-1];
+		auto* vE = eyeSubpath.vertices[t-1];
+
+		// Check connectivity between #vL->geom.p and #vE->geom.p
+		Ray shadowRay;
+		auto pLpE = vE->geom.p - vL->geom.p;
+		auto pLpE_Length = Math::Length(pLpE);
+		shadowRay.d = pLpE / pLpE_Length;
+		shadowRay.o = vL->geom.p;
+		shadowRay.minT = Math::Constants::Eps();
+		shadowRay.maxT = pLpE_Length * (Math::Float(1) - Math::Constants::Eps());
+
+		// Update raster position if #t = 1
+		bool visible = true;
+		if (t == 1)
+		{
+			visible = scene.MainCamera()->RayToRasterPosition(vE->geom.p, -shadowRay.d, rasterPosition);
+		}
+
+		Intersection shadowIsect;
+		if (visible && !scene.Intersect(shadowRay, shadowIsect))
+		{			
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = GeneralizedBSDFType::All;
+
+			// fsL
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.wi = vL->wi;
+			bsdfEQ.wo = shadowRay.d;
+			auto fsL = vL->bsdf->EvaluateDirection(bsdfEQ, vL->geom);
+
+			// fsE
+			bsdfEQ.transportDir = TransportDirection::EL;
+			bsdfEQ.wi = vE->wi;
+			bsdfEQ.wo = -shadowRay.d;
+			auto fsE = vE->bsdf->EvaluateDirection(bsdfEQ, vE->geom);
+
+			// Geometry term
+			auto G = RenderUtils::GeneralizedGeometryTerm(vL->geom, vE->geom);
+
+			cst = fsL * G * fsE;
+		}
+	}
+
+	if (Math::IsZero(cst))
+	{
+		return Math::Vec3();
+	}
+
+	// --------------------------------------------------------------------------------
+
+	// Evaluate contribution C^*_{s,t} = \alpha^L_s * c_{s,t} * \alpha^E_t
+	return alphaL * cst * alphaE;
 }
 
 LM_NAMESPACE_END

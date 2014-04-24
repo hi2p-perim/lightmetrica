@@ -107,14 +107,14 @@ class Scene;
 class Random;
 
 /*!
-	BPT path.
-	Represents a light path.
+	BPT sub-path.
+	Represents a light sub-path or eye sub-path.
 */
 class BPTSubpath
 {
 public:
 
-	BPTSubpath() {}
+	BPTSubpath(TransportDirection transportDir);
 	
 private:
 
@@ -141,12 +141,20 @@ public:
 		\param scene Scene.
 		\param rng Random number generator.
 		\param pool Memory pool for path vertex.
-		\param transportDir Transport direction.
 	*/
-	void SampleSubpath(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir);
+	void Sample(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool);
+
+	/*!
+		Evaluate alpha of sub-paths.
+		The function is called from #EvaluateUnweightContribution.
+		\param vs Number of vertices in sub-path (#s or #t).
+		\param rasterPosition Raster position.
+	*/
+	Math::Vec3 EvaluateSubpathAlpha(int vs, Math::Vec2& rasterPosition) const;
 
 public:
 
+	TransportDirection transportDir;
 	std::vector<BPTPathVertex*> vertices;
 
 };

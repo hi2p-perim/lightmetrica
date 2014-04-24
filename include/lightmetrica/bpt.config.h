@@ -35,18 +35,9 @@
 
 LM_NAMESPACE_BEGIN
 
-/*!
-	BPT MIS weight mode.
-	Defines modes for MIS weighting functions.
-*/
-enum class BPTMISWeightMode
-{
-	Simple,				//!< Reciprocal of # of non-zero probability sampling strategies
-	PowerHeuristics		//!< Power heuristics
-};
-
 class ConfigNode;
 class Assets;
+class BPTMISWeight;
 
 /*!
 	BPT config.
@@ -72,9 +63,7 @@ public:
 	int numThreads;								//!< Number of threads
 	long long samplesPerBlock;					//!< Samples to be processed per block
 	std::string rngType;						//!< Type of random number generator
-
-	BPTMISWeightMode misWeightMode;				//!< MIS weight function
-	Math::Float misPowerHeuristicsBetaCoeff;	//!< Beta coefficient for power heuristics
+	std::unique_ptr<BPTMISWeight> misWeight;	//!< MIS weighting function
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	bool enableExperimentalMode;				//!< Enables experimental mode if true
