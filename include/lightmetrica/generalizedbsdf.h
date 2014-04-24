@@ -126,6 +126,7 @@ class LM_PUBLIC_API GeneralizedBSDF : public Asset
 {
 public:
 
+	GeneralizedBSDF();
 	GeneralizedBSDF(const std::string& id);
 	virtual ~GeneralizedBSDF();
 

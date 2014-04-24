@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+GeneralizedBSDF::GeneralizedBSDF()
+{
+
+}
+
 GeneralizedBSDF::GeneralizedBSDF( const std::string& id )
 	: Asset(id)
 {

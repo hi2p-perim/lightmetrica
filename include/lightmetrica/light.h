@@ -38,6 +38,7 @@ class LM_PUBLIC_API Light : public Emitter
 {
 public:
 
+	Light();
 	Light(const std::string& id);
 	virtual ~Light();
 

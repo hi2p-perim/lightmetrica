@@ -105,8 +105,6 @@ Math::Float BPTPowerHeuristicsMISWeight::Evaluate(const BPTFullPath& fullPath) c
 		invWeight += piDivPs * piDivPs;
 	}
 
-	LM_LOG_DEBUG(std::to_string(invWeight));
-
 	return Math::Float(1) / invWeight;
 }
 

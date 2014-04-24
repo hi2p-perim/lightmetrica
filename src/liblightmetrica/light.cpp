@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+Light::Light()
+{
+
+}
+
 Light::Light(const std::string& id)
 	: Emitter(id)
 {

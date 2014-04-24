@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+Emitter::Emitter()
+{
+
+}
+
 Emitter::Emitter( const std::string& id )
 	: GeneralizedBSDF(id)
 {

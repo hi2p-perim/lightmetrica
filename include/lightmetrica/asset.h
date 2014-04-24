@@ -44,6 +44,12 @@ public:
 
 	/*!
 		Constructor.
+		Constructs the asset without ID.
+	*/
+	Asset();
+
+	/*!
+		Constructor.
 		\param id ID of the asset.
 	*/
 	Asset(const std::string& id);
@@ -71,7 +77,7 @@ public:
 		Get ID of the asset.
 		\return ID of the asset.
 	*/
-	std::string ID() const;
+	std::string ID() const { return id; }
 
 public:
 
@@ -98,8 +104,7 @@ protected:
 
 private:
 
-	class Impl;
-	Impl* p;
+	std::string id;
 
 };
 

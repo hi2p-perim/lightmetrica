@@ -49,6 +49,8 @@ set(
 	"test.math.basic.cpp"
 	"test.math.transform.cpp"
 	"test.math.stats.cpp"
+	"test.bpt.mis.cpp"
+	"test.bpt.mis.powerheuristics.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
