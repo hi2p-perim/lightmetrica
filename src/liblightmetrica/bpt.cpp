@@ -399,6 +399,7 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 		const int maxS = Math::Min(nL, n);
 		for (int s = minS; s <= maxS; s++)
 		{
+			// Number of vertices in eye sub-path
 			const int t = n - s;
 
 			// Create full-path
