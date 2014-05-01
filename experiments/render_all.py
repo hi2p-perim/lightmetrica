@@ -16,6 +16,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('infile', type=str, help='Input file')
 	parser.add_argument('--entry', '-e', type=str, nargs='*', help='Add an entry for template dictionary')
+	parser.add_argument('--output-dir', '-o', type=str, default='./', help='Output directory')
 	args = parser.parse_args()
 
 	# Load template
@@ -52,12 +53,16 @@ def main():
 		resolved_template = template.render(context)
 
 		# Call renderer
+		output_path = os.path.join(
+			args.output_dir,
+			os.path.basename(args.infile).split('.')[0] + '.' + renderer + '.hdr');
+
 		p = sp.Popen(
 			[
 				'./lightmetrica',
 				'-i',
-				'-b', '../../../resources/',
-				'-o', os.path.basename(args.infile).split('.')[0] + '.' + renderer + '.hdr'
+				'-b', '../../resources/',
+				'-o', output_path
 			],
 			stdin=sp.PIPE)
 

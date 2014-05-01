@@ -28,6 +28,7 @@
 #include <lightmetrica/bpt.config.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
+#include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
@@ -111,50 +112,6 @@ private:
 		\param eyeSubpath Eye sub-path.
 	*/
 	void EvaluateSubpathCombinations(const Scene& scene, Film& film, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
-
-private:
-
-	/*!
-		Evaluate MIS weight w_{s,t}.
-		\param fullPath Full-path.
-		\return MIS weight.
-	*/
-	Math::Float EvaluateMISWeight(const BPTFullPath& fullPath) const;
-
-	// MIS weight functions
-	Math::Float EvaluateSimpleMISWeight(const BPTFullPath& fullPath) const;
-	Math::Float EvaluatePowerHeuristicsMISWeight(const BPTFullPath& fullPath) const;
-
-	// Evaluate p_{i+1}(\bar{x}_{s,t})/p_i(\bar{x}_{s,t}).
-	Math::Float EvaluateSubsequentProbRatio(int i, const BPTFullPath& fullPath) const;
-
-	// Get i-th vertex of the full-path
-	const BPTPathVertex* FullPathVertex(int i, const BPTFullPath& fullPath) const;
-
-	// Get i-th directional PDF evaluation of the full-path
-	Math::PDFEval FullPathVertexDirectionPDF(int i, const BPTFullPath& fullPath, TransportDirection transportDir) const;
-
-private:
-
-	/*
-		Evaluate unweight contribution C^*_{s,t}.
-		\param s Index of vertex in light sub-path.
-		\param t Index of vertex in eye-subpath.
-		\param lightSubpath Light sub-path.
-		\param eyeSubpath Eye sub-path.
-		\param Contribution.
-	*/
-	Math::Vec3 EvaluateUnweightContribution(const Scene& scene, const BPTFullPath& fullPath, Math::Vec2& rasterPosition) const;
-
-	/*
-		Evaluate alpha of sub-paths.
-		The function is called from #EvaluateUnweightContribution.
-		\param vs Number of vertices in sub-path (#s or #t).
-		\param transportDir Transport direction.
-		\param subpath Light sub-path or eye sub-path.
-		\param rasterPosition Raster position.
-	*/
-	Math::Vec3 EvaluateSubpathAlpha(int vs, TransportDirection transportDir, const BPTSubpath& subpath, Math::Vec2& rasterPosition) const;
 
 private:
 
@@ -261,8 +218,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		// Sub-paths are reused in the sample block
 		// but probably it should be shared by per thread configuration
 		// (TODO : check performance gain)
-		BPTSubpath lightSubpath;
-		BPTSubpath eyeSubpath;
+		BPTSubpath lightSubpath(TransportDirection::LE);
+		BPTSubpath eyeSubpath(TransportDirection::EL);
 
 		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
@@ -273,8 +230,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			eyeSubpath.Release(*pool);
 
 			// Sample sub-paths
-			lightSubpath.SampleSubpath(config, scene, *rng, *pool, TransportDirection::LE);
-			eyeSubpath.SampleSubpath(config, scene, *rng, *pool, TransportDirection::EL);
+			lightSubpath.Sample(config, scene, *rng, *pool);
+			eyeSubpath.Sample(config, scene, *rng, *pool);
 
 			// Debug print
 #if 0
@@ -406,12 +363,12 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
 
 			// Evaluate weighting function w_{s,t}
-			Math::Float w = EvaluateMISWeight(fullPath);
+			Math::Float w = config.misWeight->Evaluate(fullPath);
 			sumWeight += w;
 
 			// Evaluate unweight contribution C^*_{s,t}
 			Math::Vec2 rasterPosition;
-			auto Cstar = EvaluateUnweightContribution(scene, fullPath, rasterPosition);
+			auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
 			if (Math::IsZero(Cstar))
 			{
 				continue;
@@ -464,364 +421,6 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			LM_ASSERT(Math::Abs(sumWeight - Math::Float(1)) < Math::Constants::Eps());
 		}
 	}
-}
-
-Math::Float BidirectionalPathtraceRenderer::EvaluateMISWeight( const BPTFullPath& fullPath ) const
-{
-	if (config.misWeightMode == BPTMISWeightMode::Simple)
-	{
-		return EvaluateSimpleMISWeight(fullPath);
-	}
-	else
-	{
-		LM_ASSERT(config.misWeightMode == BPTMISWeightMode::PowerHeuristics);
-		return EvaluatePowerHeuristicsMISWeight(fullPath);
-	}
-}
-
-Math::Float BidirectionalPathtraceRenderer::EvaluateSimpleMISWeight( const BPTFullPath& fullPath ) const
-{
-	// Simple weight: reciprocal of # of full-paths with positive probability.
-	const int nE = static_cast<int>(fullPath.eyeSubpath.vertices.size());
-	const int nL = static_cast<int>(fullPath.lightSubpath.vertices.size());
-	const int n = fullPath.s + fullPath.t;
-
-	int minS = Math::Max(0, n-nE);
-	int maxS = Math::Min(nL, n);
-
-	// This is tricky part, in the weight calculation
-	// we need to exclude samples with zero probability.
-	// We note that if the last vertex of sub-path with s=0 or t=0
-	// is not on non-pinhole camera or area light, the path probability is zero,
-	// because we cannot sample degenerated points.
-	int nonZeroProbPaths = n+1;
-	if (fullPath.lightSubpath.vertices[0]->geom.degenerated)
-	{
-		nonZeroProbPaths--;
-		if (fullPath.s == 0)
-		{
-			return Math::Float(0);
-		}
-	}
-	if (fullPath.eyeSubpath.vertices[0]->geom.degenerated)
-	{
-		nonZeroProbPaths--;
-		if (fullPath.t == 0)
-		{
-			return Math::Float(0);
-		}
-	}
-
-	return Math::Float(1) / Math::Float(nonZeroProbPaths);
-}
-
-Math::Float BidirectionalPathtraceRenderer::EvaluatePowerHeuristicsMISWeight( const BPTFullPath& fullPath ) const
-{
-	const int n = fullPath.s + fullPath.t;
-
-	// Inverse of the weight 1/w_{s,t}. Initial weight is p_s/p_s = 1
-	Math::Float invWeight(1);
-	Math::Float piDivPs;
-
-	// Iteratively compute p_i/p_s where i = s-1 downto 0
-	piDivPs = Math::Float(1);
-	for (int i = fullPath.s-1; i >= 0; i--)
-	{
-		Math::Float ratio = EvaluateSubsequentProbRatio(i, fullPath);
-		if (Math::IsZero(ratio))
-		{
-			break;
-		}
-		piDivPs *= ratio;
-		invWeight += piDivPs * piDivPs;
-	}
-
-	// Iteratively compute p_i/p_s where i = s+1 to n
-	piDivPs = Math::Float(1);
-	for (int i = fullPath.s+1; i < n; i++)
-	{
-		Math::Float ratio = EvaluateSubsequentProbRatio(i, fullPath);
-		if (Math::IsZero(ratio))
-		{
-			break;
-		}
-		piDivPs *= Math::Float(1) / ratio;
-		invWeight += piDivPs * piDivPs;
-	}
-
-	LM_LOG_DEBUG(std::to_string(invWeight));
-
-	return Math::Float(1) / invWeight;
-}
-
-Math::Float BidirectionalPathtraceRenderer::EvaluateSubsequentProbRatio( int i, const BPTFullPath& fullPath ) const
-{
-	int n = fullPath.s + fullPath.t;
-	if (i == 0)
-	{
-		// p_1 / p_0 =
-		//    p_A(x_0) /
-		//    p_{\sigma^\bot}(x_1\to x_0)G(x_1\leftrightarrow x_0)
-		const auto* x0	= FullPathVertex(i, fullPath);
-		const auto* x1	= FullPathVertex(i+1, fullPath);
-		auto x1PdfDEL	= FullPathVertexDirectionPDF(i+1, fullPath, TransportDirection::EL);
-
-		if (Math::IsZero(x0->pdfP.v))
-		{
-			return Math::Float(0);
-		}
-		else
-		{
-			LM_ASSERT(x0->pdfP.measure == Math::ProbabilityMeasure::Area);
-			LM_ASSERT(x1PdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-
-			return
-				x0->pdfP.v / x1PdfDEL.v /
-				RenderUtils::GeneralizedGeometryTerm(x0->geom, x1->geom);
-		}
-	}
-	else if (i == n-1)
-	{
-		// p_n / p_{n-1} =
-		//     p_{\sigma^\bot}(x_{n-2}\to x_{n-1})G(x_{n-2}\leftrightarrow x_{n-1}) /
-		//     p_A(x_{n-1})
-		const auto* xn		= FullPathVertex(n-1, fullPath);
-		const auto* xnPrev	= FullPathVertex(n-2, fullPath);
-		auto xnPrevPdfDLE	= FullPathVertexDirectionPDF(n-2, fullPath, TransportDirection::LE);
-
-		if (Math::IsZero(xn->pdfP.v))
-		{
-			return Math::Float(0);
-		}
-		else
-		{
-			LM_ASSERT(xn->pdfP.measure == Math::ProbabilityMeasure::Area);
-			LM_ASSERT(xnPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-
-			return
-				xnPrevPdfDLE.v *
-				RenderUtils::GeneralizedGeometryTerm(xnPrev->geom, xn->geom) /
-				xn->pdfP.v;
-		}
-	}
-	else
-	{
-		// p_{i+1} / p_i =
-		//     p_{\sigma^\bot}(x_{i-1}\to x_i)G(x_{i-1}\leftrightarrow x_i) /
-		//     p_{\sigma^\bot}(x_{i+1}\to x_i)G(x_{i+1}\leftrightarrow x_i)
-		const auto* xi		= FullPathVertex(i, fullPath);
-		const auto* xiNext	= FullPathVertex(i+1, fullPath);
-		const auto* xiPrev	= FullPathVertex(i-1, fullPath);
-		auto xiPrevPdfDLE	= FullPathVertexDirectionPDF(i-1, fullPath, TransportDirection::LE);
-		auto xiNextPdfDEL	= FullPathVertexDirectionPDF(i+1, fullPath, TransportDirection::EL);
-
-		LM_ASSERT(xiPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-		LM_ASSERT(xiNextPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-
-		return
-			xiPrevPdfDLE.v *
-			RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) /
-			xiNextPdfDEL.v /
-			RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom);
-	}
-
-	return Math::Float(0);
-}
-
-const BPTPathVertex* BidirectionalPathtraceRenderer::FullPathVertex( int i, const BPTFullPath& fullPath ) const
-{
-	LM_ASSERT(0 <= i && i < fullPath.s + fullPath.t);
-	return
-		i < fullPath.s
-			? fullPath.lightSubpath.vertices[i]
-			: fullPath.eyeSubpath.vertices[fullPath.t-1-(i-fullPath.s)];
-}
-
-Math::PDFEval BidirectionalPathtraceRenderer::FullPathVertexDirectionPDF( int i, const BPTFullPath& fullPath, TransportDirection transportDir ) const
-{
-	LM_ASSERT(0 <= i && i < fullPath.s + fullPath.t);
-	return
-		i == fullPath.s - 1	? fullPath.pdfDL[transportDir] :
-		i == fullPath.s		? fullPath.pdfDE[transportDir]
-							: FullPathVertex(i, fullPath)->pdfD[transportDir];
-}
-
-Math::Vec3 BidirectionalPathtraceRenderer::EvaluateUnweightContribution( const Scene& scene, const BPTFullPath& fullPath, Math::Vec2& rasterPosition ) const
-{
-	// Evaluate \alpha^L_s
-	auto alphaL = EvaluateSubpathAlpha(fullPath.s, TransportDirection::LE, fullPath.lightSubpath, rasterPosition);
-	if (Math::IsZero(alphaL))
-	{
-		return Math::Vec3();
-	}
-
-	// Evaluate \alpha^E_t
-	auto alphaE = EvaluateSubpathAlpha(fullPath.t, TransportDirection::EL, fullPath.eyeSubpath, rasterPosition);
-	if (Math::IsZero(alphaE))
-	{
-		return Math::Vec3();
-	}
-	
-	// --------------------------------------------------------------------------------
-
-	// Evaluate c_{s,t}
-	Math::Vec3 cst;
-	
-	if (fullPath.s == 0 && fullPath.t > 0)
-	{
-		// z_{t-1} is area light
-		auto* v = fullPath.eyeSubpath.vertices[fullPath.t-1];
-		if (v->areaLight)
-		{
-			// Camera emitter cannot be an light
-			LM_ASSERT(fullPath.t >= 1);
-
-			// Evaluate Le^0(z_{t-1})
-			cst = v->areaLight->EvaluatePosition(v->geom);
-
-			// Evaluate Le^1(z_{t-1}\to z_{t-2})
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.wo = v->wi;
-			cst *= v->areaLight->EvaluateDirection(bsdfEQ, v->geom);
-		}
-	}
-	else if (fullPath.s > 0 && fullPath.t == 0)
-	{
-		// y_{s-1} is area camera
-		auto* v = fullPath.lightSubpath.vertices[fullPath.s-1];
-		if (v->areaCamera)
-		{
-			// Light emitter cannot be an camera
-			LM_ASSERT(fullPath.s >= 1);
-
-			// Raster position
-			if (v->areaCamera->RayToRasterPosition(v->geom.p, v->wi, rasterPosition))
-			{
-				// Evaluate We^0(y_{s-1})
-				cst = v->areaCamera->EvaluatePosition(v->geom);
-
-				// Evaluate We^1(y_{s-1}\to y_{s-2})
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
-				bsdfEQ.transportDir = TransportDirection::EL;
-				bsdfEQ.wo = v->wi;
-				cst *= v->areaCamera->EvaluateDirection(bsdfEQ, v->geom);
-			}
-		}
-	}
-	else if (fullPath.s > 0 && fullPath.t > 0)
-	{
-		auto* vL = fullPath.lightSubpath.vertices[fullPath.s-1];
-		auto* vE = fullPath.eyeSubpath.vertices[fullPath.t-1];
-
-		// Check connectivity between #vL->geom.p and #vE->geom.p
-		Ray shadowRay;
-		auto pLpE = vE->geom.p - vL->geom.p;
-		auto pLpE_Length = Math::Length(pLpE);
-		shadowRay.d = pLpE / pLpE_Length;
-		shadowRay.o = vL->geom.p;
-		shadowRay.minT = Math::Constants::Eps();
-		shadowRay.maxT = pLpE_Length * (Math::Float(1) - Math::Constants::Eps());
-
-		// Update raster position if #t = 1
-		bool visible = true;
-		if (fullPath.t == 1)
-		{
-			visible = scene.MainCamera()->RayToRasterPosition(vE->geom.p, -shadowRay.d, rasterPosition);
-		}
-
-		Intersection shadowIsect;
-		if (visible && !scene.Intersect(shadowRay, shadowIsect))
-		{			
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.type = GeneralizedBSDFType::All;
-
-			// fsL
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.wi = vL->wi;
-			bsdfEQ.wo = shadowRay.d;
-			auto fsL = vL->bsdf->EvaluateDirection(bsdfEQ, vL->geom);
-
-			// fsE
-			bsdfEQ.transportDir = TransportDirection::EL;
-			bsdfEQ.wi = vE->wi;
-			bsdfEQ.wo = -shadowRay.d;
-			auto fsE = vE->bsdf->EvaluateDirection(bsdfEQ, vE->geom);
-
-			// Geometry term
-			auto G = RenderUtils::GeneralizedGeometryTerm(vL->geom, vE->geom);
-
-			cst = fsL * G * fsE;
-		}
-	}
-
-	if (Math::IsZero(cst))
-	{
-		return Math::Vec3();
-	}
-
-	// --------------------------------------------------------------------------------
-
-	// Evaluate contribution C^*_{s,t} = \alpha^L_s * c_{s,t} * \alpha^E_t
-	return alphaL * cst * alphaE;
-}
-
-Math::Vec3 BidirectionalPathtraceRenderer::EvaluateSubpathAlpha( int vs, TransportDirection transportDir, const BPTSubpath& subpath, Math::Vec2& rasterPosition ) const
-{
-	Math::Vec3 alpha;
-
-	if (vs == 0)
-	{
-		// \alpha_0 = 1
-		alpha = Math::Vec3(Math::Float(1));
-	}
-	else
-	{
-		BPTPathVertex* v = subpath.vertices[0];
-
-		LM_ASSERT(v->type == BPTPathVertexType::EndPoint);
-		LM_ASSERT(v->emitter != nullptr);
-		LM_ASSERT(v->pdfP.measure == Math::ProbabilityMeasure::Area);
-
-		// Calculate raster position if transport direction is EL
-		bool visible = true;
-		if (transportDir == TransportDirection::EL)
-		{
-			visible = dynamic_cast<const Camera*>(v->emitter)->RayToRasterPosition(v->geom.p, v->wo, rasterPosition);
-		}
-		
-		if (visible)
-		{
-			// Emitter
-			// \alpha^L_1 = Le^0(y0) / p_A(y0) or \alpha^E_1 = We^0(z0) / p_A(z0)
-			alpha = v->emitter->EvaluatePosition(v->geom) / v->pdfP.v;
-
-			for (int i = 0; i < vs - 1; i++)
-			{
-				v = subpath.vertices[i];
-
-				// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.type = GeneralizedBSDFType::All;
-				bsdfEQ.transportDir = transportDir;
-				bsdfEQ.wi = v->wi;
-				bsdfEQ.wo = v->wo;
-				auto fs = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
-
-				// Update #alphaL or #alphaE
-				LM_ASSERT(v->pdfD[transportDir].measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-				alpha *= fs / v->pdfD[transportDir].v;
-
-				// RR probability
-				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);
-				alpha /= v->pdfRR.v;
-			}
-		}
-	}
-
-	return alpha;
 }
 
 LM_COMPONENT_REGISTER_IMPL(BidirectionalPathtraceRenderer, Renderer);

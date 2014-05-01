@@ -24,6 +24,7 @@
 
 #include "pch.h"
 #include <lightmetrica/bpt.config.h>
+#include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/component.h>
@@ -55,39 +56,28 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 	}
 
 	// MIS weight function
+	// TODO : Check if valid interface for the given type with CheckRegistered
 	auto misWeightModeNode = node.Child("mis_weight");
 	if (misWeightModeNode.Empty())
 	{
-		misWeightMode = BPTMISWeightMode::PowerHeuristics;
-		misPowerHeuristicsBetaCoeff = Math::Float(2);
-		LM_LOG_WARN("Missing 'mis_weight' element. Using default value.");
+		LM_LOG_ERROR("Missing 'mis_weight' element");
+		return false;
 	}
-	else
+	auto misWeightType = misWeightModeNode.AttributeValue("type");
+	if (!ComponentFactory::CheckRegistered(misWeightType))
 	{
-		auto modeNode = misWeightModeNode.Child("mode");
-		if (modeNode.Empty())
-		{
-			misWeightMode = BPTMISWeightMode::PowerHeuristics;
-			misPowerHeuristicsBetaCoeff = Math::Float(2);
-			LM_LOG_WARN("Missing 'mis_weight' element. Using default value.");
-		}
-		else
-		{
-			if (modeNode.Value() == "simple")
-			{
-				misWeightMode = BPTMISWeightMode::Simple;
-			}
-			else if (modeNode.Value() == "power_heuristics")
-			{
-				misWeightMode = BPTMISWeightMode::PowerHeuristics;
-				misWeightModeNode.ChildValueOrDefault("beta_coeff", Math::Float(2), misPowerHeuristicsBetaCoeff);
-			}
-			else
-			{
-				LM_LOG_ERROR("Invalid MIS weight mode '" + modeNode.Value() + "'");
-				return false;
-			}
-		}
+		LM_LOG_ERROR("Unsupported MIS weighting function '" + misWeightType + "'");
+		return false;
+	}
+	auto* p = ComponentFactory::Create<BPTMISWeight>(misWeightType);
+	if (p == nullptr)
+	{
+		return false;
+	}
+	misWeight.reset(p);
+	if (!p->Configure(misWeightModeNode, assets))
+	{
+		return false;
 	}
 
 #if LM_ENABLE_BPT_EXPERIMENTAL

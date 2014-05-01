@@ -93,6 +93,12 @@ void BPTPathVertex::DebugPrint() const
 
 // --------------------------------------------------------------------------------
 
+BPTSubpath::BPTSubpath( TransportDirection transportDir )
+	: transportDir(transportDir)
+{
+
+}
+
 void BPTSubpath::Release( BPTPathVertexPool& pool )
 {
 	for (auto* vertex : vertices)
@@ -113,7 +119,7 @@ void BPTSubpath::DebugPrint() const
 	}
 }
 
-void BPTSubpath::SampleSubpath( const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool, TransportDirection transportDir )
+void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool )
 {
 	LM_ASSERT(vertices.empty());
 
@@ -278,4 +284,59 @@ void BPTSubpath::SampleSubpath( const BPTConfig& config, const Scene& scene, Ran
 	}
 }
 
+Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition ) const
+{
+	Math::Vec3 alpha;
+
+	if (vs == 0)
+	{
+		// \alpha_0 = 1
+		alpha = Math::Vec3(Math::Float(1));
+	}
+	else
+	{
+		BPTPathVertex* v = vertices[0];
+
+		LM_ASSERT(v->type == BPTPathVertexType::EndPoint);
+		LM_ASSERT(v->emitter != nullptr);
+		LM_ASSERT(v->pdfP.measure == Math::ProbabilityMeasure::Area);
+
+		// Calculate raster position if transport direction is EL
+		bool visible = true;
+		if (transportDir == TransportDirection::EL)
+		{
+			visible = dynamic_cast<const Camera*>(v->emitter)->RayToRasterPosition(v->geom.p, v->wo, rasterPosition);
+		}
+		
+		if (visible)
+		{
+			// Emitter
+			// \alpha^L_1 = Le^0(y0) / p_A(y0) or \alpha^E_1 = We^0(z0) / p_A(z0)
+			alpha = v->emitter->EvaluatePosition(v->geom) / v->pdfP.v;
+
+			for (int i = 0; i < vs - 1; i++)
+			{
+				v = vertices[i];
+
+				// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.type = GeneralizedBSDFType::All;
+				bsdfEQ.transportDir = transportDir;
+				bsdfEQ.wi = v->wi;
+				bsdfEQ.wo = v->wo;
+				auto fs = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
+
+				// Update #alphaL or #alphaE
+				LM_ASSERT(v->pdfD[transportDir].measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+				alpha *= fs / v->pdfD[transportDir].v;
+
+				// RR probability
+				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);
+				alpha /= v->pdfRR.v;
+			}
+		}
+	}
+
+	return alpha;
+}
 LM_NAMESPACE_END

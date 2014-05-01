@@ -41,6 +41,7 @@ class LM_PUBLIC_API Emitter : public GeneralizedBSDF
 {
 public:
 
+	Emitter();
 	Emitter(const std::string& id);
 	virtual ~Emitter();
 

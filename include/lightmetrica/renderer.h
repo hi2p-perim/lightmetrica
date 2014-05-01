@@ -66,6 +66,7 @@ public:
 		Configure the renderer from XML element.
 		This function is used internally or testing.
 		\param node A XML element which consists of \a renderer element.
+		\param assets Assets manager.
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/

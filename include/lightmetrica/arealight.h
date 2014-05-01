@@ -38,6 +38,7 @@ class LM_PUBLIC_API AreaLight : public Light
 {
 public:
 
+	AreaLight();
 	AreaLight(const std::string& id);
 	~AreaLight();
 

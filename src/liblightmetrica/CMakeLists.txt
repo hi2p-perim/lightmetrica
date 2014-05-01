@@ -307,6 +307,7 @@ set(
 	"${_INCLUDE_DIR}/bpt.subpath.h"
 	"${_INCLUDE_DIR}/bpt.fullpath.h"
 	"${_INCLUDE_DIR}/bpt.pool.h"
+	"${_INCLUDE_DIR}/bpt.mis.h"
 )
 set(
 	_RENDERER_BPT_SOURCES
@@ -315,6 +316,8 @@ set(
 	"bpt.subpath.cpp"
 	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"
+	"bpt.mis.simple.cpp"
+	"bpt.mis.powerheuristics.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_SOURCES})

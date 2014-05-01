@@ -23,31 +23,61 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_LIGHT_H
-#define LIB_LIGHTMETRICA_LIGHT_H
+#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
+#define LIB_LIGHTMETRICA_BPT_MIS_H
 
-#include "emitter.h"
+#include "bpt.common.h"
+#include "component.h"
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
+class BPTFullPath;
+class ConfigNode;
+class Assets;
+
 /*!
-	Light.
-	A base class of the lights.
+	MIS weighting function for Veach's BPT.
+	Veach's BPT requires to compute weighting function for full-path.
+	Various techniques can be considered so we separated the implmenetations
+	as component classes.
 */
-class LM_PUBLIC_API Light : public Emitter
+class BPTMISWeight : public Component
 {
 public:
 
-	Light();
-	Light(const std::string& id);
-	virtual ~Light();
+	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
 
 public:
 
-	virtual std::string Name() const { return "light"; }
+	BPTMISWeight() {}
+	virtual ~BPTMISWeight() {}
+
+public:
+
+	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
+
+public:
+
+	/*!
+		Configure.
+		Configures MIS weighting function.
+		\param node A XML element which consists of \a mis_weight element.
+		\param assets Assets manager.
+		\retval true Succeeded to configure.
+		\retval false Failed to configure.
+	*/
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
+	
+	/*!
+		Evaluate MIS weight w_{s,t}.
+		\param fullPath Full-path.
+		\return MIS weight.
+	*/
+	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_LIGHT_H
+#endif // LIB_LIGHTMETRICA_BPT_MIS_H

@@ -202,6 +202,12 @@ Math::PDFEval AreaLight::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvalua
 
 // --------------------------------------------------------------------------------
 
+AreaLight::AreaLight()
+	: p(new Impl)
+{
+
+}
+
 AreaLight::AreaLight(const std::string& id)
 	: Light(id)
 	, p(new Impl)
