@@ -31,12 +31,12 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/scenefactory.h>
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/camerafactory.h>
-#include <lightmetrica/filmfactory.h>
-#include <lightmetrica/lightfactory.h>
-#include <lightmetrica/bsdffactory.h>
-#include <lightmetrica/texturefactory.h>
-#include <lightmetrica/trianglemeshfactory.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/texture.h>
+#include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/math.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
@@ -300,13 +300,13 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 
 bool LightmetricaApplication::LoadAssets( const Config& config, DefaultAssets& assets )
 {
-	// Register default asset factories
-	assets.RegisterAssetFactory(AssetFactoryEntry("textures", "texture", 0, new TextureFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("bsdfs", "bsdf", 1, new BSDFFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("triangle_meshes", "triangle_mesh", 1, new TriangleMeshFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("films", "film", 1, new FilmFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("cameras", "camera", 1, new CameraFactory));
-	assets.RegisterAssetFactory(AssetFactoryEntry("lights", "light", 1, new LightFactory));
+	// Register component interfaces
+	assets.RegisterInterface<Texture>();
+	assets.RegisterInterface<BSDF>();
+	assets.RegisterInterface<TriangleMesh>();
+	assets.RegisterInterface<Film>();
+	assets.RegisterInterface<Camera>();
+	assets.RegisterInterface<Light>();
 
 	// Load assets
 	{

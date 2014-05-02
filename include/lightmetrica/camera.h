@@ -41,12 +41,14 @@ class LM_PUBLIC_API Camera : public Emitter
 {
 public:
 
-	Camera(const std::string& id);
-	virtual ~Camera();
+	LM_COMPONENT_INTERFACE_DEF("camera");
+	LM_ASSET_DEPENDENCIES("film");
 
 public:
 
-	virtual std::string Name() const { return "camera"; }
+	Camera();
+	Camera(const std::string& id);
+	virtual ~Camera();
 
 public:
 

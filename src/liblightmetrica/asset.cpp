@@ -40,11 +40,6 @@ Asset::Asset(const std::string& id)
 
 }
 
-Asset::~Asset()
-{
-	
-}
-
 bool Asset::Load( const ConfigNode& node, const Assets& assets )
 {
 	// Check name and type
@@ -62,6 +57,11 @@ bool Asset::Load( const ConfigNode& node, const Assets& assets )
 
 	// Call implementation detail load function
 	return LoadAsset(node, assets);
+}
+
+std::string Asset::ID() const
+{
+	return id;
 }
 
 LM_NAMESPACE_END

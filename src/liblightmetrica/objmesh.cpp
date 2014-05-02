@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/objmesh.h>
+#include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/pugihelper.h>
 #include <lightmetrica/confignode.h>
@@ -80,16 +80,38 @@ private:
 
 };
 
-class ObjMesh::Impl : public Object
+/*!
+	Obj mesh.
+	Triangle mesh implementation for Wavefront obj files.
+	The class partially supports the specification of the Wavefront obj files.
+*/
+class LM_PUBLIC_API ObjMesh : public TriangleMesh
 {
 public:
 
-	Impl(ObjMesh* self);
-	bool LoadAsset(const ConfigNode& node, const Assets& assets);
+	LM_COMPONENT_IMPL_DEF("obj");
 
 public:
 
-	ObjMesh* self;
+	ObjMesh() {}
+	ObjMesh(const std::string& id) : TriangleMesh(id) {}
+	virtual ~ObjMesh() {}
+
+public:
+
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	virtual int NumVertices() const					{ return static_cast<int>(positions.size()); }
+	virtual int NumFaces() const					{ return static_cast<int>(faces.size()); }
+	virtual const Math::Float* Positions() const	{ return positions.empty() ? nullptr : &positions[0]; }
+	virtual const Math::Float* Normals() const		{ return normals.empty() ? nullptr : &normals[0]; }
+	virtual const Math::Float* TexCoords() const	{ return texcoords.empty() ? nullptr : &texcoords[0]; }
+	virtual const unsigned int* Faces() const		{ return faces.empty() ? nullptr : &faces[0]; }
+
+private:
+
 	std::vector<Math::Float> positions;
 	std::vector<Math::Float> normals;
 	std::vector<Math::Float> texcoords;
@@ -97,13 +119,7 @@ public:
 
 };
 
-ObjMesh::Impl::Impl( ObjMesh* self )
-	: self(self)
-{
-
-}
-
-bool ObjMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool ObjMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	namespace fs = boost::filesystem;
 
@@ -197,53 +213,6 @@ bool ObjMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 	return true;
 }
 
-// --------------------------------------------------------------------------------
-
-ObjMesh::ObjMesh( const std::string& id )
-	: TriangleMesh(id)
-	, p(new Impl(this))
-{
-
-}
-
-ObjMesh::~ObjMesh()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool ObjMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-int ObjMesh::NumVertices() const
-{
-	return static_cast<int>(p->positions.size());
-}
-
-int ObjMesh::NumFaces() const
-{
-	return static_cast<int>(p->faces.size());
-}
-
-const Math::Float* ObjMesh::Positions() const
-{
-	return p->positions.empty() ? nullptr : &p->positions[0];
-}
-
-const Math::Float* ObjMesh::Normals() const
-{
-	return p->normals.empty() ? nullptr : &p->normals[0];
-}
-
-const Math::Float* ObjMesh::TexCoords() const
-{
-	return p->texcoords.empty() ? nullptr : &p->texcoords[0];
-}
-
-const unsigned int* ObjMesh::Faces() const
-{
-	return p->faces.empty() ? nullptr : &p->faces[0];
-}
+LM_COMPONENT_REGISTER_IMPL(ObjMesh, TriangleMesh);
 
 LM_NAMESPACE_END

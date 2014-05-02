@@ -97,7 +97,7 @@ bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets 
 		return false;
 	}
 	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered(rngType))
+	if (!ComponentFactory::CheckRegistered<Random>(rngType))
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;

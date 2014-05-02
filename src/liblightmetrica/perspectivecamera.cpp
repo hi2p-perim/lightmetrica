@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/perspectivecamera.h>
+#include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/primitive.h>
@@ -36,33 +36,43 @@
 
 LM_NAMESPACE_BEGIN
 
-class PerspectiveCamera::Impl : public Object
+/*!
+	Perspective camera.
+	A camera with perspective projection. a.k.a. pinhole camera.
+*/
+class PerspectiveCamera : public Camera
 {
 public:
 
-	Impl(PerspectiveCamera* self);
+	LM_COMPONENT_IMPL_DEF("perspective");
 
 public:
 
-	bool LoadAsset(const ConfigNode& node, const Assets& assets);
+	PerspectiveCamera() {}
+	PerspectiveCamera(const std::string& id) : Camera(id) {}
+	~PerspectiveCamera() {}
 
 public:
 
-	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
 
 public:
 
-	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
-	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
-	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
-	bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
-	Film* GetFilm() const { return film; }
+	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
+	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
+	virtual void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+
+public:
+
+	virtual bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
+	virtual Film* GetFilm() const;
 
 private:
 
@@ -70,13 +80,11 @@ private:
 		Calculate importance W_e(z_0\to y_{s-1}),
 		i.e., sensitivity of the sensor
 	*/
-	Math::Float EvaluateImportance(Math::Float cosTheta) const;
+	Math::Float EvaluateImportance(Math::Float cosTheta) const { return film; }
 
 private:
 
-	PerspectiveCamera* self;
 	Film* film;
-
 	Math::Float invA;
 	Math::Vec3 position;
 	Math::Mat4 viewMatrix;
@@ -86,13 +94,7 @@ private:
 
 };
 
-PerspectiveCamera::Impl::Impl( PerspectiveCamera* self )
-	: self(self)
-{
-
-}
-
-bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	// Resolve reference to film
 	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.Child("film"), "film"));
@@ -133,7 +135,7 @@ bool PerspectiveCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& a
 	return true;
 }
 
-void PerspectiveCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
+void PerspectiveCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
 {
 	LM_ASSERT(primitives.size() == 1);
 
@@ -145,14 +147,14 @@ void PerspectiveCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>&
 	position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
 }
 
-void PerspectiveCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
+void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
 	geom.p = position;
 	geom.degenerated = true;
 	pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
 }
 
-bool PerspectiveCamera::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
 	{
@@ -175,17 +177,17 @@ bool PerspectiveCamera::Impl::SampleDirection( const GeneralizedBSDFSampleQuery&
 	return true;
 }
 
-Math::Vec3 PerspectiveCamera::Impl::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
+Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Math::Vec3(Math::Float(1));
 }
 
-Math::PDFEval PerspectiveCamera::Impl::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) const
+Math::PDFEval PerspectiveCamera::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Area);
 }
 
-Math::Vec3 PerspectiveCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
 	{
@@ -204,7 +206,7 @@ Math::Vec3 PerspectiveCamera::Impl::EvaluateDirection( const GeneralizedBSDFEval
 	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
 }
 
-bool PerspectiveCamera::Impl::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
+bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
 {
 	// Reference point in camera coordinates
 	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
@@ -226,7 +228,7 @@ bool PerspectiveCamera::Impl::RayToRasterPosition( const Math::Vec3& p, const Ma
 	return true;
 }
 
-Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) const
+Math::Float PerspectiveCamera::EvaluateImportance( Math::Float cosTheta ) const
 {
 	// Assume hypothetical sensor on z=-d in camera coordinates.
 	// Then the sensitivity is 1/Ad^2 where A is area of the sensor when d=1.
@@ -248,7 +250,7 @@ Math::Float PerspectiveCamera::Impl::EvaluateImportance( Math::Float cosTheta ) 
 	return invA * invCosTheta * invCosTheta * invCosTheta;
 }
 
-Math::PDFEval PerspectiveCamera::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
 	{
@@ -264,68 +266,6 @@ Math::PDFEval PerspectiveCamera::Impl::EvaluateDirectionPDF( const GeneralizedBS
 		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
-// --------------------------------------------------------------------------------
-
-PerspectiveCamera::PerspectiveCamera( const std::string& id )
-	: Camera(id)
-	, p(new Impl(this))
-{
-	
-}
-
-PerspectiveCamera::~PerspectiveCamera()
-{
-	LM_SAFE_DELETE(p);
-}
-
-Film* PerspectiveCamera::GetFilm() const
-{
-	return p->GetFilm();
-}
-
-bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
-{
-	return p->SampleDirection(query, geom, result);
-}
-
-Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirection(query, geom);
-}
-
-Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirectionPDF(query, geom);
-}
-
-void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
-{
-	p->SamplePosition(sample, geom, pdf);
-}
-
-Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
-{
-	return p->EvaluatePosition(geom);
-}
-
-Math::PDFEval PerspectiveCamera::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
-{
-	return p->EvaluatePositionPDF(geom);
-}
-
-void PerspectiveCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
-{
-	return p->RegisterPrimitives(primitives);
-}
-
-bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
-{
-	return this->p->RayToRasterPosition(p, d, rasterPos);
-}
+LM_COMPONENT_REGISTER_IMPL(PerspectiveCamera, Camera);
 
 LM_NAMESPACE_END

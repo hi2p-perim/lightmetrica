@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+Camera::Camera()
+{
+
+}
+
 Camera::Camera(const std::string& id)
 	: Emitter(id)
 {

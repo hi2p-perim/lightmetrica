@@ -39,51 +39,77 @@ public:
 
 public:
 
-	bool CheckRegistered(const std::string& implType)
+	bool CheckRegistered(const std::string& interfaceType, const std::string& implType)
 	{
-		return createFuncMap.find(implType) != createFuncMap.end();
-	}
-
-	bool Register(const std::string& implType, const ComponentFactory::CreateComponentFunc& func)
-	{
-		if (CheckRegistered(implType))
+		auto createFuncImplMap = createFuncMap.find(interfaceType);
+		if (createFuncImplMap == createFuncMap.end())
 		{
 			return false;
 		}
 
-		createFuncMap[implType] = func;
+		return createFuncImplMap->second.find(implType) != createFuncImplMap->second.end();
+	}
+
+	bool CheckInterfaceRegistered(const std::string& interfaceType)
+	{
+		return createFuncMap.find(interfaceType) != createFuncMap.end();
+	}
+
+	bool Register(const std::string& interfaceType, const std::string& implType, const ComponentFactory::CreateComponentFunc& func)
+	{
+		if (CheckRegistered(interfaceType, implType))
+		{
+			return false;
+		}
+
+		createFuncMap[interfaceType][implType] = func;
 		return true;
 	}
 
-	Component* Create(const std::string& implType)
+	Component* Create(const std::string& interfaceType, const std::string& implType)
 	{
-		if (!CheckRegistered(implType))
+		auto createFuncImplMap = createFuncMap.find(interfaceType);
+		if (createFuncImplMap == createFuncMap.end())
 		{
 			return nullptr;
 		}
 
-		return createFuncMap[implType]();
+		auto createFunc = createFuncImplMap->second.find(implType);
+		if (createFunc == createFuncImplMap->second.end())
+		{
+			return nullptr;
+		}
+
+		return createFunc->second();
 	}
 
 private:
 
-	std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> createFuncMap;
+	typedef std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> CreateComponentFuncImplMap;
+	typedef std::unordered_map<std::string, CreateComponentFuncImplMap> CreateComponentFuncInterfaceMap;
+
+	CreateComponentFuncInterfaceMap createFuncMap;
 
 };
 
-bool ComponentFactory::CheckRegistered( const std::string& implType )
+bool ComponentFactory::CheckRegistered( const std::string& interfaceType, const std::string& implType )
 {
-	return ComponentFactoryImpl::Instance().CheckRegistered(implType);
+	return ComponentFactoryImpl::Instance().CheckRegistered(interfaceType, implType);
 }
 
-bool ComponentFactory::Register( const std::string& implType, const CreateComponentFunc& func )
+bool ComponentFactory::CheckInterfaceRegistered( const std::string& interfaceType )
 {
-	return ComponentFactoryImpl::Instance().Register(implType, func);
+	return ComponentFactoryImpl::Instance().CheckInterfaceRegistered(interfaceType);
 }
 
-Component* ComponentFactory::Create( const std::string& implType )
+bool ComponentFactory::Register( const std::string& interfaceType, const std::string& implType, const CreateComponentFunc& func )
 {
-	return ComponentFactoryImpl::Instance().Create(implType);
+	return ComponentFactoryImpl::Instance().Register(interfaceType, implType, func);
+}
+
+Component* ComponentFactory::Create( const std::string& interfaceType, const std::string& implType )
+{
+	return ComponentFactoryImpl::Instance().Create(interfaceType, implType);
 }
 
 LM_NAMESPACE_END

@@ -71,8 +71,8 @@ TEST_F(ComponentFactoryTest, HasMemberFunction)
 
 TEST_F(ComponentFactoryTest, RegisterAndCreate)
 {
-	EXPECT_TRUE(ComponentFactory::Register(StubComponentImpl_1::ImplTypeName(), [](){ return new StubComponentImpl_1; }));
-	EXPECT_TRUE(ComponentFactory::CheckRegistered(StubComponentImpl_1::ImplTypeName()));
+	EXPECT_TRUE(ComponentFactory::Register(StubComponentInterface::InterfaceTypeName(), StubComponentImpl_1::ImplTypeName(), [](){ return new StubComponentImpl_1; }));
+	EXPECT_TRUE(ComponentFactory::CheckRegistered(StubComponentInterface::InterfaceTypeName(), StubComponentImpl_1::ImplTypeName()));
 
 	auto* inst = ComponentFactory::Create<StubComponentInterface>(StubComponentImpl_1::ImplTypeName());
 	EXPECT_EQ(42, inst->F());

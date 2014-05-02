@@ -53,5 +53,6 @@
 #include <limits>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #endif // LIB_LIGHTMETRICA_PCH_H

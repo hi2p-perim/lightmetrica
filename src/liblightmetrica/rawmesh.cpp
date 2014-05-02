@@ -23,25 +23,44 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/rawmesh.h>
+#include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
-class RawMesh::Impl : public Object
+/*!
+	Raw mesh.
+	Implements an triangle mesh whose geometry information
+	is stored directly in the configuration file.
+*/
+class RawMesh : public TriangleMesh
 {
 public:
 
-	Impl(RawMesh* self);
+	LM_COMPONENT_IMPL_DEF("raw");
 
 public:
 
-	bool LoadAsset(const ConfigNode& node, const Assets& assets);
+	RawMesh() {}
+	RawMesh(const std::string& id) : TriangleMesh(id) {}
+	virtual ~RawMesh() {}
 
 public:
 
-	RawMesh* self;
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	virtual int NumVertices() const					{ return static_cast<int>(positions.size()); }
+	virtual int NumFaces() const					{ return static_cast<int>(faces.size()); }
+	virtual const Math::Float* Positions() const	{ return positions.empty() ? nullptr : &positions[0]; }
+	virtual const Math::Float* Normals() const		{ return normals.empty() ? nullptr : &normals[0]; }
+	virtual const Math::Float* TexCoords() const	{ return texcoords.empty() ? nullptr : &texcoords[0]; }
+	virtual const unsigned int* Faces() const		{ return faces.empty() ? nullptr : &faces[0]; }
+
+public:
+
 	std::vector<Math::Float> positions;
 	std::vector<Math::Float> normals;
 	std::vector<Math::Float> texcoords;
@@ -49,13 +68,7 @@ public:
 
 };
 
-RawMesh::Impl::Impl( RawMesh* self )
-	: self(self)
-{
-
-}
-
-bool RawMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool RawMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	// 'positions' required
 	if (!node.ChildValue("positions", positions))
@@ -81,54 +94,6 @@ bool RawMesh::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
 	return true;
 }
 
-
-// --------------------------------------------------------------------------------
-
-RawMesh::RawMesh( const std::string& id )
-	: TriangleMesh(id)
-	, p(new Impl(this))
-{
-
-}
-
-RawMesh::~RawMesh()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool RawMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-int RawMesh::NumVertices() const
-{
-	return static_cast<int>(p->positions.size());
-}
-
-int RawMesh::NumFaces() const
-{
-	return static_cast<int>(p->faces.size());
-}
-
-const Math::Float* RawMesh::Positions() const
-{
-	return p->positions.empty() ? nullptr : &p->positions[0];
-}
-
-const Math::Float* RawMesh::Normals() const
-{
-	return p->normals.empty() ? nullptr : &p->normals[0];
-}
-
-const Math::Float* RawMesh::TexCoords() const
-{
-	return p->texcoords.empty() ? nullptr : &p->texcoords[0];
-}
-
-const unsigned int* RawMesh::Faces() const
-{
-	return p->faces.empty() ? nullptr : &p->faces[0];
-}
+LM_COMPONENT_REGISTER_IMPL(RawMesh, TriangleMesh);
 
 LM_NAMESPACE_END

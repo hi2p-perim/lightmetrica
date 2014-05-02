@@ -77,15 +77,40 @@ public:
 public:
 
 	/*!
-		Register an asset factory.
-		Register an asset factory which is used for creating assets.
+		Register an interface for assets.
+		Register an component interface class for assets creation.
+		The class must inherit #Assets and specify dependencies
+		to the other asset types with LM_ASSET_DEPENDENCIES macro.
 		Fails if the factory with same name is already registered.
-		\param entry An entry for register.
-		\retval true Succeeded to register the asset factory.
-		\retval false Failed to register the asset factory.
+		\param interfaceName Name of component interface class which is inherited from Asset.
+		\retval true Succeeded to register.
+		\retval false Failed to register.
+		\sa LM_ASSET_DEPENDENCIES
 	*/
-	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
+	bool RegisterInterface(const std::string& interfaceName);
 
+	/*!
+		Register an interface for assets.
+		Register an component interface class for assets creation.
+		This template version statically checks the requirement for types.
+		\tparam AssetInterfaceType Type of component interface class which is inherited from Asset.
+		\retval true Succeeded to register.
+		\retval false Failed to register.
+		\sa LM_ASSET_DEPENDENCIES
+	*/
+	template <typename AssetInterfaceType>
+	bool RegisterInterface()
+	{
+		std::string interfaceTypeName = AssetInterfaceType::InterfaceTypeName();
+
+		// Statically checks if #AssetInterfaceType is inherited from #Asset
+		static_assert(
+			std::is_base_of(Asset, AssetInterfaceType)::value,
+			"Component interface class '" + interfaceTypeName + "' is not inherited from Asset");
+
+		return RegisterInterface(interfaceTypeName);
+	}
+	
 	/*!
 		Load assets from XML element.
 		Parse the element #node and register assets.

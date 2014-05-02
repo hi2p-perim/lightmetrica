@@ -25,7 +25,6 @@
 #include "pch.h"
 #include <lightmetrica/asset.h>
 #include <lightmetrica/defaultassets.h>
-#include <lightmetrica/assetfactory.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/pugihelper.h>
@@ -39,26 +38,23 @@ public:
 
 	Impl(DefaultAssets* self);
 	~Impl();
+
+public:
+
+	bool RegisterInterface(const std::string& interfaceName);
 	bool Load(const ConfigNode& node);
-	bool RegisterAssetFactory(const AssetFactoryEntry& entry);
 	Asset* GetAssetByName(const std::string& name) const;
 	boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func);
 
 private:
 
-	void InitializeAssetFactories();
-
-private:
-
 	DefaultAssets* self;
-	std::vector<AssetFactoryEntry> assetFactoryEntries;
-	boost::unordered_map<std::string, size_t> assetFactoryMap;
-
-	std::vector<Asset*> assetInstances;
-	std::vector<ConfigNode> assetInstanceNodes;
-	boost::unordered_map<std::string, size_t> assetIndexMap;
-
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
+
+	std::unordered_set<std::string> interfaceNames;				// Registered interface names for asset creation
+	std::vector<Asset*> assetInstances;							// Asset instances
+	std::vector<ConfigNode> assetInstanceNodes;					// Config nodes for corresponding assets
+	boost::unordered_map<std::string, size_t> assetIndexMap;	// For search query
 
 };
 
@@ -70,52 +66,34 @@ DefaultAssets::Impl::Impl( DefaultAssets* self )
 
 DefaultAssets::Impl::~Impl()
 {
-	for (auto& v : assetFactoryEntries)
-		LM_SAFE_DELETE(v.factory);
 	for (auto& v : assetInstances)
 		LM_SAFE_DELETE(v);
 }
 
-bool DefaultAssets::Impl::RegisterAssetFactory( const AssetFactoryEntry& entry )
+bool DefaultAssets::Impl::RegisterInterface( const std::string& interfaceName )
 {
-	// Check if the asset with same name is already registered
-	auto it = std::find_if(assetFactoryEntries.begin(), assetFactoryEntries.end(),
-		[&entry](const AssetFactoryEntry& o) { return entry.name == o.name; });
-	
-	if (it != assetFactoryEntries.end())
+	if (interfaceNames.find(interfaceName) != interfaceNames.end())
 	{
-		LM_LOG_ERROR(boost::str(boost::format("Asset factory '%s' is already registered") % entry.name));
+		LM_LOG_ERROR("Component interface '" + interfaceName + "' is already registered");
 		return false;
 	}
 
-	assetFactoryEntries.push_back(entry);
+	interfaceNames.insert(interfaceName);
 	return true;
-}
-
-void DefaultAssets::Impl::InitializeAssetFactories()
-{
-	// Sort by priority
-	std::sort(assetFactoryEntries.begin(), assetFactoryEntries.end(),
-		[](const AssetFactoryEntry& a, const AssetFactoryEntry& b) { return a.priority < b.priority; });
-	
-	// Create a map for the search query by name
-	assetFactoryMap.clear();
-	for (size_t i = 0; i < assetFactoryEntries.size(); i++)
-	{
-		assetFactoryMap[assetFactoryEntries[i].name] = i;
-	}
 }
 
 bool DefaultAssets::Impl::Load( const ConfigNode& node )
 {
-	// Initialize asset factories
-	InitializeAssetFactories();
-
 	// Element name must be 'assets'
 	if (node.Name() != "assets")
 	{
 		LM_LOG_ERROR("Invalid element name '" + node.Name() + "' (expected 'assets')");
 		return false;
+	}
+
+	{
+		LM_LOG_INFO("Stage : Resolving dependency");
+
 	}
 
 	{
@@ -242,14 +220,14 @@ DefaultAssets::~DefaultAssets()
 	LM_SAFE_DELETE(p);
 }
 
+bool DefaultAssets::RegisterInterface( const std::string& interfaceName )
+{
+	return p->RegisterInterface(interfaceName);
+}
+
 bool DefaultAssets::Load( const ConfigNode& node )
 {
 	return p->Load(node);
-}
-
-bool DefaultAssets::RegisterAssetFactory( const AssetFactoryEntry& entry )
-{
-	return p->RegisterAssetFactory(entry);
 }
 
 Asset* DefaultAssets::GetAssetByName( const std::string& name ) const

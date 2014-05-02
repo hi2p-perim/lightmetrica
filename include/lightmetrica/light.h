@@ -38,13 +38,13 @@ class LM_PUBLIC_API Light : public Emitter
 {
 public:
 
-	Light();
-	Light(const std::string& id);
-	virtual ~Light();
+	LM_COMPONENT_INTERFACE_DEF("light");
 
 public:
 
-	virtual std::string Name() const { return "light"; }
+	Light();
+	Light(const std::string& id);
+	virtual ~Light();
 
 };
 

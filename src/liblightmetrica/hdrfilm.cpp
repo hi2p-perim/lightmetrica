@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/film.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/confignode.h>
@@ -32,32 +32,76 @@
 
 LM_NAMESPACE_BEGIN
 
-class HDRBitmapFilm::Impl : public Object
+/*!
+	HDR image types.
+	Defines output image types.
+*/
+enum class HDRImageType
+{
+	RadianceHDR,	// Radiance HDR
+	OpenEXR			// OpenEXR
+};
+
+/*!
+	High dynamic range bitmap film.
+	Implements HDR version of bitmap image recording.
+*/
+class HDRBitmapFilm : public Film
 {
 public:
 
-	Impl(HDRBitmapFilm* self);
+	LM_COMPONENT_IMPL_DEF("hdr");
 
 public:
 
-	bool LoadAsset(const ConfigNode& node, const Assets& assets);
+	HDRBitmapFilm() {}
+	HDRBitmapFilm(const std::string& id) : Film(id) {}
+	virtual ~HDRBitmapFilm() {}
 
 public:
 
-	int Width() const { return width; }
-	int Height() const { return height; }
-	bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
-	void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	void AccumulateContribution(const Film& film);
-	void Rescale( const Math::Float& weight );
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	
+public:
+
+	virtual int Width() const;
+	virtual int Height() const;
+	virtual bool Save(const std::string& path) const;
+	virtual bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
+	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
+	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
+	virtual void AccumulateContribution( const Film& film );
+	virtual void Rescale( const Math::Float& weight );
 
 public:
 
-	Film* Clone() const;
+	virtual Film* Clone() const;
+
+public:
+
+	/*!
+		Allocate the film with given width and height.
+		\param width Width of the film.
+		\param height Height of the film.
+	*/
 	void Allocate(int width, int height);
+
+	/*!
+		Set HDR image type.
+		\param type HDR image type.
+	*/
 	void SetHDRImageType(HDRImageType type) { this->type = type; }
+
+	/*!
+		Get HDR iamge type.
+		\return HDR image type.
+	*/
 	HDRImageType GetHDRImageType() const { return type; }
+
+	/*!
+		Get internal bitmap data.
+		\return A bitmap.
+	*/
 	const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
@@ -66,7 +110,6 @@ public:
 
 private:
 
-	HDRBitmapFilm* self;
 	int width;
 	int height;
 	HDRImageType type;				// Type of the image to be saved
@@ -74,13 +117,7 @@ private:
 
 };
 
-HDRBitmapFilm::Impl::Impl( HDRBitmapFilm* self )
-	: self(self)
-{
-	
-}
-
-bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	if (!node.ChildValue("width",	width))		return false;
 	if (!node.ChildValue("height",	height))	return false;
@@ -117,7 +154,7 @@ bool HDRBitmapFilm::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 	return true;
 }
 
-void HDRBitmapFilm::Impl::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const char* message )
+void HDRBitmapFilm::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const char* message )
 {
 	std::string format = fif != FIF_UNKNOWN
 		? FreeImage_GetFormatFromFIF(fif)
@@ -127,7 +164,7 @@ void HDRBitmapFilm::Impl::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const c
 	LM_LOG_ERROR(message);
 }
 
-void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+void HDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
 	// Check raster position
 	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
@@ -149,7 +186,7 @@ void HDRBitmapFilm::Impl::RecordContribution( const Math::Vec2& rasterPos, const
 	data[3 * idx + 2] = contrb[2];
 }
 
-void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
 	// Check raster position
 	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
@@ -171,7 +208,7 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Math::Vec2& rasterPos, c
 	data[3 * idx + 2] += contrb[2];
 }
 
-void HDRBitmapFilm::Impl::AccumulateContribution( const Film& film )
+void HDRBitmapFilm::AccumulateContribution( const Film& film )
 {
 	// Check type
 	if (film.Type() != self->Type())
@@ -197,7 +234,7 @@ void HDRBitmapFilm::Impl::AccumulateContribution( const Film& film )
 	}
 }
 
-bool HDRBitmapFilm::Impl::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
+bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
 {
 	// Error handing of FreeImage
 	FreeImage_SetOutputMessage(FreeImageErrorCallback);
@@ -259,7 +296,7 @@ bool HDRBitmapFilm::Impl::RescaleAndSave( const std::string& path, const Math::F
 	return true;
 }
 
-Film* HDRBitmapFilm::Impl::Clone() const
+Film* HDRBitmapFilm::Clone() const
 {
 	auto* film = new HDRBitmapFilm(self->ID());
 	*film->p = *this;
@@ -267,14 +304,14 @@ Film* HDRBitmapFilm::Impl::Clone() const
 	return film;
 }
 
-void HDRBitmapFilm::Impl::Allocate( int width, int height )
+void HDRBitmapFilm::Allocate( int width, int height )
 {
 	this->width = width;
 	this->height = height;
 	bitmap.InternalData().assign(width * height * 3, Math::Float(0));
 }
 
-void HDRBitmapFilm::Impl::Rescale( const Math::Float& weight )
+void HDRBitmapFilm::Rescale( const Math::Float& weight )
 {
 	auto& data = bitmap.InternalData();
 	for (auto& v : data)
@@ -283,88 +320,6 @@ void HDRBitmapFilm::Impl::Rescale( const Math::Float& weight )
 	}
 }
 
-// --------------------------------------------------------------------------------
-
-HDRBitmapFilm::HDRBitmapFilm(const std::string& id)
-	: Film(id)
-	, p(new Impl(this))
-{
-
-}
-
-HDRBitmapFilm::~HDRBitmapFilm()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool HDRBitmapFilm::Save(const std::string& path) const
-{
-	return p->RescaleAndSave(path, Math::Float(1));
-}
-
-bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
-{
-	return p->RescaleAndSave(path, weight);
-}
-
-int HDRBitmapFilm::Width() const
-{
-	return p->Width();
-}
-
-int HDRBitmapFilm::Height() const
-{
-	return p->Height();
-}
-
-void HDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
-{
-	p->RecordContribution(rasterPos, contrb);
-}
-
-void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
-{
-	p->AccumulateContribution(rasterPos, contrb);
-}
-
-void HDRBitmapFilm::AccumulateContribution( const Film& film )
-{
-	p->AccumulateContribution(film);
-}
-
-bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-Film* HDRBitmapFilm::Clone() const
-{
-	return p->Clone();
-}
-
-void HDRBitmapFilm::Allocate( int width, int height )
-{
-	p->Allocate(width, height);
-}
-
-void HDRBitmapFilm::SetHDRImageType( HDRImageType type )
-{
-	p->SetHDRImageType(type);
-}
-
-HDRImageType HDRBitmapFilm::GetHDRImageType() const
-{
-	return p->GetHDRImageType();
-}
-
-const BitmapImage& HDRBitmapFilm::Bitmap() const
-{
-	return p->Bitmap();
-}
-
-void HDRBitmapFilm::Rescale( const Math::Float& weight )
-{
-	p->Rescale(weight);
-}
+LM_COMPONENT_REGISTER_IMPL(HDRBitmapFilm, Film);
 
 LM_NAMESPACE_END

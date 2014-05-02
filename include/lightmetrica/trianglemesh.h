@@ -40,12 +40,13 @@ class LM_PUBLIC_API TriangleMesh : public Asset
 {
 public:
 
-	TriangleMesh(const std::string& id);
-	virtual ~TriangleMesh();
+	LM_COMPONENT_INTERFACE_DEF("triangle_mesh");
 
 public:
 
-	std::string Name() const { return "triangle_mesh"; }
+	TriangleMesh();
+	TriangleMesh(const std::string& id);
+	virtual ~TriangleMesh();
 
 public:
 

@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/bitmaptexture.h>
+#include <lightmetrica/texture.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/pathutils.h>
@@ -32,19 +32,41 @@
 
 LM_NAMESPACE_BEGIN
 
-class BitmapTexture::Impl
+/*!
+	Bitmap texture.
+	Implements a bitmap texture.
+*/
+class BitmapTexture : public Texture
 {
 public:
 
-	Impl(BitmapTexture* self);
+	LM_COMPONENT_IMPL_DEF("bitmap");
 
 public:
 
-	bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	BitmapTexture() {}
+	BitmapTexture(const std::string& id) : Texture(id) {}
+	virtual ~BitmapTexture() {}
 
 public:
 
-	bool LoadAsset( const std::string& path, bool verticalFlip );
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	/*
+		Load a bitmap texture.
+		\param path Path to a texture.
+		\param verticalFlip If true, loaded image is flipped vertically.
+		\retval true Succeeded to load.
+		\retval false Failed to load.
+	*/
+	bool LoadAsset(const std::string& path, bool verticalFlip = false);
+
+	/*!
+		Get internal bitmap data.
+		\return A bitmap.
+	*/
 	const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
@@ -60,13 +82,7 @@ private:
 
 };
 
-BitmapTexture::Impl::Impl( BitmapTexture* self )
-	: self(self)
-{
-
-}
-
-bool BitmapTexture::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool BitmapTexture::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	// 'path' element
 	std::string path;
@@ -85,7 +101,7 @@ bool BitmapTexture::Impl::LoadAsset( const ConfigNode& node, const Assets& asset
 	return LoadAsset(path, verticalFlip);
 }
 
-bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip )
+bool BitmapTexture::LoadAsset( const std::string& path, bool verticalFlip )
 {
 	// Try to deduce the file format by the file signature
 	auto format = FreeImage_GetFileType(path.c_str(), 0);
@@ -181,40 +197,6 @@ bool BitmapTexture::Impl::LoadAsset( const std::string& path, bool verticalFlip 
 	return true;
 }
 
-// --------------------------------------------------------------------------------
-
-BitmapTexture::BitmapTexture()
-	: Texture("")
-	, p(new Impl(this))
-{
-
-}
-
-BitmapTexture::BitmapTexture( const std::string& id )
-	: Texture(id)
-	, p(new Impl(this))
-{
-
-}
-
-BitmapTexture::~BitmapTexture()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool BitmapTexture::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-bool BitmapTexture::LoadAsset( const std::string& path, bool verticalFlip /*= false*/ )
-{
-	return p->LoadAsset(path, verticalFlip);
-}
-
-const BitmapImage& BitmapTexture::Bitmap() const
-{
-	return p->Bitmap();
-}
+LM_COMPONENT_REGISTER_IMPL(BitmapTexture, Texture);
 
 LM_NAMESPACE_END

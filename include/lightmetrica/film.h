@@ -40,12 +40,13 @@ class LM_PUBLIC_API Film : public Asset
 {
 public:
 
-	Film(const std::string& id);
-	virtual ~Film();
+	LM_COMPONENT_INTERFACE_DEF("film");
 
 public:
 
-	std::string Name() const { return "film"; }
+	Film();
+	Film(const std::string& id);
+	virtual ~Film();
 
 public:
 

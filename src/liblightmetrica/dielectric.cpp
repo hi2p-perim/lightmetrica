@@ -23,28 +23,38 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/dielectric.h>
+#include <lightmetrica/bsdf.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/surfacegeometry.h>
 
 LM_NAMESPACE_BEGIN
 
-class DielectricBSDF::Impl : public SIMDAlignedType
+/*!
+	Dielectric BSDF.
+	Implements dielectric BSDF.
+*/
+class DielectricBSDF : public BSDF
 {
 public:
 
-	Impl(DielectricBSDF* self);
+	LM_COMPONENT_IMPL_DEF("dielectric");
 
 public:
 
-	bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	DielectricBSDF() {}
+	DielectricBSDF(const std::string& id) : BSDF(id) {}
+	~DielectricBSDF() {}
 
 public:
 
-	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 private:
 
@@ -54,7 +64,6 @@ private:
 
 private:
 
-	DielectricBSDF* self;
 	Math::Vec3 R;			// Specular reflectance
 	Math::Vec3 T;			// Specular transmittance
 	Math::Float n1;			// External IOR
@@ -62,13 +71,7 @@ private:
 
 };
 
-DielectricBSDF::Impl::Impl( DielectricBSDF* self )
-	: self(self)
-{
-
-}
-
-bool DielectricBSDF::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool DielectricBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("specular_reflectance", Math::Vec3(Math::Float(1)), R);
 	node.ChildValueOrDefault("specular_transmittance", Math::Vec3(Math::Float(1)), T);
@@ -77,12 +80,12 @@ bool DielectricBSDF::Impl::LoadAsset( const ConfigNode& node, const Assets& asse
 	return true;
 }
 
-bool DielectricBSDF::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	return false;
 }
 
-Math::Vec3 DielectricBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	bool useR = (query.type & GeneralizedBSDFType::SpecularReflection) != 0;
 	bool useT = (query.type & GeneralizedBSDFType::SpecularTransmission) != 0;
@@ -124,7 +127,7 @@ Math::Vec3 DielectricBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluat
 		}
 
 		// Correction factor for shading normal
-		auto sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 		if (sf == 0.0)
 		{
 			return Math::Vec3();
@@ -145,7 +148,7 @@ Math::Vec3 DielectricBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluat
 		}
 
 		// Correction factor for shading normal
-		auto sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 		if (Math::IsZero(sf))
 		{
 			return Math::Vec3();
@@ -168,12 +171,12 @@ Math::Vec3 DielectricBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluat
 	return Math::Vec3();
 }
 
-Math::PDFEval DielectricBSDF::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	return Math::PDFEval();
 }
 
-Math::Float DielectricBSDF::Impl::EvalFrDielectic( Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT ) const
+Math::Float DielectricBSDF::EvalFrDielectic( Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT ) const
 {
 	Math::Float Fr;
 	bool entering = cosThetaI > Math::Float(0);
@@ -215,38 +218,6 @@ Math::Float DielectricBSDF::Impl::EvalFrDielectic( Math::Float etaI, Math::Float
 	return Fr;
 }
 
-// --------------------------------------------------------------------------------
-
-DielectricBSDF::DielectricBSDF( const std::string& id )
-	: BSDF(id)
-	, p(new Impl(this))
-{
-
-}
-
-DielectricBSDF::~DielectricBSDF()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool DielectricBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
-{
-	return p->SampleDirection(query, geom, result);
-}
-
-Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirection(query, geom);
-}
-
-Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirectionPDF(query, geom);
-}
+LM_COMPONENT_REGISTER_IMPL(DielectricBSDF, BSDF);
 
 LM_NAMESPACE_END

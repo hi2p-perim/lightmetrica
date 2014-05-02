@@ -73,7 +73,6 @@ set(
 	"${_INCLUDE_DIR}/asset.h"
 	"${_INCLUDE_DIR}/assets.h"
 	"${_INCLUDE_DIR}/defaultassets.h"
-	"${_INCLUDE_DIR}/assetfactory.h"
 	"${_INCLUDE_DIR}/emitter.h"
 	"${_INCLUDE_DIR}/generalizedbsdf.h"
 	"${_INCLUDE_DIR}/bitmap.h"
@@ -83,7 +82,6 @@ set(
 	"asset.cpp"
 	"assets.cpp"
 	"defaultassets.cpp"
-	"assetfactory.cpp"
 	"emitter.cpp"
 	"generalizedbsdf.cpp"
 	"bitmap.cpp"
@@ -98,18 +96,14 @@ list(APPEND _SOURCE_FILES ${_ASSETS_SOURCES})
 set(
 	_ASSETS_CAMERAS_HEADERS
 	"${_INCLUDE_DIR}/camera.h"
-	"${_INCLUDE_DIR}/perspectivecamera.h"
-	"${_INCLUDE_DIR}/thinlenscamera.h"
-	"${_INCLUDE_DIR}/camerafactory.h"
 )
 set(
 	_ASSETS_CAMERAS_SOURCES
 	"camera.cpp"
 	"perspectivecamera.cpp"
 	"thinlenscamera.cpp"
-	"camerafactory.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\cameras" FILES ${_ASSETS_CAMERAS_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_CAMERAS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\cameras" FILES ${_ASSETS_CAMERAS_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_CAMERAS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_CAMERAS_SOURCES})
@@ -119,16 +113,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_CAMERAS_SOURCES})
 set(
 	_ASSETS_LIGHTS_HEADERS
 	"${_INCLUDE_DIR}/light.h"
-	"${_INCLUDE_DIR}/arealight.h"
-	"${_INCLUDE_DIR}/lightfactory.h"
 )
 set(
 	_ASSETS_LIGHTS_SOURCES
 	"light.cpp"
 	"arealight.cpp"
-	"lightfactory.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_LIGHTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_LIGHTS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_LIGHTS_SOURCES})
@@ -138,16 +129,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_LIGHTS_SOURCES})
 set(
 	_ASSETS_FILMS_HEADERS
 	"${_INCLUDE_DIR}/film.h"
-	"${_INCLUDE_DIR}/hdrfilm.h"
-	"${_INCLUDE_DIR}/filmfactory.h"
 )
 set(
 	_ASSETS_FILMS_SOURCES
 	"film.cpp"
 	"hdrfilm.cpp"
-	"filmfactory.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\films" FILES ${_ASSETS_FILMS_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_FILMS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\films" FILES ${_ASSETS_FILMS_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_FILMS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_FILMS_SOURCES})
@@ -157,18 +145,14 @@ list(APPEND _SOURCE_FILES ${_ASSETS_FILMS_SOURCES})
 set(
 	_ASSETS_BSDFS_HEADERS
 	"${_INCLUDE_DIR}/bsdf.h"
-	"${_INCLUDE_DIR}/bsdffactory.h"
-	"${_INCLUDE_DIR}/diffuse.h"
-	"${_INCLUDE_DIR}/dielectric.h"
 )
 set(
 	_ASSETS_BSDFS_SOURCES
 	"bsdf.cpp"
-	"bsdffactory.cpp"
 	"diffuse.cpp"
 	"dielectric.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_BSDFS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_BSDFS_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_BSDFS_SOURCES})
@@ -178,18 +162,14 @@ list(APPEND _SOURCE_FILES ${_ASSETS_BSDFS_SOURCES})
 set(
 	_ASSETS_TRIANGLE_MESHES_HEADERS
 	"${_INCLUDE_DIR}/trianglemesh.h"
-	"${_INCLUDE_DIR}/trianglemeshfactory.h"
-	"${_INCLUDE_DIR}/objmesh.h"
-	"${_INCLUDE_DIR}/rawmesh.h"
 )
 set(
 	_ASSETS_TRIANGLE_MESHES_SOURCES
 	"trianglemesh.cpp"
-	"trianglemeshfactory.cpp"
 	"objmesh.cpp"
 	"rawmesh.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\trianglemeshes" FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_TRIANGLE_MESHES_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
@@ -199,16 +179,13 @@ list(APPEND _SOURCE_FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
 set(
 	_ASSETS_TEXTURES_HEADERS
 	"${_INCLUDE_DIR}/texture.h"
-	"${_INCLUDE_DIR}/texturefactory.h"
-	"${_INCLUDE_DIR}/bitmaptexture.h"
 )
 set(
 	_ASSETS_TEXTURES_SOURCES
 	"texture.cpp"
-	"texturefactory.cpp"
 	"bitmaptexture.cpp"
 )
-source_group("${_HEADER_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_HEADERS})
+source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_TEXTURES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_SOURCES})
 list(APPEND _HEADER_FILES ${_ASSETS_TEXTURES_HEADERS})
 list(APPEND _SOURCE_FILES ${_ASSETS_TEXTURES_SOURCES})

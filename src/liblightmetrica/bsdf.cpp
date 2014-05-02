@@ -29,6 +29,11 @@
 
 LM_NAMESPACE_BEGIN
 
+BSDF::BSDF()
+{
+
+}
+
 BSDF::BSDF(const std::string& id)
 	: GeneralizedBSDF(id)
 {

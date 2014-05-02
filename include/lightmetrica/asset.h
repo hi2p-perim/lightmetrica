@@ -26,8 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_ASSET_H
 #define LIB_LIGHTMETRICA_ASSET_H
 
-#include "object.h"
-#include <string>
+#include "component.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -38,7 +37,7 @@ class ConfigNode;
 	Asset.
 	A base class for assets.
 */
-class LM_PUBLIC_API Asset : public Object
+class Asset : public Object
 {
 public:
 
@@ -46,16 +45,16 @@ public:
 		Constructor.
 		Constructs the asset without ID.
 	*/
-	Asset();
+	LM_PUBLIC_API Asset();
 
 	/*!
 		Constructor.
 		\param id ID of the asset.
 	*/
-	Asset(const std::string& id);
+	LM_PUBLIC_API Asset(const std::string& id);
 
 	//! Destructor.
-	virtual ~Asset();
+	virtual ~Asset() {}
 
 private:
 
@@ -71,27 +70,13 @@ public:
 		\param node XML node for the configuration.
 		\param assets Asset manager.
 	*/
-	bool Load(const ConfigNode& node, const Assets& assets);
+	LM_PUBLIC_API bool Load(const ConfigNode& node, const Assets& assets);
 
 	/*!
 		Get ID of the asset.
 		\return ID of the asset.
 	*/
-	std::string ID() const { return id; }
-
-public:
-
-	/*!
-		Get the name of the asset.
-		\return Name of the asset.
-	*/
-	virtual std::string Name() const = 0;
-
-	/*!
-		Get the type of the asset.
-		\return Type of the asset.
-	*/
-	virtual std::string Type() const = 0;
+	LM_PUBLIC_API std::string ID() const;
 
 protected:
 
@@ -109,5 +94,13 @@ private:
 };
 
 LM_NAMESPACE_END
+
+#define LM_ASSET_DEPENDENCIES(...)							\
+	static const char** GetAssetDependencies(size_t& n)		\
+	{														\
+		static const char* deps[] = { __VA_ARGS__ };		\
+		n = sizeof(deps) / sizeof(deps[0]);					\
+		return deps;										\
+	}
 
 #endif // LIB_LIGHTMETRICA_ASSET_H

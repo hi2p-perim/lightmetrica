@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+Film::Film()
+{
+
+}
+
 Film::Film(const std::string& id)
 	: Asset(id)
 {

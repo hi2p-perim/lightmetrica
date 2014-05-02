@@ -38,12 +38,14 @@ class LM_PUBLIC_API BSDF : public GeneralizedBSDF
 {
 public:
 
-	BSDF(const std::string& id);
-	virtual ~BSDF();
+	LM_COMPONENT_INTERFACE_DEF("bsdf");
+	LM_ASSET_DEPENDENCIES("texture");
 
 public:
 
-	std::string Name() const { return "bsdf"; }
+	BSDF();
+	BSDF(const std::string& id);
+	virtual ~BSDF();
 
 protected:
 

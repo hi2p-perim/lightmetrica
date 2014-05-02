@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+TriangleMesh::TriangleMesh()
+{
+
+}
+
 TriangleMesh::TriangleMesh( const std::string& id )
 	: Asset(id)
 {

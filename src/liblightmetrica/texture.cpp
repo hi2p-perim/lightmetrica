@@ -27,6 +27,11 @@
 
 LM_NAMESPACE_BEGIN
 
+Texture::Texture()
+{
+
+}
+
 Texture::Texture(const std::string& id)
 	: Asset(id)
 {

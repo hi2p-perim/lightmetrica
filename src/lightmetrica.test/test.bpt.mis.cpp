@@ -41,9 +41,10 @@ class BPTMISTest : public TestBase
 public:
 
 	BPTMISTest()
-		: lightSubpath(TransportDirection::LE)
-		, eyeSubpath(TransportDirection::EL)
+		//: lightSubpath(TransportDirection::LE)
+		//, eyeSubpath(TransportDirection::EL)
 	{
+		/*
 		misWeightTypes.emplace_back("bpt.mis.simple");
 		misWeightTypes.emplace_back("bpt.mis.powerheuristics");
 
@@ -63,19 +64,19 @@ public:
 		y0.geom.ComputeTangentSpace();
 		y0.areaLight = &areaLight;
 		y0.bsdf
-		
+		*/
 	}
 
 protected:
 
-	std::vector<std::string> misWeightTypes;
-	StubAssets assets;
+	//std::vector<std::string> misWeightTypes;
+	//StubAssets assets;
 	
-	AreaLight areaLight;
-	DiffuseBSDF diffuseBSDF_Black;
+	//AreaLight areaLight;
+	//DiffuseBSDF diffuseBSDF_Black;
 
-	BPTSubpath lightSubpath, eyeSubpath;
-	BPTFullPath fullPath;
+	//BPTSubpath lightSubpath, eyeSubpath;
+	//BPTFullPath fullPath;
 
 };
 
@@ -85,14 +86,14 @@ protected:
 */
 TEST_F(BPTMISTest, Condition_W1)
 {
-	for (const auto& type : misWeightTypes)
-	{
+	//for (const auto& type : misWeightTypes)
+	//{
 		// Create MIS weighting function
-		std::unique_ptr<BPTMISWeight> misWeight(ComponentFactory::Create<BPTMISWeight>(type));
-		EXPECT_TRUE(misWeight->Configure(ConfigNode(), assets));
+		//std::unique_ptr<BPTMISWeight> misWeight(ComponentFactory::Create<BPTMISWeight>(type));
+		//EXPECT_TRUE(misWeight->Configure(ConfigNode(), assets));
 
 		//misWeight->Evaluate()
-	}
+	//}
 }
 
 LM_TEST_NAMESPACE_END

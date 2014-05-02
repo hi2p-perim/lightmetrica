@@ -23,159 +23,100 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/thinlenscamera.h>
+#include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 
 LM_NAMESPACE_BEGIN
 
-class ThinLensCamera::Impl : public Object
+/*!
+	Thin-lens camera.
+	A camera with depth of field support.
+*/
+class ThinLensCamera : public Camera
 {
 public:
 
-	Impl(ThinLensCamera* self);
+	LM_COMPONENT_IMPL_DEF("thinlens");
 
 public:
 
-	bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	ThinLensCamera() {}
+	ThinLensCamera(const std::string& id) : Camera(id) {}
+	~ThinLensCamera() {}
 
 public:
 
-	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
 
 public:
 
-	void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
-	Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
-	void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 public:
 
-	bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
-	Film* GetFilm() const { return film; }
+	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
+	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
+	virtual void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+
+public:
+
+	virtual bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
+	virtual Film* GetFilm() const { return film; }
 
 private:
 
-	ThinLensCamera* self;
 	Film* film;
 
 };
 
-ThinLensCamera::Impl::Impl( ThinLensCamera* self )
-	: self(self)
-{
-
-}
-
-bool ThinLensCamera::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool ThinLensCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	return false;
-}
-
-bool ThinLensCamera::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
-{
-	return false;
-}
-
-Math::Vec3 ThinLensCamera::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return Math::Vec3();
-}
-
-Math::PDFEval ThinLensCamera::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return Math::PDFEval();
-}
-
-void ThinLensCamera::Impl::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
-{
-
-}
-
-Math::Vec3 ThinLensCamera::Impl::EvaluatePosition( const SurfaceGeometry& geom ) const
-{
-	return Math::Vec3();
-}
-
-Math::PDFEval ThinLensCamera::Impl::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
-{
-	return Math::PDFEval();
-}
-
-void ThinLensCamera::Impl::RegisterPrimitives( const std::vector<Primitive*>& primitives )
-{
-
-}
-
-bool ThinLensCamera::Impl::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
-{
-	return false;
-}
-
-// --------------------------------------------------------------------------------
-
-ThinLensCamera::ThinLensCamera( const std::string& id )
-	: Camera(id)
-	, p(new Impl(this))
-{
-
-}
-
-ThinLensCamera::~ThinLensCamera()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool ThinLensCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
-{
-	return this->p->RayToRasterPosition(p, d, rasterPos);
-}
-
-Film* ThinLensCamera::GetFilm() const
-{
-	return p->GetFilm();
-}
-
-void ThinLensCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
-{
-	return p->SamplePosition(sample, geom, pdf);
-}
-
-Math::Vec3 ThinLensCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
-{
-	return p->EvaluatePosition(geom);
-}
-
-Math::PDFEval ThinLensCamera::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
-{
-	throw std::logic_error("The method or operation is not implemented.");
-}
-
-void ThinLensCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
-{
-	return p->RegisterPrimitives(primitives);
 }
 
 bool ThinLensCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	return p->SampleDirection(query, geom, result);
+	return false;
 }
 
 Math::Vec3 ThinLensCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	return p->EvaluateDirection(query, geom);
+	return Math::Vec3();
 }
 
 Math::PDFEval ThinLensCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	throw std::logic_error("The method or operation is not implemented.");
+	return Math::PDFEval();
 }
 
-bool ThinLensCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
+void ThinLensCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-	return p->LoadAsset(node, assets);
+
 }
+
+Math::Vec3 ThinLensCamera::EvaluatePosition( const SurfaceGeometry& geom ) const
+{
+	return Math::Vec3();
+}
+
+Math::PDFEval ThinLensCamera::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+{
+	return Math::PDFEval();
+}
+
+void ThinLensCamera::RegisterPrimitives( const std::vector<Primitive*>& primitives )
+{
+
+}
+
+bool ThinLensCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const
+{
+	return false;
+}
+
+LM_COMPONENT_REGISTER_IMPL(ThinLensCamera, Camera);
 
 LM_NAMESPACE_END

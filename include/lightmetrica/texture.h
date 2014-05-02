@@ -38,12 +38,13 @@ class LM_PUBLIC_API Texture : public Asset
 {
 public:
 
-	Texture(const std::string& id);
-	virtual ~Texture();
+	LM_COMPONENT_INTERFACE_DEF("texture");
 
 public:
 
-	virtual std::string Name() const { return "texture"; }
+	Texture();
+	Texture(const std::string& id);
+	virtual ~Texture();
 
 };
 

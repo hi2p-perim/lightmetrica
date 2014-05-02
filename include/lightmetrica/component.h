@@ -81,31 +81,57 @@ public:
 	
 	/*!
 		Check if the component is registered.
+		\param interfaceType Component interface type.
 		\param implType Component implementation type.
 		\retval true Component of the given type is registered.
 		\retval false Component of the given type is not registered.
 	*/
-	static bool CheckRegistered(const std::string& implType);
+	static bool CheckRegistered(const std::string& interfaceType, const std::string& implType);
+
+	/*!
+		Check if the component interface is registered.
+		\param interfaceType Component interface type.
+		\retval true Component interface of the given type is registered.
+		\retval false Component interface of the given type is not registered.
+	*/
+	static bool CheckInterfaceRegistered(const std::string& interfaceType);
 
 	/*!
 		Register a component.
 		Registers a component to the factory.
 		Registered components can be instantiated with #Create function.
+		\param interfaceType Component interface type.
 		\param implType Component implementation type.
 		\param func Instance creation function.
 		\retval true Successfully registered.
 		\retval false Failed to register a component.
 	*/
-	static bool Register(const std::string& implType, const CreateComponentFunc& func);
+	static bool Register(const std::string& interfaceType, const std::string& implType, const CreateComponentFunc& func);
 
 	/*!
 		Create an instance of a component.
+		\param interfaceType Component interface type.
 		\param implType Component implementation type.
 		\return Instance. nullptr if not registered.
 	*/
-	static Component* Create(const std::string& implType);
+	static Component* Create(const std::string& interfaceType, const std::string& implType);
 
 public:
+
+	/*!
+		Check if the component is registered.
+		\tparam InterfaceType Interface type.
+		\param interfaceType Component interface type.
+		\param implType Component implementation type.
+		\retval true Component of the given type is registered.
+		\retval false Component of the given type is not registered.
+	*/
+	template <typename InterfaceType>
+	static bool CheckRegistered(const std::string& implType)
+	{
+		std::string interfaceType = InterfaceType::InterfaceTypeName();
+		return CheckRegistered(interfaceType, implType);
+	}
 
 	/*!
 		Create an instance of a component with interface type.
@@ -117,18 +143,24 @@ public:
 	template <typename InterfaceType>
 	static InterfaceType* Create(const std::string& implType)
 	{
-		auto* p1 = Create(implType);
+		std::string interfaceType = InterfaceType::InterfaceTypeName();
+		if (!CheckInterfaceRegistered(interfaceType))
+		{
+			LM_LOG_ERROR("Invalid interface type '" + interfaceType + "'");
+			return nullptr;
+		}
+
+		auto* p1 = Create(interfaceType, implType);
 		if (p1 == nullptr)
 		{
-			LM_LOG_ERROR("Invalid instance type '" + implType + "'");
+			LM_LOG_ERROR("Invalid instance type '" + implType + "' (interface type : '" + interfaceType + "')");
 			return nullptr;
 		}
 
 		auto* p2 = dynamic_cast<InterfaceType*>(p1);
 		if (p2 == nullptr)
 		{
-			LM_LOG_ERROR("An instance of type '" + implType +
-				"' is not inherited from '" + InterfaceType::InterfaceTypeName() + "'");
+			LM_LOG_ERROR("An instance of type '" + implType + "' is not inherited from '" + interfaceType + "'");
 			LM_SAFE_DELETE(p1);
 			return nullptr;
 		}
@@ -145,12 +177,12 @@ LM_DETAIL_NAMESPACE_BEGIN
 /*!
 	Component factory entry.
 	An entry for component factory.
-	The singleton of the class is created per #ImplType
-	from the macro for registration.
+	The singleton of the class is created for each pair of #ImplType and #InterfaceType.
 	\tparam ImplType Component implementation type.
+	\tparam InterfaceType Component interface type.
 	\sa LM_COMPONENT_REGISTER_IMPL
 */
-template <typename ImplType>
+template <typename ImplType, typename InterfaceType>
 class ComponentFactoryEntry
 {
 public:
@@ -159,9 +191,9 @@ public:
 		Get instance.
 		Obtains the singleton instance of the class.
 	*/
-	static ComponentFactoryEntry<ImplType>& Instance()
+	static ComponentFactoryEntry<ImplType, InterfaceType>& Instance()
 	{
-		static ComponentFactoryEntry<ImplType> instance;
+		static ComponentFactoryEntry<ImplType, InterfaceType> instance;
 		return instance;
 	}
 
@@ -174,7 +206,7 @@ private:
 	ComponentFactoryEntry()
 	{
 		// Register entry here
-		if (!ComponentFactory::Register(ImplType::ImplTypeName(), [](){ return new ImplType; }))
+		if (!ComponentFactory::Register(InterfaceType::InterfaceTypeName(), ImplType::ImplTypeName(), [](){ return new ImplType; }))
 		{
 			LM_LOG_ERROR("Failed to register component '" + std::string(ImplType::ImplTypeName()) + "'");
 		}
@@ -182,10 +214,10 @@ private:
 
 private:
 
-	ComponentFactoryEntry(const ComponentFactoryEntry<ImplType>&);
-	ComponentFactoryEntry(ComponentFactoryEntry<ImplType>&&);
-	void operator=(const ComponentFactoryEntry<ImplType>&);
-	void operator=(ComponentFactoryEntry<ImplType>&&);
+	ComponentFactoryEntry(const ComponentFactoryEntry<ImplType, InterfaceType>&);
+	ComponentFactoryEntry(ComponentFactoryEntry<ImplType, InterfaceType>&&);
+	void operator=(const ComponentFactoryEntry<ImplType, InterfaceType>&);
+	void operator=(ComponentFactoryEntry<ImplType, InterfaceType>&&);
 
 };
 
@@ -289,27 +321,27 @@ LM_NAMESPACE_END
 	\tparam ImplType Component implementation type.
 */
 
-#define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)									\
-	namespace detail {																		\
-	namespace {																				\
-																							\
-		template <typename T>																\
-		class ComponentFactoryEntryInstance;												\
-																							\
-		template <>																			\
-		class ComponentFactoryEntryInstance<ImplType>										\
-		{																					\
-			static const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>& reg;		\
-		};																					\
-																							\
-		const ::lightmetrica::detail::ComponentFactoryEntry<ImplType>&						\
-			ComponentFactoryEntryInstance<ImplType>::reg =									\
-				::lightmetrica::detail::ComponentFactoryEntry<ImplType>::Instance();		\
-																							\
-		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType);						\
-		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);						\
-		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(InterfaceType, InterfaceTypeName);			\
-																							\
+#define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)												\
+	namespace detail {																					\
+	namespace {																							\
+																										\
+		template <typename T1, typename T2>																\
+		class ComponentFactoryEntryInstance;															\
+																										\
+		template <>																						\
+		class ComponentFactoryEntryInstance<ImplType, InterfaceType>									\
+		{																								\
+			static const ::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>& reg;	\
+		};																								\
+																										\
+		const ::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>&					\
+			ComponentFactoryEntryInstance<ImplType, InterfaceType>::reg =								\
+				::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>::Instance();		\
+																										\
+		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType);									\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);									\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(InterfaceType, InterfaceTypeName);						\
+																										\
 	}}
 
 #endif // LIB_LIGHTMETRICA_COMPONENT_H

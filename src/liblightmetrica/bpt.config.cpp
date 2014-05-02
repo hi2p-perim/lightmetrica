@@ -27,7 +27,7 @@
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/component.h>
+#include <lightmetrica/random.h>
 #include <thread>
 
 LM_NAMESPACE_BEGIN
@@ -49,14 +49,13 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered(rngType))
+	if (!ComponentFactory::CheckRegistered<Random>(rngType))
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
 	}
 
 	// MIS weight function
-	// TODO : Check if valid interface for the given type with CheckRegistered
 	auto misWeightModeNode = node.Child("mis_weight");
 	if (misWeightModeNode.Empty())
 	{
@@ -64,7 +63,7 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 	auto misWeightType = misWeightModeNode.AttributeValue("type");
-	if (!ComponentFactory::CheckRegistered(misWeightType))
+	if (!ComponentFactory::CheckRegistered<BPTMISWeight>(misWeightType))
 	{
 		LM_LOG_ERROR("Unsupported MIS weighting function '" + misWeightType + "'");
 		return false;

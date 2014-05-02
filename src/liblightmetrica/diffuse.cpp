@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/diffuse.h>
+#include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/confignode.h>
@@ -32,21 +32,31 @@
 
 LM_NAMESPACE_BEGIN
 
-class DiffuseBSDF::Impl : public SIMDAlignedType
+/*!
+	Diffuse BSDF.
+	Implements the diffuse BSDF.
+*/
+class DiffuseBSDF : public BSDF
 {
 public:
 
-	Impl(DiffuseBSDF* self);
+	LM_COMPONENT_IMPL_DEF("diffuse");
 
 public:
 
-	bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	DiffuseBSDF() {}
+	DiffuseBSDF(const std::string& id) : BSDF(id) {}
+	~DiffuseBSDF() {}
 
 public:
 
-	bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+
+public:
+
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 
 private:
 
@@ -55,19 +65,13 @@ private:
 
 };
 
-DiffuseBSDF::Impl::Impl( DiffuseBSDF* self )
-	: self(self)
-{
-
-}
-
-bool DiffuseBSDF::Impl::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool DiffuseBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), diffuseReflectance);
 	return true;
 }
 
-bool DiffuseBSDF::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
 	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
@@ -91,7 +95,7 @@ bool DiffuseBSDF::Impl::SampleDirection( const GeneralizedBSDFSampleQuery& query
 	return true;
 }
 
-Math::Vec3 DiffuseBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
@@ -109,7 +113,7 @@ Math::Vec3 DiffuseBSDF::Impl::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	return diffuseReflectance * Math::Constants::InvPi() * sf;
 }
 
-Math::PDFEval DiffuseBSDF::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
@@ -125,38 +129,6 @@ Math::PDFEval DiffuseBSDF::Impl::EvaluateDirectionPDF( const GeneralizedBSDFEval
 	return pdfD;
 }
 
-// --------------------------------------------------------------------------------
-
-DiffuseBSDF::DiffuseBSDF( const std::string& id )
-	: BSDF(id)
-	, p(new Impl(this))
-{
-
-}
-
-DiffuseBSDF::~DiffuseBSDF()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool DiffuseBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
-{
-	return p->LoadAsset(node, assets);
-}
-
-bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
-{
-	return p->SampleDirection(query, geom, result);
-}
-
-Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirection(query, geom);
-}
-
-Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
-{
-	return p->EvaluateDirectionPDF(query, geom);
-}
+LM_COMPONENT_REGISTER_IMPL(DiffuseBSDF, BSDF);
 
 LM_NAMESPACE_END
