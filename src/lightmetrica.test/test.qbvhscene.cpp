@@ -54,7 +54,6 @@ class QBVHSceneTest : public TestBase
 public:
 
 	QBVHSceneTest()
-		: bsdf("test")
 	{
 		
 	}

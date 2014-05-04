@@ -32,14 +32,12 @@
 #include <lightmetrica/scenefactory.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/camera.h>
-#include <lightmetrica/film.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/texture.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/math.h>
-#include <lightmetrica/camera.h>
-#include <lightmetrica/film.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -405,9 +403,17 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 	{
 		LM_LOG_INFO("Entering : Save rendered image");
 		LM_LOG_INDENTER();
-		if (!scene.MainCamera()->GetFilm()->Save(outputImagePath))
+		auto* film = dynamic_cast<BitmapFilm*>(scene.MainCamera()->GetFilm());
+		if (film == nullptr)
 		{
-			return false;
+			LM_LOG_WARN("Main camera is not associated with bitmap texture, skipping");
+		}
+		else
+		{
+			if (!film->Save(outputImagePath))
+			{
+				return false;
+			}
 		}
 	}
 

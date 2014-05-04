@@ -28,8 +28,7 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
-#include <lightmetrica/film.h>
-#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
@@ -42,7 +41,6 @@
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
-#include <lightmetrica/bitmaptexture.h>
 #include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>

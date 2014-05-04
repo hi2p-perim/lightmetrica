@@ -49,12 +49,11 @@ public:
 public:
 
 	AreaLight() {}
-	AreaLight(const std::string& id) : Light(id) {}
 	~AreaLight() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -80,7 +79,7 @@ private:
 
 };
 
-bool AreaLight::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool AreaLight::Load( const ConfigNode& node, const Assets& assets )
 {
 	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
 	return true;

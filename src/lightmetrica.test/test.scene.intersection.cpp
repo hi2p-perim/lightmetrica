@@ -52,7 +52,7 @@ public:
 #endif
 
 		// BSDF
-		bsdf = new StubBSDF("test");
+		bsdf = new StubBSDF;
 	}
 
 	~SceneIntersectionTest()

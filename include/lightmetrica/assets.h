@@ -26,20 +26,20 @@
 #ifndef LIB_LIGHTMETRICA_ASSETS_H
 #define LIB_LIGHTMETRICA_ASSETS_H
 
-#include "object.h"
+#include "common.h"
+#include "asset.h"
 #include <functional>
 #include <boost/signals2.hpp>
 
 LM_NAMESPACE_BEGIN
 
-class Asset;
 class ConfigNode;
 
 /*!
 	Collection of assets.
 	The asset collection class for the asset management.
 */
-class LM_PUBLIC_API Assets : public Object
+class LM_PUBLIC_API Assets
 {
 public:
 
@@ -65,9 +65,24 @@ public:
 		Resolve reference to an asset using \a ref attribute.
 		Returns nullptr if \a ref attribute is not found.
 		\param node A XML element which consists of the \a ref attribute.
-		\param name Target asset type, e.g. triangle_mesh.
+		\param type Target asset type, e.g. triangle_mesh.
+		\return Resolved asset.
 	*/
-	virtual Asset* ResolveReferenceToAsset(const ConfigNode& node, const std::string& name) const;
+	virtual Asset* ResolveReferenceToAsset(const ConfigNode& node, const std::string& type) const;
+
+	/*!
+		Resolve reference to the asset.
+		Template version of ResolveReferenceToAsset.
+		\tparam AssetInterfaceType Asset interface type.
+		\param node A XML element which consists of the \a ref attribute.
+		\return Resolved asset.
+	*/
+	template <typename AssetInterfaceType>
+	AssetInterfaceType* ResolveReferenceToAsset(const ConfigNode& node) const
+	{
+		LM_ASSET_CHECK_IS_VALID_INTERFACE(AssetInterfaceType);
+		return dynamic_cast<AssetInterfaceType*>(ResolveReferenceToAsset(node, AssetInterfaceType::InterfaceTypeName()));
+	}
 
 public:
 

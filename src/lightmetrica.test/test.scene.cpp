@@ -25,7 +25,6 @@
 #include "pch.h"
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
-#include <lightmetrica.test/stub.assetfactory.h>
 #include <lightmetrica.test/stub.bsdf.h>
 #include <lightmetrica.test/stub.trianglemesh.h>
 #include <lightmetrica.test/stub.assets.h>
@@ -106,17 +105,6 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class StubAssets_SceneTest : public StubAssets
-{
-public:
-
-	StubAssets_SceneTest()
-	{
-		
-	}
-
-};
-
 class StubScene : public Scene
 {
 public:
@@ -130,23 +118,21 @@ public:
 
 };
 
-// --------------------------------------------------------------------------------
-
 class SceneTest : public TestBase
 {
 public:
 
 	SceneTest()
 	{
-		assets.Add("mesh1", new StubTriangleMesh("mesh1"));
-		assets.Add("mesh2", new StubTriangleMesh("mesh2"));
-		assets.Add("bsdf1", new StubBSDF("bsdf1"));
-		assets.Add("bsdf2", new StubBSDF("bsdf2"));
+		assets.Add("mesh1", new StubTriangleMesh);
+		assets.Add("mesh2", new StubTriangleMesh);
+		assets.Add("bsdf1", new StubBSDF);
+		assets.Add("bsdf2", new StubBSDF);
 	}
 
 protected:
 
-	StubAssets_SceneTest assets;
+	StubAssets assets;
 	StubScene scene;
 	StubConfig config;
 
@@ -158,14 +144,14 @@ TEST_F(SceneTest, Load)
 
 	const auto* node1 = scene.PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
-	EXPECT_EQ("stub", node1->mesh->Type());
-	EXPECT_EQ("stub", node1->bsdf->Type());
+	EXPECT_EQ("stub", node1->mesh->ComponentImplTypeName());
+	EXPECT_EQ("stub", node1->bsdf->ComponentImplTypeName());
 	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node1->transform));
 	
 	const auto* node2 = scene.PrimitiveByID("node2");
 	ASSERT_NE(nullptr, node2);
-	EXPECT_EQ("stub", node2->mesh->Type());
-	EXPECT_EQ("stub", node2->bsdf->Type());
+	EXPECT_EQ("stub", node2->mesh->ComponentImplTypeName());
+	EXPECT_EQ("stub", node2->bsdf->ComponentImplTypeName());
 	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node2->transform));
 }
 

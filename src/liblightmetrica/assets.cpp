@@ -30,13 +30,13 @@
 
 LM_NAMESPACE_BEGIN
 
-Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& name ) const
+Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::string& type ) const
 {
 	// The element must have 'ref' attribute
 	auto refAttr = node.AttributeValue("ref");
 	if (refAttr.empty())
 	{
-		LM_LOG_ERROR("'" + name + "' element in 'node' must have 'ref' attribute");
+		LM_LOG_ERROR("'" + node.Name() + "' element must have 'ref' attribute");
 		return nullptr;
 	}
 
@@ -47,9 +47,11 @@ Asset* Assets::ResolveReferenceToAsset( const ConfigNode& node, const std::strin
 		LM_LOG_ERROR("The asset referenced by '" + refAttr + "' is not found");
 		return nullptr;
 	}
-	else if (asset->Name() != name)
+
+	// Check type
+	if (asset->ComponentInterfaceTypeName() != type)
 	{
-		LM_LOG_ERROR("Invalid asset name '" + asset->Name() + "' (expected '" + name + "')");
+		LM_LOG_ERROR("Invalid reference to asset type '" + asset->ComponentInterfaceTypeName() + "' (expected '" + type + "')");
 		return nullptr;
 	}
 

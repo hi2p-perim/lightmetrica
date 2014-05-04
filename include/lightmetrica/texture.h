@@ -34,17 +34,17 @@ LM_NAMESPACE_BEGIN
 	Texture.
 	A base class of the textures.
 */
-class LM_PUBLIC_API Texture : public Asset
+class Texture : public Asset
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("texture");
+	LM_ASSET_INTERFACE_DEF("texture", "textures");
+	LM_ASSET_NO_DEPENDENCIES();
 
 public:
 
-	Texture();
-	Texture(const std::string& id);
-	virtual ~Texture();
+	Texture() {}
+	virtual ~Texture() {}
 
 };
 

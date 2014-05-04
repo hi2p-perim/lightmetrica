@@ -27,6 +27,7 @@
 #define LIB_LIGHTMETRICA_BSDF_H
 
 #include "generalizedbsdf.h"
+#include "surfacegeometry.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -34,18 +35,17 @@ LM_NAMESPACE_BEGIN
 	BSDF.
 	A base class for BSDF implementations.
 */
-class LM_PUBLIC_API BSDF : public GeneralizedBSDF
+class BSDF : public GeneralizedBSDF
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("bsdf");
+	LM_ASSET_INTERFACE_DEF("bsdf", "bsdfs");
 	LM_ASSET_DEPENDENCIES("texture");
 
 public:
 
-	BSDF();
-	BSDF(const std::string& id);
-	virtual ~BSDF();
+	BSDF() {}
+	virtual ~BSDF() {}
 
 protected:
 
@@ -59,11 +59,33 @@ protected:
 		\param worldWi #wi in world coordinates.
 		\param worldWo #wo in world coordinates.
 	*/
-	Math::Float ShadingNormalCorrectionFactor(
-		const TransportDirection& transportDir,
-		const SurfaceGeometry& geom,
-		const Math::Vec3& localWi, const Math::Vec3& localWo,
-		const Math::Vec3& worldWi, const Math::Vec3& worldWo) const;
+	LM_FORCE_INLINE static Math::Float ShadingNormalCorrectionFactor(
+		const TransportDirection& transportDir, const SurfaceGeometry& geom,
+		const Math::Vec3& localWi, const Math::Vec3& localWo, const Math::Vec3& worldWi, const Math::Vec3& worldWo)
+	{
+		// Prevent light leak
+		// In some cases wi and wo are same side according to the shading normal
+		// but opposite side according to the geometry normal.
+		auto wiDotNg = Math::Dot(worldWi, geom.gn);
+		auto woDotNg = Math::Dot(worldWo, geom.gn);
+		auto wiDotNs = Math::CosThetaZUp(localWi);
+		auto woDotNs = Math::CosThetaZUp(localWo);
+		if (wiDotNg * wiDotNs <= 0 || woDotNg * woDotNs <= 0)
+		{
+			return Math::Float(0);
+		}
+
+		// Special handling for adjoint case
+		// Be careful of the difference of the notation between Veach's thesis;
+		// in the framework, wo is always the propagating direction.
+		if (transportDir == TransportDirection::LE)
+		{
+			// |w_i, N_s| * |w_o, N_g| / |w_i, N_g| / |w_o, N_s| 
+			return wiDotNs * woDotNg / (woDotNs * wiDotNg);
+		}
+
+		return Math::Float(1);
+	}
 
 };
 

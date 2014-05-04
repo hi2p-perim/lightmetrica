@@ -30,8 +30,8 @@
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/math.linalgebra.h>
-#include <lightmetrica/arealight.h>
-#include <lightmetrica/diffuse.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/bsdf.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN

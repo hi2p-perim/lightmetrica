@@ -34,17 +34,17 @@ LM_NAMESPACE_BEGIN
 	Light.
 	A base class of the lights.
 */
-class LM_PUBLIC_API Light : public Emitter
+class Light : public Emitter
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("light");
+	LM_ASSET_INTERFACE_DEF("light", "lights");
+	LM_ASSET_NO_DEPENDENCIES();
 
 public:
 
-	Light();
-	Light(const std::string& id);
-	virtual ~Light();
+	Light() {}
+	virtual ~Light() {}
 
 };
 

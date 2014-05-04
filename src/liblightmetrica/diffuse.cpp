@@ -45,12 +45,11 @@ public:
 public:
 
 	DiffuseBSDF() {}
-	DiffuseBSDF(const std::string& id) : BSDF(id) {}
 	~DiffuseBSDF() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -65,7 +64,7 @@ private:
 
 };
 
-bool DiffuseBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), diffuseReflectance);
 	return true;

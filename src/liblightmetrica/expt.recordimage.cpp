@@ -26,7 +26,7 @@
 #include <lightmetrica/expt.recordimage.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmapfilm.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -50,7 +50,7 @@ private:
 
 private:
 
-	HDRBitmapFilm* film;
+	BitmapFilm* film;
 	long long sample;
 
 };
@@ -70,7 +70,7 @@ void RecordImageExperiment::Impl::Notify( const std::string& type )
 
 void RecordImageExperiment::Impl::UpdateParam( const std::string& name, const void* param )
 {
-	if (name == "film") film = (HDRBitmapFilm*)param;
+	if (name == "film") film = (BitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
 }
 

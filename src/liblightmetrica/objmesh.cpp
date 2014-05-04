@@ -85,7 +85,7 @@ private:
 	Triangle mesh implementation for Wavefront obj files.
 	The class partially supports the specification of the Wavefront obj files.
 */
-class LM_PUBLIC_API ObjMesh : public TriangleMesh
+class ObjMesh : public TriangleMesh
 {
 public:
 
@@ -94,12 +94,11 @@ public:
 public:
 
 	ObjMesh() {}
-	ObjMesh(const std::string& id) : TriangleMesh(id) {}
 	virtual ~ObjMesh() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -119,7 +118,7 @@ private:
 
 };
 
-bool ObjMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool ObjMesh::Load( const ConfigNode& node, const Assets& assets )
 {
 	namespace fs = boost::filesystem;
 

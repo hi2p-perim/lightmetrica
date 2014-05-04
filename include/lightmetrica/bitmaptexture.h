@@ -22,25 +22,49 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/generalizedbsdf.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_BITMAP_TEXTURE_H
+#define LIB_LIGHTMETRICA_BITMAP_TEXTURE_H
+
+#include "texture.h"
 
 LM_NAMESPACE_BEGIN
 
-GeneralizedBSDF::GeneralizedBSDF()
+class BitmapImage;
+
+/*!
+	Bitmap texture.
+	An interface for textures contained in a bitmap texture.
+*/
+class BitmapTexture : public Texture
 {
+public:
 
-}
+	BitmapTexture() {}
+	virtual ~BitmapTexture() {}
 
-GeneralizedBSDF::GeneralizedBSDF( const std::string& id )
-	: Asset(id)
-{
+public:
 
-}
+	// For overloading #Load function
+	using Asset::Load;
 
-GeneralizedBSDF::~GeneralizedBSDF()
-{
+	/*
+		Load a bitmap texture.
+		\param path Path to a texture.
+		\param verticalFlip If true, loaded image is flipped vertically.
+		\retval true Succeeded to load.
+		\retval false Failed to load.
+	*/
+	virtual bool Load(const std::string& path, bool verticalFlip = false) = 0;
 
-}
+	/*!
+		Get internal bitmap data.
+		\return A bitmap.
+	*/
+	virtual const BitmapImage& Bitmap() const = 0;
+
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_BITMAP_TEXTURE_H

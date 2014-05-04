@@ -65,7 +65,7 @@ void BPTPathVertex::DebugPrint() const
 
 	if (type == BPTPathVertexType::EndPoint)
 	{
-		LM_LOG_DEBUG("Emitter type : " + emitter->Name() + " (" + emitter->Type() + ")");
+		LM_LOG_DEBUG("Emitter type : " + emitter->ComponentImplTypeName() + " (" + emitter->ComponentInterfaceTypeName() + ")");
 		{
 			LM_LOG_DEBUG("PDF (positional component)");
 			LM_LOG_INDENTER();
@@ -75,7 +75,7 @@ void BPTPathVertex::DebugPrint() const
 	}
 	else if (type == BPTPathVertexType::IntermediatePoint)
 	{
-		LM_LOG_DEBUG("Generalized BSDF type : " + bsdf->Name() + " (" + bsdf->Type() + ")");
+		LM_LOG_DEBUG("Generalized BSDF type : " + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentImplTypeName() + ")");
 		{
 			LM_LOG_DEBUG("PDF (directional component, E->L)");
 			LM_LOG_INDENTER();

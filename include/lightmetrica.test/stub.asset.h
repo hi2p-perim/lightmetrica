@@ -36,19 +36,17 @@ class StubAsset : public Asset
 {
 public:
 
-	StubAsset(const std::string& id) : Asset(id) {}
-	virtual ~StubAsset() {}
-	virtual std::string Name() const { return "asset"; }
+	LM_ASSET_INTERFACE_DEF("stub_asset", "stub_assets");
+	LM_ASSET_NO_DEPENDENCIES();
 
 };
 
 class StubAsset_Success : public StubAsset
 {
 public:
-	
-	StubAsset_Success(const std::string& id) : StubAsset(id) {}
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return true; }
-	virtual std::string Type() const { return "success"; }
+
+	LM_COMPONENT_IMPL_DEF("success");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
 
 };
 
@@ -56,9 +54,120 @@ class StubAsset_FailOnCreate : public StubAsset
 {
 public:
 
-	StubAsset_FailOnCreate(const std::string& id) : StubAsset(id) {}
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return false; }
-	virtual std::string Type() const { return "fail_on_create"; }
+	LM_COMPONENT_IMPL_DEF("fail_on_create");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return false; }
+
+};
+
+// --------------------------------------------------------------------------------
+
+class StubAsset_A : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_a", "stub_assets_a");
+	LM_ASSET_NO_DEPENDENCIES();
+
+};
+
+class StubAsset_A_Impl : public StubAsset_A
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("a");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+
+};
+
+class StubAsset_B : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_b", "stub_assets_b");
+	LM_ASSET_DEPENDENCIES("stub_asset_a");
+
+};
+
+class StubAsset_B_Impl : public StubAsset_B
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("b");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+
+};
+
+class StubAsset_C : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_c", "stub_assets_c");
+	LM_ASSET_DEPENDENCIES("stub_asset_a", "stub_asset_b");
+
+};
+
+class StubAsset_C_Impl : public StubAsset_C
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("c");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+
+};
+
+class StubAsset_D : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_d", "stub_assets_d");
+	LM_ASSET_DEPENDENCIES("stub_asset_a", "stub_asset_b", "stub_asset_c");
+
+};
+
+class StubAsset_D_Impl : public StubAsset_D
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("d");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+
+};
+
+// --------------------------------------------------------------------------------
+
+class StubAsset_E : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_e", "stub_assets_e");
+	LM_ASSET_DEPENDENCIES("stub_asset_f");
+
+};
+
+class StubAsset_E_Impl : public StubAsset_E
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("e");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+
+};
+
+class StubAsset_F : public Asset
+{
+public:
+
+	LM_ASSET_INTERFACE_DEF("stub_asset_f", "stub_assets_f");
+	LM_ASSET_DEPENDENCIES("stub_asset_e");
+
+};
+
+class StubAsset_F_Impl : public StubAsset_F
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("e");
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
 
 };
 

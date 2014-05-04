@@ -36,17 +36,17 @@ LM_NAMESPACE_BEGIN
 	A base class of the films.
 	The class is used to rendered images equipped with cameras.
 */
-class LM_PUBLIC_API Film : public Asset
+class Film : public Asset
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("film");
+	LM_ASSET_INTERFACE_DEF("film", "films");
+	LM_ASSET_NO_DEPENDENCIES();
 
 public:
 
-	Film();
-	Film(const std::string& id);
-	virtual ~Film();
+	Film() {}
+	virtual ~Film() {}
 
 public:
 
@@ -61,26 +61,6 @@ public:
 		\return Height of the film.
 	*/
 	virtual int Height() const = 0;
-
-	/*!
-		Save as image.
-		Saves the film as image.
-		If #path is empty, the default path is used.
-		\param path Path to the output image.
-		\retval true Succeeded to save the image.
-		\retval false Failed to save the image.
-	*/
-	virtual bool Save(const std::string& path) const = 0;
-
-	/*!
-		Rescale and save as image.
-		Save the film as image after rescaling values for each pixel.
-		\param path Path to the output image.
-		\param weight Rescaling weight.
-		\retval true Succeeded to save the image.
-		\retval false Failed to save the image.
-	*/
-	virtual bool RescaleAndSave(const std::string& path, const Math::Float& weight) const = 0;
 
 	/*!
 		Record the contribution to the raster position.
@@ -112,11 +92,8 @@ public:
 	*/
 	virtual void Rescale(const Math::Float& weight) = 0;
 
-public:
-
 	/*!
 		Clone the film.
-		The function is used internally.
 		\return Duplicated film.
 	*/
 	virtual Film* Clone() const = 0;

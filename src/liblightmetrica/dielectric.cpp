@@ -43,12 +43,11 @@ public:
 public:
 
 	DielectricBSDF() {}
-	DielectricBSDF(const std::string& id) : BSDF(id) {}
 	~DielectricBSDF() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -71,7 +70,7 @@ private:
 
 };
 
-bool DielectricBSDF::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool DielectricBSDF::Load( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("specular_reflectance", Math::Vec3(Math::Float(1)), R);
 	node.ChildValueOrDefault("specular_transmittance", Math::Vec3(Math::Float(1)), T);

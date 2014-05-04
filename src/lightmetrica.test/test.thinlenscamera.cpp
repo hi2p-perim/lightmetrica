@@ -28,7 +28,7 @@
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica.test/stub.film.h>
-#include <lightmetrica/thinlenscamera.h>
+#include <lightmetrica/camera.h>
 
 namespace
 {
@@ -51,17 +51,17 @@ class ThinLensCameraTest : public TestBase
 public:
 
 	ThinLensCameraTest()
-		: camera("test")
+		: camera(ComponentFactory::Create<Camera>("thinlens"))
 	{
 		// Add assets
-		assets.Add("stub", new StubFilm("stub"));
+		assets.Add("stub", new StubFilm);
 	}
 
 protected:
 
 	StubAssets assets;
 	StubConfig config;
-	ThinLensCamera camera;
+	std::unique_ptr<Camera> camera;
 
 };
 

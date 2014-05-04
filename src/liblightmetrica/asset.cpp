@@ -29,39 +29,14 @@
 
 LM_NAMESPACE_BEGIN
 
-Asset::Asset()
-{
-
-}
-
-Asset::Asset(const std::string& id)
-	: id(id)
-{
-
-}
-
-bool Asset::Load( const ConfigNode& node, const Assets& assets )
-{
-	// Check name and type
-	if (node.Name() != Name())
-	{
-		LM_LOG_ERROR("Invalid node name '" + node.Name() + "'");
-		return false;
-	}
-
-	if (node.AttributeValue("type") != Type())
-	{
-		LM_LOG_ERROR("Invalid asset type '" + node.AttributeValue("type") + "'");
-		return false;
-	}
-
-	// Call implementation detail load function
-	return LoadAsset(node, assets);
-}
-
 std::string Asset::ID() const
 {
 	return id;
+}
+
+void Asset::SetID( const std::string& id )
+{
+	this->id = id;
 }
 
 LM_NAMESPACE_END

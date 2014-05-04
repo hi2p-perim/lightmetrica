@@ -33,7 +33,6 @@ set(
 	"${_INCLUDE_DIR}/base.h"
 	"${_INCLUDE_DIR}/base.math.h"
 	"${_INCLUDE_DIR}/stub.asset.h"
-	"${_INCLUDE_DIR}/stub.assetfactory.h"
 	"${_INCLUDE_DIR}/stub.assets.h"
 	"${_INCLUDE_DIR}/stub.trianglemesh.h"
 	"${_INCLUDE_DIR}/stub.bsdf.h"
@@ -43,7 +42,6 @@ set(
 set(
 	_SOURCE_FILES
 	"base.cpp"
-	"stub.assetfactory.cpp"
 	
 	# gtest
 	"${_GTEST_SOURCE_DIR}/src/gtest-all.cc"

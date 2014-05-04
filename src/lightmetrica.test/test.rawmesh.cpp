@@ -27,7 +27,7 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/rawmesh.h>
+#include <lightmetrica/trianglemesh.h>
 
 namespace
 {
@@ -63,26 +63,26 @@ class RawMeshTest : public TestBase
 public:
 
 	RawMeshTest()
-		: mesh("test")
+		: mesh(ComponentFactory::Create<TriangleMesh>("raw"))
 	{
 
 	}
 
 	Math::Vec3 PositionFromIndex(unsigned int i)
 	{
-		const auto* p = mesh.Positions();
+		const auto* p = mesh->Positions();
 		return Math::Vec3(p[3*i], p[3*i+1], p[3*i+2]);
 	}
 
 	Math::Vec3 NormalFromIndex(unsigned int i)
 	{
-		const auto* n = mesh.Normals();
+		const auto* n = mesh->Normals();
 		return Math::Vec3(n[3*i], n[3*i+1], n[3*i+2]);
 	}
 
 protected:
 
-	RawMesh mesh;
+	std::unique_ptr<TriangleMesh> mesh;
 	StubAssets assets;
 	StubConfig config;
 
@@ -90,17 +90,17 @@ protected:
 
 TEST_F(RawMeshTest, Load)
 {
-	EXPECT_TRUE(mesh.Load(config.LoadFromStringAndGetFirstChild(RawMeshNode_Success), assets));
-	ASSERT_EQ(6, mesh.NumFaces());
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh.Faces()[0])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[1])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 0), PositionFromIndex(mesh.Faces()[2])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh.Faces()[3])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[4])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), PositionFromIndex(mesh.Faces()[5])));
+	EXPECT_TRUE(mesh->Load(config.LoadFromStringAndGetFirstChild(RawMeshNode_Success), assets));
+	ASSERT_EQ(6, mesh->NumFaces());
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh->Faces()[0])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh->Faces()[1])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 0), PositionFromIndex(mesh->Faces()[2])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 0), PositionFromIndex(mesh->Faces()[3])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh->Faces()[4])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), PositionFromIndex(mesh->Faces()[5])));
 	for (int i = 0; i < 6; i++)
 	{
-		EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, -1, 0), NormalFromIndex(mesh.Faces()[i])));
+		EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, -1, 0), NormalFromIndex(mesh->Faces()[i])));
 	}
 }
 

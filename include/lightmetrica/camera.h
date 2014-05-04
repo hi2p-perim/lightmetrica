@@ -37,18 +37,17 @@ struct Ray;
 	Camera.
 	A base class of the cameras.
 */
-class LM_PUBLIC_API Camera : public Emitter
+class Camera : public Emitter
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("camera");
+	LM_ASSET_INTERFACE_DEF("camera", "cameras");
 	LM_ASSET_DEPENDENCIES("film");
 
 public:
 
-	Camera();
-	Camera(const std::string& id);
-	virtual ~Camera();
+	Camera() {}
+	virtual ~Camera() {}
 
 public:
 

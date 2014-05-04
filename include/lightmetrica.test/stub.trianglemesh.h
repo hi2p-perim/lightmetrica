@@ -38,15 +38,17 @@ class StubTriangleMesh : public TriangleMesh
 {
 public:
 
-	StubTriangleMesh(const std::string& id) : TriangleMesh(id) {}
+	LM_COMPONENT_IMPL_DEF("stub");
+
+public:
+
 	virtual int NumVertices() const { return static_cast<int>(positions.size()); }
 	virtual int NumFaces() const { return static_cast<int>(faces.size()); }
 	virtual const Math::Float* Positions() const { return positions.empty() ? nullptr : &positions[0]; }
 	virtual const Math::Float* Normals() const { return normals.empty() ? nullptr : &normals[0]; }
 	virtual const Math::Float* TexCoords() const { return texcoords.empty() ? nullptr : &texcoords[0]; }
 	virtual const unsigned int* Faces() const { return faces.empty() ? nullptr : &faces[0]; }
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets ) { return false; }
-	virtual std::string Type() const { return "stub"; }
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return false; }
 
 protected:
 
@@ -63,7 +65,6 @@ class StubTriangleMesh_Simple : public StubTriangleMesh
 public:
 
 	StubTriangleMesh_Simple()
-		: StubTriangleMesh("simple")
 	{
 		const double ps[] =
 		{
@@ -137,7 +138,6 @@ class StubTriangleMesh_Simple2 : public StubTriangleMesh
 public:
 
 	StubTriangleMesh_Simple2()
-		: StubTriangleMesh("simple2")
 	{
 		const double ps[] =
 		{
@@ -191,7 +191,6 @@ class StubTriangleMesh_Random : public StubTriangleMesh
 public:
 
 	StubTriangleMesh_Random()
-		: StubTriangleMesh("random")
 	{
 		// Fix seed
 		std::mt19937 gen(42);

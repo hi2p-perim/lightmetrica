@@ -27,7 +27,7 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/objmesh.h>
+#include <lightmetrica/trianglemesh.h>
 
 namespace
 {
@@ -77,7 +77,7 @@ class ObjMeshTest : public TestBase
 public:
 
 	ObjMeshTest()
-		: mesh("test")
+		: mesh(ComponentFactory::Create<TriangleMesh>("obj"))
 	{
 
 	}
@@ -89,13 +89,13 @@ public:
 
 	Math::Vec3 PositionFromIndex(unsigned int i)
 	{
-		const auto* p = mesh.Positions();
+		const auto* p = mesh->Positions();
 		return Math::Vec3(p[3*i], p[3*i+1], p[3*i+2]);
 	}
 
 protected:
 
-	ObjMesh mesh;
+	std::unique_ptr<TriangleMesh> mesh;
 	StubAssets assets;
 	StubConfig config;
 
@@ -105,22 +105,22 @@ TEST_F(ObjMeshTest, Load_Success)
 {
 	TemporaryTextFile tmp1("tmp1.obj", ObjMesh_Triangle_Success);
 	TemporaryTextFile tmp2("tmp2.obj", ObjMesh_Polygon_Success);
-	EXPECT_TRUE(mesh.Load(GenerateNode(tmp1.Path()), assets));
-	ASSERT_EQ(6, mesh.NumFaces());
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh.Faces()[0])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), PositionFromIndex(mesh.Faces()[1])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), PositionFromIndex(mesh.Faces()[2])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), PositionFromIndex(mesh.Faces()[3])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), PositionFromIndex(mesh.Faces()[4])));
-	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), PositionFromIndex(mesh.Faces()[5])));
-	EXPECT_TRUE(mesh.Load(GenerateNode(tmp2.Path()), assets));
+	EXPECT_TRUE(mesh->Load(GenerateNode(tmp1.Path()), assets));
+	ASSERT_EQ(6, mesh->NumFaces());
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 1, 1), PositionFromIndex(mesh->Faces()[0])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), PositionFromIndex(mesh->Faces()[1])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), PositionFromIndex(mesh->Faces()[2])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, 1), PositionFromIndex(mesh->Faces()[3])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 0, 1), PositionFromIndex(mesh->Faces()[4])));
+	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1, 1, 1), PositionFromIndex(mesh->Faces()[5])));
+	EXPECT_TRUE(mesh->Load(GenerateNode(tmp2.Path()), assets));
 }
 
 TEST_F(ObjMeshTest, Load_Fail)
 {
 	TemporaryTextFile tmp1("tmp1.obj", ObjMesh_Fail_MissingIndex);
-	EXPECT_FALSE(mesh.Load(config.LoadFromStringAndGetFirstChild(ObjMeshNode_Fail_MissingPathElement), assets));
-	EXPECT_FALSE(mesh.Load(GenerateNode(tmp1.Path()), assets));
+	EXPECT_FALSE(mesh->Load(config.LoadFromStringAndGetFirstChild(ObjMeshNode_Fail_MissingPathElement), assets));
+	EXPECT_FALSE(mesh->Load(GenerateNode(tmp1.Path()), assets));
 }
 
 LM_TEST_NAMESPACE_END

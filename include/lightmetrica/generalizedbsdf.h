@@ -122,13 +122,12 @@ struct SurfaceGeometry;
 	Thanks to the class BSDF and direction component of light and camera
 	can be sampled in the similar way.
 */
-class LM_PUBLIC_API GeneralizedBSDF : public Asset
+class GeneralizedBSDF : public Asset
 {
 public:
 
-	GeneralizedBSDF();
-	GeneralizedBSDF(const std::string& id);
-	virtual ~GeneralizedBSDF();
+	GeneralizedBSDF() {}
+	virtual ~GeneralizedBSDF() {}
 
 public:
 

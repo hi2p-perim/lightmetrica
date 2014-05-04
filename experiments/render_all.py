@@ -17,6 +17,7 @@ def main():
 	parser.add_argument('infile', type=str, help='Input file')
 	parser.add_argument('--entry', '-e', type=str, nargs='*', help='Add an entry for template dictionary')
 	parser.add_argument('--output-dir', '-o', type=str, default='./', help='Output directory')
+	parser.add_argument('--resource-dir', '-d', type=str, default='', help='Resource directory')
 	args = parser.parse_args()
 
 	# Load template
@@ -61,7 +62,7 @@ def main():
 			[
 				'./lightmetrica',
 				'-i',
-				'-b', '../../resources/',
+				'-b', os.path.dirname(args.infile) if args.resource_dir == '' else args.resource_dir,
 				'-o', output_path
 			],
 			stdin=sp.PIPE)

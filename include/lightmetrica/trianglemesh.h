@@ -36,17 +36,17 @@ LM_NAMESPACE_BEGIN
 	Triangle mesh.
 	A base class for the triangle meshes.
 */
-class LM_PUBLIC_API TriangleMesh : public Asset
+class TriangleMesh : public Asset
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("triangle_mesh");
+	LM_ASSET_INTERFACE_DEF("triangle_mesh", "triangle_meshes");
+	LM_ASSET_NO_DEPENDENCIES();
 
 public:
 
-	TriangleMesh();
-	TriangleMesh(const std::string& id);
-	virtual ~TriangleMesh();
+	TriangleMesh() {}
+	virtual ~TriangleMesh() {}
 
 public:
 

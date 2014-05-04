@@ -28,6 +28,7 @@
 
 #include "assets.h"
 #include <memory>
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
@@ -83,11 +84,13 @@ public:
 		to the other asset types with LM_ASSET_DEPENDENCIES macro.
 		Fails if the factory with same name is already registered.
 		\param interfaceName Name of component interface class which is inherited from Asset.
+		\param interfaceGroupName Name of interface group. e.g. \a triangle_meshes for \a triangle_mesh type.
+		\param dependencies Dependent asset interface names.
 		\retval true Succeeded to register.
 		\retval false Failed to register.
 		\sa LM_ASSET_DEPENDENCIES
 	*/
-	bool RegisterInterface(const std::string& interfaceName);
+	bool RegisterInterface(const std::string& interfaceName, const std::string& interfaceGroupName, const std::vector<std::string>& dependencies);
 
 	/*!
 		Register an interface for assets.
@@ -101,14 +104,21 @@ public:
 	template <typename AssetInterfaceType>
 	bool RegisterInterface()
 	{
+		LM_ASSET_CHECK_IS_VALID_INTERFACE(AssetInterfaceType);
+
+		// Create dependency list
+		size_t n;
+		const char** deps = AssetInterfaceType::GetAssetDependencies(n);
+		std::vector<std::string> dependencies;
+		for (size_t i = 0; i < n; i++)
+		{
+			dependencies.push_back(deps[i]);
+		}
+		
+		// Register
 		std::string interfaceTypeName = AssetInterfaceType::InterfaceTypeName();
-
-		// Statically checks if #AssetInterfaceType is inherited from #Asset
-		static_assert(
-			std::is_base_of(Asset, AssetInterfaceType)::value,
-			"Component interface class '" + interfaceTypeName + "' is not inherited from Asset");
-
-		return RegisterInterface(interfaceTypeName);
+		std::string groupName = AssetInterfaceType::InterfaceGroupName();
+		return RegisterInterface(interfaceTypeName, groupName, dependencies);
 	}
 	
 	/*!

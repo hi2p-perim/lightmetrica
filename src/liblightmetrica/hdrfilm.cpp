@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/film.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/confignode.h>
@@ -33,20 +33,10 @@
 LM_NAMESPACE_BEGIN
 
 /*!
-	HDR image types.
-	Defines output image types.
-*/
-enum class HDRImageType
-{
-	RadianceHDR,	// Radiance HDR
-	OpenEXR			// OpenEXR
-};
-
-/*!
 	High dynamic range bitmap film.
 	Implements HDR version of bitmap image recording.
 */
-class HDRBitmapFilm : public Film
+class HDRBitmapFilm : public BitmapFilm
 {
 public:
 
@@ -55,54 +45,30 @@ public:
 public:
 
 	HDRBitmapFilm() {}
-	HDRBitmapFilm(const std::string& id) : Film(id) {}
 	virtual ~HDRBitmapFilm() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 	
 public:
 
-	virtual int Width() const;
-	virtual int Height() const;
-	virtual bool Save(const std::string& path) const;
-	virtual bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
+	virtual int Width() const { return width; }
+	virtual int Height() const { return height; }
 	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
 	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
 	virtual void AccumulateContribution( const Film& film );
 	virtual void Rescale( const Math::Float& weight );
-
-public:
-
 	virtual Film* Clone() const;
 
 public:
 
-	/*!
-		Allocate the film with given width and height.
-		\param width Width of the film.
-		\param height Height of the film.
-	*/
-	void Allocate(int width, int height);
-
-	/*!
-		Set HDR image type.
-		\param type HDR image type.
-	*/
-	void SetHDRImageType(HDRImageType type) { this->type = type; }
-
-	/*!
-		Get HDR iamge type.
-		\return HDR image type.
-	*/
-	HDRImageType GetHDRImageType() const { return type; }
-
-	/*!
-		Get internal bitmap data.
-		\return A bitmap.
-	*/
-	const BitmapImage& Bitmap() const { return bitmap; }
+	virtual bool Save(const std::string& path) const { return RescaleAndSave(path, Math::Float(1)); }
+	virtual bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
+	virtual void Allocate(int width, int height);
+	virtual void SetImageType(BitmapImageType type) { this->type = type; }
+	virtual BitmapImageType ImageType() const { return type; }
+	virtual const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
 
@@ -112,12 +78,12 @@ private:
 
 	int width;
 	int height;
-	HDRImageType type;				// Type of the image to be saved
+	BitmapImageType type;		// Type of the image to be saved
 	BitmapImage bitmap;
 
 };
 
-bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool HDRBitmapFilm::Load( const ConfigNode& node, const Assets& assets )
 {
 	if (!node.ChildValue("width",	width))		return false;
 	if (!node.ChildValue("height",	height))	return false;
@@ -127,19 +93,19 @@ bool HDRBitmapFilm::LoadAsset( const ConfigNode& node, const Assets& assets )
 	if (imageTypeNode.Empty())
 	{
 		// Use .hdr as default type
-		SetHDRImageType(HDRImageType::RadianceHDR);
+		SetImageType(BitmapImageType::RadianceHDR);
 	}
 	else
 	{
 		if (imageTypeNode.Value() == "radiancehdr")
 		{
 			// Image type is .hdr (Radiance HDR)
-			SetHDRImageType(HDRImageType::RadianceHDR);
+			SetImageType(BitmapImageType::RadianceHDR);
 		}
 		else if (imageTypeNode.Value() == "openexr")
 		{
 			// Image type is .exr (OpenEXR)
-			SetHDRImageType(HDRImageType::OpenEXR);
+			SetImageType(BitmapImageType::OpenEXR);
 		}
 		else
 		{
@@ -211,9 +177,9 @@ void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const M
 void HDRBitmapFilm::AccumulateContribution( const Film& film )
 {
 	// Check type
-	if (film.Type() != self->Type())
+	if (film.ComponentImplTypeName() != ComponentImplTypeName())
 	{
-		LM_LOG_WARN("Invalid image type '" + film.Type() + "', expected '" + self->Type() + "'");
+		LM_LOG_WARN("Invalid image type '" + film.ComponentImplTypeName() + "', expected '" + ComponentInterfaceTypeName() + "'");
 		return;
 	}
 
@@ -225,7 +191,7 @@ void HDRBitmapFilm::AccumulateContribution( const Film& film )
 	}
 
 	// Accumulate data
-	const auto& otherData = dynamic_cast<const HDRBitmapFilm&>(film).p->bitmap.InternalData();
+	const auto& otherData = dynamic_cast<const HDRBitmapFilm&>(film).bitmap.InternalData();
 	auto& data = bitmap.InternalData();
 	LM_ASSERT(data.size() == otherData.size());
 	for (size_t i = 0; i < data.size(); i++)
@@ -272,12 +238,12 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 	}
 
 	BOOL result;
-	if (type == HDRImageType::RadianceHDR)
+	if (type == BitmapImageType::RadianceHDR)
 	{
 		// Save image as Radiance HDR format
 		result = FreeImage_Save(FIF_HDR, fibitmap, imagePath.c_str(), HDR_DEFAULT);
 	}
-	else if (type == HDRImageType::OpenEXR)
+	else if (type == BitmapImageType::OpenEXR)
 	{
 		// Save image as OpenEXR format
 		result = FreeImage_Save(FIF_EXR, fibitmap, imagePath.c_str(), EXR_DEFAULT);
@@ -298,9 +264,11 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 
 Film* HDRBitmapFilm::Clone() const
 {
-	auto* film = new HDRBitmapFilm(self->ID());
-	*film->p = *this;
-	film->p->self = film;
+	auto* film = new HDRBitmapFilm;
+	film->width = width;
+	film->height = height;
+	film->type = type;
+	film->bitmap = bitmap;
 	return film;
 }
 

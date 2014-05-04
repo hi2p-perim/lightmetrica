@@ -43,12 +43,11 @@ public:
 public:
 
 	RawMesh() {}
-	RawMesh(const std::string& id) : TriangleMesh(id) {}
 	virtual ~RawMesh() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -68,7 +67,7 @@ public:
 
 };
 
-bool RawMesh::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool RawMesh::Load( const ConfigNode& node, const Assets& assets )
 {
 	// 'positions' required
 	if (!node.ChildValue("positions", positions))

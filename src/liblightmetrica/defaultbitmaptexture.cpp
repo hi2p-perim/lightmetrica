@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/texture.h>
+#include <lightmetrica/bitmaptexture.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/pathutils.h>
@@ -36,7 +36,7 @@ LM_NAMESPACE_BEGIN
 	Bitmap texture.
 	Implements a bitmap texture.
 */
-class BitmapTexture : public Texture
+class DefaultBitmapTexture : public BitmapTexture
 {
 public:
 
@@ -44,30 +44,17 @@ public:
 
 public:
 
-	BitmapTexture() {}
-	BitmapTexture(const std::string& id) : Texture(id) {}
-	virtual ~BitmapTexture() {}
+	DefaultBitmapTexture() {}
+	virtual ~DefaultBitmapTexture() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
-	/*
-		Load a bitmap texture.
-		\param path Path to a texture.
-		\param verticalFlip If true, loaded image is flipped vertically.
-		\retval true Succeeded to load.
-		\retval false Failed to load.
-	*/
-	bool LoadAsset(const std::string& path, bool verticalFlip = false);
-
-	/*!
-		Get internal bitmap data.
-		\return A bitmap.
-	*/
-	const BitmapImage& Bitmap() const { return bitmap; }
+	virtual bool Load(const std::string& path, bool verticalFlip);
+	virtual const BitmapImage& Bitmap() const { return bitmap; }
 
 public:
 
@@ -75,14 +62,14 @@ public:
 
 private:
 
-	BitmapTexture* self;
+	DefaultBitmapTexture* self;
 	int width;
 	int height;
 	BitmapImage bitmap;
 
 };
 
-bool BitmapTexture::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool DefaultBitmapTexture::Load( const ConfigNode& node, const Assets& assets )
 {
 	// 'path' element
 	std::string path;
@@ -98,10 +85,10 @@ bool BitmapTexture::LoadAsset( const ConfigNode& node, const Assets& assets )
 	bool verticalFlip;
 	node.ChildValueOrDefault("vertical_flip", false, verticalFlip);
 
-	return LoadAsset(path, verticalFlip);
+	return Load(path, verticalFlip);
 }
 
-bool BitmapTexture::LoadAsset( const std::string& path, bool verticalFlip )
+bool DefaultBitmapTexture::Load( const std::string& path, bool verticalFlip )
 {
 	// Try to deduce the file format by the file signature
 	auto format = FreeImage_GetFileType(path.c_str(), 0);
@@ -197,6 +184,6 @@ bool BitmapTexture::LoadAsset( const std::string& path, bool verticalFlip )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(BitmapTexture, Texture);
+LM_COMPONENT_REGISTER_IMPL(DefaultBitmapTexture, Texture);
 
 LM_NAMESPACE_END

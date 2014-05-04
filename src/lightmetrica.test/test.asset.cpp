@@ -37,7 +37,7 @@ namespace
 	);
 
 	const std::string Asset_FailOnCreate = LM_TEST_MULTILINE_LITERAL(
-		<Asset id="test_2" type="fail_on_create" />	
+		<asset id="test_2" type="fail_on_create" />	
 	);
 
 }
@@ -56,13 +56,13 @@ protected:
 
 TEST_F(AssetTest, Load)
 {
-	StubAsset_Success asset("");
+	StubAsset_Success asset;
 	EXPECT_TRUE(asset.Load(config.LoadFromStringAndGetFirstChild(Asset_Success), assets));
 }
 
 TEST_F(AssetTest, Create_Failed)
 {
-	StubAsset_FailOnCreate asset("");
+	StubAsset_FailOnCreate asset;
 	EXPECT_FALSE(asset.Load(config.LoadFromStringAndGetFirstChild(Asset_FailOnCreate), assets));
 }
 

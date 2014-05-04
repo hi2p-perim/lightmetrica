@@ -41,12 +41,11 @@ public:
 public:
 
 	ThinLensCamera() {}
-	ThinLensCamera(const std::string& id) : Camera(id) {}
 	~ThinLensCamera() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -72,7 +71,7 @@ private:
 
 };
 
-bool ThinLensCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool ThinLensCamera::Load( const ConfigNode& node, const Assets& assets )
 {
 	return false;
 }

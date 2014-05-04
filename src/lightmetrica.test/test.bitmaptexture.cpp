@@ -125,6 +125,12 @@ class BitmapTextureTest : public TestBase
 {
 public:
 
+	BitmapTextureTest()
+		: texture(ComponentFactory::Create<BitmapTexture>("bitmap"))
+	{
+
+	}
+
 	ConfigNode GenerateNode(const std::string& path, const std::string& temp)
 	{
 		return config.LoadFromStringAndGetFirstChild(boost::str(boost::format(temp) % path));
@@ -132,7 +138,7 @@ public:
 
 protected:
 
-	BitmapTexture texture;
+	std::unique_ptr<BitmapTexture> texture;
 	StubAssets assets;
 	StubConfig config;
 
@@ -143,11 +149,11 @@ TEST_F(BitmapTextureTest, Load)
 	for (int format = 0; format < 3; format++)
 	{
 		TemporaryBinaryFile tmp("test." + Extension[format], Data[format], Length[format]);
-		EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path(), TextureNode_1), assets));
+		EXPECT_TRUE(texture->Load(GenerateNode(tmp.Path(), TextureNode_1), assets));
 		
 		// Check data
 		size_t i = 0;
-		const auto& data = texture.Bitmap().InternalData();
+		const auto& data = texture->Bitmap().InternalData();
 
 		// White
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
@@ -176,11 +182,11 @@ TEST_F(BitmapTextureTest, Load_2)
 	for (int format = 0; format < 3; format++)
 	{
 		TemporaryBinaryFile tmp("test." + Extension[format], Data[format], Length[format]);
-		EXPECT_TRUE(texture.LoadAsset(tmp.Path()));
+		EXPECT_TRUE(texture->Load(tmp.Path()));
 
 		// Check data
 		size_t i = 0;
-		const auto& data = texture.Bitmap().InternalData();
+		const auto& data = texture->Bitmap().InternalData();
 
 		// White
 		EXPECT_TRUE(ExpectNear(data[i++], Math::Float(1)));
@@ -207,11 +213,11 @@ TEST_F(BitmapTextureTest, Load_2)
 TEST_F(BitmapTextureTest, Load_VerticalFlip)
 {
 	TemporaryBinaryFile tmp("test." + Extension[0], Data[0], Length[0]);
-	EXPECT_TRUE(texture.Load(GenerateNode(tmp.Path(), TextureNode_VerticalFlipTest), assets));
+	EXPECT_TRUE(texture->Load(GenerateNode(tmp.Path(), TextureNode_VerticalFlipTest), assets));
 
 	// Check data
 	size_t i = 0;
-	const auto& data = texture.Bitmap().InternalData();
+	const auto& data = texture->Bitmap().InternalData();
 
 	// Blue
 	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));
@@ -237,11 +243,11 @@ TEST_F(BitmapTextureTest, Load_VerticalFlip)
 TEST_F(BitmapTextureTest, Load_VerticalFlip_2)
 {
 	TemporaryBinaryFile tmp("test." + Extension[0], Data[0], Length[0]);
-	EXPECT_TRUE(texture.LoadAsset(tmp.Path(), true));
+	EXPECT_TRUE(texture->Load(tmp.Path(), true));
 
 	// Check data
 	size_t i = 0;
-	const auto& data = texture.Bitmap().InternalData();
+	const auto& data = texture->Bitmap().InternalData();
 
 	// Blue
 	EXPECT_TRUE(ExpectNear(data[i++], Math::Float(0)));

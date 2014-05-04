@@ -32,8 +32,7 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
-#include <lightmetrica/film.h>
-#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
@@ -119,8 +118,8 @@ private:
 	BPTConfig config;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-	std::vector<std::unique_ptr<Film>> subpathFilms;					// Films for sub-path images
-	std::unordered_map<int, std::unique_ptr<Film>> perLengthFilms;		// Per length images
+	std::vector<std::unique_ptr<BitmapFilm>> subpathFilms;					// Films for sub-path images
+	std::unordered_map<int, std::unique_ptr<BitmapFilm>> perLengthFilms;	// Per length images
 #endif
 
 #if LM_EXPERIMENTAL_MODE
@@ -194,7 +193,10 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		{
 			for (int t = 0; t <= config.maxSubpathNumVertices; t++)
 			{
-				subpathFilms.emplace_back(masterFilm->Clone());
+				std::unique_ptr<BitmapFilm> film(dynamic_cast<BitmapFilm*>(ComponentFactory::Create<Film>("hdr")));
+				film->SetImageType(BitmapImageType::RadianceHDR);
+				film->Allocate(masterFilm->Width(), masterFilm->Height());
+				subpathFilms.push_back(std::move(film));
 			}
 		}
 	}
@@ -401,8 +403,8 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 					if (perLengthFilms.find(n) == perLengthFilms.end())
 					{
 						// Create a new film for #n vertices
-						std::unique_ptr<HDRBitmapFilm> newFilm(new HDRBitmapFilm(""));
-						newFilm->SetHDRImageType(HDRImageType::RadianceHDR);
+						std::unique_ptr<BitmapFilm> newFilm(dynamic_cast<BitmapFilm*>(ComponentFactory::Create<Film>("hdr")));
+						newFilm->SetImageType(BitmapImageType::RadianceHDR);
 						newFilm->Allocate(film.Width(), film.Height());
 						perLengthFilms.insert(std::make_pair(n, std::move(newFilm)));
 					}

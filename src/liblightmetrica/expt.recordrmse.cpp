@@ -28,7 +28,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/bitmaptexture.h>
 #include <lightmetrica/assets.h>
-#include <lightmetrica/hdrfilm.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
@@ -55,7 +55,7 @@ private:
 
 private:
 
-	HDRBitmapFilm* film;
+	BitmapFilm* film;
 	long long sample;
 	Math::Float rmse;
 
@@ -79,7 +79,7 @@ bool RecordRMSEExperiment::Impl::Configure( const ConfigNode& node, const Assets
 	}
 
 	// Resolve reference
-	referenceTexture = dynamic_cast<BitmapTexture*>(assets.ResolveReferenceToAsset(referenceImageNode, "texture"));
+	referenceTexture = assets.ResolveReferenceToAsset<BitmapTexture>(referenceImageNode);
 	if (referenceTexture == nullptr)
 	{
 		return false;
@@ -97,7 +97,7 @@ void RecordRMSEExperiment::Impl::Notify( const std::string& type )
 
 void RecordRMSEExperiment::Impl::UpdateParam( const std::string& name, const void* param )
 {
-	if (name == "film") film = (HDRBitmapFilm*)param;
+	if (name == "film") film = (BitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
 	else if (name == "rmse") rmse = *(Math::Float*)param;
 }

@@ -54,6 +54,24 @@ public:
 	Component() {}
 	virtual ~Component() {}
 
+public:
+
+	/*!
+		Get component interface type.
+		This function is automatically implemented with LM_COMPONENT_INTERFACE_DEF macro.
+		\return Component interface type name.
+		\sa LM_COMPONENT_INTERFACE_DEF.
+	*/
+	virtual std::string ComponentInterfaceTypeName() const = 0;
+
+	/*!
+		Get component implementation type.
+		This function is automatically implemented with LM_COMPONENT_IMPL_DEF macro.
+		\return Component implementation type name.
+		\sa LM_COMPONENT_IMPL_DEF.
+	*/
+	virtual std::string ComponentImplTypeName() const = 0;
+
 };
 
 // --------------------------------------------------------------------------------
@@ -172,8 +190,6 @@ public:
 
 // --------------------------------------------------------------------------------
 
-LM_DETAIL_NAMESPACE_BEGIN
-
 /*!
 	Component factory entry.
 	An entry for component factory.
@@ -221,7 +237,6 @@ private:
 
 };
 
-LM_DETAIL_NAMESPACE_END
 LM_NAMESPACE_END
 
 // --------------------------------------------------------------------------------
@@ -240,11 +255,13 @@ LM_NAMESPACE_END
 	\param Name of the class.
 */
 
-#define LM_COMPONENT_INTERFACE_DEF(Name)	\
-	static const char* InterfaceTypeName() { return Name; }
+#define LM_COMPONENT_INTERFACE_DEF(Name)						\
+	static const char* InterfaceTypeName() { return Name; }		\
+	virtual std::string ComponentInterfaceTypeName() const { return InterfaceTypeName(); }
 
-#define LM_COMPONENT_IMPL_DEF(Name)			\
-	static const char* ImplTypeName() { return Name; }
+#define LM_COMPONENT_IMPL_DEF(Name)								\
+	static const char* ImplTypeName() { return Name; }			\
+	virtual std::string ComponentImplTypeName() const { return ImplTypeName(); }
 	
 // --------------------------------------------------------------------------------
 
@@ -298,7 +315,6 @@ LM_NAMESPACE_END
 // --------------------------------------------------------------------------------
 
 LM_NAMESPACE_BEGIN
-LM_DETAIL_NAMESPACE_BEGIN
 
 template <typename T, T>
 struct check_func_signature : std::true_type {};
@@ -306,7 +322,6 @@ struct check_func_signature : std::true_type {};
 LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(ImplTypeName, const char* (*)());
 LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(InterfaceTypeName, const char* (*)());
 
-LM_DETAIL_NAMESPACE_END
 LM_NAMESPACE_END
 
 // --------------------------------------------------------------------------------
@@ -321,27 +336,27 @@ LM_NAMESPACE_END
 	\tparam ImplType Component implementation type.
 */
 
-#define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)												\
-	namespace detail {																					\
-	namespace {																							\
-																										\
-		template <typename T1, typename T2>																\
-		class ComponentFactoryEntryInstance;															\
-																										\
-		template <>																						\
-		class ComponentFactoryEntryInstance<ImplType, InterfaceType>									\
-		{																								\
-			static const ::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>& reg;	\
-		};																								\
-																										\
-		const ::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>&					\
-			ComponentFactoryEntryInstance<ImplType, InterfaceType>::reg =								\
-				::lightmetrica::detail::ComponentFactoryEntry<ImplType, InterfaceType>::Instance();		\
-																										\
-		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType);									\
-		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);									\
-		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(InterfaceType, InterfaceTypeName);						\
-																										\
-	}}
+#define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)										\
+	namespace {																					\
+																								\
+		template <typename T1, typename T2>														\
+		class ComponentFactoryEntryInstance;													\
+																								\
+		template <>																				\
+		class ComponentFactoryEntryInstance<ImplType, InterfaceType>							\
+		{																						\
+			static const ::lightmetrica::ComponentFactoryEntry<ImplType, InterfaceType>& reg;	\
+		};																						\
+																								\
+		const ::lightmetrica::ComponentFactoryEntry<ImplType, InterfaceType>&					\
+			ComponentFactoryEntryInstance<ImplType, InterfaceType>::reg =						\
+				::lightmetrica::ComponentFactoryEntry<ImplType, InterfaceType>::Instance();		\
+																								\
+		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(ImplType, InterfaceType);							\
+		LM_COMPONENT_CHECK_IS_DERIVED_CLASS(InterfaceType, Component);							\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(ImplType, ImplTypeName);							\
+		LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(InterfaceType, InterfaceTypeName);				\
+																								\
+	}
 
 #endif // LIB_LIGHTMETRICA_COMPONENT_H

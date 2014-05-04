@@ -37,23 +37,11 @@ class ConfigNode;
 	Asset.
 	A base class for assets.
 */
-class Asset : public Object
+class Asset : public Component
 {
 public:
 
-	/*!
-		Constructor.
-		Constructs the asset without ID.
-	*/
-	LM_PUBLIC_API Asset();
-
-	/*!
-		Constructor.
-		\param id ID of the asset.
-	*/
-	LM_PUBLIC_API Asset(const std::string& id);
-
-	//! Destructor.
+	Asset() {}
 	virtual ~Asset() {}
 
 private:
@@ -70,7 +58,7 @@ public:
 		\param node XML node for the configuration.
 		\param assets Asset manager.
 	*/
-	LM_PUBLIC_API bool Load(const ConfigNode& node, const Assets& assets);
+	virtual bool Load(const ConfigNode& node, const Assets& assets) = 0;
 
 	/*!
 		Get ID of the asset.
@@ -78,14 +66,14 @@ public:
 	*/
 	LM_PUBLIC_API std::string ID() const;
 
-protected:
+public:
 
 	/*!
-		Implementation specific load function.
-		\param node Configuration node.
-		\param assets Asset manager.
+		Set ID of the asset.
+		This is an internal function.
+		\param id ID of the asset.
 	*/
-	virtual bool LoadAsset(const ConfigNode& node, const Assets& assets) = 0;
+	LM_HIDDEN_API void SetID(const std::string& id);
 
 private:
 
@@ -95,12 +83,33 @@ private:
 
 LM_NAMESPACE_END
 
-#define LM_ASSET_DEPENDENCIES(...)							\
-	static const char** GetAssetDependencies(size_t& n)		\
-	{														\
-		static const char* deps[] = { __VA_ARGS__ };		\
-		n = sizeof(deps) / sizeof(deps[0]);					\
-		return deps;										\
+#define LM_ASSET_INTERFACE_DEF(Name, GroupName)		\
+	LM_COMPONENT_INTERFACE_DEF(Name);				\
+	static const char* InterfaceGroupName() { return GroupName; }
+
+#define LM_ASSET_DEPENDENCIES(...)								\
+	static const char** GetAssetDependencies(size_t& n)			\
+	{															\
+		static const char* deps[] = { __VA_ARGS__ };			\
+		n = sizeof(deps) / sizeof(deps[0]);						\
+		return deps;											\
 	}
+
+#define LM_ASSET_NO_DEPENDENCIES()								\
+	static const char** GetAssetDependencies(size_t& n)			\
+	{															\
+		n = 0;													\
+		return nullptr;											\
+	}
+
+LM_NAMESPACE_BEGIN
+LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(GetAssetDependencies, const char** (*)(size_t&));
+LM_COMPONENT_CREATE_HAS_MEMBER_FUNCTION(InterfaceGroupName, const char* (*)());
+LM_NAMESPACE_END
+
+#define LM_ASSET_CHECK_IS_VALID_INTERFACE(AssetInterfaceType)							\
+	LM_COMPONENT_CHECK_IS_DERIVED_CLASS(AssetInterfaceType, Asset);						\
+	LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(AssetInterfaceType, GetAssetDependencies);	\
+	LM_COMPONENT_CHECK_HAS_MEMBER_FUNCTION(AssetInterfaceType, InterfaceGroupName);
 
 #endif // LIB_LIGHTMETRICA_ASSET_H

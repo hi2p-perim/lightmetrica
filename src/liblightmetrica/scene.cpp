@@ -259,7 +259,7 @@ bool Scene::Impl::Traverse( const ConfigNode& node, const Assets& assets, const 
 	if (!lightNode.Empty())
 	{
 		// Resolve the reference to the light
-		primitive->light = dynamic_cast<Light*>(assets.ResolveReferenceToAsset(lightNode, "light"));
+		primitive->light = assets.ResolveReferenceToAsset<Light>(lightNode);
 		if (!primitive->light)
 		{
 			return false;
@@ -274,7 +274,7 @@ bool Scene::Impl::Traverse( const ConfigNode& node, const Assets& assets, const 
 	if (!cameraNode.Empty() && !mainCamera)
 	{
 		// Resolve the reference to the camera
-		primitive->camera = dynamic_cast<Camera*>(assets.ResolveReferenceToAsset(cameraNode, "camera"));
+		primitive->camera = assets.ResolveReferenceToAsset<Camera>(cameraNode);
 		if (!primitive->camera)
 		{
 			return false;
@@ -298,14 +298,14 @@ bool Scene::Impl::Traverse( const ConfigNode& node, const Assets& assets, const 
 		}
 
 		// Resolve the reference to the triangle mesh
-		primitive->mesh = dynamic_cast<TriangleMesh*>(assets.ResolveReferenceToAsset(triangleMeshNode, "triangle_mesh"));
+		primitive->mesh = assets.ResolveReferenceToAsset<TriangleMesh>(triangleMeshNode);
 		if (!primitive->mesh)
 		{
 			return false;
 		}
 
 		// Resolve the reference to the bsdf
-		primitive->bsdf = dynamic_cast<BSDF*>(assets.ResolveReferenceToAsset(bsdfNode, "bsdf"));
+		primitive->bsdf = assets.ResolveReferenceToAsset<BSDF>(bsdfNode);
 		if (!primitive->bsdf)
 		{
 			return false;

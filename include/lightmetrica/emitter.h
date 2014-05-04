@@ -37,13 +37,12 @@ struct SurfaceGeometry;
 	Emitter.
 	The base class of Light and Camera.
 */
-class LM_PUBLIC_API Emitter : public GeneralizedBSDF
+class Emitter : public GeneralizedBSDF
 {
 public:
 
-	Emitter();
-	Emitter(const std::string& id);
-	virtual ~Emitter();
+	Emitter() {}
+	virtual ~Emitter() {}
 
 public:
 

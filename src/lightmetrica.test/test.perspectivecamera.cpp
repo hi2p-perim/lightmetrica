@@ -28,7 +28,7 @@
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica.test/stub.film.h>
-#include <lightmetrica/perspectivecamera.h>
+#include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/ray.h>
@@ -45,15 +45,8 @@ namespace
 		</camera>
 	);
 
-	const std::string PerspectiveCameraNode_Fail_InvalidType = LM_TEST_MULTILINE_LITERAL(
-		<camera id="test" type="perspect">
-			<film ref="stub" />
-			<fovy>90</fovy>
-		</camera>
-	);
-
 	const std::string PerspectiveCameraNode_Fail_InvalidProperty = LM_TEST_MULTILINE_LITERAL(
-		<camera id="test" type="perspect">
+		<camera id="test" type="perspective">
 			<film ref="stub" />
 		</camera>
 	);
@@ -68,35 +61,34 @@ class PerspectiveCameraTest : public TestBase
 public:
 
 	PerspectiveCameraTest()
-		: camera("test")
+		: camera(ComponentFactory::Create<Camera>("perspective"))
 	{
 		// Add assets
-		assets.Add("stub", new StubFilm("stub"));
+		assets.Add("stub", new StubFilm);
 	}
 
 protected:
 
 	StubAssets assets;
 	StubConfig config;
-	PerspectiveCamera camera;
+	std::unique_ptr<Camera> camera;
 
 };
 
 TEST_F(PerspectiveCameraTest, Load)
 {
-	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
-	EXPECT_EQ(assets.GetAssetByName("stub"), camera.GetFilm());
+	EXPECT_TRUE(camera->Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
+	EXPECT_EQ(assets.GetAssetByName("stub"), camera->GetFilm());
 }
 
 TEST_F(PerspectiveCameraTest, Load_Fail)
 {
-	EXPECT_FALSE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Fail_InvalidType), assets));
-	EXPECT_FALSE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Fail_InvalidProperty), assets));
+	EXPECT_FALSE(camera->Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Fail_InvalidProperty), assets));
 }
 
 TEST_F(PerspectiveCameraTest, SampleRay)
 {
-	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
+	EXPECT_TRUE(camera->Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 
 	Math::PDFEval _;
 	SurfaceGeometry geom;
@@ -110,30 +102,30 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
 	primitives.clear();
 	primitives.push_back(primitive1.get());
-	camera.RegisterPrimitives(primitives);
+	camera->RegisterPrimitives(primitives);
 
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (0, 0, 0), d = (0, 0, -1) }
 	
-	camera.SamplePosition(Math::Vec2(), geom, _);
+	camera->SamplePosition(Math::Vec2(), geom, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), geom.p));
 	
 	bsdfSQ.sample = Math::Vec2(0.5);
 	bsdfSQ.transportDir = TransportDirection::EL;
 	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	camera->SampleDirection(bsdfSQ, geom, bsdfSR);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(0, 0, -1), bsdfSR.wo));
 
 	// Raster position (1, 1)
 	// -> Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
 
-	camera.SamplePosition(Math::Vec2(), geom, _);
+	camera->SamplePosition(Math::Vec2(), geom, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(), geom.p));
 
 	bsdfSQ.sample = Math::Vec2(1);
 	bsdfSQ.transportDir = TransportDirection::EL;
 	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	camera->SampleDirection(bsdfSQ, geom, bsdfSR);
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(2, 1, -1)), bsdfSR.wo));
 
 	// --------------------------------------------------------------------------------
@@ -142,24 +134,24 @@ TEST_F(PerspectiveCameraTest, SampleRay)
 	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
 	primitives.clear();
 	primitives.push_back(primitive2.get());
-	camera.RegisterPrimitives(primitives);
+	camera->RegisterPrimitives(primitives);
 	
 	// Raster position (0.5, 0.5)
 	// -> Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
 
-	camera.SamplePosition(Math::Vec2(), geom, _);
+	camera->SamplePosition(Math::Vec2(), geom, _);
 	EXPECT_TRUE(ExpectVec3Near(Math::Vec3(1), geom.p));
 
 	bsdfSQ.sample = Math::Vec2(0.5);
 	bsdfSQ.transportDir = TransportDirection::EL;
 	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-	camera.SampleDirection(bsdfSQ, geom, bsdfSR);
+	camera->SampleDirection(bsdfSQ, geom, bsdfSR);
 	EXPECT_TRUE(ExpectVec3Near(Math::Normalize(Math::Vec3(-1)), bsdfSR.wo));
 }
 
 TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 {
-	EXPECT_TRUE(camera.Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
+	EXPECT_TRUE(camera->Load(config.LoadFromStringAndGetFirstChild(PerspectiveCameraNode_Success), assets));
 
 	Math::Vec2 rasterPosition;
 	std::vector<Primitive*> primitives;
@@ -170,16 +162,16 @@ TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 	std::unique_ptr<Primitive> primitive1(new Primitive(Math::Mat4::Identity()));
 	primitives.clear();
 	primitives.push_back(primitive1.get());
-	camera.RegisterPrimitives(primitives);
+	camera->RegisterPrimitives(primitives);
 
 	// Ray { p = (0, 0, 0), d = (0, 0, -1) }
 	// -> Raster position (0.5, 0.5)
-	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(0, 0, -1)), rasterPosition));
+	EXPECT_TRUE(camera->RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(0, 0, -1)), rasterPosition));
 	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(0.5), rasterPosition));
 
 	// Ray { p = (0, 0, 0), d = Normalize(2, 1, -1) }
 	// -> Raster position (1, 1)
-	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(2, 1, -1)), rasterPosition));
+	EXPECT_TRUE(camera->RayToRasterPosition(Math::Vec3(), Math::Normalize(Math::Vec3(2, 1, -1)), rasterPosition));
 	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(1), rasterPosition));
 	
 	// --------------------------------------------------------------------------------
@@ -188,11 +180,11 @@ TEST_F(PerspectiveCameraTest, RayToRasterPosition)
 	std::unique_ptr<Primitive> primitive2(new Primitive(Math::LookAt(Math::Vec3(1), Math::Vec3(0), Math::Vec3(0, 0, 1))));
 	primitives.clear();
 	primitives.push_back(primitive2.get());
-	camera.RegisterPrimitives(primitives);
+	camera->RegisterPrimitives(primitives);
 
 	// Ray { p = (1, 1, 1), d = Normalize(-1, -1, -1) }
 	// -> Raster position (0.5, 0.5)
-	EXPECT_TRUE(camera.RayToRasterPosition(Math::Vec3(1), Math::Normalize(Math::Vec3(-1)), rasterPosition));
+	EXPECT_TRUE(camera->RayToRasterPosition(Math::Vec3(1), Math::Normalize(Math::Vec3(-1)), rasterPosition));
 	EXPECT_TRUE(ExpectVec2Near(Math::Vec2(0.5), rasterPosition));
 }
 

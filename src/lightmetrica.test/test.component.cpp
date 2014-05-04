@@ -65,8 +65,8 @@ class ComponentFactoryTest : public TestBase {};
 
 TEST_F(ComponentFactoryTest, HasMemberFunction)
 {
-	EXPECT_EQ(true, detail::has_member_function_ImplTypeName<StubComponentImpl_1>::value);
-	EXPECT_EQ(false, detail::has_member_function_ImplTypeName<StubComponentImpl_2>::value);
+	EXPECT_EQ(true, has_member_function_ImplTypeName<StubComponentImpl_1>::value);
+	EXPECT_EQ(false, has_member_function_ImplTypeName<StubComponentImpl_2>::value);
 }
 
 TEST_F(ComponentFactoryTest, RegisterAndCreate)

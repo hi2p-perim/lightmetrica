@@ -49,12 +49,11 @@ public:
 public:
 
 	PerspectiveCamera() {}
-	PerspectiveCamera(const std::string& id) : Camera(id) {}
 	~PerspectiveCamera() {}
 
 public:
 
-	virtual bool LoadAsset( const ConfigNode& node, const Assets& assets );
+	virtual bool Load( const ConfigNode& node, const Assets& assets );
 
 public:
 
@@ -72,7 +71,7 @@ public:
 public:
 
 	virtual bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
-	virtual Film* GetFilm() const;
+	virtual Film* GetFilm() const { return film; }
 
 private:
 
@@ -80,7 +79,7 @@ private:
 		Calculate importance W_e(z_0\to y_{s-1}),
 		i.e., sensitivity of the sensor
 	*/
-	Math::Float EvaluateImportance(Math::Float cosTheta) const { return film; }
+	Math::Float EvaluateImportance(Math::Float cosTheta) const;
 
 private:
 
@@ -94,10 +93,10 @@ private:
 
 };
 
-bool PerspectiveCamera::LoadAsset( const ConfigNode& node, const Assets& assets )
+bool PerspectiveCamera::Load( const ConfigNode& node, const Assets& assets )
 {
 	// Resolve reference to film
-	film = dynamic_cast<Film*>(assets.ResolveReferenceToAsset(node.Child("film"), "film"));
+	film = assets.ResolveReferenceToAsset<Film>(node.Child("film"));
 	if (!film)
 	{
 		return false;

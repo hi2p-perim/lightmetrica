@@ -82,8 +82,6 @@ set(
 	"asset.cpp"
 	"assets.cpp"
 	"defaultassets.cpp"
-	"emitter.cpp"
-	"generalizedbsdf.cpp"
 	"bitmap.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_HEADERS})
@@ -99,7 +97,6 @@ set(
 )
 set(
 	_ASSETS_CAMERAS_SOURCES
-	"camera.cpp"
 	"perspectivecamera.cpp"
 	"thinlenscamera.cpp"
 )
@@ -116,7 +113,6 @@ set(
 )
 set(
 	_ASSETS_LIGHTS_SOURCES
-	"light.cpp"
 	"arealight.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_LIGHTS_HEADERS})
@@ -129,10 +125,10 @@ list(APPEND _SOURCE_FILES ${_ASSETS_LIGHTS_SOURCES})
 set(
 	_ASSETS_FILMS_HEADERS
 	"${_INCLUDE_DIR}/film.h"
+	"${_INCLUDE_DIR}/bitmapfilm.h"
 )
 set(
 	_ASSETS_FILMS_SOURCES
-	"film.cpp"
 	"hdrfilm.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_FILMS_HEADERS})
@@ -148,7 +144,6 @@ set(
 )
 set(
 	_ASSETS_BSDFS_SOURCES
-	"bsdf.cpp"
 	"diffuse.cpp"
 	"dielectric.cpp"
 )
@@ -165,7 +160,6 @@ set(
 )
 set(
 	_ASSETS_TRIANGLE_MESHES_SOURCES
-	"trianglemesh.cpp"
 	"objmesh.cpp"
 	"rawmesh.cpp"
 )
@@ -179,11 +173,11 @@ list(APPEND _SOURCE_FILES ${_ASSETS_TRIANGLE_MESHES_SOURCES})
 set(
 	_ASSETS_TEXTURES_HEADERS
 	"${_INCLUDE_DIR}/texture.h"
+	"${_INCLUDE_DIR}/bitmaptexture.h"
 )
 set(
 	_ASSETS_TEXTURES_SOURCES
-	"texture.cpp"
-	"bitmaptexture.cpp"
+	"defaultbitmaptexture.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_TEXTURES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_SOURCES})
