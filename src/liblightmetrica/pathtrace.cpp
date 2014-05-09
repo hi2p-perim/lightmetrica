@@ -197,6 +197,12 @@ bool PathtraceRenderer::Render( const Scene& scene )
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();
 
+			//if (sample % 100000 == 0)
+			//{
+			//	auto p = bsdfSR.wo;
+			//	LM_LOG_DEBUG("2.HERE " + std::to_string(p.x) + " " + std::to_string(p.y) + " " + std::to_string(p.z));
+			//}
+
 			// Evaluate importance
 			auto We =
 				scene.MainCamera()->EvaluatePosition(geomE) *

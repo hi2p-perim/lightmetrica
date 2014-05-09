@@ -137,7 +137,7 @@ bool DefaultAssets::Impl::Load( const ConfigNode& node )
 					LM_LOG_ERROR("Invalid dependency : '" + interfaces[i] + "' -> '" + dependency + "'");
 					return false;
 				}
-				boost::add_edge(i, it->second, g);
+				boost::add_edge(it->second, i, g);
 			}
 		}
 

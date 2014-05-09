@@ -237,6 +237,9 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 		}
 	}
 
+	LM_LOG_DEBUG("Width  : " + std::to_string(width));
+	LM_LOG_DEBUG("Height : " + std::to_string(height));
+
 	BOOL result;
 	if (type == BitmapImageType::RadianceHDR)
 	{

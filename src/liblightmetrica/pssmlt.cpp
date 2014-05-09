@@ -47,6 +47,11 @@
 #include <omp.h>
 
 #define LM_ENABLE_PSSMLT_EXPERIMENTAL
+#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+	#define LM_PSSMLT_EXPERIMENTAL_MDOE 1
+#else
+	#define LM_PSSMLT_EXPERIMENTAL_MDOE 0
+#endif
 
 LM_NAMESPACE_BEGIN
 
@@ -102,10 +107,17 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	PSSMLTPathSampleRecord records[2];					// Path sample records (current or proposed)
 	int current;										// Index of current record
 
+#if LM_PSSMLT_EXPERIMENTAL_MDOE
+	Math::Float kernelSize;
+#endif
+
 	PSSMLTThreadContext(Random* rng, Film* film, PSSMLTPrimarySample* sampler)
 		: rng(rng)
 		, film(film)
 		, sampler(sampler)
+#if LM_PSSMLT_EXPERIMENTAL_MDOE
+		, kernelSize(0)
+#endif
 	{
 
 	}
@@ -114,6 +126,9 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
+#if LM_PSSMLT_EXPERIMENTAL_MDOE
+		, kernelSize(0)
+#endif
 	{
 
 	}
@@ -170,6 +185,10 @@ private:
 	Math::Float largeStepProb;					// Large step mutation probability
 	Math::Float kernelSizeS1;					// Minimum kernel size
 	Math::Float kernelSizeS2;					// Maximum kernel size
+
+#if LM_PSSMLT_EXPERIMENTAL_MDOE
+	bool adaptiveKernel;
+#endif
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -232,6 +251,14 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	node.ChildValueOrDefault("large_step_prob", Math::Float(0.1), largeStepProb);
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
+
+#if LM_PSSMLT_EXPERIMENTAL_MDOE
+	auto experimentalNode = node.Child("experimental");
+	if (!experimentalNode.Empty())
+	{
+		experimentalNode.ChildValueOrDefault("adaptive_kernel", false, adaptiveKernel);
+	}
+#endif
 
 #if LM_EXPERIMENTAL_MODE
 	// Experiments

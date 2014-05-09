@@ -68,13 +68,22 @@ namespace
 				<stub_asset_a id="a" type="a" />
 			</stub_assets_a>
 			<stub_assets_b>
-				<stub_asset_b id="b" type="b" />
+				<stub_asset_b id="b" type="b">
+					<stub_asset_a ref="a" />
+				</stub_asset_b>
 			</stub_assets_b>
 			<stub_assets_c>
-				<stub_asset_c id="c" type="c" />
+				<stub_asset_c id="c" type="c">
+					<stub_asset_a ref="a" />
+					<stub_asset_b ref="b" />
+				</stub_asset_c>
 			</stub_assets_c>
 			<stub_assets_d>
-				<stub_asset_d id="d" type="d" />
+				<stub_asset_d id="d" type="d">
+					<stub_asset_a ref="a" />
+					<stub_asset_b ref="b" />
+					<stub_asset_c ref="c" />
+				</stub_asset_d>
 			</stub_assets_d>
 		</assets>	
 	);

@@ -28,6 +28,8 @@
 
 #include "common.h"
 #include <lightmetrica/asset.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
@@ -75,7 +77,10 @@ class StubAsset_A_Impl : public StubAsset_A
 public:
 
 	LM_COMPONENT_IMPL_DEF("a");
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	{
+		return true;
+	}
 
 };
 
@@ -93,7 +98,19 @@ class StubAsset_B_Impl : public StubAsset_B
 public:
 
 	LM_COMPONENT_IMPL_DEF("b");
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	{
+		ConfigNode child;
+		Asset* p;
+
+		// Check if 'stub_asset_a' (whose ID is expected to be set to 'a') is properly loaded
+		child = node.Child("stub_asset_a");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_a");
+		EXPECT_NE(nullptr, p);
+
+		return p != nullptr;
+	}
 
 };
 
@@ -111,7 +128,23 @@ class StubAsset_C_Impl : public StubAsset_C
 public:
 
 	LM_COMPONENT_IMPL_DEF("c");
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	{
+		ConfigNode child;
+		Asset* p;
+		
+		child = node.Child("stub_asset_a");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_a");
+		EXPECT_NE(nullptr, p);
+
+		child = node.Child("stub_asset_b");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_b");
+		EXPECT_NE(nullptr, p);
+
+		return p != nullptr;
+	}
 
 };
 
@@ -129,7 +162,28 @@ class StubAsset_D_Impl : public StubAsset_D
 public:
 
 	LM_COMPONENT_IMPL_DEF("d");
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	{
+		ConfigNode child;
+		Asset* p;
+
+		child = node.Child("stub_asset_a");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_a");
+		EXPECT_NE(nullptr, p);
+
+		child = node.Child("stub_asset_b");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_b");
+		EXPECT_NE(nullptr, p);
+
+		child = node.Child("stub_asset_c");
+		EXPECT_FALSE(child.Empty());
+		p = assets.ResolveReferenceToAsset(child, "stub_asset_c");
+		EXPECT_NE(nullptr, p);
+
+		return p != nullptr;
+	}
 
 };
 
