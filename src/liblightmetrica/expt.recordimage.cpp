@@ -23,20 +23,28 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.recordimage.h>
+#include <lightmetrica/expt.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/bitmapfilm.h>
 
 LM_NAMESPACE_BEGIN
 
-class RecordImageExperiment::Impl
+/*!
+	Record per sample images.
+	An experiment for recording images per samples / mutations.
+*/
+class RecordImageExperiment : public Experiment
 {
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	void Notify( const std::string& type );
-	void UpdateParam( const std::string& name, const void* param );
+	LM_COMPONENT_IMPL_DEF("recordimage");
+
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
 
 private:
 
@@ -55,26 +63,26 @@ private:
 
 };
 
-bool RecordImageExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_dir", std::string("images"), outputDir);
 	return true;
 }
 
-void RecordImageExperiment::Impl::Notify( const std::string& type )
+void RecordImageExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 }
 
-void RecordImageExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "film") film = (BitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
 }
 
-void RecordImageExperiment::Impl::HandleNotify_RenderStarted()
+void RecordImageExperiment::HandleNotify_RenderStarted()
 {
 	// Create output directory if it does not exists
 	if (!boost::filesystem::exists(outputDir))
@@ -87,7 +95,7 @@ void RecordImageExperiment::Impl::HandleNotify_RenderStarted()
 	}
 }
 
-void RecordImageExperiment::Impl::HandleNotify_SampleFinished()
+void RecordImageExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
@@ -103,32 +111,6 @@ void RecordImageExperiment::Impl::HandleNotify_SampleFinished()
 	}
 }
 
-// --------------------------------------------------------------------------------
-
-RecordImageExperiment::RecordImageExperiment()
-	: p(new Impl)
-{
-
-}
-
-RecordImageExperiment::~RecordImageExperiment()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-void RecordImageExperiment::Notify( const std::string& type )
-{
-	p->Notify(type);
-}
-
-void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
-{
-	p->UpdateParam(name, param);
-}
+LM_COMPONENT_REGISTER_IMPL(RecordImageExperiment, Experiment);
 
 LM_NAMESPACE_END

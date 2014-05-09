@@ -27,8 +27,6 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/expt.h>
-#include <lightmetrica/exptfactory.h>
-#include <lightmetrica/defaultexptfactory.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -47,7 +45,6 @@ public:
 
 public:
 
-	void RegisterExperimentFactory(const ExperimentFactory* factory) { externalFactory = factory; }
 	bool LoadExperiments(const std::vector<Experiment*>& experiments);
 	const Experiment* ExperimentByName(const std::string& name) const;
 
@@ -59,15 +56,10 @@ private:
 	std::vector<std::unique_ptr<Experiment>> experiments;
 	std::unordered_map<std::string, size_t> experimentIndexMap;
 
-	// Factories
-	const ExperimentFactory* externalFactory;
-	DefaultExperimentFactory defaultFactory;
-
 };
 
 DefaultExperiments::Impl::Impl()
 	: configured(false)
-	, externalFactory(nullptr)
 {
 
 }
@@ -79,9 +71,6 @@ bool DefaultExperiments::Impl::Configure( const ConfigNode& node, const Assets& 
 		LM_LOG_ERROR("Already configured");
 		return false;
 	}
-
-	// Use external factory if specified
-	auto* factory = externalFactory != nullptr ? externalFactory : &defaultFactory;
 
 	// Check for 'experiments' element
 	if (node.Name() != "experiments")
@@ -124,7 +113,7 @@ bool DefaultExperiments::Impl::Configure( const ConfigNode& node, const Assets& 
 			}
 
 			// Create an experiment
-			std::unique_ptr<Experiment> experiment(factory->Create(typeAttribute));
+			std::unique_ptr<Experiment> experiment(ComponentFactory::Create<Experiment>(typeAttribute));
 			if (experiment == nullptr)
 			{
 				LM_LOG_ERROR("Failed to create experiment (type : '" + typeAttribute + "')");
@@ -180,13 +169,13 @@ bool DefaultExperiments::Impl::LoadExperiments( const std::vector<Experiment*>& 
 	{
 		auto& experiment = experiments[i];
 		
-		if (experimentIndexMap.find(experiment->Type()) != experimentIndexMap.end())
+		if (experimentIndexMap.find(experiment->ComponentImplTypeName()) != experimentIndexMap.end())
 		{
-			LM_LOG_ERROR("Experiment type '" + experiment->Type() + "' is already registered");
+			LM_LOG_ERROR("Experiment type '" + experiment->ComponentImplTypeName() + "' is already registered");
 			return false;
 		}
 
-		experimentIndexMap[experiment->Type()] = i;
+		experimentIndexMap[experiment->ComponentImplTypeName()] = i;
 		this->experiments.emplace_back(experiment);
 	}
 
@@ -236,11 +225,6 @@ void DefaultExperiments::UpdateParam( const std::string& name, const void* param
 bool DefaultExperiments::CheckConfigured()
 {
 	return p->CheckConfigured();
-}
-
-void DefaultExperiments::RegisterExperimentFactory( const ExperimentFactory* factory )
-{
-	p->RegisterExperimentFactory(factory);
 }
 
 bool DefaultExperiments::LoadExperiments( const std::vector<Experiment*>& experiments )

@@ -23,19 +23,27 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.pssmltacceptanceratio.h>
+#include <lightmetrica/expt.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 
 LM_NAMESPACE_BEGIN
 
-class PSSMLTAcceptanceRatioExperiment::Impl
+/*!
+	PSSMLT acceptance ratio plot.
+	Traces accceptance ratio through PSSMLT updates.
+*/
+class PSSMLTAcceptanceRatioExperiment : public Experiment
 {
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	void Notify( const std::string& type );
-	void UpdateParam( const std::string& name, const void* param );
+	LM_COMPONENT_IMPL_DEF("pssmltacceptanceratio");
+
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
 
 private:
 
@@ -60,33 +68,33 @@ private:
 
 };
 
-bool PSSMLTAcceptanceRatioExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTAcceptanceRatioExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_path", std::string("pssmlttraceplot.txt"), outputPath);
 	return true;
 }
 
-void PSSMLTAcceptanceRatioExperiment::Impl::Notify( const std::string& type )
+void PSSMLTAcceptanceRatioExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTAcceptanceRatioExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void PSSMLTAcceptanceRatioExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
 	else if (name == "pssmlt_acceptance_ratio") acceptanceRatio = *(Math::Float*)param;
 }
 
-void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_RenderStarted()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderStarted()
 {
 	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_SampleFinished()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
@@ -95,7 +103,7 @@ void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_SampleFinished()
 	}
 }
 
-void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_RenderFinished()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderFinished()
 {
 	// Save records
 	LM_LOG_INFO("Saving PSSMLT acceptance ratio to " + outputPath);
@@ -110,32 +118,6 @@ void PSSMLTAcceptanceRatioExperiment::Impl::HandleNotify_RenderFinished()
 	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-// --------------------------------------------------------------------------------
-
-PSSMLTAcceptanceRatioExperiment::PSSMLTAcceptanceRatioExperiment()
-	: p(new Impl)
-{
-
-}
-
-PSSMLTAcceptanceRatioExperiment::~PSSMLTAcceptanceRatioExperiment()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool PSSMLTAcceptanceRatioExperiment::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-void PSSMLTAcceptanceRatioExperiment::Notify( const std::string& type )
-{
-	p->Notify(type);
-}
-
-void PSSMLTAcceptanceRatioExperiment::UpdateParam( const std::string& name, const void* param )
-{
-	p->UpdateParam(name, param);
-}
+LM_COMPONENT_REGISTER_IMPL(PSSMLTAcceptanceRatioExperiment, Experiment);
 
 LM_NAMESPACE_END

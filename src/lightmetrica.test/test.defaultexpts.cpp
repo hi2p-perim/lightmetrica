@@ -27,7 +27,6 @@
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica/defaultexpts.h>
-#include <lightmetrica/exptfactory.h>
 #include <lightmetrica/expt.h>
 
 namespace
@@ -48,6 +47,10 @@ class StubExperiment : public Experiment
 {
 public:
 
+	LM_COMPONENT_IMPL_DEF("stub");
+
+public:
+
 	StubExperiment()
 		: v(0)
 		, notified(false)
@@ -57,7 +60,6 @@ public:
 
 public:
 
-	virtual std::string Type() const { return "stub"; }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets )  { return true; }
 	
 	virtual void Notify( const std::string& type )
@@ -83,34 +85,16 @@ public:
 
 };
 
-class StubExperimentFactory : public ExperimentFactory
-{
-public:
-
-	virtual Experiment* Create( const std::string& type ) const
-	{
-		if (type == "stub") return new StubExperiment;
-		else return nullptr;
-	}
-
-};
+LM_COMPONENT_REGISTER_IMPL(StubExperiment, Experiment);
 
 // --------------------------------------------------------------------------------
 
 class DefaultExperimentsTest : public TestBase
 {
-public:
-
-	DefaultExperimentsTest()
-	{
-		expts.RegisterExperimentFactory(&factory);
-	}
-
 protected:
 
 	StubAssets assets;
 	StubConfig config;
-	StubExperimentFactory factory;
 	DefaultExperiments expts;
 
 };

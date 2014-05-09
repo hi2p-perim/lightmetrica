@@ -26,7 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_EXPT_H
 #define LIB_LIGHTMETRICA_EXPT_H
 
-#include "object.h"
+#include "component.h"
 #include <string>
 
 LM_NAMESPACE_BEGIN
@@ -38,8 +38,12 @@ class Assets;
 	Experiment.
 	The base class of experiments for renderers.
 */
-class LM_PUBLIC_API Experiment : public Object
+class Experiment : public Component
 {
+public:
+
+	LM_COMPONENT_INTERFACE_DEF("experiments")
+
 public:
 
 	Experiment() {}
@@ -50,12 +54,6 @@ private:
 	LM_DISABLE_COPY_AND_MOVE(Experiment);
 
 public:
-
-	/*!
-		Experiment type.
-		\return Type.
-	*/
-	virtual std::string Type() const = 0;
 
 	/*!
 		Configure the experiment.

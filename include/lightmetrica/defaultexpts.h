@@ -32,7 +32,6 @@
 LM_NAMESPACE_BEGIN
 
 class Experiment;
-class ExperimentFactory;
 
 /*!
 	Default experiments.
@@ -53,14 +52,6 @@ public:
 	virtual bool CheckConfigured();
 
 public:
-
-	/*!
-		Register an experiment factory.
-		The registered #factory is used for instance creation of experiments.
-		If not specified, #DefaultExperimentFactory is used.
-		\param factory Experiment factory.
-	*/
-	void RegisterExperimentFactory(const ExperimentFactory* factory);
 
 	/*!
 		Load experiments.

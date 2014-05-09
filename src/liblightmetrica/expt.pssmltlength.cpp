@@ -23,18 +23,26 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.pssmltlength.h>
+#include <lightmetrica/expt.h>
 #include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
-class PSSMLTLengthExperiment::Impl
+/*!
+	PSSMLT length.
+	Traces the lengths of light paths.
+*/
+class PSSMLTLengthExperiment : public Experiment
 {
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	void Notify( const std::string& type );
-	void UpdateParam( const std::string& name, const void* param );
+	LM_COMPONENT_IMPL_DEF("pssmltlength");
+
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
 
 private:
 
@@ -59,33 +67,33 @@ private:
 
 };
 
-bool PSSMLTLengthExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTLengthExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_path", std::string("pssmltlength.txt"), outputPath);
 	return true;
 }
 
-void PSSMLTLengthExperiment::Impl::Notify( const std::string& type )
+void PSSMLTLengthExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTLengthExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void PSSMLTLengthExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
 	else if (name == "pssmlt_path_length") length = *(int*)param;
 }
 
-void PSSMLTLengthExperiment::Impl::HandleNotify_RenderStarted()
+void PSSMLTLengthExperiment::HandleNotify_RenderStarted()
 {
 	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTLengthExperiment::Impl::HandleNotify_SampleFinished()
+void PSSMLTLengthExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
@@ -95,7 +103,7 @@ void PSSMLTLengthExperiment::Impl::HandleNotify_SampleFinished()
 	}
 }
 
-void PSSMLTLengthExperiment::Impl::HandleNotify_RenderFinished()
+void PSSMLTLengthExperiment::HandleNotify_RenderFinished()
 {
 	// Save records
 	LM_LOG_INFO("Saving PSSMLT path length to " + outputPath);
@@ -110,32 +118,6 @@ void PSSMLTLengthExperiment::Impl::HandleNotify_RenderFinished()
 	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-// --------------------------------------------------------------------------------
-
-PSSMLTLengthExperiment::PSSMLTLengthExperiment()
-	: p(new Impl)
-{
-
-}
-
-PSSMLTLengthExperiment::~PSSMLTLengthExperiment()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool PSSMLTLengthExperiment::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-void PSSMLTLengthExperiment::Notify( const std::string& type )
-{
-	p->Notify(type);
-}
-
-void PSSMLTLengthExperiment::UpdateParam( const std::string& name, const void* param )
-{
-	p->UpdateParam(name, param);
-}
+LM_COMPONENT_REGISTER_IMPL(PSSMLTLengthExperiment, Experiment);
 
 LM_NAMESPACE_END

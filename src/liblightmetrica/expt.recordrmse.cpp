@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.recordrmse.h>
+#include <lightmetrica/expt.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/bitmaptexture.h>
@@ -33,13 +33,21 @@
 
 LM_NAMESPACE_BEGIN
 
-class RecordRMSEExperiment::Impl
+/*!
+	Experiment for recording RMSE.
+	Records root mean square error (RMSE) per samples / mutations.
+*/
+class RecordRMSEExperiment : public Experiment
 {
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	void Notify( const std::string& type );
-	void UpdateParam( const std::string& name, const void* param );
+	LM_COMPONENT_IMPL_DEF("recordrmse");
+
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
 
 private:
 
@@ -65,7 +73,7 @@ private:
 
 };
 
-bool RecordRMSEExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_path", std::string("rmse.txt"), outputPath);
@@ -88,26 +96,26 @@ bool RecordRMSEExperiment::Impl::Configure( const ConfigNode& node, const Assets
 	return true;
 }
 
-void RecordRMSEExperiment::Impl::Notify( const std::string& type )
+void RecordRMSEExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void RecordRMSEExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "film") film = (BitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
 	else if (name == "rmse") rmse = *(Math::Float*)param;
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_RenderStarted()
+void RecordRMSEExperiment::HandleNotify_RenderStarted()
 {
 	records.clear();
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_SampleFinished()
+void RecordRMSEExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
@@ -121,7 +129,7 @@ void RecordRMSEExperiment::Impl::HandleNotify_SampleFinished()
 	}
 }
 
-void RecordRMSEExperiment::Impl::HandleNotify_RenderFinished()
+void RecordRMSEExperiment::HandleNotify_RenderFinished()
 {	
 	// Save RMSE plot
 	LM_LOG_INFO("Saving RMSE plot to " + outputPath);
@@ -136,32 +144,6 @@ void RecordRMSEExperiment::Impl::HandleNotify_RenderFinished()
 	LM_LOG_INFO("Successfully saved " + std::to_string(records.size()) + " entries");
 }
 
-// --------------------------------------------------------------------------------
-
-RecordRMSEExperiment::RecordRMSEExperiment()
-	: p(new Impl)
-{
-
-}
-
-RecordRMSEExperiment::~RecordRMSEExperiment()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-void RecordRMSEExperiment::Notify( const std::string& type )
-{
-	p->Notify(type);
-}
-
-void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
-{
-	p->UpdateParam(name, param);
-}
+LM_COMPONENT_REGISTER_IMPL(RecordRMSEExperiment, Experiment);
 
 LM_NAMESPACE_END

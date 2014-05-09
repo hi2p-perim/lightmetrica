@@ -23,20 +23,31 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.pssmltrunningmean.h>
+#include <lightmetrica/expt.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/pssmlt.sampler.h>
 #include <lightmetrica/assert.h>
 
 LM_NAMESPACE_BEGIN
 
-class PSSMLTRunningMeanExperiment::Impl
+/*!
+	PSSMLT running mean.
+	Traces running means of primary samples.
+	Running mean is a plot of the iteration against
+	the mean of the draws up to the iteration.
+	Running mean plot is used for the evaluation of the mixing.
+*/
+class PSSMLTRunningMeanExperiment : public Experiment
 {
 public:
 
-	bool Configure( const ConfigNode& node, const Assets& assets );
-	void Notify( const std::string& type );
-	void UpdateParam( const std::string& name, const void* param );
+	LM_COMPONENT_IMPL_DEF("pssmltrunningmean");
+
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void Notify( const std::string& type );
+	virtual void UpdateParam( const std::string& name, const void* param );
 
 private:
 
@@ -63,7 +74,7 @@ private:
 
 };
 
-bool PSSMLTRunningMeanExperiment::Impl::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTRunningMeanExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_path", std::string("pssmltrunningmean.txt"), outputPath);
@@ -71,27 +82,27 @@ bool PSSMLTRunningMeanExperiment::Impl::Configure( const ConfigNode& node, const
 	return true;
 }
 
-void PSSMLTRunningMeanExperiment::Impl::Notify( const std::string& type )
+void PSSMLTRunningMeanExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTRunningMeanExperiment::Impl::UpdateParam( const std::string& name, const void* param )
+void PSSMLTRunningMeanExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
 	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySample*)param;
 }
 
-void PSSMLTRunningMeanExperiment::Impl::HandleNotify_RenderStarted()
+void PSSMLTRunningMeanExperiment::HandleNotify_RenderStarted()
 {
 	sampleValueSums.assign(traceNumSamples, Math::Float(0));
 	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTRunningMeanExperiment::Impl::HandleNotify_SampleFinished()
+void PSSMLTRunningMeanExperiment::HandleNotify_SampleFinished()
 {
 	std::vector<Math::Float> currentSamples;
 	primarySample->GetCurrentSampleState(currentSamples, traceNumSamples);
@@ -115,7 +126,7 @@ void PSSMLTRunningMeanExperiment::Impl::HandleNotify_SampleFinished()
 	}
 }
 
-void PSSMLTRunningMeanExperiment::Impl::HandleNotify_RenderFinished()
+void PSSMLTRunningMeanExperiment::HandleNotify_RenderFinished()
 {
 	// Save records
 	LM_LOG_INFO("Saving PSSMLT running mean plot to " + outputPath);
@@ -136,32 +147,6 @@ void PSSMLTRunningMeanExperiment::Impl::HandleNotify_RenderFinished()
 	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-// --------------------------------------------------------------------------------
-
-PSSMLTRunningMeanExperiment::PSSMLTRunningMeanExperiment()
-	: p(new Impl)
-{
-
-}
-
-PSSMLTRunningMeanExperiment::~PSSMLTRunningMeanExperiment()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool PSSMLTRunningMeanExperiment::Configure( const ConfigNode& node, const Assets& assets )
-{
-	return p->Configure(node, assets);
-}
-
-void PSSMLTRunningMeanExperiment::Notify( const std::string& type )
-{
-	p->Notify(type);
-}
-
-void PSSMLTRunningMeanExperiment::UpdateParam( const std::string& name, const void* param )
-{
-	p->UpdateParam(name, param);
-}
+LM_COMPONENT_REGISTER_IMPL(PSSMLTRunningMeanExperiment, Experiment);
 
 LM_NAMESPACE_END
