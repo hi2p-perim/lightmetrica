@@ -408,6 +408,7 @@ set(
 	"expt.pssmltrunningmean.cpp"
 	"expt.pssmltlength.cpp"
 	"expt.pssmltacceptanceratio.cpp"
+	"expt.progressplot.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})

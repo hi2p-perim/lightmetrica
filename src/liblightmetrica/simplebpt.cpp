@@ -37,6 +37,7 @@
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -72,6 +73,10 @@ private:
 	long long samplesPerBlock;		// Samples to be processed per block
 	std::string rngType;			// Type of random number generator
 
+#if LM_EXPERIMENTAL_MODE
+	DefaultExperiments expts;	// Experiments manager
+#endif
+
 };
 
 bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
@@ -97,6 +102,28 @@ bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, co
 		return false;
 	}
 
+#if LM_EXPERIMENTAL_MODE
+	// Experiments
+	auto experimentsNode = node.Child("experiments");
+	if (!experimentsNode.Empty())
+	{
+		LM_LOG_INFO("Configuring experiments");
+		LM_LOG_INDENTER();
+
+		if (!expts.Configure(experimentsNode, assets))
+		{
+			LM_LOG_ERROR("Failed to configure experiments");
+			return false;
+		}
+
+		if (numThreads != 1)
+		{
+			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
+			numThreads = 1;
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -106,6 +133,8 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 	std::atomic<long long> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
+
+	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
@@ -139,6 +168,8 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 		// Sample range
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+
+		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
@@ -229,7 +260,7 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 						// Evaluate contribution and accumulate to film
 						auto contrb = throughput[TransportDirection::EL] * fsE * G * fsL * throughput[TransportDirection::LE];
-						film->AccumulateContribution(rasterPos, contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
+						film->AccumulateContribution(rasterPos, contrb);
 					}
 				}
 
@@ -310,10 +341,18 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 				currBsdfs[subpath] = isect.primitive->bsdf;
 				pathLength[subpath]++;
 			}
+
+			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;
-		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
+		auto progress = static_cast<double>(processedBlocks) / blocks;
+		signal_ReportProgress(progress, processedBlocks == blocks);
+
+		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
+		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
 	}
 
 	// --------------------------------------------------------------------------------
@@ -323,6 +362,11 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 	{
 		masterFilm->AccumulateContribution(*f.get());
 	}
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 	return true;
 }

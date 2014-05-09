@@ -432,7 +432,12 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 		}
 
 		processedBlocks++;
-		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
+		auto progress = static_cast<double>(processedBlocks) / blocks;
+		signal_ReportProgress(progress, processedBlocks == blocks);
+
+		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
+		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
 	}
 
 	// --------------------------------------------------------------------------------

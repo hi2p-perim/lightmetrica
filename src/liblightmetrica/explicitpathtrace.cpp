@@ -38,6 +38,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
+#include <lightmetrica/defaultexpts.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -173,6 +174,10 @@ private:
 	long long samplesPerBlock;		// Samples to be processed per block
 	std::string rngType;			// Type of random number generator
 
+#if LM_EXPERIMENTAL_MODE
+	DefaultExperiments expts;		// Experiments manager
+#endif
+
 };
 
 bool ExplictPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
@@ -198,6 +203,28 @@ bool ExplictPathtraceRenderer::Configure( const ConfigNode& node, const Assets& 
 		return false;
 	}
 
+#if LM_EXPERIMENTAL_MODE
+	// Experiments
+	auto experimentsNode = node.Child("experiments");
+	if (!experimentsNode.Empty())
+	{
+		LM_LOG_INFO("Configuring experiments");
+		LM_LOG_INDENTER();
+
+		if (!expts.Configure(experimentsNode, assets))
+		{
+			LM_LOG_ERROR("Failed to configure experiments");
+			return false;
+		}
+
+		if (numThreads != 1)
+		{
+			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
+			numThreads = 1;
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -207,6 +234,8 @@ bool ExplictPathtraceRenderer::Render( const Scene& scene )
 	std::atomic<long long> processedBlocks(0);
 
 	signal_ReportProgress(0, false);
+
+	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
@@ -240,6 +269,8 @@ bool ExplictPathtraceRenderer::Render( const Scene& scene )
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
+		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
+
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			// Sample an eye sub-path
@@ -260,12 +291,20 @@ bool ExplictPathtraceRenderer::Render( const Scene& scene )
 			}
 
 			// Record to the film
-			film->AccumulateContribution(path.RasterPosition(), contrb * Math::Float(film->Width() * film->Height()) / Math::Float(numSamples));
+			film->AccumulateContribution(path.RasterPosition(), contrb);
 			path.Release(*pool);
+
+			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;
-		signal_ReportProgress(static_cast<double>(processedBlocks) / blocks, processedBlocks == blocks);
+		auto progress = static_cast<double>(processedBlocks) / blocks;
+		signal_ReportProgress(progress, processedBlocks == blocks);
+
+		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
+		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
 	}
 
 	// --------------------------------------------------------------------------------
@@ -275,6 +314,11 @@ bool ExplictPathtraceRenderer::Render( const Scene& scene )
 	{
 		masterFilm->AccumulateContribution(*context.film.get());
 	}
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 	return true;
 }
