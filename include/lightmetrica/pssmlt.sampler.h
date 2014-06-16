@@ -134,6 +134,8 @@ public:
 	LM_PUBLIC_API void SetRng(Random* rng);
 	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples) const;
 	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples);
+
+	LM_PUBLIC_API void SetKernelSizeScale(const Math::Float& scale);
 	
 private:
 
@@ -154,6 +156,8 @@ private:
 	int currentIndex;									//!< Current sample index
 	std::vector<Sample> u;								//!< List of current samples
 	std::vector<std::tuple<int, Sample>> prevSamples;	//!< Temporary list for preserving previous samples (restored if rejected)
+
+	Math::Float kernelSizeScale;						// TODO
 
 };
 

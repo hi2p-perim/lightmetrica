@@ -78,6 +78,7 @@ LM_PUBLIC_API int PSSMLTRestorableSampler::Index()
 LM_PUBLIC_API PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Float& s2 )
 	: s1(s1)
 	, s2(s2)
+	, kernelSizeScale(1)
 {
 	logRatio = -Math::Log(s2 / s1);
 	time = 0;
@@ -187,7 +188,7 @@ Math::Float PSSMLTPrimarySample::Mutate( const Math::Float& value )
 	// Convert to [0, 1]
 	u = positive ? u * Math::Float(2) : Math::Float(2) * (u - Math::Float(0.5)); 
 
-	Math::Float dv = s2 * std::exp(logRatio * u);
+	Math::Float dv = kernelSizeScale * s2 * std::exp(logRatio * u);
 
 	Math::Float result = value;
 	if (positive)
@@ -244,6 +245,11 @@ LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math:
 			samples.push_back(Math::Float(0));
 		}
 	}
+}
+
+void PSSMLTPrimarySample::SetKernelSizeScale( const Math::Float& scale )
+{
+	kernelSizeScale = scale;
 }
 
 LM_NAMESPACE_END

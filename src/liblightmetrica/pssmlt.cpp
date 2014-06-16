@@ -46,12 +46,12 @@
 #include <atomic>
 #include <omp.h>
 
-#define LM_ENABLE_PSSMLT_EXPERIMENTAL
-#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-	#define LM_PSSMLT_EXPERIMENTAL_MDOE 1
-#else
-	#define LM_PSSMLT_EXPERIMENTAL_MDOE 0
-#endif
+//#define LM_ENABLE_PSSMLT_EXPERIMENTAL
+//#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 1
+//#else
+//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 0
+//#endif
 
 LM_NAMESPACE_BEGIN
 
@@ -107,17 +107,20 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	PSSMLTPathSampleRecord records[2];					// Path sample records (current or proposed)
 	int current;										// Index of current record
 
-#if LM_PSSMLT_EXPERIMENTAL_MDOE
-	Math::Float kernelSize;
-#endif
+	// Experimental variables
+	Math::Float kernelSizeScale;
+	long long mutated;
+	long long accepted;
+	//long long kernelUpdateCount;
+	//Math::Float expectedAcceptanceRatio;
 
 	PSSMLTThreadContext(Random* rng, Film* film, PSSMLTPrimarySample* sampler)
 		: rng(rng)
 		, film(film)
 		, sampler(sampler)
-#if LM_PSSMLT_EXPERIMENTAL_MDOE
-		, kernelSize(0)
-#endif
+		, kernelSizeScale(1)
+		, mutated(0)
+		, accepted(0)
 	{
 
 	}
@@ -126,9 +129,9 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
-#if LM_PSSMLT_EXPERIMENTAL_MDOE
-		, kernelSize(0)
-#endif
+		, kernelSizeScale(1)
+		, mutated(0)
+		, accepted(0)
 	{
 
 	}
@@ -186,9 +189,9 @@ private:
 	Math::Float kernelSizeS1;					// Minimum kernel size
 	Math::Float kernelSizeS2;					// Maximum kernel size
 
-#if LM_PSSMLT_EXPERIMENTAL_MDOE
 	bool adaptiveKernel;
-#endif
+	//long long kernelUpdateCount;
+	//Math::Float kernelScaleDelta;
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -252,13 +255,14 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
 
-#if LM_PSSMLT_EXPERIMENTAL_MDOE
+	// Experimental params
 	auto experimentalNode = node.Child("experimental");
 	if (!experimentalNode.Empty())
 	{
 		experimentalNode.ChildValueOrDefault("adaptive_kernel", false, adaptiveKernel);
+		//experimentalNode.ChildValueOrDefault("kernel_scale_delta", Math::Float(0.01), kernelScaleDelta);
+		//experimentalNode.ChildValueOrDefault("kernel_update_count", 1000LL, kernelUpdateCount);
 	}
-#endif
 
 #if LM_EXPERIMENTAL_MODE
 	// Experiments
@@ -385,11 +389,13 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 				? Math::Min(Math::Float(1), proposedI / currentI)
 				: Math::Float(1);
 
+			context->mutated++;
 			if (context->rng->Next() < a)
 			{
 				// Accepted
 				context->sampler->Accept();
 				context->current = 1 - context->current;
+				context->accepted++;
 			}
 			else
 			{
@@ -423,6 +429,12 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 				context->film->AccumulateContribution(
 					current.rasterPos,
 					current.L * B / currentI);
+			}
+
+			if (adaptiveKernel)
+			{
+				double R = (double)context->accepted / context->mutated;
+				context->kernelSizeScale += Math::Float(100.0) * Math::Float(R - 0.234) / context->mutated;
 			}
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
