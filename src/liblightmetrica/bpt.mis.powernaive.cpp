@@ -23,53 +23,57 @@
 */
 
 #include "pch.h"
-#include <lightmetrica.test/base.h>
-#include <lightmetrica.test/stub.assets.h>
-#include <lightmetrica.test/stub.config.h>
 #include <lightmetrica/bpt.mis.h>
-#include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
-#include <lightmetrica/bpt.pool.h>
+#include <lightmetrica/bpt.subpath.h>
+#include <lightmetrica/assert.h>
+#include <lightmetrica/renderutils.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/math.linalgebra.h>
-#include <lightmetrica/math.stats.h>
-#include <lightmetrica/light.h>
-#include <lightmetrica/bsdf.h>
 
 LM_NAMESPACE_BEGIN
-LM_TEST_NAMESPACE_BEGIN
 
-/*
-	Checks if the condition W1
-	[Veach 1997, p.260] is preserved.
+/*!
+	Power heuristics MIS weight (naive version).
+	Implements power heuristics.
 */
-//TEST_F(BPTMISTest, Condition_W1)
-//{
-//	//for (const auto& type : misWeightTypes)
-//	//{
-//	//	// Create MIS weighting function
-//	//	std::unique_ptr<BPTMISWeight> misWeight(ComponentFactory::Create<BPTMISWeight>(type));
-//	//	EXPECT_TRUE(misWeight->Configure(ConfigNode(), assets));
-//
-//	//	for (const auto& subpath : bptSubpaths)
-//	//	{
-//	//		const auto& lightSubpath = subpath.lightSubpath;
-//	//		const auto& eyeSubpath = subpath.eyeSubpath;
-//	//		
-//	//		Math::Float sumWeights(0);
-//
-//	//		for (size_t s = 0; s <= lightSubpath.vertices.size(); s++)
-//	//		{
-//	//			for (size_t t = 0; t <= eyeSubpath.vertices.size(); t++)
-//	//			{
-//	//				sumWeights += misWeight->Evaluate(BPTFullPath(s, t, lightSubpath, eyeSubpath));
-//	//			}
-//	//		}
-//
-//	//		EXPECT_TRUE(ExpectNear(Math::Float(1), sumWeights)) << "Weight type : " << type;
-//	//	}
-//	//}
-//}
+class BPTPowerHeuristicsNaiveMISWeight : public BPTMISWeight
+{
+public:
 
-LM_TEST_NAMESPACE_END
+	LM_COMPONENT_IMPL_DEF("powernaive");
+
+public:
+
+	virtual bool Configure(const ConfigNode& node, const Assets& assets);
+	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
+
+private:
+
+	// Beta coefficient for power heuristics
+	Math::Float betaCoeff;
+
+};
+
+bool BPTPowerHeuristicsNaiveMISWeight::Configure( const ConfigNode& node, const Assets& assets )
+{
+	node.ChildValueOrDefault("beta_coeff", Math::Float(2), betaCoeff);
+	return true;
+}
+
+Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPath) const
+{
+	Math::Float invWeight(0);
+	Math::Float ps = fullPath.EvaluateFullpathPDF(fullPath.s);
+
+	for (int i = 0; i <= fullPath.s + fullPath.t; i++)
+	{
+		auto ratio = fullPath.EvaluateFullpathPDF(i) / ps;
+		invWeight += ratio * ratio;
+	}
+
+	return Math::Float(1) / invWeight;
+}
+
+LM_COMPONENT_REGISTER_IMPL(BPTPowerHeuristicsNaiveMISWeight, BPTMISWeight);
+
 LM_NAMESPACE_END

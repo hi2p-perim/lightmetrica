@@ -28,9 +28,11 @@
 
 #include "bpt.common.h"
 #include "math.types.h"
+#include "transportdirection.h"
 
 LM_NAMESPACE_BEGIN
 
+class BPTPathVertex;
 class BPTSubpath;
 class Scene;
 
@@ -50,7 +52,7 @@ public:
 		\param lightSubpath Light sub-path.
 		\param eyeSubpath Eye sub-path.
 	*/
-	BPTFullPath(int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
+	LM_PUBLIC_API BPTFullPath(int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath);
 
 private:
 
@@ -66,14 +68,48 @@ public:
 	*/
 	Math::Vec3 EvaluateUnweightContribution(const Scene& scene, Math::Vec2& rasterPosition) const;
 
+	/*!
+		Evaluate full-path probability density.
+		Evaluate p_i(x_{s,t}) := p_{i,s+t-i}(x_{s,t}).
+		\param i Index of PDF.
+		\return Evaluated PDF.
+	*/
+	LM_PUBLIC_API Math::Float EvaluateFullpathPDF(int i) const;
+
+	/*!
+		Evaluate full-path probability density ratio.
+		Evaluate p_{i+1}(x_{s,t}) / p_i(x_{s,t}).
+		See Equation (10.9) in [Veach 1997].
+		\param i Index of PDF.
+		\return Evaluated PDF.
+	*/
+	LM_PUBLIC_API Math::Float EvaluateFullpathPDFRatio(int i) const;
+
+private:
+
+	/*!
+		Get i-th vertex of the full-path.
+		\param i Index of PDF.
+		\return Vertex.
+	*/
+	const BPTPathVertex* FullPathVertex(int i) const;
+
+	/*!
+		Get i-th directional PDF evaluation of the full-path.
+		\param i Index of PDF.
+		\param transportDir Transport direction.
+		\return Evaluated PDF.
+	*/
+	Math::PDFEval FullPathVertexDirectionPDF(int i, TransportDirection transportDir) const;
+
 public:
 
 	const BPTSubpath& lightSubpath;		//!< Light sub-path
 	const BPTSubpath& eyeSubpath;		//!< Eye sub-path
 	int s;								//!< # of vertices in light sub-path
-	int t;								//!< # of vertices in eye-subpath
-	Math::PDFEval pdfDL[2];				//!< PDF evaluation for y_{s-1}
-	Math::PDFEval pdfDE[2];				//!< PDF evaluation for z_{t-1}
+	int t;								//!< # of vertices in eye sub-path
+	Math::PDFEval pdfDL[2];				//!< PDF evaluation for y_{s-1} (light sub-path)
+	Math::PDFEval pdfDE[2];				//!< PDF evaluation for z_{t-1} (eye sub-path)
 
 };
 

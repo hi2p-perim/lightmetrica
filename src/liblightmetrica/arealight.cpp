@@ -81,7 +81,20 @@ private:
 
 bool AreaLight::Load( const ConfigNode& node, const Assets& assets )
 {
-	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
+	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return true;
+
+	// For testing configuration
+	// TODO : This smells
+	auto testingNode = node.Child("testing");
+	if (!testingNode.Empty())
+	{
+		LM_LOG_WARN("Testing configuration is enabled");
+		if (!testingNode.ChildValue<Math::Float>("area", area))
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 

@@ -114,7 +114,7 @@ class BPTSubpath
 {
 public:
 
-	BPTSubpath(TransportDirection transportDir);
+	LM_PUBLIC_API BPTSubpath(TransportDirection transportDir);
 	
 private:
 
@@ -126,7 +126,7 @@ public:
 		Release sampled sub-path.
 		\param pool Memory pool for path vertex.
 	*/
-	void Release(BPTPathVertexPool& pool);
+	LM_PUBLIC_API void Release(BPTPathVertexPool& pool);
 
 	/*!
 		Debug print.

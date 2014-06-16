@@ -95,19 +95,55 @@ private:
 
 bool PerspectiveCamera::Load( const ConfigNode& node, const Assets& assets )
 {
-	// Resolve reference to film
-	film = assets.ResolveReferenceToAsset<Film>(node.Child("film"));
-	if (!film)
-	{
-		return false;
-	}
-
 	// 'fovy'
 	Math::Float fovy;
 	if (!node.ChildValue("fovy", fovy)) return false;
 
 	// Aspect ratio
-	Math::Float aspect = Math::Float(film->Width()) / Math::Float(film->Height());
+	Math::Float aspect;
+
+	// For testing configuration
+	// TODO : This is ugly
+	auto testingNode = node.Child("testing");
+	if (!testingNode.Empty())
+	{
+		LM_LOG_WARN("Testing configuration is enabled");
+		if (!testingNode.ChildValue("aspect", aspect)) return false;
+
+		// View matrix : use 'lookat'
+		auto lookAtNode = testingNode.Child("lookat");
+		if (!lookAtNode.Empty())
+		{
+			// Position, center, up
+			Math::Vec3 position, center, up;
+			if (!lookAtNode.ChildValue("position", position))	return false;
+			if (!lookAtNode.ChildValue("center", center))		return false;
+			if (!lookAtNode.ChildValue("up", up))				return false;
+
+			// Create transform
+			viewMatrix = Math::LookAt(position, center, up);
+			invViewMatrix = Math::Inverse(viewMatrix);
+
+			// Position of the camera (in world coordinates)
+			position = Math::Vec3(invViewMatrix * Math::Vec4(0, 0, 0, 1));
+		}
+		else
+		{
+			LM_LOG_WARN("Missing 'lookat' element");
+			return false;
+		}
+	}
+	else
+	{
+		// Resolve reference to film
+		film = assets.ResolveReferenceToAsset<Film>(node.Child("film"));
+		if (!film)
+		{
+			return false;
+		}
+
+		aspect = Math::Float(film->Width()) / Math::Float(film->Height());
+	}
 
 	// --------------------------------------------------------------------------------
 
@@ -243,6 +279,14 @@ Math::Float PerspectiveCamera::EvaluateImportance( Math::Float cosTheta ) const
 	{
 		// p is on behind the camera
 		return Math::Float(0);
+	}
+
+	if (Math::Abs(cosTheta - Math::Float(1)) < Math::Constants::EpsLarge())
+	{
+		// Clamp to one to avoid nasty error introduced by 1/cos^3
+		// cf. BPTFullpathTest - EvaluateFullpathPDFRatio (3) fails without this compensation
+		// TODO : Check if this is valid
+		cosTheta = Math::Float(1);
 	}
 
 	Math::Float invCosTheta = Math::Float(1) / cosTheta;

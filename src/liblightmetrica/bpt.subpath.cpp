@@ -273,12 +273,19 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 
 		// Evaluate PDF in the opposite transport direction
 		// TODO : Handle specular case
-		GeneralizedBSDFEvaluateQuery bsdfEQ;
-		bsdfEQ.type = bsdfSR.sampledType;
-		bsdfEQ.transportDir = TransportDirection(1 - transportDir);
-		bsdfEQ.wi = bsdfSR.wo;
-		bsdfEQ.wo = bsdfSQ.wi;
-		v->pdfD[1-transportDir] = v->bsdf->EvaluateDirectionPDF(bsdfEQ, v->geom);
+		if (!pv->geom.degenerated)
+		{
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = bsdfSR.sampledType;
+			bsdfEQ.transportDir = TransportDirection(1 - transportDir);
+			bsdfEQ.wi = bsdfSR.wo;
+			bsdfEQ.wo = bsdfSQ.wi;
+			v->pdfD[1-transportDir] = v->bsdf->EvaluateDirectionPDF(bsdfEQ, v->geom);
+		}
+		else
+		{
+			v->pdfD[1-transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 
 		vertices.push_back(v);
 	}
@@ -339,4 +346,5 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 
 	return alpha;
 }
+
 LM_NAMESPACE_END

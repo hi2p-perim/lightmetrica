@@ -58,6 +58,11 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 			bsdfEQ.wo = z->wi;
 			pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
 		}
+		else
+		{
+			// This must be set
+			pdfDE[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 	}
 	else if (s > 0 && t == 0)
 	{
@@ -71,11 +76,18 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 			bsdfEQ.wo = y->wi;
 			pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
 		}
+		else
+		{
+			// This must be set
+			pdfDL[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 	}
 	else if (s > 0 && t > 0)
 	{
 		auto* y = lightSubpath.vertices[s-1];
+		auto* yPrev = s > 1 ? lightSubpath.vertices[s-2] : nullptr;
 		auto* z = eyeSubpath.vertices[t-1];
+		auto* zPrev = t > 1 ? eyeSubpath.vertices[t-2] : nullptr;
 
 		GeneralizedBSDFEvaluateQuery bsdfEQ;
 		bsdfEQ.type = GeneralizedBSDFType::All;
@@ -84,12 +96,25 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		auto zy = -yz;
 
 		// Compute #pdfDL[EL]
-		if (s > 1)
+		if (yPrev != nullptr)
 		{
-			bsdfEQ.transportDir = TransportDirection::EL;
-			bsdfEQ.wi = yz;
-			bsdfEQ.wo = y->wi;
-			pdfDL[TransportDirection::EL] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
+			if (!yPrev->geom.degenerated)
+			{
+				bsdfEQ.transportDir = TransportDirection::EL;
+				bsdfEQ.wi = yz;
+				bsdfEQ.wo = y->wi;
+				pdfDL[TransportDirection::EL] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
+			}
+			else
+			{
+				// Handle degenerated vertex (specular surfaces or point lights)
+				pdfDL[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
+		}
+		else
+		{
+			// Invalid (not used)
+			pdfDL[TransportDirection::EL] = Math::PDFEval();
 		}
 
 		// Compute #pdfDL[LE]
@@ -99,12 +124,25 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		pdfDL[TransportDirection::LE] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
 
 		// Compute #pdfDE[LE]
-		if (t > 1)
+		if (zPrev != nullptr)
 		{
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.wi = zy;
-			bsdfEQ.wo = z->wi;
-			pdfDE[TransportDirection::LE] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
+			if (!zPrev->geom.degenerated)
+			{
+				bsdfEQ.transportDir = TransportDirection::LE;
+				bsdfEQ.wi = zy;
+				bsdfEQ.wo = z->wi;
+				pdfDE[TransportDirection::LE] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
+			}
+			else
+			{
+				// Handle degenerated vertex (specular surfaces or perspective camera)
+				pdfDE[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
+		}
+		else
+		{
+			// Invalid (not used)
+			pdfDE[TransportDirection::LE] = Math::PDFEval();
 		}
 
 		// Compute #pdfDE[EL]
@@ -235,6 +273,127 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 
 	// Evaluate contribution C^*_{s,t} = \alpha^L_s * c_{s,t} * \alpha^E_t
 	return alphaL * cst * alphaE;
+}
+
+Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
+{
+	Math::Float fullpathPdf(1);
+
+	if (i > 0)
+	{
+		// Evaluate p_A(x_0)
+		const auto* x0 = FullPathVertex(0);
+		LM_ASSERT(x0->pdfP.measure == Math::ProbabilityMeasure::Area);
+		fullpathPdf *= x0->pdfP.v;
+
+		// Evaluate p_{\sigma^\bot}(x_j\to x_{j+1}) * G(x_j\leftrightarrow x_{j+1}) (j = 0 to i-2)
+		for (int j = 0; j <= i-2; j++)
+		{
+			const auto* xj		= FullPathVertex(j);
+			const auto* xjNext	= FullPathVertex(j+1);
+			auto xjPdfDLE		= FullPathVertexDirectionPDF(j, TransportDirection::LE);
+			LM_ASSERT(xjPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+			fullpathPdf *=
+				xjPdfDLE.v *
+				RenderUtils::GeneralizedGeometryTerm(xj->geom, xjNext->geom);
+		}
+	}
+
+	int n = s + t;
+	if (i < n)
+	{
+		// Evaluate p_A(x_{n-1})
+		const auto* xnPrev = FullPathVertex(n-1);
+		LM_ASSERT(xnPrev->pdfP.measure == Math::ProbabilityMeasure::Area);
+		fullpathPdf *= xnPrev->pdfP.v;
+		
+		// Evaluate p_{\sigma^\bot}(x_j\to x_{j-1}) * G(x_j\leftrightarrow x_{j-1}) (j = n-1 downto i+1)
+		for (int j = n-1; j >= i+1; j--)
+		{
+			const auto* xj		= FullPathVertex(j);
+			const auto* xjPrev	= FullPathVertex(j-1);
+			auto xjPdfDEL		= FullPathVertexDirectionPDF(j, TransportDirection::EL);
+			LM_ASSERT(xjPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+			fullpathPdf *=
+				xjPdfDEL.v *
+				RenderUtils::GeneralizedGeometryTerm(xj->geom, xjPrev->geom);
+		}
+	}
+
+	return fullpathPdf;
+}
+
+Math::Float BPTFullPath::EvaluateFullpathPDFRatio( int i ) const
+{
+	if (i == 0)
+	{
+		// p_1 / p_0 =
+		//    p_A(x_0) /
+		//    p_{\sigma^\bot}(x_1\to x_0)G(x_1\leftrightarrow x_0)
+		const auto* x0	= FullPathVertex(0);
+		const auto* x1	= FullPathVertex(1);
+		auto x1PdfDEL	= FullPathVertexDirectionPDF(1, TransportDirection::EL);
+
+		LM_ASSERT(x0->pdfP.measure == Math::ProbabilityMeasure::Area);
+		LM_ASSERT(x1PdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+		// TODO: Handle the case x1PdfDEL.v is zero
+		return
+			x0->pdfP.v /
+			(x1PdfDEL.v * RenderUtils::GeneralizedGeometryTerm(x0->geom, x1->geom));
+	}
+	
+	int n = s + t;
+	if (i == n-1)
+	{
+		// p_n / p_{n-1} =
+		//     p_{\sigma^\bot}(x_{n-2}\to x_{n-1})G(x_{n-2}\leftrightarrow x_{n-1}) /
+		//     p_A(x_{n-1})
+		const auto* xnPrev	= FullPathVertex(n-1);
+		const auto* xnPrev2	= FullPathVertex(n-2);
+		auto xnPrev2PdfDLE	= FullPathVertexDirectionPDF(n-2, TransportDirection::LE);
+
+		LM_ASSERT(xnPrev->pdfP.measure == Math::ProbabilityMeasure::Area);
+		LM_ASSERT(xnPrev2PdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+		return
+			xnPrev2PdfDLE.v *
+			RenderUtils::GeneralizedGeometryTerm(xnPrev2->geom, xnPrev->geom) /
+			xnPrev->pdfP.v;
+	}
+
+	// p_{i+1} / p_i =
+	//     p_{\sigma^\bot}(x_{i-1}\to x_i)G(x_{i-1}\leftrightarrow x_i) /
+	//     p_{\sigma^\bot}(x_{i+1}\to x_i)G(x_{i+1}\leftrightarrow x_i)
+	const auto* xi		= FullPathVertex(i);
+	const auto* xiNext	= FullPathVertex(i+1);
+	const auto* xiPrev	= FullPathVertex(i-1);
+	auto xiPrevPdfDLE	= FullPathVertexDirectionPDF(i-1, TransportDirection::LE);
+	auto xiNextPdfDEL	= FullPathVertexDirectionPDF(i+1, TransportDirection::EL);
+
+	LM_ASSERT(xiPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+	LM_ASSERT(xiNextPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+	return
+		(xiPrevPdfDLE.v / xiNextPdfDEL.v) *
+		(RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) / RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom));
+}
+
+const BPTPathVertex* BPTFullPath::FullPathVertex( int i ) const
+{
+	LM_ASSERT(0 <= i && i < s + t);
+	return i < s
+		? lightSubpath.vertices[i]
+		: eyeSubpath.vertices[t-1-(i-s)];
+}
+
+Math::PDFEval BPTFullPath::FullPathVertexDirectionPDF( int i, TransportDirection transportDir ) const
+{
+	LM_ASSERT(0 <= i && i < s + t);
+	return
+		i == s - 1	? pdfDL[transportDir] :
+		i == s		? pdfDE[transportDir]
+					: FullPathVertex(i)->pdfD[transportDir];
 }
 
 LM_NAMESPACE_END

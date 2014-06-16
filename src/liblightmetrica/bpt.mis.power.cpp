@@ -26,62 +26,77 @@
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.subpath.h>
+#include <lightmetrica/assert.h>
+#include <lightmetrica/renderutils.h>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Simple MIS weight.
-	Defines simple MIS weight.
-	Simply reciprocal of # of full-paths with positive probability.
+	Power heuristics MIS weight.
+	Implements power heuristics.
 */
-class BPTSimpleMISWeight : public BPTMISWeight
+class BPTPowerHeuristicsMISWeight : public BPTMISWeight
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("simple");
+	LM_COMPONENT_IMPL_DEF("power");
 
 public:
 
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) { return true; }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets);
 	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
+
+private:
+
+	// Beta coefficient for power heuristics
+	Math::Float betaCoeff;
 
 };
 
-Math::Float BPTSimpleMISWeight::Evaluate(const BPTFullPath& fullPath) const
+bool BPTPowerHeuristicsMISWeight::Configure( const ConfigNode& node, const Assets& assets )
 {
-	const int nE = static_cast<int>(fullPath.eyeSubpath.vertices.size());
-	const int nL = static_cast<int>(fullPath.lightSubpath.vertices.size());
-	const int n = fullPath.s + fullPath.t;
-
-	int minS = Math::Max(0, n-nE);
-	int maxS = Math::Min(nL, n);
-
-	// This is tricky part, in the weight calculation
-	// we need to exclude samples with zero probability.
-	// We note that if the last vertex of sub-path with s=0 or t=0
-	// is not on non-pinhole camera or area light, the path probability is zero,
-	// because we cannot sample degenerated points.
-	int nonZeroProbPaths = n+1;
-	if (fullPath.lightSubpath.vertices[0]->geom.degenerated)
-	{
-		nonZeroProbPaths--;
-		if (fullPath.s == 0)
-		{
-			return Math::Float(0);
-		}
-	}
-	if (fullPath.eyeSubpath.vertices[0]->geom.degenerated)
-	{
-		nonZeroProbPaths--;
-		if (fullPath.t == 0)
-		{
-			return Math::Float(0);
-		}
-	}
-
-	return Math::Float(1) / Math::Float(nonZeroProbPaths);
+	node.ChildValueOrDefault("beta_coeff", Math::Float(2), betaCoeff);
+	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(BPTSimpleMISWeight, BPTMISWeight);
+Math::Float BPTPowerHeuristicsMISWeight::Evaluate(const BPTFullPath& fullPath) const
+{
+	const int n = fullPath.s + fullPath.t;
+
+	// Inverse of the weight 1/w_{s,t}. Initial weight is p_s/p_s = 1
+	Math::Float invWeight(1);
+	Math::Float piDivPs;
+
+	// Iteratively compute p_i/p_s where i = s-1 downto 0
+	piDivPs = Math::Float(1);
+	for (int i = fullPath.s-1; i >= 0; i--)
+	{
+		Math::Float ratio = fullPath.EvaluateFullpathPDFRatio(i);
+		if (Math::IsZero(ratio))
+		{
+			break;
+		}
+		piDivPs *= Math::Float(1) / ratio;
+		invWeight += piDivPs * piDivPs;
+	}
+
+	// Iteratively compute p_i/p_s where i = s+1 to n
+	piDivPs = Math::Float(1);
+	for (int i = fullPath.s+1; i < n; i++)
+	{
+		Math::Float ratio = fullPath.EvaluateFullpathPDFRatio(i);
+		if (Math::IsZero(ratio))
+		{
+			break;
+		}
+		piDivPs *= ratio;
+		invWeight += piDivPs * piDivPs;
+	}
+
+	return Math::Float(1) / invWeight;
+}
+
+LM_COMPONENT_REGISTER_IMPL(BPTPowerHeuristicsMISWeight, BPTMISWeight);
 
 LM_NAMESPACE_END

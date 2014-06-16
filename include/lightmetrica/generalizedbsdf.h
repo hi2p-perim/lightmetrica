@@ -100,6 +100,7 @@ struct GeneralizedBSDFEvaluateQuery
 {
 
 	GeneralizedBSDFEvaluateQuery() {}
+
 	GeneralizedBSDFEvaluateQuery(const GeneralizedBSDFSampleQuery& query, const GeneralizedBSDFSampleResult& result)
 		: type(result.sampledType)
 		, transportDir(query.transportDir)
@@ -107,6 +108,13 @@ struct GeneralizedBSDFEvaluateQuery
 		, wo(result.wo)
 	{}
 
+	GeneralizedBSDFEvaluateQuery(int type, TransportDirection transportDir, const Math::Vec3& wi, const Math::Vec3& wo)
+		: type(type)
+		, transportDir(transportDir)
+		, wi(wi)
+		, wo(wo)
+	{}
+	
 	int type;							//!< Requested BSDF type.
 	TransportDirection transportDir;	//!< Transport direction.
 	Math::Vec3 wi;						//!< Input direction in shading coordinates.

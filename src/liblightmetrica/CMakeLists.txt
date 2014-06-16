@@ -288,7 +288,8 @@ set(
 	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"
 	"bpt.mis.simple.cpp"
-	"bpt.mis.powerheuristics.cpp"
+	"bpt.mis.power.cpp"
+	"bpt.mis.powernaive.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\bpt" FILES ${_RENDERER_BPT_SOURCES})

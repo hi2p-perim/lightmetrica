@@ -50,7 +50,8 @@ set(
 	"test.math.transform.cpp"
 	"test.math.stats.cpp"
 	"test.bpt.mis.cpp"
-	"test.bpt.mis.powerheuristics.cpp"
+	"test.bpt.mis.power.cpp"
+	"test.bpt.fullpath.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
