@@ -134,6 +134,14 @@ public:
 	*/
 	LM_PUBLIC_API void DebugPrint() const;
 
+
+	/*!
+		Debug print (by # of vertices).
+		Print #n vertices.
+		\param n Number of vertices.
+	*/
+	LM_PUBLIC_API void DebugPrint(size_t n) const;
+
 	/*!
 		Sample a sub-path.
 		Sample eye sub-path or light sub-path according to #transportDir.

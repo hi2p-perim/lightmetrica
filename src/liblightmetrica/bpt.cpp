@@ -358,7 +358,6 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 	for (int n = 2; n <= nE + nL; n++)
 	{
 		// Process full-path with length n+1 (sub-path edges + connecting edge)
-		Math::Float sumWeight = 0;
 		const int minS = Math::Max(0, n-nE);
 		const int maxS = Math::Min(nL, n);
 		for (int s = minS; s <= maxS; s++)
@@ -381,7 +380,6 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 
 			// Evaluate weighting function w_{s,t}
 			Math::Float w = config.misWeight->Evaluate(fullPath);
-			sumWeight += w;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
@@ -421,13 +419,6 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 				}
 			}
 #endif
-		}
-
-		// Sum of MIS weight must be one.
-		// Check only if all sampling strategies is available except the case terminating by RR.
-		if (minS == 0 && maxS == n)
-		{
-			LM_ASSERT(Math::Abs(sumWeight - Math::Float(1)) < Math::Constants::Eps());
 		}
 	}
 }

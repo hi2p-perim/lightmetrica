@@ -64,7 +64,7 @@ Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPa
 {
 	Math::Float invWeight(0);
 	Math::Float ps = fullPath.EvaluateFullpathPDF(fullPath.s);
-	LM_ASSERT(Math::Abs(ps) < Math::Constants::Eps());
+	LM_ASSERT(Math::Abs(ps) > Math::Constants::Eps());
 
 	for (int i = 0; i <= fullPath.s + fullPath.t; i++)
 	{

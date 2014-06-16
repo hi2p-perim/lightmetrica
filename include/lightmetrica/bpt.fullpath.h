@@ -66,7 +66,7 @@ public:
 		\param rasterPosition Raster position.
 		\return Contribution.
 	*/
-	Math::Vec3 EvaluateUnweightContribution(const Scene& scene, Math::Vec2& rasterPosition) const;
+	LM_PUBLIC_API Math::Vec3 EvaluateUnweightContribution(const Scene& scene, Math::Vec2& rasterPosition) const;
 
 	/*!
 		Evaluate full-path probability density.

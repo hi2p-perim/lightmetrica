@@ -177,18 +177,17 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("sfmt"));
 	rng->SetSeed(1);
 
-	const int Samples = 1<<10;
+	// BPT weights
+	std::unique_ptr<BPTMISWeight> misWeightFunc_Power(ComponentFactory::Create<BPTMISWeight>("power"));
+	std::unique_ptr<BPTMISWeight> misWeightFunc_PowerNaive(ComponentFactory::Create<BPTMISWeight>("powernaive"));
+
+	const int Samples = 1<<12;
 	for (int sample = 0; sample < Samples; sample++)
 	{
 		lightSubpath.Release(pool);
 		eyeSubpath.Release(pool);
 		lightSubpath.Sample(bptConfig, *scene, *rng, pool);
 		eyeSubpath.Sample(bptConfig, *scene, *rng, pool);
-
-		// BPT weights
-		std::vector<std::unique_ptr<BPTMISWeight>> misweights;
-		misweights.emplace_back(ComponentFactory::Create<BPTMISWeight>("power"));
-		misweights.emplace_back(ComponentFactory::Create<BPTMISWeight>("powernaive"));
 
 		const int nL = lightSubpath.NumVertices();
 		const int nE = eyeSubpath.NumVertices();
@@ -205,7 +204,7 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 
 				BPTFullPath fullpath(s, t, lightSubpath, eyeSubpath);
 
-				// Calculate contribution as BPT implementation
+				// Calculate contribution same as BPT implementation
 				// in order to exclude zero-contribution cases.
 				Math::Vec2 rasterPosition;
 				auto Cstar = fullpath.EvaluateUnweightContribution(*scene, rasterPosition);
@@ -214,9 +213,35 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 					continue;
 				}
 
-				// 
+				// p_s should be non-zero (such cases are supposed to be excluded in above)
+				auto ps = fullpath.EvaluateFullpathPDF(s);
+				bool psIsZero = Math::Abs(ps) < Math::Constants::Eps();
+				EXPECT_FALSE(psIsZero);
+
+				// Calculate weights using different implementation
+				auto weight_Power		= misWeightFunc_Power->Evaluate(fullpath);
+				auto weight_PowerNaive	= misWeightFunc_PowerNaive->Evaluate(fullpath);
+
+				// Compare weights
+				auto result = ExpectNear(weight_Power, weight_PowerNaive);
+				EXPECT_TRUE(result);
+				if (!result)
+				{
+					LM_LOG_DEBUG("s     = " + std::to_string(s));
+					LM_LOG_DEBUG("t     = " + std::to_string(t));
+					LM_LOG_DEBUG("Cstar = (" + std::to_string(Cstar.x) + ", " + std::to_string(Cstar.y) + ", " + std::to_string(Cstar.z) + ")");
+					auto weight_Power		= misWeightFunc_Power->Evaluate(fullpath);
+					auto weight_PowerNaive	= misWeightFunc_PowerNaive->Evaluate(fullpath);
+					for (int i = 0; i <= s + t; i++)
+					{
+						auto pi = fullpath.EvaluateFullpathPDF(i);
+						LM_LOG_DEBUG(boost::str(boost::format("p%02d   = %f") % i % pi));
+					}
+					fullpath.DebugPrint();
+				}
 			}
 		}
+	}
 }
 
 LM_TEST_NAMESPACE_END

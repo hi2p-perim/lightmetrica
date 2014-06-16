@@ -49,14 +49,22 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 	if (s == 0 && t > 0)
 	{
 		// Compute #pdfDE[LE]
-		auto* z = eyeSubpath.vertices[t-1];
+		auto* z		= eyeSubpath.vertices[t-1];
+		auto* zPrev	= eyeSubpath.vertices[t-2];		// Always non-null because t >= 2
 		if (z->areaLight)
 		{
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-			bsdfEQ.wo = z->wi;
-			pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
+			if (!zPrev->geom.degenerated)
+			{
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.transportDir = TransportDirection::LE;
+				bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+				bsdfEQ.wo = z->wi;
+				pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
+			}
+			else
+			{
+				pdfDE[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
 		}
 		else
 		{
@@ -67,14 +75,22 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 	else if (s > 0 && t == 0)
 	{
 		// Compute #pdfDL[EL]
-		auto* y = lightSubpath.vertices[s-1];
+		auto* y		= lightSubpath.vertices[s-1];
+		auto* yPrev	= lightSubpath.vertices[s-2];
 		if (y->areaCamera)
 		{
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.transportDir = TransportDirection::EL;
-			bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-			bsdfEQ.wo = y->wi;
-			pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
+			if (!yPrev->geom.degenerated)
+			{
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.transportDir = TransportDirection::EL;
+				bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
+				bsdfEQ.wo = y->wi;
+				pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
+			}
+			else
+			{
+				pdfDL[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
 		}
 		else
 		{
@@ -118,11 +134,19 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		}
 
 		// Compute #pdfDL[LE]
-		bsdfEQ.transportDir = TransportDirection::LE;
-		bsdfEQ.wi = y->wi;
-		bsdfEQ.wo = yz;
-		pdfDL[TransportDirection::LE] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
-
+		if (!z->geom.degenerated)
+		{
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.wi = y->wi;
+			bsdfEQ.wo = yz;
+			pdfDL[TransportDirection::LE] = y->bsdf->EvaluateDirectionPDF(bsdfEQ, y->geom);
+		}
+		else
+		{
+			// z is degenerated
+			pdfDL[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+		
 		// Compute #pdfDE[LE]
 		if (zPrev != nullptr)
 		{
@@ -146,10 +170,18 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		}
 
 		// Compute #pdfDE[EL]
-		bsdfEQ.transportDir = TransportDirection::EL;
-		bsdfEQ.wi = z->wi;
-		bsdfEQ.wo = zy;
-		pdfDE[TransportDirection::EL] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
+		if (!y->geom.degenerated)
+		{
+			bsdfEQ.transportDir = TransportDirection::EL;
+			bsdfEQ.wi = z->wi;
+			bsdfEQ.wo = zy;
+			pdfDE[TransportDirection::EL] = z->bsdf->EvaluateDirectionPDF(bsdfEQ, z->geom);
+		}
+		else
+		{
+			// y is degenerated
+			pdfDE[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 	}
 }
 
@@ -464,13 +496,13 @@ void BPTFullPath::DebugPrint() const
 	{
 		LM_LOG_DEBUG("Light sub-path");
 		LM_LOG_INDENTER();
-		lightSubpath.DebugPrint();
+		lightSubpath.DebugPrint(s);
 	}
 
 	{
 		LM_LOG_DEBUG("Eye sub-path");
 		LM_LOG_INDENTER();
-		eyeSubpath.DebugPrint();
+		eyeSubpath.DebugPrint(t);
 	}
 }
 

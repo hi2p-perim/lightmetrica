@@ -112,7 +112,12 @@ void BPTSubpath::Release( BPTPathVertexPool& pool )
 
 void BPTSubpath::DebugPrint() const
 {
-	for (size_t i = 0; i < vertices.size(); i++)
+	DebugPrint(vertices.size());
+}
+
+void BPTSubpath::DebugPrint( size_t n ) const
+{
+	for (size_t i = 0; i < n; i++)
 	{
 		LM_LOG_DEBUG("Vertex #" + std::to_string(i));
 		LM_LOG_INDENTER();
