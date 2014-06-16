@@ -45,18 +45,45 @@ template <typename T>
 class MathTestBase : public TestBase {};
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+LM_FORCE_INLINE ::testing::AssertionResult ExpectNearRelative(const T& expected, const T& actual, const T& epsilon)
 {
-	T diff = Math::Abs(expected - actual);
-	T epsilon = Math::TConstants<T>::EpsLarge();
+	T diff = Math::Abs(expected - actual) / Math::Abs(expected);
 	if (diff > epsilon)
 	{
-		return ::testing::AssertionFailure() << "Difference " << diff << " (epsilon " << epsilon << " )";
+		return ::testing::AssertionFailure()
+			<< "Expected "	<< expected		<< ", "
+			<< "Actual "	<< actual		<< ", "
+			<< "Diff "		<< diff			<< ", "
+			<< "Epsilon "	<< epsilon;
 	}
 	else
 	{
 		return ::testing::AssertionSuccess();
 	}
+}
+
+template <typename T>
+LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual, const T& epsilon)
+{
+	T diff = Math::Abs(expected - actual);
+	if (diff > epsilon)
+	{
+		return ::testing::AssertionFailure()
+			<< "Expected "	<< expected		<< ", "
+			<< "Actual "	<< actual		<< ", "
+			<< "Diff "		<< diff			<< ", "
+			<< "Epsilon "	<< epsilon;
+	}
+	else
+	{
+		return ::testing::AssertionSuccess();
+	}
+}
+
+template <typename T>
+LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+{
+	return ExpectNear(expected, actual, Math::TConstants<T>::EpsLarge());
 }
 
 template <>
@@ -66,7 +93,11 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math
 	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge();
 	if (diff > epsilon)
 	{
-		return ::testing::AssertionFailure() << "Difference " << diff.str() << " (epsilon " << epsilon.str() << " )";
+		return ::testing::AssertionFailure()
+			<< "Expected "	<< expected.str()	<< ", "
+			<< "Actual "	<< actual.str()		<< ", "
+			<< "Diff "		<< diff.str()		<< ", "
+			<< "Epsilon "	<< epsilon.str();
 	}
 	else
 	{

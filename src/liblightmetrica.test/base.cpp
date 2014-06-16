@@ -38,6 +38,7 @@ void TestBase::SetUp()
 	Logger::Reset();
 	Logger::SetOutputMode(Logger::LogOutputMode::Stdout);
 	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
+	//Logger::SetOutputFileName("lightmetrica.test.log");
 }
 
 void TestBase::TearDown()

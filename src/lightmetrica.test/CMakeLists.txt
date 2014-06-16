@@ -52,6 +52,7 @@ set(
 	"test.bpt.mis.cpp"
 	"test.bpt.mis.power.cpp"
 	"test.bpt.fullpath.cpp"
+	"test.bpt.fullpath2.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

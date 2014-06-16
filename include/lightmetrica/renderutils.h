@@ -32,6 +32,7 @@
 LM_NAMESPACE_BEGIN
 
 struct SurfaceGeometry;
+class Scene;
 
 /*!
 	Render utilities.
@@ -57,6 +58,26 @@ public:
 		\return Generalized geometry term.
 	*/
 	static Math::Float GeneralizedGeometryTerm(const SurfaceGeometry& geom1, const SurfaceGeometry& geom2);
+
+	/*!
+		Compute generalized geometry term including visibility.
+		Use this function if explicit computation of visibility term is needed.
+		\param scene Scene.
+		\param geom1 Surface geometry for eye sub-path.
+		\param geom2 Surface geometry for light sub-path.
+		\return Generalized geometry term.
+	*/
+	static Math::Float GeneralizedGeometryTermWithVisibility(const Scene& scene, const SurfaceGeometry& geom1, const SurfaceGeometry& geom2);
+
+	/*!
+		Check visibility between two points.
+		\param scene Scene.
+		\param p1 First point.
+		\param p2 Second point.
+		\retval true Two points are mutually visible.
+		\retval false Two points are not mutually visible.
+	*/
+	static bool CheckVisibility(const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2);
 
 };
 

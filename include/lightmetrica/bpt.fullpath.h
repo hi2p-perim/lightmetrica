@@ -80,10 +80,17 @@ public:
 		Evaluate full-path probability density ratio.
 		Evaluate p_{i+1}(x_{s,t}) / p_i(x_{s,t}).
 		See Equation (10.9) in [Veach 1997].
+		This function requires p_s(x_{s,t}) be non-zero.
 		\param i Index of PDF.
 		\return Evaluated PDF.
 	*/
 	LM_PUBLIC_API Math::Float EvaluateFullpathPDFRatio(int i) const;
+
+	/*!
+		Debug print.
+		Prints contents of the full-path.
+	*/
+	LM_PUBLIC_API void DebugPrint() const;
 
 private:
 

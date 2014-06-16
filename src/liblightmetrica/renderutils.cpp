@@ -25,6 +25,9 @@
 #include "pch.h"
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/surfacegeometry.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/scene.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -47,6 +50,30 @@ Math::Float RenderUtils::GeneralizedGeometryTerm( const SurfaceGeometry& geom1, 
 	}
 
 	return numerator / p1p2_Length2;
+}
+
+bool RenderUtils::CheckVisibility( const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2 )
+{
+	Ray shadowRay;
+	auto p1p2 = p2 - p1;
+	auto p1p2_Length = Math::Length(p1p2);
+	shadowRay.d = p1p2 / p1p2_Length;
+	shadowRay.o = p1;
+	shadowRay.minT = Math::Constants::Eps();
+	shadowRay.maxT = p1p2_Length * (Math::Float(1) - Math::Constants::Eps());
+
+	Intersection _;
+	return !scene.Intersect(shadowRay, _);
+}
+
+Math::Float RenderUtils::GeneralizedGeometryTermWithVisibility( const Scene& scene, const SurfaceGeometry& geom1, const SurfaceGeometry& geom2 )
+{
+	if (!CheckVisibility(scene, geom1.p, geom2.p))
+	{
+		return Math::Float(0);
+	}
+
+	return GeneralizedGeometryTerm(geom1, geom2);
 }
 
 LM_NAMESPACE_END

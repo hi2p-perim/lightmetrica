@@ -369,17 +369,19 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			// Create full-path
 			BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
 
-			// Evaluate weighting function w_{s,t}
-			Math::Float w = config.misWeight->Evaluate(fullPath);
-			sumWeight += w;
-
 			// Evaluate unweight contribution C^*_{s,t}
 			Math::Vec2 rasterPosition;
 			auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
 			if (Math::IsZero(Cstar))
 			{
+				// For some reason, the sampled path is not used
+				// e.g., y_{s-1} and z_{t-1} is not visible each other
 				continue;
 			}
+
+			// Evaluate weighting function w_{s,t}
+			Math::Float w = config.misWeight->Evaluate(fullPath);
+			sumWeight += w;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films

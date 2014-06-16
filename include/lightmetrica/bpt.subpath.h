@@ -132,7 +132,7 @@ public:
 		Debug print.
 		Prints contents of the sub-path.
 	*/
-	void DebugPrint() const;
+	LM_PUBLIC_API void DebugPrint() const;
 
 	/*!
 		Sample a sub-path.
@@ -142,7 +142,7 @@ public:
 		\param rng Random number generator.
 		\param pool Memory pool for path vertex.
 	*/
-	void Sample(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool);
+	LM_PUBLIC_API void Sample(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool);
 
 	/*!
 		Evaluate alpha of sub-paths.
@@ -151,6 +151,21 @@ public:
 		\param rasterPosition Raster position.
 	*/
 	Math::Vec3 EvaluateSubpathAlpha(int vs, Math::Vec2& rasterPosition) const;
+
+	/*!
+		Get number of vertices.
+		This function is used for testing.
+		\return Number of vertices.
+	*/
+	LM_PUBLIC_API int NumVertices() const;
+
+	/*!
+		Get i-th vertex.
+		This function is used for testing.
+		\param i Index.
+		\return Vertex.
+	*/
+	LM_PUBLIC_API BPTPathVertex* GetVertex(int i) const;
 
 public:
 

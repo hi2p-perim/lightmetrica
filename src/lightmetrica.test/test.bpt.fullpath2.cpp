@@ -143,9 +143,9 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class BPTPowerHeuristicsMISWeightTest : public TestBase {};
+class BPTFullpathTest2 : public TestBase {};
 
-TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
+TEST_F(BPTFullpathTest2, Consistency)
 {
 	StubConfig config;
 	ASSERT_TRUE(config.LoadFromString(SceneFile, ""));
@@ -158,7 +158,7 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	assets.RegisterInterface<Camera>();
 	assets.RegisterInterface<Light>();
 	ASSERT_TRUE(assets.Load(config.Root().Child("assets")));
-
+	
 	SceneFactory sceneFactory;
 	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
 	ASSERT_NE(scene, nullptr);
@@ -185,11 +185,6 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 		lightSubpath.Sample(bptConfig, *scene, *rng, pool);
 		eyeSubpath.Sample(bptConfig, *scene, *rng, pool);
 
-		// BPT weights
-		std::vector<std::unique_ptr<BPTMISWeight>> misweights;
-		misweights.emplace_back(ComponentFactory::Create<BPTMISWeight>("power"));
-		misweights.emplace_back(ComponentFactory::Create<BPTMISWeight>("powernaive"));
-
 		const int nL = lightSubpath.NumVertices();
 		const int nE = eyeSubpath.NumVertices();
 		for (int s = 0; s <= nL; s++)
@@ -202,21 +197,77 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 				{
 					continue;
 				}
+				
+				// Between termination vertices geometry term must be positive
+				// Otherwise, EvaluateFullpathPDFRatio is invalid due to offsetting of geometry terms.
+				Math::Float connGeom(-1);
+				if (s > 0 && t > 0)
+				{
+					connGeom = RenderUtils::GeneralizedGeometryTermWithVisibility(*scene, lightSubpath.GetVertex(s-1)->geom, eyeSubpath.GetVertex(t-1)->geom);
+					if (Math::Abs(connGeom) < Math::Constants::Eps())
+					{
+						continue;
+					}
+				}
 
 				BPTFullPath fullpath(s, t, lightSubpath, eyeSubpath);
-
-				// Calculate contribution as BPT implementation
-				// in order to exclude zero-contribution cases.
-				Math::Vec2 rasterPosition;
-				auto Cstar = fullpath.EvaluateUnweightContribution(*scene, rasterPosition);
-				if (Math::IsZero(Cstar))
+				auto ps = fullpath.EvaluateFullpathPDF(s);
+				if (Math::Abs(ps) < Math::Constants::Eps())
 				{
+					// EvaluateFullpathPDFRatio is invalid if p_s is zero
 					continue;
 				}
 
-				// 
+				for (int i = 0; i < n; i++)
+				{
+					auto pi		= fullpath.EvaluateFullpathPDF(i);
+					auto piNext	= fullpath.EvaluateFullpathPDF(i+1);
+					auto ratio	= fullpath.EvaluateFullpathPDFRatio(i);
+
+					bool piIsZero		= Math::Abs(pi) < Math::Constants::Eps();
+					bool piNextIsZero	= Math::Abs(piNext) < Math::Constants::Eps();
+
+					// We note that we have only to check the case with p_i and p_{i+1} are both non-zero
+					// because in actual weight calculation (cf. bpt.mis.power.cpp)
+					// calculation of the ratio is aborted immediately after p_i or p_{i+1} is found to be non-zero.
+					bool cond = false;
+					if (piIsZero && piNextIsZero)
+					{
+						continue;
+					}
+					else if (piIsZero)
+					{
+						auto result = ExpectNear(Math::Float(0), ratio);
+						EXPECT_TRUE(result);
+						cond = result;
+					}
+					else if (piNextIsZero)
+					{
+						auto result = ExpectNear(Math::Float(0), ratio);
+						EXPECT_TRUE(result);
+						cond = result;
+					}
+					else
+					{
+						auto result = ExpectNearRelative(ratio, piNext / pi, Math::Constants::EpsLarge());
+						EXPECT_TRUE(result);
+						cond = result;
+					}
+
+					if (!cond)
+					{
+						LM_LOG_DEBUG("Evaluating i = " + std::to_string(i));
+						LM_LOG_DEBUG("connGeom = " + std::to_string(connGeom));
+						LM_LOG_DEBUG("ps       = " + std::to_string(ps));
+						LM_LOG_DEBUG("pi       = " + std::to_string(pi));
+						LM_LOG_DEBUG("piNext   = " + std::to_string(piNext));
+						LM_LOG_DEBUG("ratio    = " + std::to_string(ratio));
+						fullpath.DebugPrint();
+					}
+				}
 			}
 		}
+	}
 }
 
 LM_TEST_NAMESPACE_END

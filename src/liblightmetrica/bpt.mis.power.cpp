@@ -72,11 +72,12 @@ Math::Float BPTPowerHeuristicsMISWeight::Evaluate(const BPTFullPath& fullPath) c
 	piDivPs = Math::Float(1);
 	for (int i = fullPath.s-1; i >= 0; i--)
 	{
-		Math::Float ratio = fullPath.EvaluateFullpathPDFRatio(i);
-		if (Math::IsZero(ratio))
+		auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
+		if (Math::Abs(ratio) < Math::Constants::Eps())
 		{
 			break;
 		}
+
 		piDivPs *= Math::Float(1) / ratio;
 		invWeight += piDivPs * piDivPs;
 	}
@@ -85,11 +86,12 @@ Math::Float BPTPowerHeuristicsMISWeight::Evaluate(const BPTFullPath& fullPath) c
 	piDivPs = Math::Float(1);
 	for (int i = fullPath.s+1; i < n; i++)
 	{
-		Math::Float ratio = fullPath.EvaluateFullpathPDFRatio(i);
-		if (Math::IsZero(ratio))
+		auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
+		if (Math::Abs(ratio) < Math::Constants::Eps())
 		{
 			break;
 		}
+
 		piDivPs *= ratio;
 		invWeight += piDivPs * piDivPs;
 	}

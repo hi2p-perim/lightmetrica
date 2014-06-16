@@ -66,28 +66,29 @@ void BPTPathVertex::DebugPrint() const
 	if (type == BPTPathVertexType::EndPoint)
 	{
 		LM_LOG_DEBUG("Emitter type : " + emitter->ComponentImplTypeName() + " (" + emitter->ComponentInterfaceTypeName() + ")");
-		{
-			LM_LOG_DEBUG("PDF (positional component)");
-			LM_LOG_INDENTER();
-			LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfP.measure)]);
-			LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfP.v));
-		}
 	}
 	else if (type == BPTPathVertexType::IntermediatePoint)
 	{
 		LM_LOG_DEBUG("Generalized BSDF type : " + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentImplTypeName() + ")");
-		{
-			LM_LOG_DEBUG("PDF (directional component, E->L)");
-			LM_LOG_INDENTER();
-			LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfD[TransportDirection::EL].measure)]);
-			LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfD[TransportDirection::EL].v));
-		}
-		{
-			LM_LOG_DEBUG("PDF (directional component, E->L)");
-			LM_LOG_INDENTER();
-			LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfD[TransportDirection::LE].measure)]);
-			LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfD[TransportDirection::LE].v));
-		}
+	}
+
+	{
+		LM_LOG_DEBUG("PDF (positional component)");
+		LM_LOG_INDENTER();
+		LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfP.measure)]);
+		LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfP.v));
+	}
+	{
+		LM_LOG_DEBUG("PDF (directional component, E->L)");
+		LM_LOG_INDENTER();
+		LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfD[TransportDirection::EL].measure)]);
+		LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfD[TransportDirection::EL].v));
+	}
+	{
+		LM_LOG_DEBUG("PDF (directional component, L->E)");
+		LM_LOG_INDENTER();
+		LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfD[TransportDirection::LE].measure)]);
+		LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfD[TransportDirection::LE].v));
 	}
 }
 
@@ -117,6 +118,16 @@ void BPTSubpath::DebugPrint() const
 		LM_LOG_INDENTER();
 		vertices[i]->DebugPrint();
 	}
+}
+
+int BPTSubpath::NumVertices() const
+{
+	return static_cast<int>(vertices.size());
+}
+
+BPTPathVertex* BPTSubpath::GetVertex( int i ) const
+{
+	return vertices[i];
 }
 
 void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool )

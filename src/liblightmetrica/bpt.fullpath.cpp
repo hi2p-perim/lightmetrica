@@ -337,10 +337,13 @@ Math::Float BPTFullPath::EvaluateFullpathPDFRatio( int i ) const
 		LM_ASSERT(x0->pdfP.measure == Math::ProbabilityMeasure::Area);
 		LM_ASSERT(x1PdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-		// TODO: Handle the case x1PdfDEL.v is zero
-		return
-			x0->pdfP.v /
-			(x1PdfDEL.v * RenderUtils::GeneralizedGeometryTerm(x0->geom, x1->geom));
+		auto denom = x1PdfDEL.v * RenderUtils::GeneralizedGeometryTerm(x0->geom, x1->geom);
+		if (Math::Abs(denom) < Math::Constants::Eps())
+		{
+			return Math::Float(0);
+		}
+
+		return x0->pdfP.v / denom;
 	}
 	
 	int n = s + t;
@@ -356,10 +359,13 @@ Math::Float BPTFullPath::EvaluateFullpathPDFRatio( int i ) const
 		LM_ASSERT(xnPrev->pdfP.measure == Math::ProbabilityMeasure::Area);
 		LM_ASSERT(xnPrev2PdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-		return
-			xnPrev2PdfDLE.v *
-			RenderUtils::GeneralizedGeometryTerm(xnPrev2->geom, xnPrev->geom) /
-			xnPrev->pdfP.v;
+		auto denom = xnPrev->pdfP.v;
+		if (Math::Abs(denom) < Math::Constants::Eps())
+		{
+			return Math::Float(0);
+		}
+
+		return xnPrev2PdfDLE.v * RenderUtils::GeneralizedGeometryTerm(xnPrev2->geom, xnPrev->geom) / denom;
 	}
 
 	// p_{i+1} / p_i =
@@ -374,9 +380,13 @@ Math::Float BPTFullPath::EvaluateFullpathPDFRatio( int i ) const
 	LM_ASSERT(xiPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 	LM_ASSERT(xiNextPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-	return
-		(xiPrevPdfDLE.v / xiNextPdfDEL.v) *
-		(RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) / RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom));
+	auto denom = xiNextPdfDEL.v * RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom);
+	if (Math::Abs(denom) < Math::Constants::Eps())
+	{
+		return Math::Float(0);
+	}
+
+	return xiPrevPdfDLE.v * RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) / denom;
 }
 
 const BPTPathVertex* BPTFullPath::FullPathVertex( int i ) const
@@ -394,6 +404,74 @@ Math::PDFEval BPTFullPath::FullPathVertexDirectionPDF( int i, TransportDirection
 		i == s - 1	? pdfDL[transportDir] :
 		i == s		? pdfDE[transportDir]
 					: FullPathVertex(i)->pdfD[transportDir];
+}
+
+void BPTFullPath::DebugPrint() const
+{
+	{
+		LM_LOG_DEBUG("Connecting # of vertices");
+		LM_LOG_INDENTER();
+		LM_LOG_DEBUG("Light subpath : " + std::to_string(s));
+		LM_LOG_DEBUG("  Eye subpath : " + std::to_string(t));
+	}
+
+	static const std::string ProbabilityMeasureNames[] =
+	{
+		"None",
+		"SolidAngle",
+		"ProjectedSolidAngle",
+		"Area",
+		"Discrete"
+	};
+
+	{
+		LM_LOG_DEBUG("Directional PDF evaluations on connecting vertices");
+		LM_LOG_INDENTER();
+		{
+			LM_LOG_DEBUG("Connecting vertices near L");
+			LM_LOG_INDENTER();
+			{
+				LM_LOG_DEBUG("E->L");
+				LM_LOG_INDENTER();
+				LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfDL[TransportDirection::EL].measure)]);
+				LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfDL[TransportDirection::EL].v));
+			}
+			{
+				LM_LOG_DEBUG("L->E");
+				LM_LOG_INDENTER();
+				LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfDL[TransportDirection::LE].measure)]);
+				LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfDL[TransportDirection::LE].v));
+			}
+		}
+		{
+			LM_LOG_DEBUG("Connecting vertices near E");
+			LM_LOG_INDENTER();
+			{
+				LM_LOG_DEBUG("E->L");
+				LM_LOG_INDENTER();
+				LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfDE[TransportDirection::EL].measure)]);
+				LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfDE[TransportDirection::EL].v));
+			}
+			{
+				LM_LOG_DEBUG("L->E");
+				LM_LOG_INDENTER();
+				LM_LOG_DEBUG("Measure : " + ProbabilityMeasureNames[static_cast<int>(pdfDE[TransportDirection::LE].measure)]);
+				LM_LOG_DEBUG(boost::str(boost::format("Eval : %f") % pdfDE[TransportDirection::LE].v));
+			}
+		}
+	}
+
+	{
+		LM_LOG_DEBUG("Light sub-path");
+		LM_LOG_INDENTER();
+		lightSubpath.DebugPrint();
+	}
+
+	{
+		LM_LOG_DEBUG("Eye sub-path");
+		LM_LOG_INDENTER();
+		eyeSubpath.DebugPrint();
+	}
 }
 
 LM_NAMESPACE_END

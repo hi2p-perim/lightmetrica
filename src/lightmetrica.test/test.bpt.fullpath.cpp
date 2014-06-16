@@ -366,7 +366,14 @@ TEST_F(BPTFullpathTest, Consistency)
 				auto pi		= fullpath.EvaluateFullpathPDF(i);
 				auto piNext	= fullpath.EvaluateFullpathPDF(i+1);
 				auto ratio	= fullpath.EvaluateFullpathPDFRatio(i);
-				EXPECT_TRUE(ExpectNear(ratio, piNext / pi));
+				if (Math::Abs(pi) < Math::Constants::Eps())
+				{
+					EXPECT_TRUE(Math::Abs(ratio) < Math::Constants::Eps());
+				}
+				else
+				{
+					EXPECT_TRUE(ExpectNear(ratio, piNext / pi));
+				}
 			}
 		}
 	}

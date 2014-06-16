@@ -178,8 +178,8 @@ bool DefaultAssets::Impl::Load( const ConfigNode& node )
 			auto assetGroupNode = node.Child(assetGroupName);
 			if (assetGroupNode.Empty())
 			{
-				LM_LOG_ERROR("Invalid asset group '" + assetGroupName + "'");
-				return false;
+				LM_LOG_WARN("Missing asset group '" + assetGroupName + "'. Skipping");
+				continue;
 			}
 
 			LM_LOG_INFO(boost::str(boost::format("Processing asset group '%s'") % assetGroupName));
