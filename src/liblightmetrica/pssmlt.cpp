@@ -434,7 +434,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 			if (adaptiveKernel)
 			{
 				double R = (double)context->accepted / context->mutated;
-				context->kernelSizeScale += Math::Float(100.0) * Math::Float(R - 0.234) / context->mutated;
+				context->kernelSizeScale += Math::Float(R - 0.234) / context->mutated;
 			}
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);

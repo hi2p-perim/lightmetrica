@@ -422,6 +422,7 @@ bool ExplictPathtraceRenderer::SamplePath( const Scene& scene, Random& rng, Path
 		// Sample BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = rng.NextVec2();
+		bsdfSQ.uComp = rng.Next();
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.wi = v->wi;

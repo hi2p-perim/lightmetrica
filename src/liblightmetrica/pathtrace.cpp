@@ -239,6 +239,7 @@ bool PathtraceRenderer::Render( const Scene& scene )
 				// Sample BSDF
 				GeneralizedBSDFSampleQuery bsdfSQ;
 				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.uComp = rng->Next();
 				bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
 				bsdfSQ.transportDir = TransportDirection::EL;
 				bsdfSQ.wi = -ray.d;

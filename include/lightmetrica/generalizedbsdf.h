@@ -74,6 +74,7 @@ struct GeneralizedBSDFSampleQuery
 
 	int type;							//!< Requested BSDF type(s).
 	Math::Vec2 sample;					//!< Uniform random numbers for sampling BSDF.
+	Math::Float uComp;					//!< Uniform random number for component selection.
 	TransportDirection transportDir;	//!< Transport direction.
 	Math::Vec3 wi;						//!< Input direction in world coordinates.
 

@@ -265,6 +265,7 @@ bool LighttraceRenderer::Render( const Scene& scene )
 				// Sample generalized BSDF
 				GeneralizedBSDFSampleQuery bsdfSQ;
 				bsdfSQ.sample = rng->NextVec2();
+				bsdfSQ.uComp = rng->Next();
 				bsdfSQ.transportDir = TransportDirection::LE;
 				bsdfSQ.type = GeneralizedBSDFType::All;
 				bsdfSQ.wi = currWi;

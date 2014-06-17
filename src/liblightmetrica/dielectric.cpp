@@ -81,14 +81,59 @@ bool DielectricBSDF::Load( const ConfigNode& node, const Assets& assets )
 
 bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	return false;
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 ||
+		(query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	{
+		return false;
+	}
+
+	auto localWi = geom.worldToShading * query.wi;
+	auto cosThetaI = Math::CosThetaZUp(localWi);
+	bool entering = cosThetaI > Math::Float(0);
+
+	// Index of refraction
+	auto etaI = n1;
+	auto etaT = n2;
+	if (!entering)
+	{
+		std::swap(etaI, etaT);
+	}
+
+	auto eta = etaI / etaT;
+	
+	// Fresnel term
+	Math::Float cosThetaT;
+	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT);
+
+	// Choose reflection or transmission using RR
+	if (query.uComp < Fr)
+	{
+		// Reflection
+		auto localWo = Reflect(localWi);
+		result.wo = geom.shadingToWorld * localWo;
+		result.sampledType = GeneralizedBSDFType::SpecularReflection;
+		result.pdf = Math::PDFEval(Fr / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		//result.pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		//result.pdf = Math::PDFEval(Fr, Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+	else
+	{
+		// Transmission
+		auto localWo = Refract(localWi, eta, cosThetaT);
+		result.wo = geom.shadingToWorld * localWo;
+		result.sampledType = GeneralizedBSDFType::SpecularTransmission;
+		result.pdf = Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		//result.pdf = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		//result.pdf = Math::PDFEval(Math::Float(1) - Fr, Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	return true;
 }
 
 Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	bool useR = (query.type & GeneralizedBSDFType::SpecularReflection) != 0;
 	bool useT = (query.type & GeneralizedBSDFType::SpecularTransmission) != 0;
-
 	if (!useR && !useT)
 	{
 		return Math::Vec3();
@@ -96,7 +141,6 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-
 	auto cosThetaI = Math::CosThetaZUp(localWi);
 	auto cosThetaT = Math::CosThetaZUp(localWo);
 	bool entering = cosThetaI > Math::Float(0);
@@ -104,7 +148,6 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	// Index of refraction
 	auto etaI = n1;
 	auto etaT = n2;
-
 	if (!entering)
 	{
 		std::swap(etaI, etaT);
@@ -120,28 +163,7 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	{
 		// Reflection
 		// Reflected wi and wo must be same
-		if (!useR || Math::Dot(Reflect(localWi), localWo) < Math::Float(1) - Math::Constants::EpsLarge())
-		{
-			return Math::Vec3();
-		}
-
-		// Correction factor for shading normal
-		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
-		if (sf == 0.0)
-		{
-			return Math::Vec3();
-		}
-
-		// f(wi, wo) * cos(theta)
-		// = R * Fr / cos(theta) * cos(theta)
-		// = R * Fr
-		return R * (Fr * sf);
-	}
-	else
-	{
-		// Refraction
-		// Refracted wi and wo must be same
-		if (!useT || Math::Dot(Refract(localWi, eta, cosThetaT2), localWo) < Math::Float(1) - Math::Constants::EpsLarge())
+		if (!useR || Math::Dot(Reflect(localWi), localWo) < Math::Float(1) - Math::Constants::Eps())
 		{
 			return Math::Vec3();
 		}
@@ -153,26 +175,89 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 			return Math::Vec3();
 		}
 
-		// Correction factor for transmission
-		auto tf = query.transportDir == TransportDirection::EL ? eta : Math::Float(1);
-
-		// Evaluation
-		// Non-adjoint case
-		// f(wi, wo) * cos(theta)
-		// = (1/eta)^2 * T * (1-Fr) / cos(theta) * cos(theta)
-		// = (1/eta)^2 * T * (1-Fr)
-		// Adjoint case
-		// f(wi, wo) * cos(theta) * eta^2
-		// = T * (1-Fr)
-		return T * ((1 - Fr) * tf * tf * sf);
+		// f(wi, wo)
+		// = R * Fr / cos(theta)
+		return R * (Fr * sf) / Math::Abs(cosThetaI);
+		//return R * sf;
+		//return R * (Fr * sf);
 	}
 
-	return Math::Vec3();
+	// Refraction
+	// Refracted wi and wo must be same
+	if (!useT || Math::Dot(Refract(localWi, eta, cosThetaT2), localWo) < Math::Float(1) - Math::Constants::Eps())
+	{
+		return Math::Vec3();
+	}
+
+	// Correction factor for shading normal
+	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+	if (Math::IsZero(sf))
+	{
+		return Math::Vec3();
+	}
+
+	// Correction factor for transmission
+	auto tf = query.transportDir == TransportDirection::EL ? eta : Math::Float(1);
+
+	// Evaluation
+	// Non-adjoint case
+	// f(wi, wo)
+	// = (1/eta)^2 * T * (1-Fr) / cos(theta)
+	// Adjoint case
+	// f(wi, wo) * eta^2
+	// = T * (1-Fr) / cos(theta)
+	return T * ((1 - Fr) * tf * tf * sf) / Math::Abs(cosThetaT2);
+	//return T * (tf * tf * sf);
+	//return T * ((1 - Fr) * tf * tf * sf);
 }
 
 Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	return Math::PDFEval();
+	bool useR = (query.type & GeneralizedBSDFType::SpecularReflection) != 0;
+	bool useT = (query.type & GeneralizedBSDFType::SpecularTransmission) != 0;
+	if (!useR && !useT)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	auto localWi = geom.worldToShading * query.wi;
+	auto localWo = geom.worldToShading * query.wo;
+	auto cosThetaI = Math::CosThetaZUp(localWi);
+	auto cosThetaT = Math::CosThetaZUp(localWo);
+	bool entering = cosThetaI > Math::Float(0);
+
+	// Index of refraction
+	auto etaI = n1;
+	auto etaT = n2;
+	if (!entering)
+	{
+		std::swap(etaI, etaT);
+	}
+
+	auto eta = etaI / etaT;
+
+	// Fresnel term
+	Math::Float cosThetaT2;
+	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT2);
+
+	if (cosThetaI * cosThetaT >= Math::Float(0))
+	{
+		// Reflection
+		if (!useR || Math::Dot(Reflect(localWi), localWo) < Math::Float(1) - Math::Constants::Eps())
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+
+		return Math::PDFEval(Fr / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	// Refraction
+	if (!useT || Math::Dot(Refract(localWi, eta, cosThetaT2), localWo) < Math::Float(1) - Math::Constants::Eps())
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+	return Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT2), Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
 Math::Float DielectricBSDF::EvalFrDielectic( Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT ) const
