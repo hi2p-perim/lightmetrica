@@ -17,7 +17,7 @@ def main():
 	parser.add_argument('infile', type=str, help='Input file')
 	parser.add_argument('--entry', '-e', type=str, nargs='*', help='Add an entry for template dictionary')
 	parser.add_argument('--output-dir', '-o', type=str, default='./', help='Output directory')
-	parser.add_argument('--resource-dir', '-d', type=str, default='', help='Resource directory')
+	parser.add_argument('--base-dir', '-b', type=str, default='', help='Resource base directory')
 	args = parser.parse_args()
 
 	# Load template
@@ -43,6 +43,8 @@ def main():
 		'pssmlt'
 	]
 
+	output_paths = []
+
 	for renderer in renderers:
 		# Message
 		print("Begin rendering with '" + renderer + "'")
@@ -57,12 +59,13 @@ def main():
 		output_path = os.path.join(
 			args.output_dir,
 			os.path.basename(args.infile).split('.')[0] + '.' + renderer + '.hdr');
+		output_paths.append(output_path)
 
 		p = sp.Popen(
 			[
 				'./lightmetrica',
 				'-i',
-				'-b', os.path.dirname(args.infile) if args.resource_dir == '' else args.resource_dir,
+				'-b', os.path.dirname(args.infile) if args.base_dir == '' else args.base_dir,
 				'-o', output_path
 			],
 			stdin=sp.PIPE)

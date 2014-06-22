@@ -593,8 +593,13 @@ const Light* Scene::SampleLightSelection( Math::Vec2& lightSampleP, Math::PDFEva
 	int nl = NumLights();
 	int li = Math::Min(static_cast<int>(lightSampleP.x * nl), nl - 1);
 	lightSampleP.x = lightSampleP.x * nl - Math::Float(li);
-	selectionPdf = Math::PDFEval(Math::Float(1.0 / nl), Math::ProbabilityMeasure::Discrete);
+	selectionPdf = Math::PDFEval(Math::Float(1) / Math::Float(nl), Math::ProbabilityMeasure::Discrete);
 	return LightByIndex(li);
+}
+
+Math::PDFEval Scene::LightSelectionPdf() const
+{
+	return Math::PDFEval(Math::Float(1) / Math::Float(NumLights()), Math::ProbabilityMeasure::Discrete);
 }
 
 LM_NAMESPACE_END

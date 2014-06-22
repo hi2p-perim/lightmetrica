@@ -24,20 +24,21 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/confignode.h>
-#include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
-#include <lightmetrica/random.h>
-#include <lightmetrica/light.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
-#include <lightmetrica/bsdf.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/random.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/bsdf.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/confignode.h>
 #include <lightmetrica/assert.h>
-#include <lightmetrica/renderutils.h>
 #include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/renderutils.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -45,34 +46,32 @@
 LM_NAMESPACE_BEGIN
 
 /*!
-	Simple bidirectional path trace renderer.
-	An implementation of bidirectional path tracing (BPT).
-	This simple implementation omits multiple importance sampling between paths
-	which is originally referred in the Veach's thesis.
-	NOTE : Incorrect method. It cannot handle specular materials
+	Path tracing with multiple importance sampling.
+	Implements path tracing using multiple importance sampling with
+	BSDF sampling and direct light sampling.
 */
-class SimpleBidirectionalPathtraceRenderer : public Renderer
+class MISPathtraceRenderer : public Renderer
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("simplebpt");
+	LM_COMPONENT_IMPL_DEF("pathtrace.mis");
 
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual bool Render( const Scene& scene );
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;			// Number of samples
-	int rrDepth;					// Depth of beginning RR
-	int numThreads;					// Number of threads
-	long long samplesPerBlock;		// Samples to be processed per block
-	std::string rngType;			// Type of random number generator
+	long long numSamples;		// Number of samples
+	int rrDepth;				// Depth of beginning RR
+	int numThreads;				// Number of threads
+	long long samplesPerBlock;	// Samples to be processed per block
+	std::string rngType;		// Type of random number generator
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -80,11 +79,11 @@ private:
 
 };
 
-bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool MISPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
-	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -128,7 +127,7 @@ bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, co
 	return true;
 }
 
-bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
+bool MISPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -174,78 +173,85 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
+			// Sample position on camera
 			SurfaceGeometry geomE;
 			Math::PDFEval pdfPE;
-
-			// Sample position on the camera
 			scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfPE);
-			
-			// Evaluate We^{(0)} (positional component of We)
+
+			// Evaluate positional component of We
 			auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
 
-			// --------------------------------------------------------------------------------
-
-			// Length of eye and light sub-paths respectively
-			int numSubpathVertices[2];
-			numSubpathVertices[TransportDirection::EL] = 1;
-			numSubpathVertices[TransportDirection::LE] = 0;
-
-			// Path throughputs
-			Math::Vec3 throughput[2];
-			throughput[TransportDirection::EL] = positionalWe / pdfPE.v;
-			throughput[TransportDirection::LE] = Math::Vec3(1);
-
-			// Current generalized BSDF
-			const GeneralizedBSDF* currBsdfs[2];
-			currBsdfs[TransportDirection::EL] = scene.MainCamera();
-			currBsdfs[TransportDirection::LE] = nullptr;
-
-			// Current and previous positions and geometry normals
-			SurfaceGeometry currGeom[2];
-			currGeom[TransportDirection::EL] = geomE;
-			
-			Math::Vec3 currWi[2];
+			// Trace ray from camera
+			auto throughput = positionalWe / pdfPE.v;
+			auto currGeom = geomE;
+			Math::Vec3 currWi;
+			const GeneralizedBSDF* currBsdf = scene.MainCamera();
+			int depth = 0;
 			Math::Vec2 rasterPos;
 
 			while (true)
 			{
-				if (numSubpathVertices[TransportDirection::LE] > 0)
+				// Sample a position on light
+				SurfaceGeometry geomL;
+				Math::PDFEval pdfPL;
+				auto lightSampleP = rng->NextVec2();
+				Math::PDFEval lightSelectionPdf;
+				const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
+				light->SamplePosition(lightSampleP, geomL, pdfPL);
+				pdfPL.v *= lightSelectionPdf.v;
+
+				// Check connectivity between #currGeom.p and #geomL.p  
+				auto ppL = Math::Normalize(geomL.p - currGeom.p);
+				if (RenderUtils::Visible(scene, currGeom.p, geomL.p))
 				{
-					// Check connectivity between #pE and #pL
-					auto pEpL = Math::Normalize(currGeom[TransportDirection::LE].p - currGeom[TransportDirection::EL].p);
-					if (RenderUtils::Visible(scene, currGeom[TransportDirection::EL].p, currGeom[TransportDirection::LE].p))
+					// Calculate raster position if the depth is zero
+					bool visible = true;
+					if (depth == 0)
 					{
-						bool visible = true;
-						if (numSubpathVertices[TransportDirection::EL] == 1)
-						{
-							// If the length of eye sub-path is zero, compute raster position here
-							visible = scene.MainCamera()->RayToRasterPosition(currGeom[TransportDirection::EL].p, pEpL, rasterPos);
-						}
+						visible = scene.MainCamera()->RayToRasterPosition(currGeom.p, ppL, rasterPos);
+					}
 
-						// If #rasterPos is visible in the screen ..
-						if (visible)
-						{
-							GeneralizedBSDFEvaluateQuery bsdfEQ;
+					if (visible)
+					{
+						GeneralizedBSDFEvaluateQuery bsdfEQ;
 
-							// fsE
+						// fsE
+						bsdfEQ.transportDir = TransportDirection::EL;
+						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.wi = currWi;
+						bsdfEQ.wo = ppL;
+						auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
+
+						// fsL
+						bsdfEQ.transportDir = TransportDirection::LE;
+						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+						bsdfEQ.wo = -ppL;
+						auto fsL = light->EvaluateDirection(bsdfEQ, geomL);
+
+						// Positional component of Le
+						auto positionalLe = light->EvaluatePosition(geomL);
+
+						// Geometry term
+						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomL);
+
+						if (!Math::IsZero(G))
+						{
+							// PDF for direct light sampling (in projected solid angle measure)
+							auto pdfD_DirectLight = pdfPL.v / G;
+							LM_ASSERT(pdfD_DirectLight > Math::Float(0));
+
+							// PDF for BSDF sampling (in projected solid angle measure)
 							bsdfEQ.transportDir = TransportDirection::EL;
 							bsdfEQ.type = GeneralizedBSDFType::All;
-							bsdfEQ.wi = currWi[TransportDirection::EL];
-							bsdfEQ.wo = pEpL;
-							auto fsE = currBsdfs[TransportDirection::EL]->EvaluateDirection(bsdfEQ, currGeom[TransportDirection::EL]);
+							bsdfEQ.wi = currWi;
+							bsdfEQ.wo = ppL;
+							auto pdfD_BSDF = currBsdf->EvaluateDirectionPDF(bsdfEQ, currGeom).v;
 
-							// fsL
-							bsdfEQ.transportDir = TransportDirection::LE;
-							bsdfEQ.type = GeneralizedBSDFType::All;
-							bsdfEQ.wi = currWi[TransportDirection::LE];
-							bsdfEQ.wo = -pEpL;
-							auto fsL = currBsdfs[TransportDirection::LE]->EvaluateDirection(bsdfEQ, currGeom[TransportDirection::LE]);
-
-							// Geometry term
-							auto G = RenderUtils::GeneralizedGeometryTerm(currGeom[TransportDirection::EL], currGeom[TransportDirection::LE]);
+							// MIS weight for direct light sampling
+							auto w = pdfD_DirectLight / (pdfD_DirectLight + pdfD_BSDF);
 
 							// Evaluate contribution and accumulate to film
-							auto contrb = throughput[TransportDirection::EL] * fsE * G * fsL * throughput[TransportDirection::LE];
+							auto contrb = w * throughput * fsE * G * fsL * positionalLe / pdfPL.v;
 							film->AccumulateContribution(rasterPos, contrb);
 						}
 					}
@@ -253,69 +259,47 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 				// --------------------------------------------------------------------------------
 
-				// Select which sub-path to be extended
-				// This selection might be tricky. TODO : Add some explanation
-				int subpath = rng->Next() < Math::Float(0.5) ? TransportDirection::EL : TransportDirection::LE;
-
-				// Decide if the selected -path is actually extended by Russian roulette
-				// If the sub-path is not extended, terminate the loop.
-				if (numSubpathVertices[subpath] >= rrDepth)
+				if (++depth >= rrDepth)
 				{
-					auto p = Math::Min(Math::Float(0.5), Math::Luminance(throughput[subpath]));
+					// Russian roulette for path termination
+					Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
 					if (rng->Next() > p)
 					{
 						break;
 					}
-					else
-					{
-						throughput[subpath] /= p;
-					}
+
+					throughput /= p;
 				}
-
-				// --------------------------------------------------------------------------------
-
-				if (subpath == TransportDirection::LE && numSubpathVertices[TransportDirection::LE] == 0)
-				{
-					SurfaceGeometry geomL;
-					Math::PDFEval pdfPL;
-
-					// Sample a position on the light
-					auto lightSampleP = rng->NextVec2();
-					Math::PDFEval lightSelectionPdf;
-					const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-					light->SamplePosition(lightSampleP, geomL, pdfPL);
-					pdfPL.v *= lightSelectionPdf.v;
-
-					// Evaluate Le^{(0)} (positional component of Le)
-					auto positionalLe = light->EvaluatePosition(geomL);
-
-					// Update information
-					numSubpathVertices[TransportDirection::LE] = 1;
-					throughput[TransportDirection::LE] = positionalLe / pdfPL.v;
-					currBsdfs[TransportDirection::LE] = light;
-					currGeom[TransportDirection::LE] = geomL;
-
-					continue;
-				}
-
+				
 				// --------------------------------------------------------------------------------
 
 				// Sample generalized BSDF
 				GeneralizedBSDFSampleQuery bsdfSQ;
 				bsdfSQ.sample = rng->NextVec2();
 				bsdfSQ.uComp = rng->Next();
-				bsdfSQ.transportDir = (TransportDirection)subpath;
+				bsdfSQ.transportDir = TransportDirection::EL;
 				bsdfSQ.type = GeneralizedBSDFType::All;
-				bsdfSQ.wi = currWi[subpath];
+				bsdfSQ.wi = currWi;
 
 				GeneralizedBSDFSampleResult bsdfSR;
-				if (!currBsdfs[subpath]->SampleDirection(bsdfSQ, currGeom[subpath], bsdfSR))
+				if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
 				{
 					break;
 				}
-					
+
+				// Calculate raster position if the depth is one
+				if (depth == 1)
+				{
+					if (!scene.MainCamera()->RayToRasterPosition(currGeom.p, bsdfSR.wo, rasterPos))
+					{
+						// Should not be here
+						LM_ASSERT(false);
+						break;
+					}
+				}
+
 				// Evaluate generalized BSDF
-				auto fs = currBsdfs[subpath]->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom[subpath]);
+				auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
 				if (Math::IsZero(fs))
 				{
 					break;
@@ -323,14 +307,14 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 				// Update throughput
 				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-				throughput[subpath] *= fs / bsdfSR.pdf.v;
+				throughput *= fs / bsdfSR.pdf.v;
 
 				// --------------------------------------------------------------------------------
-				
+
 				// Setup next ray
 				Ray ray;
 				ray.d = bsdfSR.wo;
-				ray.o = currGeom[subpath].p;
+				ray.o = currGeom.p;
 				ray.minT = Math::Constants::Eps();
 				ray.maxT = Math::Constants::Inf();
 
@@ -341,17 +325,9 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 					break;
 				}
 
-				// Compute raster position if current length of eye sub-path is zero
-				if (subpath == TransportDirection::EL && numSubpathVertices[TransportDirection::EL] == 1 && !scene.MainCamera()->RayToRasterPosition(ray.o, ray.d, rasterPos))
-				{
-					break;
-				}
-
-				// Intersected point is light and last BSDF is specular
-				if (numSubpathVertices[TransportDirection::LE] == 0)
+				// Intersected point is light
 				{
 					const auto* light = isect.primitive->light;
-					//if (light != nullptr && (bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
 					if (light != nullptr)
 					{
 						// Evaluate Le
@@ -361,17 +337,37 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 						bsdfEQ.wo = -ray.d;
 						auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
 						auto LeP = light->EvaluatePosition(isect.geom);
-						film->AccumulateContribution(rasterPos, throughput[TransportDirection::EL] * LeD * LeP);
+
+						if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
+						{
+							// Previous BSDF is specular
+							// There is no probability that direct light sampling
+							// generate #bsdfSR.wo, so use only BSDF sampling
+							film->AccumulateContribution(rasterPos, throughput * LeD * LeP);
+						}
+						else
+						{
+							// PDF for direct light sampling
+							auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, isect.geom);
+							auto pdfD_DirectLight = Math::IsZero(G) ? Math::Float(0) : scene.LightSelectionPdf().v * light->EvaluatePositionPDF(isect.geom).v / G;
+
+							// MIS weight
+							auto w = bsdfSR.pdf.v / (bsdfSR.pdf.v + pdfD_DirectLight);
+
+							// Evaluate contribution and accumulate to film
+							auto contrb = w * throughput * LeD * LeP;
+							film->AccumulateContribution(rasterPos, contrb);
+						}
 					}
 				}
 
 				// --------------------------------------------------------------------------------
 
 				// Update information
-				numSubpathVertices[subpath]++;
-				currGeom[subpath] = isect.geom;
-				currWi[subpath] = -ray.d;
-				currBsdfs[subpath] = isect.primitive->bsdf;
+				currGeom = isect.geom;
+				currWi = -ray.d;
+				currBsdf = isect.primitive->bsdf;
+				depth++;
 			}
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
@@ -403,6 +399,6 @@ bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(SimpleBidirectionalPathtraceRenderer, Renderer);
+LM_COMPONENT_REGISTER_IMPL(MISPathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END

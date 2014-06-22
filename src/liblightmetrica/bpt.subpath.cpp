@@ -273,6 +273,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = rng.NextVec2();
+		bsdfSQ.uComp = rng.Next();
 		bsdfSQ.transportDir = transportDir;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = -pv->wo;

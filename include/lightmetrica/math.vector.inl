@@ -471,6 +471,12 @@ LM_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, const TVec3<T>& v2)
 }
 
 template <typename T>
+LM_FORCE_INLINE T LInfinityNorm(const TVec3<T>& v)
+{
+	return Math::Max(Math::Abs(v.x), Math::Max(Math::Abs(v.y), Math::Abs(v.z)));
+}
+
+template <typename T>
 LM_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVec3<T>& v2)
 {
 	return TVec3<T>(Min(v1.x, v2.x), Min(v1.y, v2.y), Min(v1.z, v2.z));
@@ -514,6 +520,18 @@ LM_FORCE_INLINE T TanThetaZUp(const TVec3<T>& v)
 {
 	T t = 1 - v.z * v.z;
 	return t <= 0 ? 0 : Math::Sqrt(t) / v.z;
+}
+
+template <typename T>
+LM_FORCE_INLINE TVec3<T> ReflectZUp(const TVec3<T>& wi)
+{
+	return TVec3<T>(-wi.x, -wi.y, wi.z);
+}
+
+template <typename T>
+LM_FORCE_INLINE TVec3<T> RefractZUp(const TVec3<T>& wi, const T& eta, const T& cosThetaT)
+{
+	return TVec3<T>(-eta * wi.x, -eta * wi.y, cosThetaT);
 }
 
 // --------------------------------------------------------------------------------
@@ -979,6 +997,22 @@ LM_FORCE_INLINE Vec3f Cross(const Vec3f& v1, const Vec3f& v2)
 }
 
 template <>
+LM_FORCE_INLINE float LInfinityNorm(const Vec3f& v)
+{
+	// Abs. Note: v_abs.z = 0
+	static const __m128 Mask = _mm_castsi128_ps(_mm_set1_epi32(0x800000ff));
+	__m128 v_abs = _mm_andnot_ps(Mask, v.v);
+
+	// Horizontal max
+	__m128 v_1032 = _mm_shuffle_ps(v_abs, v_abs, _MM_SHUFFLE(1, 0, 3, 2));
+	__m128 v2 = _mm_max_ps(v_abs, v_1032);
+	__m128 v2_2301 = _mm_shuffle_ps(v2, v2, _MM_SHUFFLE(2, 3, 0, 1));
+	__m128 v_max = _mm_max_ps(v2, v2_2301);
+
+	return _mm_cvtss_f32(v_max);
+}
+
+template <>
 LM_FORCE_INLINE Vec3f Min(const Vec3f& v1, const Vec3f& v2)
 {
 	return Vec3f(_mm_min_ps(v1.v, v2.v));
@@ -1417,6 +1451,22 @@ LM_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2)
 			_mm256_mul_pd(v1_3102, v2_3021)));
 
 #endif
+}
+
+template <>
+LM_FORCE_INLINE double LInfinityNorm(const Vec3d& v)
+{
+	// Abs. Note: v_abs.z = 0
+	static const __m256d Mask = _mm256_castsi256_pd(_mm256_set1_epi64x(0x800000000000ffff));
+	__m256d v_abs = _mm256_andnot_pd(Mask, v.v);
+
+	// Horizontal max
+	__m256d v_1032 = _mm256_permute2f128_pd(v_abs, v_abs, 1);
+	__m256d v2 = _mm256_max_pd(v_abs, v_1032);
+	__m256d v2_2301 = _mm256_permute_pd(v2, 0x5);
+	__m256d v_max = _mm256_max_pd(v2, v2_2301);
+
+	return _mm_cvtsd_f64(_mm256_castpd256_pd128(v_max));
 }
 
 template <>

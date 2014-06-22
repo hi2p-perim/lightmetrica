@@ -54,6 +54,7 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
 	}
+	node.ChildValueOrDefault("rng_seed", 1, rngSeed);
 
 	// MIS weight function
 	auto misWeightModeNode = node.Child("mis_weight");

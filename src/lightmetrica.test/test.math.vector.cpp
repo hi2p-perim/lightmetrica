@@ -335,6 +335,17 @@ TYPED_TEST(MathVector3Test, Cross)
 	EXPECT_TRUE(ExpectVec3Near(expect, Math::Cross(this->d->v1, this->d->v2)));
 }
 
+TYPED_TEST(MathVector3Test, LInfinityNorm)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(3), T(2), T(1)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(-3), T(2), T(1)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(-3), T(-2), T(1)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(-3), T(-2), T(-1)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(1), T(2), T(3)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(1), T(3), T(2)))));
+}
+
 TYPED_TEST(MathVector3Test, MinMax)
 {
 	typedef TypeParam T;

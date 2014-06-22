@@ -197,19 +197,18 @@ bool PathtraceRenderer::Render( const Scene& scene )
 			ray.minT = Math::Float(0);
 			ray.maxT = Math::Constants::Inf();
 
-			//if (sample % 100000 == 0)
-			//{
-			//	auto p = bsdfSR.wo;
-			//	LM_LOG_DEBUG("2.HERE " + std::to_string(p.x) + " " + std::to_string(p.y) + " " + std::to_string(p.z));
-			//}
-
+			Math::Vec3 throughput;
+#if 1
+			throughput = Math::Vec3(Math::Float(1));
+#else
 			// Evaluate importance
 			auto We =
 				scene.MainCamera()->EvaluatePosition(geomE) *
 				scene.MainCamera()->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), geomE);
-
+			throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
+#endif
+			
 			Math::Vec3 L;
-			Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
 			int depth = 0;
 
 			while (true)

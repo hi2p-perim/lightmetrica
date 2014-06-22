@@ -24,28 +24,26 @@
 
 #include "pch.h"
 #include <lightmetrica/bsdf.h>
-#include <lightmetrica/logger.h>
-#include <lightmetrica/math.stats.h>
+#include <lightmetrica/align.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/surfacegeometry.h>
-#include <lightmetrica/align.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Diffuse BSDF.
-	Implements the diffuse BSDF.
+	Perfect mirror BSDF.
+	Implements perfect mirror BSDF.
 */
-class DiffuseBSDF : public BSDF
+class PerfectMirrorBSDF : public BSDF
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("diffuse");
+	LM_COMPONENT_IMPL_DEF("mirror");
 
 public:
 
-	DiffuseBSDF() {}
-	~DiffuseBSDF() {}
+	PerfectMirrorBSDF() {}
+	~PerfectMirrorBSDF() {}
 
 public:
 
@@ -56,79 +54,76 @@ public:
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return false; }
+	virtual bool Degenerated() const { return true; }
 
 private:
 
-	DiffuseBSDF* self;
-	Math::Vec3 diffuseReflectance;
+	Math::Vec3 R;	// Specular reflectance
 
 };
 
-bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
+bool PerfectMirrorBSDF::Load( const ConfigNode& node, const Assets& assets )
 {
-	node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), diffuseReflectance);
+	node.ChildValueOrDefault("specular_reflectance", Math::Vec3(Math::Float(1)), R);
 	return true;
 }
 
-bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+bool PerfectMirrorBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0)
+	{
+		return false;
+	}
+
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
-	{
-		return false;
-	}
-
-	auto localWo = Math::CosineSampleHemisphere(query.sample);
-	result.wo = geom.shadingToWorld * localWo;
-	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-	result.pdf = Math::CosineSampleHemispherePDF(localWo);
-	if (Math::IsZero(result.pdf.v))
-	{
-		return false;
-	}
-
-	// Convert to projected solid angle measure
-	result.pdf.v /= Math::CosThetaZUp(localWo);
-	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+	result.wo = geom.shadingToWorld * Math::ReflectZUp(localWi);
+	result.sampledType = GeneralizedBSDFType::SpecularReflection;
+	result.pdf = Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
 
 	return true;
 }
 
-Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
 
-	Math::Float sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+	if (Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
+	{
+		return Math::Vec3();
+	}
+
+	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 	if (Math::IsZero(sf))
 	{
 		return Math::Vec3();
 	}
 
-	return diffuseReflectance * Math::Constants::InvPi() * sf;
+	// f(wi, wo) = R / cos(theta)
+	return R * (sf / Math::CosThetaZUp(localWi));
 }
 
-Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::PDFEval PerfectMirrorBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
 
-	auto pdfD = Math::CosineSampleHemispherePDF(localWo);
-	pdfD.v /= Math::CosThetaZUp(localWo);
-	pdfD.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+	if (Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
 
-	return pdfD;
+	return Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
-LM_COMPONENT_REGISTER_IMPL(DiffuseBSDF, BSDF);
+LM_COMPONENT_REGISTER_IMPL(PerfectMirrorBSDF, BSDF);
 
 LM_NAMESPACE_END

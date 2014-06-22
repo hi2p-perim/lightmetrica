@@ -39,6 +39,9 @@ LM_NAMESPACE_BEGIN
 enum GeneralizedBSDFType
 {
 
+	// Uninitialized value
+	None					= 0,
+
 	// Primitive BSDF types
 	DiffuseReflection		= 1<<0,
 	DiffuseTransmission		= 1<<1,
@@ -167,6 +170,14 @@ public:
 		\return Evaluated PDF.
 	*/
 	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const = 0;
+
+	/*!
+		Check if generalized BSDF is directionally degenerated.
+		e.g. specular BSDFs or directional light
+		\retval true The BSDF is directionally degenerated.
+		\retval false The BSDF is not directionally degenerated.
+	*/
+	virtual bool Degenerated() const = 0;
 
 };
 

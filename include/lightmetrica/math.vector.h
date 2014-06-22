@@ -136,6 +136,7 @@ template <typename T> LM_FORCE_INLINE T Length2(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE TVec3<T> Normalize(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T Dot(const TVec3<T>& v1, const TVec3<T>& v2);
 template <typename T> LM_FORCE_INLINE TVec3<T> Cross(const TVec3<T>& v1, const TVec3<T>& v2);
+template <typename T> LM_FORCE_INLINE T LInfinityNorm(const TVec3<T>& v);
 
 template <typename T> LM_FORCE_INLINE TVec3<T> Min(const TVec3<T>& v1, const TVec3<T>& v2);
 template <typename T> LM_FORCE_INLINE TVec3<T> Max(const TVec3<T>& v1, const TVec3<T>& v2);
@@ -148,6 +149,8 @@ template <typename T> LM_FORCE_INLINE bool IsZero(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T SinTheta2ZUp(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T TanThetaZUp(const TVec3<T>& v);
+template <typename T> LM_FORCE_INLINE TVec3<T> ReflectZUp(const TVec3<T>& wi);
+template <typename T> LM_FORCE_INLINE TVec3<T> RefractZUp(const TVec3<T>& wi, const T& eta, const T& cosThetaT);
 
 typedef TVec3<float> Vec3f;
 typedef TVec3<double> Vec3d;
@@ -259,6 +262,7 @@ template <> LM_FORCE_INLINE float Length2(const Vec3f& v);
 template <> LM_FORCE_INLINE Vec3f Normalize(const Vec3f& v);
 template <> LM_FORCE_INLINE float Dot(const Vec3f& v1, const Vec3f& v2);
 template <> LM_FORCE_INLINE Vec3f Cross(const Vec3f& v1, const Vec3f& v2);
+template <> LM_FORCE_INLINE float LInfinityNorm(const Vec3f& v);
 
 template <> LM_FORCE_INLINE Vec3f Min(const Vec3f& v1, const Vec3f& v2);
 template <> LM_FORCE_INLINE Vec3f Max(const Vec3f& v1, const Vec3f& v2);
@@ -370,6 +374,7 @@ template <> LM_FORCE_INLINE double Length2(const Vec3d& v);
 template <> LM_FORCE_INLINE Vec3d Normalize(const Vec3d& v);
 template <> LM_FORCE_INLINE double Dot(const Vec3d& v1, const Vec3d& v2);
 template <> LM_FORCE_INLINE Vec3d Cross(const Vec3d& v1, const Vec3d& v2);
+template <> LM_FORCE_INLINE double LInfinityNorm(const Vec3d& v);
 
 template <> LM_FORCE_INLINE Vec3d Min(const Vec3d& v1, const Vec3d& v2);
 template <> LM_FORCE_INLINE Vec3d Max(const Vec3d& v1, const Vec3d& v2);

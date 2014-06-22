@@ -167,6 +167,12 @@ public:
 	*/
 	const Light* SampleLightSelection(Math::Vec2& lightSampleP, Math::PDFEval& selectionPdf) const;
 
+	/*!
+		PDF evaluation for light selection sampling.
+		\return Evaluated PDF.
+	*/
+	Math::PDFEval LightSelectionPdf() const;
+
 public:
 
 	/*!

@@ -593,6 +593,7 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 		// Sample BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = sampler.NextVec2();
+		bsdfSQ.uComp = sampler.Next();
 		bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.wi = -ray.d;

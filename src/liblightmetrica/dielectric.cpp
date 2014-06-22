@@ -54,12 +54,11 @@ public:
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
+	virtual bool Degenerated() const { return true; }
 
 private:
 
 	Math::Float EvalFrDielectic(Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT) const;
-	Math::Vec3 Reflect(const Math::Vec3& wi) const { return Math::Vec3(-wi.x, -wi.y, wi.z); }
-	Math::Vec3 Refract(const Math::Vec3& wi, Math::Float eta, Math::Float cosThetaT) const { return Math::Vec3(-eta * wi.x, -eta * wi.y, cosThetaT); }
 
 private:
 
@@ -109,7 +108,7 @@ bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 	if (query.uComp < Fr)
 	{
 		// Reflection
-		auto localWo = Reflect(localWi);
+		auto localWo = Math::ReflectZUp(localWi);
 		result.wo = geom.shadingToWorld * localWo;
 		result.sampledType = GeneralizedBSDFType::SpecularReflection;
 		result.pdf = Math::PDFEval(Fr / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
@@ -119,7 +118,7 @@ bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 	else
 	{
 		// Transmission
-		auto localWo = Refract(localWi, eta, cosThetaT);
+		auto localWo = Math::RefractZUp(localWi, eta, cosThetaT);
 		result.wo = geom.shadingToWorld * localWo;
 		result.sampledType = GeneralizedBSDFType::SpecularTransmission;
 		result.pdf = Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT), Math::ProbabilityMeasure::ProjectedSolidAngle);
@@ -163,7 +162,7 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	{
 		// Reflection
 		// Reflected wi and wo must be same
-		if (!useR || Math::Dot(Reflect(localWi), localWo) < Math::Float(1) - Math::Constants::Eps())
+		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 		{
 			return Math::Vec3();
 		}
@@ -184,7 +183,7 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 
 	// Refraction
 	// Refracted wi and wo must be same
-	if (!useT || Math::Dot(Refract(localWi, eta, cosThetaT2), localWo) < Math::Float(1) - Math::Constants::Eps())
+	if (!useT || Math::LInfinityNorm(Math::RefractZUp(localWi, eta, cosThetaT2) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::Vec3();
 	}
@@ -243,7 +242,7 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	if (cosThetaI * cosThetaT >= Math::Float(0))
 	{
 		// Reflection
-		if (!useR || Math::Dot(Reflect(localWi), localWo) < Math::Float(1) - Math::Constants::Eps())
+		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 		{
 			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
@@ -252,7 +251,7 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	}
 
 	// Refraction
-	if (!useT || Math::Dot(Refract(localWi, eta, cosThetaT2), localWo) < Math::Float(1) - Math::Constants::Eps())
+	if (!useT || Math::LInfinityNorm(Math::RefractZUp(localWi, eta, cosThetaT2) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

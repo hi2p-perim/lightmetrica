@@ -175,7 +175,7 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 	// Random number generators and films
 	std::vector<BPTThreadContext> contexts;
-	int seed = static_cast<int>(std::time(nullptr));
+	int seed = static_cast<int>(config.rngSeed < 0 ? std::time(nullptr) : config.rngSeed);
 	for (int i = 0; i < config.numThreads; i++)
 	{
 		contexts.emplace_back(ComponentFactory::Create<Random>(config.rngType), masterFilm->Clone());
@@ -343,23 +343,20 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& scene, Film& film, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath )
 {
-	// Let n_E and n_L be the number of vertices of eye and light sub-paths respectively.
-	// Rewriting the order of summation of Veach's estimator (equation 10.3 in [Veach 1997]),
-	// the estimate for the j-th pixel contribution is written as
-	//     I_j = \sum_{n=0}^{n_E+n_L} \sum_{s=0}^l w_{s,n-s}(\bar{x}_{s,n-s})\frac{f_j(\bar{x}_{s,n-s})}{p_{s,l-s}(\bar{x}_{s,n-s})},
-	// where
-	//     - \bar{x}_{s,n-s} : Path sampled from p_{s,n-s}
-	//     - w_{s,n-s} : MIS weight
+	// Here we rewrote the order of summation of Veach's estimator (equation 10.3 in [Veach 1997])
+	// in order to apply MIS intuitively
 
 	const int nL = static_cast<int>(lightSubpath.vertices.size());
 	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 
+	// For each sub-path vertex sums n
 	// If n = 0 or 1 no valid path is generated
 	for (int n = 2; n <= nE + nL; n++)
 	{
 		// Process full-path with length n+1 (sub-path edges + connecting edge)
 		const int minS = Math::Max(0, n-nE);
 		const int maxS = Math::Min(nL, n);
+
 		for (int s = minS; s <= maxS; s++)
 		{
 			// Number of vertices in eye sub-path

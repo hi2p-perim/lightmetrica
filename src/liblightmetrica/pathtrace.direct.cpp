@@ -24,20 +24,21 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/logger.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
-#include <lightmetrica/scene.h>
-#include <lightmetrica/film.h>
-#include <lightmetrica/camera.h>
-#include <lightmetrica/random.h>
-#include <lightmetrica/light.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/light.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/random.h>
+#include <lightmetrica/scene.h>
 #include <lightmetrica/bsdf.h>
+#include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/renderutils.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/renderutils.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -45,17 +46,17 @@
 LM_NAMESPACE_BEGIN
 
 /*!
-	Light trace renderer.
-	An implementation of light tracing (a.k.a. inverse path tracing).
-	Reference:
-		Arvo, J., Backward ray tracing, Developments in Ray Tracing,
-		Computer Graphics, Proc. of ACM SIGGRAPH 86 Course Notes, 1986.
+	Path tracing with direct light sampling.
+	Implements path tracing with direct light sampling (a.k.a. next event estimation).
+	In this implementation,
+	E{D,S}D+L paths are sampled by direct light sampling and
+	E{D,S}*S+L paths are sampled by BSDF sampling.
 */
-class LighttraceRenderer : public Renderer
+class DirectPathtraceRenderer : public Renderer
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("lighttrace");
+	LM_COMPONENT_IMPL_DEF("pathtrace.direct");
 
 public:
 
@@ -80,11 +81,11 @@ private:
 
 };
 
-bool LighttraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool DirectPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
-	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -128,7 +129,7 @@ bool LighttraceRenderer::Configure( const ConfigNode& node, const Assets& assets
 	return true;
 }
 
-bool LighttraceRenderer::Render( const Scene& scene )
+bool DirectPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -174,114 +175,75 @@ bool LighttraceRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			SurfaceGeometry geomL;
-			Math::PDFEval pdfPL;
+			// Sample position on camera
+			SurfaceGeometry geomE;
+			Math::PDFEval pdfPE;
+			scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfPE);
 
-			// Sample a position on the light
-			auto lightSampleP = rng->NextVec2();
-			Math::PDFEval lightSelectionPdf;
-			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-			light->SamplePosition(lightSampleP, geomL, pdfPL);
-			pdfPL.v *= lightSelectionPdf.v;
+			// Evaluate positional component of We
+			auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
 
-			// Evaluate positional component of Le
-			auto positionalLe = light->EvaluatePosition(geomL);
-
-			// --------------------------------------------------------------------------------
-
-			// Trace light particle and evaluate importance
-			auto throughput = positionalLe / pdfPL.v;
-			auto currGeom = geomL;
+			// Trace ray from camera
+			auto throughput = positionalWe / pdfPE.v;
+			auto currGeom = geomE;
 			Math::Vec3 currWi;
-			const GeneralizedBSDF* currBsdf = light;
+			const GeneralizedBSDF* currBsdf = scene.MainCamera();
 			int depth = 0;
+			Math::Vec2 rasterPos;
 
 			while (true)
 			{
-				// Sample a position on camera
-				SurfaceGeometry geomE;
-				Math::PDFEval pdfPE;
-				scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfPE);
+				// Sample a position on light
+				SurfaceGeometry geomL;
+				Math::PDFEval pdfPL;
+				auto lightSampleP = rng->NextVec2();
+				Math::PDFEval lightSelectionPdf;
+				const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
+				light->SamplePosition(lightSampleP, geomL, pdfPL);
+				pdfPL.v *= lightSelectionPdf.v;
 
-				// Check connectivity between #geomE.p and #currGeom.p
-				auto ppE = Math::Normalize(geomE.p - currGeom.p);
-				if (RenderUtils::Visible(scene, currGeom.p, geomE.p))
+				// Check connectivity between #currGeom.p and #geomL.p  
+				auto ppL = Math::Normalize(geomL.p - currGeom.p);
+				if (RenderUtils::Visible(scene, currGeom.p, geomL.p))
 				{
-					// Calculate raster position
-					Math::Vec2 rasterPos;
-					if (scene.MainCamera()->RayToRasterPosition(geomE.p, -ppE, rasterPos))
+					// Calculate raster position if the depth is zero
+					bool visible = true;
+					if (depth == 0)
+					{
+						visible = scene.MainCamera()->RayToRasterPosition(currGeom.p, ppL, rasterPos);
+					}
+
+					if (visible)
 					{
 						GeneralizedBSDFEvaluateQuery bsdfEQ;
 
-						// fsL
-						bsdfEQ.transportDir = TransportDirection::LE;
-						bsdfEQ.type = GeneralizedBSDFType::All;
-						bsdfEQ.wi = currWi;
-						bsdfEQ.wo = ppE;
-						auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
-
 						// fsE
 						bsdfEQ.transportDir = TransportDirection::EL;
-						bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-						bsdfEQ.wo = -ppE;
-						auto fsE = scene.MainCamera()->EvaluateDirection(bsdfEQ, geomE);
+						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.wi = currWi;
+						bsdfEQ.wo = ppL;
+						auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
+
+						// fsL
+						bsdfEQ.transportDir = TransportDirection::LE;
+						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+						bsdfEQ.wo = -ppL;
+						auto fsL = light->EvaluateDirection(bsdfEQ, geomL);
 
 						// Geometry term
-						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomE);
+						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomL);
 
-						// Positional component of We
-						auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
+						// Positional component of Le
+						auto positionalLe = light->EvaluatePosition(geomL);
 
 						// Evaluate contribution and accumulate to film
-						auto contrb = throughput * fsL * G * fsE * positionalWe / pdfPE.v;
+						auto contrb = throughput * fsE * G * fsL * positionalLe / pdfPL.v;
 						film->AccumulateContribution(rasterPos, contrb);
 					}
 				}
 
-				//Ray shadowRay;
-				//auto ppE = geomE.p - currGeom.p;
-				//Math::Float ppEL = Math::Length(ppE);
-				//shadowRay.d = ppE / ppEL;
-				//shadowRay.o = currGeom.p;
-				//shadowRay.minT = Math::Constants::Eps();
-				//shadowRay.maxT = ppEL * (Math::Float(1) - Math::Constants::Eps());
-
-				//Intersection shadowIsect;
-				//if (!scene.Intersect(shadowRay, shadowIsect))
-				//{
-				//	// Calculate raster position
-				//	Math::Vec2 rasterPos;
-				//	if (scene.MainCamera()->RayToRasterPosition(geomE.p, -shadowRay.d, rasterPos))
-				//	{
-				//		GeneralizedBSDFEvaluateQuery bsdfEQ;
-
-				//		// fsL
-				//		bsdfEQ.transportDir = TransportDirection::LE;
-				//		bsdfEQ.type = GeneralizedBSDFType::All;
-				//		bsdfEQ.wi = currWi;
-				//		bsdfEQ.wo = shadowRay.d;
-				//		auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
-
-				//		// fsE
-				//		bsdfEQ.transportDir = TransportDirection::EL;
-				//		bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-				//		bsdfEQ.wo = -shadowRay.d;
-				//		auto fsE = scene.MainCamera()->EvaluateDirection(bsdfEQ, geomE);
-
-				//		// Geometry term
-				//		auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomE);
-
-				//		// Positional component of We
-				//		auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
-
-				//		// Evaluate contribution and accumulate to film
-				//		auto contrb = throughput * fsL * G * fsE * positionalWe / pdfPE.v;
-				//		film->AccumulateContribution(rasterPos, contrb);
-				//	}
-				//}
-
 				// --------------------------------------------------------------------------------
-				
+
 				if (++depth >= rrDepth)
 				{
 					// Russian roulette for path termination
@@ -293,14 +255,14 @@ bool LighttraceRenderer::Render( const Scene& scene )
 
 					throughput /= p;
 				}
-
+				
 				// --------------------------------------------------------------------------------
 
 				// Sample generalized BSDF
 				GeneralizedBSDFSampleQuery bsdfSQ;
 				bsdfSQ.sample = rng->NextVec2();
 				bsdfSQ.uComp = rng->Next();
-				bsdfSQ.transportDir = TransportDirection::LE;
+				bsdfSQ.transportDir = TransportDirection::EL;
 				bsdfSQ.type = GeneralizedBSDFType::All;
 				bsdfSQ.wi = currWi;
 
@@ -308,6 +270,17 @@ bool LighttraceRenderer::Render( const Scene& scene )
 				if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
 				{
 					break;
+				}
+
+				// Calculate raster position if the depth is one
+				if (depth == 1)
+				{
+					if (!scene.MainCamera()->RayToRasterPosition(currGeom.p, bsdfSR.wo, rasterPos))
+					{
+						// Should not be here
+						LM_ASSERT(false);
+						break;
+					}
 				}
 
 				// Evaluate generalized BSDF
@@ -335,6 +308,26 @@ bool LighttraceRenderer::Render( const Scene& scene )
 				if (!scene.Intersect(ray, isect))
 				{
 					break;
+				}
+
+				// Intersected point is light
+				{
+					const auto* light = isect.primitive->light;
+					if (light != nullptr)
+					{
+						// Previous BSDF is specular 
+						if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
+						{
+							// Evaluate Le
+							GeneralizedBSDFEvaluateQuery bsdfEQ;
+							bsdfEQ.transportDir = TransportDirection::LE;
+							bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+							bsdfEQ.wo = -ray.d;
+							auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
+							auto LeP = light->EvaluatePosition(isect.geom);
+							film->AccumulateContribution(rasterPos, throughput * LeD * LeP);
+						}
+					}
 				}
 
 				// --------------------------------------------------------------------------------
@@ -375,6 +368,6 @@ bool LighttraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(LighttraceRenderer, Renderer);
+LM_COMPONENT_REGISTER_IMPL(DirectPathtraceRenderer, Renderer);
 
 LM_NAMESPACE_END

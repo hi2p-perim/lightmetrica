@@ -69,6 +69,10 @@ Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPa
 	for (int i = 0; i <= fullPath.s + fullPath.t; i++)
 	{
 		auto pi = fullPath.EvaluateFullpathPDF(i);
+		//if (Math::IsZero(pi))
+		//{
+		//	continue;
+		//}
 		if (Math::Abs(pi) < Math::Constants::Eps())
 		{
 			continue;

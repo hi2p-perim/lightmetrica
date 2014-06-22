@@ -77,7 +77,7 @@ public:
 		\retval true Two points are mutually visible.
 		\retval false Two points are not mutually visible.
 	*/
-	static bool CheckVisibility(const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2);
+	static bool Visible(const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2);
 
 };
 

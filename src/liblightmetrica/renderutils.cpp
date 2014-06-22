@@ -52,7 +52,7 @@ Math::Float RenderUtils::GeneralizedGeometryTerm( const SurfaceGeometry& geom1, 
 	return numerator / p1p2_Length2;
 }
 
-bool RenderUtils::CheckVisibility( const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2 )
+bool RenderUtils::Visible( const Scene& scene, const Math::Vec3& p1, const Math::Vec3& p2 )
 {
 	Ray shadowRay;
 	auto p1p2 = p2 - p1;
@@ -68,7 +68,7 @@ bool RenderUtils::CheckVisibility( const Scene& scene, const Math::Vec3& p1, con
 
 Math::Float RenderUtils::GeneralizedGeometryTermWithVisibility( const Scene& scene, const SurfaceGeometry& geom1, const SurfaceGeometry& geom2 )
 {
-	if (!CheckVisibility(scene, geom1.p, geom2.p))
+	if (!Visible(scene, geom1.p, geom2.p))
 	{
 		return Math::Float(0);
 	}

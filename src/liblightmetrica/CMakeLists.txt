@@ -146,6 +146,7 @@ set(
 	_ASSETS_BSDFS_SOURCES
 	"diffuse.cpp"
 	"dielectric.cpp"
+	"mirror.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_BSDFS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\bsdfs" FILES ${_ASSETS_BSDFS_SOURCES})
@@ -244,6 +245,8 @@ set(
 	"renderutils.cpp"
 	"raycast.cpp"
 	"pathtrace.cpp"
+	"pathtrace.direct.cpp"
+	"pathtrace.mis.cpp"
 	"lighttrace.cpp"
 	"simplebpt.cpp"
 	"explicitpathtrace.cpp"

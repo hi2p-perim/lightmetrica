@@ -255,6 +255,13 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 		auto* vL = lightSubpath.vertices[s-1];
 		auto* vE = eyeSubpath.vertices[t-1];
 
+		// Both #vL and #vE must not be directionally degenerated
+		// which avoids unnecessary intersection query and BSDF evaluation
+		if (vL->bsdf->Degenerated() || vE->bsdf->Degenerated())
+		{
+			return Math::Vec3();
+		}
+
 		// Check connectivity between #vL->geom.p and #vE->geom.p
 		Ray shadowRay;
 		auto pLpE = vE->geom.p - vL->geom.p;
@@ -309,6 +316,19 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 
 Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 {
+	int n = s + t;
+	if (0 < i && i < n)
+	{
+		// If at least one of generalized BSDFs associated with connection vertices is degenerated,
+		// the probability is zero because this full path cannot be sampled with p_i.
+		const auto* xL = FullPathVertex(i-1);
+		const auto* xE = FullPathVertex(i);
+		if (xL->bsdf->Degenerated() || xE->bsdf->Degenerated())
+		{
+			return Math::Float(0);
+		}
+	}
+
 	Math::Float fullpathPdf(1);
 
 	if (i > 0)
@@ -331,7 +351,6 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 		}
 	}
 
-	int n = s + t;
 	if (i < n)
 	{
 		// Evaluate p_A(x_{n-1})
