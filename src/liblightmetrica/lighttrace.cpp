@@ -46,10 +46,10 @@ LM_NAMESPACE_BEGIN
 
 /*!
 	Light trace renderer.
-	An implementation of light tracing (a.k.a. inverse path tracing).
+	An implementation of light tracing (a.k.a. inverse path tracing, particle tracing).
 	Reference:
-		Arvo, J., Backward ray tracing, Developments in Ray Tracing,
-		Computer Graphics, Proc. of ACM SIGGRAPH 86 Course Notes, 1986.
+		J. Arvo and D. Kirk, Particle transport and image synthesis,
+		Computer Graphics (Procs. of SIGGRAPH 90), 24, 4, pp.63-66, 1990.
 */
 class LighttraceRenderer : public Renderer
 {
@@ -61,6 +61,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Preprocess( const Scene& scene ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
@@ -237,48 +238,6 @@ bool LighttraceRenderer::Render( const Scene& scene )
 						film->AccumulateContribution(rasterPos, contrb);
 					}
 				}
-
-				//Ray shadowRay;
-				//auto ppE = geomE.p - currGeom.p;
-				//Math::Float ppEL = Math::Length(ppE);
-				//shadowRay.d = ppE / ppEL;
-				//shadowRay.o = currGeom.p;
-				//shadowRay.minT = Math::Constants::Eps();
-				//shadowRay.maxT = ppEL * (Math::Float(1) - Math::Constants::Eps());
-
-				//Intersection shadowIsect;
-				//if (!scene.Intersect(shadowRay, shadowIsect))
-				//{
-				//	// Calculate raster position
-				//	Math::Vec2 rasterPos;
-				//	if (scene.MainCamera()->RayToRasterPosition(geomE.p, -shadowRay.d, rasterPos))
-				//	{
-				//		GeneralizedBSDFEvaluateQuery bsdfEQ;
-
-				//		// fsL
-				//		bsdfEQ.transportDir = TransportDirection::LE;
-				//		bsdfEQ.type = GeneralizedBSDFType::All;
-				//		bsdfEQ.wi = currWi;
-				//		bsdfEQ.wo = shadowRay.d;
-				//		auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
-
-				//		// fsE
-				//		bsdfEQ.transportDir = TransportDirection::EL;
-				//		bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-				//		bsdfEQ.wo = -shadowRay.d;
-				//		auto fsE = scene.MainCamera()->EvaluateDirection(bsdfEQ, geomE);
-
-				//		// Geometry term
-				//		auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomE);
-
-				//		// Positional component of We
-				//		auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
-
-				//		// Evaluate contribution and accumulate to film
-				//		auto contrb = throughput * fsL * G * fsE * positionalWe / pdfPE.v;
-				//		film->AccumulateContribution(rasterPos, contrb);
-				//	}
-				//}
 
 				// --------------------------------------------------------------------------------
 				

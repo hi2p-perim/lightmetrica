@@ -301,6 +301,20 @@ list(APPEND _SOURCE_FILES ${_RENDERER_BPT_SOURCES})
 
 ################################################################################
 
+set(
+	_RENDERER_PM_HEADERS
+)
+set(
+	_RENDERER_PM_SOURCES
+	"pm.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_SOURCES})
+list(APPEND _HEADER_FILES ${_RENDERER_PM_HEADERS})
+list(APPEND _SOURCE_FILES ${_RENDERER_PM_SOURCES})
+
+################################################################################
+
 # set(
 # 	_RENDERER_DAGPT_HEADERS
 # 	"${_INCLUDE_DIR}/dagpt.h"

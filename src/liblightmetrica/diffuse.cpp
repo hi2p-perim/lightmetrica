@@ -57,6 +57,7 @@ public:
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
+	virtual int BSDFTypes() const { return GeneralizedBSDFType::DiffuseReflection; }
 
 private:
 

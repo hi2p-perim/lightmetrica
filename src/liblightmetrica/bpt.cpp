@@ -84,8 +84,8 @@ struct BPTThreadContext
 	Veach's bidirectional path trace renderer.
 	An implementation of bidirectional path tracing (BPT) according to Veach's paper.
 	Reference:
-		Veach, E. and Guibas, L., Bidirectional estimators for light transport,
-		In Proceedings of the Fifth Eurographics Workshop on Rendering, pp. 147-162, 1994.
+		E. Veach and L. Guibas, Bidirectional estimators for light transport,
+		Procs. of the Fifth Eurographics Workshop on Rendering, pp.147-162, 1994.
 */
 class BidirectionalPathtraceRenderer : public Renderer
 {
@@ -97,6 +97,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Preprocess( const Scene& scene ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 

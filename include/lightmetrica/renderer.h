@@ -73,6 +73,15 @@ public:
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
 
 	/*!
+		Preprocess the renderer.
+		Preprocess required by some renderers are dispatched in this function.
+		\param scene Scene.
+		\retval true Succeeded to preprocess.
+		\retval false Failed to preprocess.
+	*/
+	virtual bool Preprocess(const Scene& scene) = 0;
+
+	/*!
 		Start rendering.
 		The function starts to render the #scene according to the current configuration.
 		\param scene Scene.

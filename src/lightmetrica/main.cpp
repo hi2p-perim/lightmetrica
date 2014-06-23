@@ -382,6 +382,23 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		}
 	}
 
+	// Preprocess renderer
+	{
+		LM_LOG_INFO("Entering : Preprocess");
+		LM_LOG_INDENTER();
+
+		BeginProgress("PREPROCESS");
+		auto conn = renderer.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+
+		if (!renderer.Preprocess(scene))
+		{
+			EndProgress();
+			return false;
+		}
+
+		EndProgress();
+	}
+
 	// Begin rendering
 	{
 		LM_LOG_INFO("Entering : Render");

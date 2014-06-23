@@ -179,6 +179,14 @@ public:
 	*/
 	virtual bool Degenerated() const = 0;
 
+	/*!
+		Get generalized BSDF type.
+		If the generalized BSDF has multiple types, e.g. SpecularReflection and SpecularReflection,
+		a bitmask of these types are returned.
+		\return Types.
+	*/
+	virtual int BSDFTypes() const = 0;
+
 };
 
 LM_NAMESPACE_END

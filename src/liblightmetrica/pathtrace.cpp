@@ -48,8 +48,8 @@ LM_NAMESPACE_BEGIN
 	Path trace renderer.
 	An implementation of path tracing.
 	Reference:
-		Kajiya, J. T., The rendering equation,
-		Proceedings of the 13th annual conference on Computer graphics and interactive techniques, 1986,
+		J. T. Kajiya, The rendering equation,
+		Procs. of the 13th annual conference on Computer graphics and interactive techniques, 1986,
 */
 class PathtraceRenderer : public Renderer
 {
@@ -61,9 +61,10 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Preprocess( const Scene& scene ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
-
+	
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
@@ -254,7 +255,7 @@ bool PathtraceRenderer::Render( const Scene& scene )
 				{
 					break;
 				}
-					
+
 				// Update throughput
 				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 				throughput *= bsdf / bsdfSR.pdf.v;
