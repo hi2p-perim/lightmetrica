@@ -53,6 +53,7 @@ set(
 	"test.bpt.mis.power.cpp"
 	"test.bpt.fullpath.cpp"
 	"test.bpt.fullpath2.cpp"
+	"test.pm.photonmap.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

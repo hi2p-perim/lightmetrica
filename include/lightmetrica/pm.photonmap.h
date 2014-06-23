@@ -23,61 +23,42 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
-#define LIB_LIGHTMETRICA_BPT_MIS_H
+#ifndef LIB_LIGHTMETRICA_PM_PHOTONMAP_H
+#define LIB_LIGHTMETRICA_PM_PHOTONMAP_H
 
-#include "bpt.common.h"
+#include "common.h"
 #include "component.h"
-#include "math.types.h"
+#include "pm.photon.h"
 
 LM_NAMESPACE_BEGIN
 
-class BPTFullPath;
-class ConfigNode;
-class Assets;
-
 /*!
-	MIS weighting function for Veach's BPT.
-	Veach's BPT requires to compute weighting function for full-path.
-	Various techniques can be considered so we separated the implmenetations
-	as component classes.
+	Photon map.
+	Interface for photon map.
 */
-class BPTMISWeight : public Component
+class PhotonMap : public Component
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
+	LM_COMPONENT_INTERFACE_DEF("pm.photonmap");
 
 public:
 
-	BPTMISWeight() {}
-	virtual ~BPTMISWeight() {}
+	PhotonMap() {}
+	virtual ~PhotonMap() {}
 
 private:
 
-	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
+	LM_DISABLE_COPY_AND_MOVE(PhotonMap);
 
 public:
 
-	/*!
-		Configure.
-		Configures MIS weighting function.
-		\param node A XML element which consists of \a mis_weight element.
-		\param assets Assets manager.
-		\retval true Succeeded to configure.
-		\retval false Failed to configure.
-	*/
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-	
-	/*!
-		Evaluate MIS weight w_{s,t}.
-		\param fullPath Full-path.
-		\return MIS weight.
-	*/
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
+	virtual void Build(const std::vector<Photon>& photons) = 0;
+	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const = 0;
+	virtual void GetPhotons(std::vector<const Photon*>& photons) const = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_BPT_MIS_H
+#endif // LIB_LIGHTMETRICA_PM_PHOTONMAP_H

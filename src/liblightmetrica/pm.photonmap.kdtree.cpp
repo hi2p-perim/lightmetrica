@@ -22,62 +22,44 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
-#define LIB_LIGHTMETRICA_BPT_MIS_H
-
-#include "bpt.common.h"
-#include "component.h"
-#include "math.types.h"
+#include "pch.h"
+#include <lightmetrica/pm.photonmap.h>
 
 LM_NAMESPACE_BEGIN
 
-class BPTFullPath;
-class ConfigNode;
-class Assets;
-
 /*!
-	MIS weighting function for Veach's BPT.
-	Veach's BPT requires to compute weighting function for full-path.
-	Various techniques can be considered so we separated the implmenetations
-	as component classes.
+	Kd-tree photon map.
+	Implements photon map with Kd-tree.
 */
-class BPTMISWeight : public Component
+class KdTreePhotonMap : public PhotonMap
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
+	LM_COMPONENT_IMPL_DEF("kdtree");
 
 public:
 
-	BPTMISWeight() {}
-	virtual ~BPTMISWeight() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
-
-public:
-
-	/*!
-		Configure.
-		Configures MIS weighting function.
-		\param node A XML element which consists of \a mis_weight element.
-		\param assets Assets manager.
-		\retval true Succeeded to configure.
-		\retval false Failed to configure.
-	*/
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-	
-	/*!
-		Evaluate MIS weight w_{s,t}.
-		\param fullPath Full-path.
-		\return MIS weight.
-	*/
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
+	virtual void Build(const std::vector<Photon>& photons);
+	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const;
+	virtual void GetPhotons(std::vector<const Photon*>& photons) const;
 
 };
 
-LM_NAMESPACE_END
+void KdTreePhotonMap::Build( const std::vector<Photon>& photons )
+{
 
-#endif // LIB_LIGHTMETRICA_BPT_MIS_H
+}
+
+void KdTreePhotonMap::CollectPhotons( int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2 ) const
+{
+
+}
+
+void KdTreePhotonMap::GetPhotons( std::vector<const Photon*>& photons ) const
+{
+
+}
+
+LM_COMPONENT_REGISTER_IMPL(KdTreePhotonMap, PhotonMap);
+
+LM_NAMESPACE_END

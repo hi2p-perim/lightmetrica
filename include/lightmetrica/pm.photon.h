@@ -23,61 +23,25 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
-#define LIB_LIGHTMETRICA_BPT_MIS_H
+#ifndef LIB_LIGHTMETRICA_PM_PHOTON_H
+#define LIB_LIGHTMETRICA_PM_PHOTON_H
 
-#include "bpt.common.h"
-#include "component.h"
+#include "common.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-class BPTFullPath;
-class ConfigNode;
-class Assets;
-
 /*!
-	MIS weighting function for Veach's BPT.
-	Veach's BPT requires to compute weighting function for full-path.
-	Various techniques can be considered so we separated the implmenetations
-	as component classes.
+	Photon.
+	Represents single photon.
 */
-class BPTMISWeight : public Component
+struct Photon
 {
-public:
-
-	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
-
-public:
-
-	BPTMISWeight() {}
-	virtual ~BPTMISWeight() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
-
-public:
-
-	/*!
-		Configure.
-		Configures MIS weighting function.
-		\param node A XML element which consists of \a mis_weight element.
-		\param assets Assets manager.
-		\retval true Succeeded to configure.
-		\retval false Failed to configure.
-	*/
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-	
-	/*!
-		Evaluate MIS weight w_{s,t}.
-		\param fullPath Full-path.
-		\return MIS weight.
-	*/
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
-
+	Math::Vec3 p;				// Surface point
+	Math::Vec3 throughput;		// Current throughput
+	Math::Vec3 wi;				// Incident ray direction
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_BPT_MIS_H
+#endif // LIB_LIGHTMETRICA_PM_PHOTON_H

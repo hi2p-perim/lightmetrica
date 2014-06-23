@@ -23,6 +23,8 @@
 */
 
 #include "pch.h"
+#include <lightmetrica/pm.photon.h>
+#include <lightmetrica/pm.photonmap.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
@@ -44,81 +46,13 @@
 LM_NAMESPACE_BEGIN
 
 /*!
-	Photon.
-	Represents single photon.
-*/
-struct Photon
-{
-	Math::Vec3 p;				// Surface point
-	Math::Vec3 throughput;		// Current throughput
-	Math::Vec3 wi;				// Incident ray direction
-};
-
-// --------------------------------------------------------------------------------
-
-/*!
-	Photon map.
-	Interface for photon map.
-*/
-class PhotonMap
-{
-public:
-
-	virtual void Build(const std::vector<Photon>& photons) = 0;
-	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const = 0;
-
-};
-
-/*!
-	Naive photon map.
-	Implements photon map in a naive way for debugging.
-	This is VERY SLOW.
-*/
-class NaivePhotonMap : public PhotonMap
-{
-public:
-
-	virtual void Build(const std::vector<Photon>& photons) { this->photons = photons; }
-	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const
-	{
-		std::vector<size_t> photonIdx(photons.size());
-		for (size_t i = 0; i < photons.size(); i++)
-		{
-			photonIdx[i] = i;
-		}
-
-		std::sort(photonIdx.begin(), photonIdx.end(), [&](size_t v1, size_t v2)
-		{
-			return Math::Length2(photons[v1].p - p) < Math::Length2(photons[v2].p - p);
-		});
-
-		int found = 0;
-		for (size_t i : photonIdx)
-		{
-			collectedPhotons.push_back(&photons.at(i));
-			if (++found >= n)
-			{
-				break;
-			}
-		}
-
-		maxDist2 = Math::Length2(collectedPhotons.back()->p - p);
-	}
-
-private:
-
-	std::vector<Photon> photons;
-
-};
-
-// --------------------------------------------------------------------------------
-
-/*!
 	Photon mapping renderer.
 	Implements photon mapping. This is unoptimized version.
-	Reference:
-		H. W. Jensen, Global illumination using photon maps,
-		Procs. of the Eurographics Workshop on Rendering Techniques 96, pp.21-30, 1996.
+	References:
+	  - H. W. Jensen, Global illumination using photon maps,
+	    Procs. of the Eurographics Workshop on Rendering Techniques 96, pp.21-30, 1996.
+	  - H. W. Jensen, Realistic image synthesis using photon mapping,
+	    AK Peters, 2001
 */
 class PhotonMappingRenderer : public Renderer
 {
@@ -139,6 +73,7 @@ private:
 	void TracePhotons(const Scene& scene, std::vector<Photon>& photons, long long& tracedPaths) const;
 	void RenderProcessSingleSample(const Scene& scene, Random& rng, Film& film) const;
 	Math::Float EvaluatePhotonDensityEstimationKernel(const Math::Vec3& p, const Photon* photon, const Math::Float& queryDist2) const;
+	void VisualizePhotons(const Scene& scene, Film& film) const;
 
 private:
 
@@ -154,9 +89,11 @@ private:
 	long long samplesPerBlock;			// Samples to be processed per block
 	std::string rngType;				// Type of random number generator
 
+	bool visualizePhotons;
+
 private:
 
-	NaivePhotonMap photonMap;
+	std::unique_ptr<PhotonMap> photonMap;
 	long long tracedLightPaths;
 
 };
@@ -168,6 +105,19 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 	node.ChildValueOrDefault("max_photons", 1LL, maxPhotons);
 	node.ChildValueOrDefault("max_photon_trace_depth", -1, maxPhotonTraceDepth);
 	node.ChildValueOrDefault("num_nn_query_photons", 50, numNNQueryPhotons);
+
+	std::string photonMapImpl;
+	node.ChildValueOrDefault("photon_map_impl", std::string("kdtree"), photonMapImpl);
+	if (!ComponentFactory::CheckRegistered<PhotonMap>(photonMapImpl))
+	{
+		LM_LOG_ERROR("Unsupported photon map implementation '" + photonMapImpl + "'");
+		return false;
+	}
+	photonMap.reset(ComponentFactory::Create<PhotonMap>(photonMapImpl));
+	if (photonMap == nullptr)
+	{
+		return false;
+	}
 
 	//Math::Float maxNNQueryDist; 
 	//node.ChildValueOrDefault("num_nn_query_dist", Math::Float(0.1), maxNNQueryDist);
@@ -189,6 +139,13 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 	{
 		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
 		return false;
+	}
+
+	auto experimentalNode = node.Child("experimental");
+	if (!experimentalNode.Empty())
+	{
+		LM_LOG_WARN("Experimental mode is enabled")
+		experimentalNode.ChildValueOrDefault("visualize_photons", false, visualizePhotons);
 	}
 
 	return true;
@@ -219,7 +176,7 @@ bool PhotonMappingRenderer::Preprocess( const Scene& scene )
 		LM_LOG_INFO("Building photon map");
 		LM_LOG_INDENTER();
 
-		photonMap.Build(photons);
+		photonMap->Build(photons);
 		
 		LM_LOG_INFO("Completed");
 	}
@@ -289,7 +246,35 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 	// Rescale master film
 	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
+	// Visualize photons (for debugging)
+	if (visualizePhotons)
+	{
+		VisualizePhotons(scene, *masterFilm);
+	}
+
 	return true;
+}
+
+void PhotonMappingRenderer::VisualizePhotons( const Scene& scene, Film& film ) const
+{
+	// Camera position
+	SurfaceGeometry geomE;
+	Math::PDFEval pdfPE;
+	scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
+
+	// Visualize photons as points
+	std::vector<const Photon*> photons;
+	photonMap->GetPhotons(photons);
+	for (const auto* photon : photons)
+	{
+		Math::Vec2 rasterPos;
+		if (!scene.MainCamera()->RayToRasterPosition(geomE.p, Math::Normalize(photon->p - geomE.p), rasterPos))
+		{
+			continue;
+		}
+
+		film.RecordContribution(rasterPos, Math::Vec3(Math::Float(1), Math::Float(0), Math::Float(0)));
+	}
 }
 
 void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Random& rng, Film& film ) const
@@ -385,7 +370,7 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 			// Collect near photons
 			Math::Float maxDist2;
 			collectedPhotons.clear();
-			photonMap.CollectPhotons(numNNQueryPhotons, isect.geom.p, collectedPhotons, maxDist2);
+			photonMap->CollectPhotons(numNNQueryPhotons, isect.geom.p, collectedPhotons, maxDist2);
 
 			// Density estimation
 			for (const auto* photon : collectedPhotons)
@@ -419,7 +404,10 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 	}
 
 	// Record to film
-	film.AccumulateContribution(rasterPos, L);
+	if (!Math::IsZero(L))
+	{
+		film.AccumulateContribution(rasterPos, L);
+	}
 }
 
 Math::Float PhotonMappingRenderer::EvaluatePhotonDensityEstimationKernel( const Math::Vec3& p, const Photon* photon, const Math::Float& queryDist2 ) const
