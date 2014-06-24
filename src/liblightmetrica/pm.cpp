@@ -45,9 +45,11 @@
 
 LM_NAMESPACE_BEGIN
 
+typedef std::pair<const Photon*, Math::Float> CollectedPhotonInfo;
+
 /*!
 	Photon mapping renderer.
-	Implements photon mapping. This is unoptimized version.
+	Implements photon mapping. Unoptimized version.
 	References:
 	  - H. W. Jensen, Global illumination using photon maps,
 	    Procs. of the Eurographics Workshop on Rendering Techniques 96, pp.21-30, 1996.
@@ -70,8 +72,8 @@ public:
 
 private:
 
-	void TracePhotons(const Scene& scene, std::vector<Photon>& photons, long long& tracedPaths) const;
-	void RenderProcessSingleSample(const Scene& scene, Random& rng, Film& film) const;
+	void TracePhotons(const Scene& scene, Photons& photons, long long& tracedPaths) const;
+	void RenderProcessSingleSample(const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
 	Math::Float EvaluatePhotonDensityEstimationKernel(const Math::Vec3& p, const Photon* photon, const Math::Float& queryDist2) const;
 	void VisualizePhotons(const Scene& scene, Film& film) const;
 
@@ -84,7 +86,7 @@ private:
 	long long maxPhotons;				// Maximum number of photons stored in photon map
 	int maxPhotonTraceDepth;			// Maximum depth in photon tracing step
 	int numNNQueryPhotons;				// Number of photon to be collected in NN query
-	//Math::Float maxNNQueryDist2;		// Maximum distance between query point and photons in photon map (squared)
+	Math::Float maxNNQueryDist2;		// Maximum distance between query point and photons in photon map (squared)
 	int numThreads;						// Number of threads
 	long long samplesPerBlock;			// Samples to be processed per block
 	std::string rngType;				// Type of random number generator
@@ -93,8 +95,8 @@ private:
 
 private:
 
-	std::unique_ptr<PhotonMap> photonMap;
-	long long tracedLightPaths;
+	std::unique_ptr<PhotonMap> photonMap;				// Photon map
+	long long tracedLightPaths;							// # of traced light paths (used for density estimation)
 
 };
 
@@ -119,9 +121,9 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 		return false;
 	}
 
-	//Math::Float maxNNQueryDist; 
-	//node.ChildValueOrDefault("num_nn_query_dist", Math::Float(0.1), maxNNQueryDist);
-	//maxNNQueryDist2 = maxNNQueryDist * maxNNQueryDist;
+	Math::Float maxNNQueryDist; 
+	node.ChildValueOrDefault("max_nn_query_dist", Math::Float(0.1), maxNNQueryDist);
+	maxNNQueryDist2 = maxNNQueryDist * maxNNQueryDist;
 
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
@@ -147,6 +149,10 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 		LM_LOG_WARN("Experimental mode is enabled")
 		experimentalNode.ChildValueOrDefault("visualize_photons", false, visualizePhotons);
 	}
+	else
+	{
+		visualizePhotons = false;
+	}
 
 	return true;
 }
@@ -156,7 +162,7 @@ bool PhotonMappingRenderer::Preprocess( const Scene& scene )
 	signal_ReportProgress(0, false);
 
 	// Photon tracing
-	std::vector<Photon> photons;
+	Photons photons;
 	{
 		LM_LOG_INFO("Tracing photons");
 		LM_LOG_INDENTER();
@@ -169,7 +175,6 @@ bool PhotonMappingRenderer::Preprocess( const Scene& scene )
 		LM_LOG_INFO("Traced " + std::to_string(tracedLightPaths) + " light paths");
 		LM_LOG_INFO("Stored " + std::to_string(photons.size()) + " photons");
 	}
-
 
 	// Build photon map
 	{
@@ -221,13 +226,18 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 		auto& rng = rngs[threadId];
 		auto& film = films[threadId];
 
+		// Collected photon information
+		// This vector is allocated here in order to avoid unnecessary memory allocation
+		std::vector<CollectedPhotonInfo> collectedPhotons;
+		collectedPhotons.reserve(numNNQueryPhotons);
+
 		// Sample range
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			RenderProcessSingleSample(scene, *rng, *film);
+			RenderProcessSingleSample(scene, *rng, *film, collectedPhotons);
 		}
 
 		processedBlocks++;
@@ -249,6 +259,7 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 	// Visualize photons (for debugging)
 	if (visualizePhotons)
 	{
+		LM_LOG_INFO("Visualizing photon map");
 		VisualizePhotons(scene, *masterFilm);
 	}
 
@@ -277,7 +288,7 @@ void PhotonMappingRenderer::VisualizePhotons( const Scene& scene, Film& film ) c
 	}
 }
 
-void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Random& rng, Film& film ) const
+void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo ) const
 {
 	// Sample position on camera
 	SurfaceGeometry geomE;
@@ -293,8 +304,6 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 	const GeneralizedBSDF* currBsdf = scene.MainCamera();
 	Math::Vec2 rasterPos;
 	Math::Vec3 L;
-	std::vector<const Photon*> collectedPhotons;
-	collectedPhotons.reserve(numNNQueryPhotons);
 
 	while (true)
 	{
@@ -368,13 +377,43 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 		if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::Specular) == 0)
 		{
 			// Collect near photons
-			Math::Float maxDist2;
-			collectedPhotons.clear();
-			photonMap->CollectPhotons(numNNQueryPhotons, isect.geom.p, collectedPhotons, maxDist2);
+			Math::Float maxDist2 = maxNNQueryDist2;
+			collectedPhotonInfo.clear();
+			const size_t n = static_cast<size_t>(numNNQueryPhotons);
+			photonMap->CollectPhotons(isect.geom.p, maxDist2, [&n, &collectedPhotonInfo](const Math::Vec3& p, const Photon& photon, Math::Float& maxDist2)
+			{
+				auto dist2 = Math::Length2(photon.p - p);
+				const auto comp = [](const CollectedPhotonInfo& p1, const CollectedPhotonInfo& p2)
+				{
+					return p1.second < p2.second;
+				};
+
+				if (collectedPhotonInfo.size() < n)
+				{
+					collectedPhotonInfo.emplace_back(&photon, dist2);
+					if (collectedPhotonInfo.size() == n)
+					{
+						// Create heap
+						std::make_heap(collectedPhotonInfo.begin(), collectedPhotonInfo.end(), comp);
+						maxDist2 = collectedPhotonInfo.front().second;
+					}
+				}
+				else
+				{
+					// Update heap
+					std::pop_heap(collectedPhotonInfo.begin(), collectedPhotonInfo.end(), comp);
+					collectedPhotonInfo.back() = std::make_pair(&photon, dist2);
+					std::push_heap(collectedPhotonInfo.begin(), collectedPhotonInfo.end(), comp);
+					maxDist2 = collectedPhotonInfo.front().second;
+				}
+			});
 
 			// Density estimation
-			for (const auto* photon : collectedPhotons)
+			for (const auto& info : collectedPhotonInfo)
 			{
+				const auto* photon = info.first;
+
+				// Do not to forget to divide by #tracedLightPaths
 				auto k = EvaluatePhotonDensityEstimationKernel(isect.geom.p, photon, maxDist2);
 				auto p = k / (maxDist2 * tracedLightPaths);
 
@@ -416,7 +455,7 @@ Math::Float PhotonMappingRenderer::EvaluatePhotonDensityEstimationKernel( const 
 	return Math::Float(3) * Math::Constants::InvPi() * s * s;
 }
 
-void PhotonMappingRenderer::TracePhotons( const Scene& scene, std::vector<Photon>& photons, long long& tracedPaths ) const
+void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, long long& tracedPaths ) const
 {
 	// Random number generators
 	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>(rngType));

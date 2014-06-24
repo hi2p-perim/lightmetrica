@@ -285,8 +285,10 @@ struct QBVHNode
 // The structure is used on QBVHScene::Build
 struct QBVHBuildData
 {
-	std::vector<AABB> triBounds;				// Bounds of the triangles
-	std::vector<Math::Vec3> triBoundCentroids;	// Centroids of the bounds of the triangles
+	// Bounds of the triangles
+	std::vector<AABB, aligned_allocator<AABB, std::alignment_of<AABB>::value>> triBounds;
+	// Centroids of the bounds of the triangles
+	std::vector<Math::Vec3, aligned_allocator<Math::Vec3, std::alignment_of<Math::Vec3>::value>> triBoundCentroids;
 };
 
 enum class QBVHIntersectionMode

@@ -29,6 +29,7 @@
 #include "common.h"
 #include "component.h"
 #include "pm.photon.h"
+#include <functional>
 
 LM_NAMESPACE_BEGIN
 
@@ -53,8 +54,13 @@ private:
 
 public:
 
-	virtual void Build(const std::vector<Photon>& photons) = 0;
-	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const = 0;
+	//! Function called when a photon is collected in CollectPhotons
+	typedef std::function<void (const Math::Vec3&, const Photon&, Math::Float&)> PhotonCollectFunc;
+
+public:
+
+	virtual void Build(const Photons& photons) = 0;
+	virtual void CollectPhotons(const Math::Vec3& p, Math::Float& maxDist2, const PhotonCollectFunc& collectFunc) const = 0;
 	virtual void GetPhotons(std::vector<const Photon*>& photons) const = 0;
 
 };

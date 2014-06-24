@@ -47,6 +47,8 @@ set(
 	"${_INCLUDE_DIR}/surfacegeometry.h"
 	"${_INCLUDE_DIR}/transportdirection.h"
 	"${_INCLUDE_DIR}/component.h"
+	"${_INCLUDE_DIR}/aabb.h"
+	"${_INCLUDE_DIR}/aabb.inl"
 )
 set(
 	_SOURCE_FILES
@@ -370,8 +372,6 @@ set(
 	"${_INCLUDE_DIR}/primitive.h"
 	"${_INCLUDE_DIR}/triaccel.h"
 	"${_INCLUDE_DIR}/triangleref.h"
-	"${_INCLUDE_DIR}/aabb.h"
-	"${_INCLUDE_DIR}/aabb.inl"
 )
 set(
 	_SCENE_SOURCES

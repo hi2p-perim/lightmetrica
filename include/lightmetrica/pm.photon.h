@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "math.types.h"
+#include "align.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -41,6 +42,9 @@ struct Photon
 	Math::Vec3 throughput;		// Current throughput
 	Math::Vec3 wi;				// Incident ray direction
 };
+
+// Vector type for Photon
+typedef std::vector<Photon, aligned_allocator<Photon, std::alignment_of<Photon>::value>> Photons;
 
 LM_NAMESPACE_END
 

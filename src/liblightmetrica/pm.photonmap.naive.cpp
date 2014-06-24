@@ -40,40 +40,26 @@ public:
 
 public:
 
-	virtual void Build(const std::vector<Photon>& photons) { this->photons = photons; }
-	virtual void CollectPhotons(int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2) const;
+	virtual void Build(const Photons& photons) { this->photons = photons; }
+	virtual void CollectPhotons(const Math::Vec3& p, Math::Float& maxDist2, const PhotonCollectFunc& collectFunc) const;
 	virtual void GetPhotons(std::vector<const Photon*>& photons) const;
 
 private:
 
-	std::vector<Photon> photons;
+	Photons photons;
 
 };
 
-void NaivePhotonMap::CollectPhotons( int n, const Math::Vec3& p, std::vector<const Photon*>& collectedPhotons, Math::Float& maxDist2 ) const
+void NaivePhotonMap::CollectPhotons( const Math::Vec3& p, Math::Float& maxDist2, const PhotonCollectFunc& collectFunc ) const
 {
-	std::vector<size_t> photonIdx(photons.size());
-	for (size_t i = 0; i < photons.size(); i++)
+	for (const auto& photon : photons)
 	{
-		photonIdx[i] = i;
-	}
-
-	std::sort(photonIdx.begin(), photonIdx.end(), [&](size_t v1, size_t v2)
-	{
-		return Math::Length2(photons[v1].p - p) < Math::Length2(photons[v2].p - p);
-	});
-
-	int found = 0;
-	for (size_t i : photonIdx)
-	{
-		collectedPhotons.push_back(&photons.at(i));
-		if (++found >= n)
+		auto dist2 = Math::Length2(photon.p - p);
+		if (dist2 < maxDist2)
 		{
-			break;
+			collectFunc(p, photon, maxDist2);
 		}
 	}
-
-	maxDist2 = Math::Length2(collectedPhotons.back()->p - p);
 }
 
 void NaivePhotonMap::GetPhotons( std::vector<const Photon*>& photons ) const
