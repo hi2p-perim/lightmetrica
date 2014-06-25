@@ -22,32 +22,35 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_MATH_BASIC_H
-#define LIB_LIGHTMETRICA_MATH_BASIC_H
-
-#include "math.common.h"
+#include "pch.h"
+#include <lightmetrica/pm.kernel.h>
+#include <lightmetrica/pm.photon.h>
 
 LM_NAMESPACE_BEGIN
-LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> LM_FORCE_INLINE T Radians(const T& v);
-template <typename T> LM_FORCE_INLINE T Degrees(const T& v);
-template <typename T> LM_FORCE_INLINE T Cos(const T& v);
-template <typename T> LM_FORCE_INLINE T Sin(const T& v);
-template <typename T> LM_FORCE_INLINE T Tan(const T& v);
-template <typename T> LM_FORCE_INLINE T Abs(const T& v);
-template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
-template <typename T> LM_FORCE_INLINE T Log(const T& v);
-template <typename T> LM_FORCE_INLINE T Exp(const T& v);
-template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max);
-template <typename T> LM_FORCE_INLINE bool IsZero(const T& v);
+/*!
+	Cone filter.
+	Photon density estimation kernel implementation with Cone filter.
+*/
+class ConeFilterPDEKernel : public PhotonDensityEstimationKernel
+{
+public:
 
-LM_MATH_NAMESPACE_END
+	LM_COMPONENT_IMPL_DEF("cone");
+
+public:
+
+	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
+	{
+		const Math::Float k(1.1);
+		auto dist = Math::Length(p - photon.p);
+		auto maxDist = Math::Sqrt(maxDist2);
+		auto t = Math::Float(1) - dist / (k * maxDist);
+		return t / (Math::Float(1) - Math::Float(2) / (Math::Float(3) * k)) * Math::Constants::InvPi();
+	}
+
+};
+
+LM_COMPONENT_REGISTER_IMPL(ConeFilterPDEKernel, PhotonDensityEstimationKernel);
+
 LM_NAMESPACE_END
-
-#include "math.basic.inl"
-
-#endif // LIB_LIGHTMETRICA_MATH_BASIC_H

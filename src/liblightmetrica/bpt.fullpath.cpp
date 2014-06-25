@@ -321,6 +321,8 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 	{
 		// If at least one of generalized BSDFs associated with connection vertices is degenerated,
 		// the probability is zero because this full path cannot be sampled with p_i.
+		// Otherwise, importance-sampled value of directional PDF in specular material is used
+		// regardless of no possibility to sample the path with p_i.
 		const auto* xL = FullPathVertex(i-1);
 		const auto* xE = FullPathVertex(i);
 		if (xL->bsdf->Degenerated() || xE->bsdf->Degenerated())

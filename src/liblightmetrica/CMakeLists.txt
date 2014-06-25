@@ -315,6 +315,8 @@ set(
 	"pm.photonmap.kdtree.cpp"
 	"pm.photonmap.naive.cpp"
 	"pm.kernel.simpson.cpp"
+	"pm.kernel.cone.cpp"
+	"pm.kernel.gaussian.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_SOURCES})

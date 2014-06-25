@@ -49,6 +49,19 @@ Math::Float RenderUtils::GeneralizedGeometryTerm( const SurfaceGeometry& geom1, 
 		numerator *= Math::Dot(geom2.sn, -p1p2);
 	}
 
+	// TODO : Some numerical issues seem to be introduced due to
+	// a singularity in the geometry term evaluation, fix this.
+
+	//if (Math::Abs(numerator) < Math::Constants::Eps())
+	//{
+	//	return Math::Float(0);
+	//}
+
+	//if (Math::Abs(p1p2_Length) < Math::Constants::Eps())
+	//{
+	//	return Math::Float(0);
+	//}
+
 	return numerator / p1p2_Length2;
 }
 

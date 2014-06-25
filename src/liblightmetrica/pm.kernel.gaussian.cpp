@@ -22,32 +22,36 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_MATH_BASIC_H
-#define LIB_LIGHTMETRICA_MATH_BASIC_H
-
-#include "math.common.h"
+#include "pch.h"
+#include <lightmetrica/pm.kernel.h>
+#include <lightmetrica/pm.photon.h>
 
 LM_NAMESPACE_BEGIN
-LM_MATH_NAMESPACE_BEGIN
 
-template <typename T> LM_FORCE_INLINE T Radians(const T& v);
-template <typename T> LM_FORCE_INLINE T Degrees(const T& v);
-template <typename T> LM_FORCE_INLINE T Cos(const T& v);
-template <typename T> LM_FORCE_INLINE T Sin(const T& v);
-template <typename T> LM_FORCE_INLINE T Tan(const T& v);
-template <typename T> LM_FORCE_INLINE T Abs(const T& v);
-template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
-template <typename T> LM_FORCE_INLINE T Log(const T& v);
-template <typename T> LM_FORCE_INLINE T Exp(const T& v);
-template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
-template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max);
-template <typename T> LM_FORCE_INLINE bool IsZero(const T& v);
+/*!
+	Gaussian filter.
+	Photon density estimation kernel implementation with Gaussian filter.
+*/
+class GaussianFilterPDEKernel : public PhotonDensityEstimationKernel
+{
+public:
 
-LM_MATH_NAMESPACE_END
+	LM_COMPONENT_IMPL_DEF("gaussian");
+
+public:
+
+	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
+	{
+		const auto Alpha = Math::Float(1.818);
+		const auto Beta = Math::Float(1.953);
+		const auto BetaExp = Math::Exp(-Beta);
+		auto dist2 = Math::Length2(p - photon.p);
+		auto t = Math::Float(1) - Math::Exp(-Beta * dist2 / (Math::Float(2) * maxDist2));
+		return Alpha * (Math::Float(1) - t / (Math::Float(1) - BetaExp)) * Math::Constants::InvPi();
+	}
+
+};
+
+LM_COMPONENT_REGISTER_IMPL(GaussianFilterPDEKernel, PhotonDensityEstimationKernel);
+
 LM_NAMESPACE_END
-
-#include "math.basic.inl"
-
-#endif // LIB_LIGHTMETRICA_MATH_BASIC_H
