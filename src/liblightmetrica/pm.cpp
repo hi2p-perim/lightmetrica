@@ -25,6 +25,7 @@
 #include "pch.h"
 #include <lightmetrica/pm.photon.h>
 #include <lightmetrica/pm.photonmap.h>
+#include <lightmetrica/pm.kernel.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
@@ -74,7 +75,6 @@ private:
 
 	void TracePhotons(const Scene& scene, Photons& photons, long long& tracedPaths) const;
 	void RenderProcessSingleSample(const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
-	Math::Float EvaluatePhotonDensityEstimationKernel(const Math::Vec3& p, const Photon* photon, const Math::Float& queryDist2) const;
 	void VisualizePhotons(const Scene& scene, Film& film) const;
 
 private:
@@ -95,8 +95,9 @@ private:
 
 private:
 
-	std::unique_ptr<PhotonMap> photonMap;				// Photon map
-	long long tracedLightPaths;							// # of traced light paths (used for density estimation)
+	std::unique_ptr<PhotonMap> photonMap;						// Photon map
+	std::unique_ptr<PhotonDensityEstimationKernel> pdeKernel;	// Photon density estimation kernel
+	long long tracedLightPaths;									// # of traced light paths (used for density estimation)
 
 };
 
@@ -108,22 +109,38 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 	node.ChildValueOrDefault("max_photon_trace_depth", -1, maxPhotonTraceDepth);
 	node.ChildValueOrDefault("num_nn_query_photons", 50, numNNQueryPhotons);
 
-	std::string photonMapImpl;
-	node.ChildValueOrDefault("photon_map_impl", std::string("kdtree"), photonMapImpl);
-	if (!ComponentFactory::CheckRegistered<PhotonMap>(photonMapImpl))
+	// 'max_nn_query_dist'
+	Math::Float maxNNQueryDist; 
+	node.ChildValueOrDefault("max_nn_query_dist", Math::Float(0.1), maxNNQueryDist);
+	maxNNQueryDist2 = maxNNQueryDist * maxNNQueryDist;
+
+	// 'photon_map_impl'
+	std::string photonMapImplType;
+	node.ChildValueOrDefault("photon_map_impl", std::string("kdtree"), photonMapImplType);
+	if (!ComponentFactory::CheckRegistered<PhotonMap>(photonMapImplType))
 	{
-		LM_LOG_ERROR("Unsupported photon map implementation '" + photonMapImpl + "'");
+		LM_LOG_ERROR("Unsupported photon map implementation '" + photonMapImplType + "'");
 		return false;
 	}
-	photonMap.reset(ComponentFactory::Create<PhotonMap>(photonMapImpl));
+	photonMap.reset(ComponentFactory::Create<PhotonMap>(photonMapImplType));
 	if (photonMap == nullptr)
 	{
 		return false;
 	}
 
-	Math::Float maxNNQueryDist; 
-	node.ChildValueOrDefault("max_nn_query_dist", Math::Float(0.1), maxNNQueryDist);
-	maxNNQueryDist2 = maxNNQueryDist * maxNNQueryDist;
+	// 'pde_kernel'
+	std::string pdeKernelType;
+	node.ChildValueOrDefault("pde_kernel", std::string("simpson"), pdeKernelType);
+	if (!ComponentFactory::CheckRegistered<PhotonDensityEstimationKernel>(pdeKernelType))
+	{
+		LM_LOG_ERROR("Unsupported photon density estimation kernel type '" + pdeKernelType + "'");
+		return false;
+	}
+	pdeKernel.reset(ComponentFactory::Create<PhotonDensityEstimationKernel>(pdeKernelType));
+	if (pdeKernel == nullptr)
+	{
+		return false;
+	}
 
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
@@ -143,6 +160,7 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 		return false;
 	}
 
+	// 'experimental'
 	auto experimentalNode = node.Child("experimental");
 	if (!experimentalNode.Empty())
 	{
@@ -413,8 +431,9 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 			{
 				const auto* photon = info.first;
 
+				// Evaluate photon density estimation kernel
 				// Do not to forget to divide by #tracedLightPaths
-				auto k = EvaluatePhotonDensityEstimationKernel(isect.geom.p, photon, maxDist2);
+				auto k = pdeKernel->Evaluate(isect.geom.p, *photon, maxDist2);
 				auto p = k / (maxDist2 * tracedLightPaths);
 
 				GeneralizedBSDFEvaluateQuery bsdfEQ;
@@ -447,12 +466,6 @@ void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Rando
 	{
 		film.AccumulateContribution(rasterPos, L);
 	}
-}
-
-Math::Float PhotonMappingRenderer::EvaluatePhotonDensityEstimationKernel( const Math::Vec3& p, const Photon* photon, const Math::Float& queryDist2 ) const
-{
-	auto s = (Math::Float(1) - Math::Length2(photon->p - p) / queryDist2);
-	return Math::Float(3) * Math::Constants::InvPi() * s * s;
 }
 
 void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, long long& tracedPaths ) const

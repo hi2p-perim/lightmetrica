@@ -307,12 +307,14 @@ set(
 	_RENDERER_PM_HEADERS
 	"${_INCLUDE_DIR}/pm.photon.h"
 	"${_INCLUDE_DIR}/pm.photonmap.h"
+	"${_INCLUDE_DIR}/pm.kernel.h"
 )
 set(
 	_RENDERER_PM_SOURCES
 	"pm.cpp"
 	"pm.photonmap.kdtree.cpp"
 	"pm.photonmap.naive.cpp"
+	"pm.kernel.simpson.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\pm" FILES ${_RENDERER_PM_SOURCES})
