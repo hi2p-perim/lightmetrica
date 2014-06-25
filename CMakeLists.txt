@@ -163,6 +163,11 @@ if (LM_ENABLE_EXPERIMENTAL_MODE)
 	add_definitions(-DLM_ENABLE_EXPERIMENTAL_MODE)
 endif()
 
+option(LM_ENABLE_STRICT_FP "Enable strict floating-point handling" ON)
+if (LM_ENABLE_STRICT_FP)
+	add_definitions(-DLM_ENABLE_STRICT_FP)
+endif()
+
 ################################################################################
 
 if (MSVC)
@@ -174,6 +179,11 @@ if (MSVC)
 	
 	# Increase stack size to 10MB
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000")
+	
+	# Add floating-point flag if enabled
+	if (LM_ENABLE_STRICT_FP)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict")
+	endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

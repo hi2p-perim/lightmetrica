@@ -42,7 +42,7 @@ public:
 
 	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
 	{
-		const Math::Float k(1.1);
+		const auto k = Math::Float(1.1);
 		auto dist = Math::Length(p - photon.p);
 		auto maxDist = Math::Sqrt(maxDist2);
 		auto t = Math::Float(1) - dist / (k * maxDist);
