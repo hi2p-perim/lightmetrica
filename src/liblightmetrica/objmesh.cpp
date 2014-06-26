@@ -118,7 +118,7 @@ private:
 
 };
 
-bool ObjMesh::Load( const ConfigNode& node, const Assets& assets )
+bool ObjMesh::Load( const ConfigNode& node, const Assets& /*assets*/ )
 {
 	namespace fs = boost::filesystem;
 

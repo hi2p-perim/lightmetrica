@@ -26,6 +26,8 @@
 #ifndef LM_TEST_PCH_H
 #define LM_TEST_PCH_H
 
+#include <lightmetrica/common.h>
+
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>

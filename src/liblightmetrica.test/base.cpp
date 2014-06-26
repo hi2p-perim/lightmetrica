@@ -25,6 +25,7 @@
 #include "pch.h"
 #include <lightmetrica.test/base.h>
 #include <lightmetrica/logger.h>
+#include <lightmetrica/fp.h>
 
 namespace fs = boost::filesystem;
 
@@ -35,10 +36,16 @@ const long long TestBase::OutputProcessTimeout = 500;
 
 void TestBase::SetUp()
 {
+	// Logger
 	Logger::Reset();
 	Logger::SetOutputMode(Logger::LogOutputMode::Stdout);
 	Logger::SetUpdateMode(Logger::LogUpdateMode::Immediate);
 	//Logger::SetOutputFileName("lightmetrica.test.log");
+
+	// Floating-point control
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+	EXPECT_TRUE(FloatintPointUtils::EnableFPControl());
+#endif
 }
 
 void TestBase::TearDown()

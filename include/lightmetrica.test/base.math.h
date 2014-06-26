@@ -45,7 +45,7 @@ template <typename T>
 class MathTestBase : public TestBase {};
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectNearRelative(const T& expected, const T& actual, const T& epsilon)
+inline ::testing::AssertionResult ExpectNearRelative(const T& expected, const T& actual, const T& epsilon)
 {
 	T diff = Math::Abs(expected - actual) / Math::Abs(expected);
 	if (diff > epsilon)
@@ -63,7 +63,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectNearRelative(const T& expected,
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual, const T& epsilon)
+inline ::testing::AssertionResult ExpectNear(const T& expected, const T& actual, const T& epsilon)
 {
 	T diff = Math::Abs(expected - actual);
 	if (diff > epsilon)
@@ -81,13 +81,13 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
+inline ::testing::AssertionResult ExpectNear(const T& expected, const T& actual)
 {
 	return ExpectNear(expected, actual, Math::TConstants<T>::EpsLarge());
 }
 
 template <>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
+inline ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math::BigFloat& expected, const Math::BigFloat& actual)
 {
 	Math::BigFloat diff = mp::abs(expected - actual);
 	Math::BigFloat epsilon = Math::TConstants<Math::BigFloat>::EpsLarge();
@@ -106,7 +106,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectNear<Math::BigFloat>(const Math
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, const Math::TVec2<T>& actual)
+inline ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, const Math::TVec2<T>& actual)
 {
 	for (int i = 0; i < 2; i++)
 	{
@@ -121,7 +121,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& 
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
+inline ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -136,7 +136,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& 
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& expect, const Math::TVec4<T>& actual)
+inline ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& expect, const Math::TVec4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -151,7 +151,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectVec4Near(const Math::TVec4<T>& 
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& expect, const Math::TMat3<T>& actual)
+inline ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& expect, const Math::TMat3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -169,7 +169,7 @@ LM_FORCE_INLINE ::testing::AssertionResult ExpectMat3Near(const Math::TMat3<T>& 
 }
 
 template <typename T>
-LM_FORCE_INLINE ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T>& expect, const Math::TMat4<T>& actual)
+inline ::testing::AssertionResult ExpectMat4Near(const Math::TMat4<T>& expect, const Math::TMat4<T>& actual)
 {
 	for (int i = 0; i < 4; i++)
 	{

@@ -23,36 +23,36 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_TEST_PCH_H
-#define LIB_LIGHTMETRICA_TEST_PCH_H
+#ifndef LIB_LIGHTMETRICA_FP_H
+#define LIB_LIGHTMETRICA_FP_H
 
-#include <lightmetrica/common.h>
+#include "common.h"
 
-#include <boost/format.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/foreach.hpp>
-#include <boost/scoped_array.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/signals2.hpp>
-#include <boost/filesystem.hpp>
+LM_NAMESPACE_BEGIN
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <queue>
-#include <deque>
-#include <functional>
-#include <mutex>
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <limits>
-#include <type_traits>
+/*!
+	Floating-point utilities.
+	Contains functions on floating-point exception control.
+*/
+class LM_PUBLIC_API FloatintPointUtils
+{
+private:
 
-#include <gtest/gtest.h>
+	FloatintPointUtils();
+	~FloatintPointUtils();
 
-#endif // LIB_LIGHTMETRICA_TEST_PCH_H
+	LM_DISABLE_COPY_AND_MOVE(FloatintPointUtils);
+
+public:
+
+	/*!
+		Enable floating point control.
+		This function is available only for strict floating-point mode and in Windows.
+	*/
+	static bool EnableFPControl();
+
+};
+
+LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_FP_H

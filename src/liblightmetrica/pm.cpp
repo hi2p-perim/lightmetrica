@@ -565,7 +565,7 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 				photon.throughput = throughput;
 				photon.wi = -ray.d;
 				photons.push_back(photon);
-				if (photons.size() == maxPhotons)
+				if (photons.size() == static_cast<size_t>(maxPhotons))
 				{
 					break;
 				}

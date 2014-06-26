@@ -230,8 +230,8 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 					LM_LOG_DEBUG("s     = " + std::to_string(s));
 					LM_LOG_DEBUG("t     = " + std::to_string(t));
 					LM_LOG_DEBUG("Cstar = (" + std::to_string(Cstar.x) + ", " + std::to_string(Cstar.y) + ", " + std::to_string(Cstar.z) + ")");
-					auto weight_Power		= misWeightFunc_Power->Evaluate(fullpath);
-					auto weight_PowerNaive	= misWeightFunc_PowerNaive->Evaluate(fullpath);
+					//auto weight_Power		= misWeightFunc_Power->Evaluate(fullpath);
+					//auto weight_PowerNaive	= misWeightFunc_PowerNaive->Evaluate(fullpath);
 					for (int i = 0; i <= s + t; i++)
 					{
 						auto pi = fullpath.EvaluateFullpathPDF(i);

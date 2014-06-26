@@ -21,38 +21,50 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
+#include "pch.h"
+#include <lightmetrica/fp.h>
+#include <lightmetrica/logger.h>
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_TEST_PCH_H
-#define LIB_LIGHTMETRICA_TEST_PCH_H
+LM_NAMESPACE_BEGIN
 
-#include <lightmetrica/common.h>
+bool FloatintPointUtils::EnableFPControl()
+{
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 
-#include <boost/format.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/foreach.hpp>
-#include <boost/scoped_array.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/signals2.hpp>
-#include <boost/filesystem.hpp>
+	errno_t error;
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <queue>
-#include <deque>
-#include <functional>
-#include <mutex>
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <limits>
-#include <type_traits>
+	// Restore current floating-point control word
+	unsigned int currentFPState;
+	if ((error = _controlfp_s(&currentFPState, 0, 0)) != 0)
+	{
+		LM_LOG_ERROR("_controlfp_s failed : " + std::string(strerror(error)));
+		return false;
+	}
 
-#include <gtest/gtest.h>
+	// Set a new control word
+	// Unmask all floating-point exceptions
+	unsigned int newFPState = currentFPState &
+							~(_EM_INVALID			// Invalid operation
+							| _EM_DENORMAL			// Denormal operand 
+							| _EM_ZERODIVIDE		// Divide by zero
+							| _EM_OVERFLOW			// Overflow
+							| _EM_UNDERFLOW			// Underflow
+							| _EM_INEXACT);			// Inexact result
 
-#endif // LIB_LIGHTMETRICA_TEST_PCH_H
+	if ((error = _controlfp_s(&currentFPState, newFPState, _MCW_EM)) != 0)
+	{
+		LM_LOG_ERROR("_controlfp_s failed : " + std::string(strerror(error)));
+		return false;
+	}
+
+	return true;
+
+#else
+
+	LM_LOG_ERROR("Unsupported platform");
+	return false;
+
+#endif
+}
+
+LM_NAMESPACE_END

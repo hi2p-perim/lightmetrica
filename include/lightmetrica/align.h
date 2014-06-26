@@ -200,7 +200,7 @@ public:
 		return static_cast<T *>(pv);
 	}
 
-	void deallocate(T * const p, const std::size_t n) const
+	void deallocate(T * const p, const std::size_t /*n*/) const
 	{
 		aligned_free(p);
 	}

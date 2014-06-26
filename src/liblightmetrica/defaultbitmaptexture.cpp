@@ -69,7 +69,7 @@ private:
 
 };
 
-bool DefaultBitmapTexture::Load( const ConfigNode& node, const Assets& assets )
+bool DefaultBitmapTexture::Load( const ConfigNode& node, const Assets& /*assets*/ )
 {
 	// 'path' element
 	std::string path;

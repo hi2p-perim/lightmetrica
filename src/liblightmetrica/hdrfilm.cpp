@@ -237,7 +237,7 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 		}
 	}
 
-	BOOL result;
+	BOOL result = false;
 	if (type == BitmapImageType::RadianceHDR)
 	{
 		// Save image as Radiance HDR format

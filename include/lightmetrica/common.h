@@ -45,6 +45,13 @@
 	#define LM_EXPERIMENTAL_MODE 0
 #endif
 
+// Strict floating-point mode?
+#ifdef LM_ENABLE_STRICT_FP
+	#define LM_STRICT_FP 1
+#else
+	#define LM_STRICT_FP 0
+#endif
+
 // --------------------------------------------------------------------------------
 
 // Platform
@@ -70,9 +77,16 @@
 #if LM_PLATFORM_WINDOWS
 	#define NOMINMAX
 	#define WIN32_LEAN_AND_MEAN
-	#pragma warning(disable:4996)	// _SCL_SECURE_NO_WARNINGS
-	#pragma warning(disable:4819)	// Character that cannot be represented
-	#pragma warning(disable:4290)	// Exception specification ignored
+	#pragma warning(disable:4819)	// Level 1. Character that cannot be represented
+	#pragma warning(disable:4996)	// Level 3. _SCL_SECURE_NO_WARNINGS
+	#pragma warning(disable:4290)	// Level 3. Exception specification ignored
+	#pragma warning(disable:4201)	// Level 4. Nonstandard extension used : nameless struct/union
+	#pragma warning(disable:4512)	// Level 4. Cannot generate an assignment operator for the given class
+	#pragma warning(disable:4127)	// Level 4. Conditional expression is constant
+	#pragma warning(disable:4510)	// Level 4. Default constructor could not be generated
+	#pragma warning(disable:4610)	// Level 4. User-defined constructor required
+	#pragma warning(disable:4100)	// Level 4. Unreferenced formal parameter
+	#pragma warning(disable:4505)	// Level 4. Unreferenced local function has been removed
 #endif
 
 // --------------------------------------------------------------------------------

@@ -81,7 +81,7 @@ private:
 
 };
 
-bool AreaLight::Load( const ConfigNode& node, const Assets& assets )
+bool AreaLight::Load( const ConfigNode& node, const Assets& /*assets*/ )
 {
 	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return true;
 
@@ -193,12 +193,12 @@ bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const 
 	return true;
 }
 
-Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& geom ) const
+Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Le * Math::Constants::Pi();
 }
 
-Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
 }

@@ -38,6 +38,7 @@
 #include <lightmetrica/texture.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/math.h>
+#include <lightmetrica/fp.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -273,10 +274,10 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 
 		// Get scene configuration from standard input
 		std::string content;
-		char c;
+		int c;
 		while ((c = std::getchar()) != EOF)
 		{
-			content += c;
+			content += static_cast<char>(c);
 		}
 
 		// Load configuration from string
@@ -616,17 +617,26 @@ int main(int argc, char** argv)
 	{
 		app.StartLogging();
 
-		try
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+		if (!FloatintPointUtils::EnableFPControl())
 		{
-			if (!app.Run())
+			result = EXIT_FAILURE;
+		}
+#endif
+		if (result != EXIT_FAILURE)
+		{
+			try
 			{
+				if (!app.Run())
+				{
+					result = EXIT_FAILURE;
+				}
+			}
+			catch (const std::exception& e)
+			{
+				LM_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
 				result = EXIT_FAILURE;
 			}
-		}
-		catch (const std::exception& e)
-		{
-			LM_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
-			result = EXIT_FAILURE;
 		}
 
 		app.FinishLogging();

@@ -49,6 +49,7 @@ set(
 	"${_INCLUDE_DIR}/component.h"
 	"${_INCLUDE_DIR}/aabb.h"
 	"${_INCLUDE_DIR}/aabb.inl"
+	"${_INCLUDE_DIR}/fp.h"
 )
 set(
 	_SOURCE_FILES
@@ -61,6 +62,7 @@ set(
 	"pugihelper.cpp"
 	"pathutils.cpp"
 	"component.cpp"
+	"fp.cpp"
 	
 	# pugixml sources and headers
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"

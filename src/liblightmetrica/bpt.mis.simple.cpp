@@ -49,12 +49,7 @@ public:
 
 Math::Float BPTSimpleMISWeight::Evaluate(const BPTFullPath& fullPath) const
 {
-	const int nE = static_cast<int>(fullPath.eyeSubpath.vertices.size());
-	const int nL = static_cast<int>(fullPath.lightSubpath.vertices.size());
 	const int n = fullPath.s + fullPath.t;
-
-	int minS = Math::Max(0, n-nE);
-	int maxS = Math::Min(nL, n);
 
 	// This is tricky part, in the weight calculation
 	// we need to exclude samples with zero probability.

@@ -180,6 +180,9 @@ if (MSVC)
 	# Increase stack size to 10MB
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000")
 	
+	# Warning level 4, treat warning as errors
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
+
 	# Add floating-point flag if enabled
 	if (LM_ENABLE_STRICT_FP)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict")
@@ -195,6 +198,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	if (CMAKE_BUILD_TYPE STREQUAL Debug)
 		add_definitions(-D_DEBUG)
 	endif()
+
+	# Enable all warnings
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 	# Enable -fPIC
 	# TODO : Find why with the static version of boost the linker generates an error
