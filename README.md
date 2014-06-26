@@ -1,12 +1,26 @@
 
-Lightmetrica : A research-oriented renderer
+Lightmetrica
 ====================
+
+Lightmetrica : A research-oriented renderer
 
 Introduction
 --------------------
 
-**Lightmetrica** is a research-oriented renderer mainly for implementing various rendering algorithms.
-In order to concentrate the algorithm itself, the renderer is not optimized well, e.g. it does not contains neither parallel implementation nor SIMD optimization. Instead, the implementation is written for easy understanding, and easy to profile the performance of the algorithms. All applications are written in C++ language with C++11 standard, and are executable in Windows or Linux environment. The implemented algorithms are written so that you can grasp the relationship between the implementation and the formulation in the original paper.
+**Lightmetrica** is a research-oriented renderer mainly for implementing various rendering algorithms. Implementation is written for easy understanding, and easy to profile the performance of the algorithms. All applications are written in C++ language with C++11 standard, and are executable in Windows or Linux environment. Implemented algorithms are written so that users can grasp the relationship between the implementation and the formulation in the original paper.
+
+Features
+--------------------
+
+- Implements various types of global illumination techniques (PT, LT, BPT, ~~MLT~~, PM, ~~SPPM~~, ~~UPS/VCM~~, etc.)
+- Unit tested
+- Includes fast SIMD-based math library
+- Various precision for floating-point (single, double, multi-precision)
+- Clean and generalized design according Veach's formulation
+- Experiments support
+- Easily extendable via plugins
+- Clean and easy-to-read log output
+- Blender plugin
 
 Implementation detail
 --------------------

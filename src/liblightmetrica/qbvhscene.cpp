@@ -102,24 +102,27 @@ struct LM_ALIGN_16 QuadTriangle
 	LM_FORCE_INLINE bool Intersect(Ray4& ray4, Ray& ray, Math::Vec2& resultB, unsigned int& resultOffset)
 	{
 		// Check 4 intersections simultaneously
-		const __m128 zero = _mm_set1_ps(0.f);
+		const __m128 zero = _mm_setzero_ps();
+		const __m128 one = _mm_set1_ps(1.0f);
 		const __m128 s1x = _mm_sub_ps(_mm_mul_ps(ray4.dy, edge2z), _mm_mul_ps(ray4.dz, edge2y));
 		const __m128 s1y = _mm_sub_ps(_mm_mul_ps(ray4.dz, edge2x), _mm_mul_ps(ray4.dx, edge2z));
 		const __m128 s1z = _mm_sub_ps(_mm_mul_ps(ray4.dx, edge2y), _mm_mul_ps(ray4.dy, edge2x));
 		const __m128 divisor = _mm_add_ps(_mm_mul_ps(s1x, edge1x), _mm_add_ps(_mm_mul_ps(s1y, edge1y), _mm_mul_ps(s1z, edge1z)));
+		const __m128 divisorZeroMask = _mm_cmpeq_ps(zero, divisor);
+		const __m128 tempDivisor = _mm_add_ps(divisor, _mm_and_ps(one, divisorZeroMask)); // Making zero to some other value in order to avoid divide by zero exception
 		__m128 intersected = _mm_cmpneq_ps(divisor, zero);
 		const __m128 dx = _mm_sub_ps(ray4.ox, origx);
 		const __m128 dy = _mm_sub_ps(ray4.oy, origy);
 		const __m128 dz = _mm_sub_ps(ray4.oz, origz);
-		const __m128 b1 = _mm_div_ps(_mm_add_ps(_mm_mul_ps(dx, s1x), _mm_add_ps(_mm_mul_ps(dy, s1y), _mm_mul_ps(dz, s1z))), divisor);
+		const __m128 b1 = _mm_div_ps(_mm_add_ps(_mm_mul_ps(dx, s1x), _mm_add_ps(_mm_mul_ps(dy, s1y), _mm_mul_ps(dz, s1z))), tempDivisor);
 		intersected = _mm_and_ps(intersected, _mm_cmpge_ps(b1, zero));
 		const __m128 s2x = _mm_sub_ps(_mm_mul_ps(dy, edge1z), _mm_mul_ps(dz, edge1y));
 		const __m128 s2y = _mm_sub_ps(_mm_mul_ps(dz, edge1x), _mm_mul_ps(dx, edge1z));
 		const __m128 s2z = _mm_sub_ps(_mm_mul_ps(dx, edge1y), _mm_mul_ps(dy, edge1x));
-		const __m128 b2 = _mm_div_ps(_mm_add_ps(_mm_mul_ps(ray4.dx, s2x), _mm_add_ps(_mm_mul_ps(ray4.dy, s2y), _mm_mul_ps(ray4.dz, s2z))), divisor);
-		const __m128 b0 = _mm_sub_ps(_mm_set1_ps(1.f), _mm_add_ps(b1, b2));
+		const __m128 b2 = _mm_div_ps(_mm_add_ps(_mm_mul_ps(ray4.dx, s2x), _mm_add_ps(_mm_mul_ps(ray4.dy, s2y), _mm_mul_ps(ray4.dz, s2z))), tempDivisor);
+		const __m128 b0 = _mm_sub_ps(one, _mm_add_ps(b1, b2));
 		intersected = _mm_and_ps(intersected, _mm_and_ps(_mm_cmpge_ps(b2, zero), _mm_cmpge_ps(b0, zero)));
-		const __m128 t = _mm_div_ps(_mm_add_ps(_mm_mul_ps(edge2x, s2x), _mm_add_ps(_mm_mul_ps(edge2y, s2y), _mm_mul_ps(edge2z, s2z))), divisor);
+		const __m128 t = _mm_div_ps(_mm_add_ps(_mm_mul_ps(edge2x, s2x), _mm_add_ps(_mm_mul_ps(edge2y, s2y), _mm_mul_ps(edge2z, s2z))), tempDivisor);
 		intersected = _mm_and_ps(intersected, _mm_and_ps(_mm_cmpgt_ps(t, ray4.minT), _mm_cmplt_ps(t, ray4.maxT)));
 
 		// Find nearest one among at most 4 intersected triangles
@@ -185,8 +188,14 @@ struct QBVHNode
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			bounds[0][i] = _mm_set1_ps(Math::Constants::Inf());
+#if 0
+			bounds[0][i] = _mm_set1_ps( Math::Constants::Inf());
 			bounds[1][i] = _mm_set1_ps(-Math::Constants::Inf());
+#else
+			// Deliberately use INF instead of FLT_MAX
+			bounds[0][i] = _mm_set1_ps( std::numeric_limits<float>::infinity());
+			bounds[1][i] = _mm_set1_ps(-std::numeric_limits<float>::infinity());
+#endif
 		}
 		for (int i = 0; i < 4; i++)
 		{
@@ -256,28 +265,53 @@ struct QBVHNode
 		SSE optimized intersection query.
 		#invRayDir and #rayDirNegative must be precomputed beforehand.
 		\param ray4 Quad ray.
-		\param invRayDir Inverse of ray direction in SOA format.
+		\param invRayDir Precomputed inverse of ray direction in SOA format.
+		\param invRayDirZeroMask Zero mask of #invRayDir.
 		\param rayDirSign Specifies the component of the ray direction is negative.
 		\return Intersection mask.
 	*/
-	LM_FORCE_INLINE int Intersect(const Ray4& ray4, const __m128 invRayDir[3], const int rayDirSign[3])
+	LM_FORCE_INLINE int Intersect(const Ray4& ray4, const __m128 invRayDirMinT[3], const __m128 invRayDirMaxT[3], const int rayDirSign[3])
 	{
+#if 0
 		__m128 minT = ray4.minT;
 		__m128 maxT = ray4.maxT;
 
 		// X coordinate
-		minT = _mm_max_ps(minT, _mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[0]][0], ray4.ox), invRayDir[0]));
-		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[0]][0], ray4.ox), invRayDir[0]));
+		auto t1 = _mm_sub_ps(bounds[rayDirSign[0]][0], ray4.ox);
+		auto t2 = _mm_mul_ps(t1, invRayDir[0]);
+		auto t3 = _mm_or_ps(t2, _mm_and_ps(minT, invRayDirZeroMask[0]));
+		minT = _mm_max_ps(minT, t3);
+		maxT = _mm_min_ps(maxT, _mm_or_ps(_mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[0]][0], ray4.ox), invRayDir[0]), _mm_and_ps(maxT, invRayDirZeroMask[0])));
 
 		// Y coordinate
-		minT = _mm_max_ps(minT, _mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[1]][1], ray4.oy), invRayDir[1]));
-		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[1]][1], ray4.oy), invRayDir[1]));
+		minT = _mm_max_ps(minT, _mm_or_ps(_mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[1]][1], ray4.oy), invRayDir[1]), _mm_and_ps(minT, invRayDirZeroMask[1])));
+		maxT = _mm_min_ps(maxT, _mm_or_ps(_mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[1]][1], ray4.oy), invRayDir[1]), _mm_and_ps(maxT, invRayDirZeroMask[1])));
 
 		// Z coordinate
-		minT = _mm_max_ps(minT, _mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[2]][2], ray4.oz), invRayDir[2]));
-		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[2]][2], ray4.oz), invRayDir[2]));
+		minT = _mm_max_ps(minT, _mm_or_ps(_mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[2]][2], ray4.oz), invRayDir[2]), _mm_and_ps(minT, invRayDirZeroMask[2])));
+		maxT = _mm_min_ps(maxT, _mm_or_ps(_mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[2]][2], ray4.oz), invRayDir[2]), _mm_and_ps(maxT, invRayDirZeroMask[1])));
 
 		return _mm_movemask_ps(_mm_cmpge_ps(maxT, minT));
+#else
+		__m128 minT = ray4.minT;
+		__m128 maxT = ray4.maxT;
+
+		// X coordinate
+		auto t1 = _mm_sub_ps(bounds[rayDirSign[0]][0], ray4.ox);
+		auto t2 = _mm_mul_ps(t1, invRayDirMinT[0]);
+		minT = _mm_max_ps(minT, t2);
+		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[0]][0], ray4.ox), invRayDirMaxT[0]));
+
+		// Y coordinate
+		minT = _mm_max_ps(minT, _mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[1]][1], ray4.oy), invRayDirMinT[1]));
+		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[1]][1], ray4.oy), invRayDirMaxT[1]));
+
+		// Z coordinate
+		minT = _mm_max_ps(minT, _mm_mul_ps(_mm_sub_ps(bounds[rayDirSign[2]][2], ray4.oz), invRayDirMinT[2]));
+		maxT = _mm_min_ps(maxT, _mm_mul_ps(_mm_sub_ps(bounds[1 - rayDirSign[2]][2], ray4.oz), invRayDirMaxT[2]));
+
+		return _mm_movemask_ps(_mm_cmpge_ps(maxT, minT));
+#endif
 	}
 
 };
@@ -807,17 +841,34 @@ void QBVHScene::Impl::CreateIntermediateNode( int parent, int child, const AABB&
 bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
-	unsigned int intersectedTriIndex;
-	unsigned int intersectedQuadOffset;		// Only for IntersectionMode::SSE
+	unsigned int intersectedTriIndex = 0;
+	unsigned int intersectedQuadOffset = 0;		// Only for IntersectionMode::SSE
 	Math::Vec2 intersectedTriB;
 
 	// Some required data for intersection query
 	Ray4 ray4(ray);
 
+#if 0
+	const __m128 Zero = _mm_setzero_ps();
+
 	__m128 invRayDir[3];
-	invRayDir[0] = _mm_set1_ps(1.0f / ray.d.x);
-	invRayDir[1] = _mm_set1_ps(1.0f / ray.d.y);
-	invRayDir[2] = _mm_set1_ps(1.0f / ray.d.z);
+	invRayDir[0] = _mm_set1_ps(Math::IsZero(ray.d.x) ? Math::Float(0) : Math::Float(1) / ray.d.x);
+	invRayDir[1] = _mm_set1_ps(Math::IsZero(ray.d.y) ? Math::Float(0) : Math::Float(1) / ray.d.y);
+	invRayDir[2] = _mm_set1_ps(Math::IsZero(ray.d.z) ? Math::Float(0) : Math::Float(1) / ray.d.z);
+
+	__m128 invRayDirZeroMask[3];
+	invRayDirZeroMask[0] = _mm_cmpeq_ps(Zero, invRayDir[0]);
+	invRayDirZeroMask[1] = _mm_cmpeq_ps(Zero, invRayDir[1]);
+	invRayDirZeroMask[2] = _mm_cmpeq_ps(Zero, invRayDir[2]);
+#else
+	__m128 invRayDirMinT[3], invRayDirMaxT[3];
+	invRayDirMinT[0] = _mm_set1_ps(Math::IsZero(ray.d.x) ? Math::Constants::Eps() : Math::Float(1) / ray.d.x);
+	invRayDirMinT[1] = _mm_set1_ps(Math::IsZero(ray.d.y) ? Math::Constants::Eps() : Math::Float(1) / ray.d.y);
+	invRayDirMinT[2] = _mm_set1_ps(Math::IsZero(ray.d.z) ? Math::Constants::Eps() : Math::Float(1) / ray.d.z);
+	invRayDirMaxT[0] = _mm_set1_ps(Math::IsZero(ray.d.x) ? Math::Constants::Inf() : Math::Float(1) / ray.d.x);
+	invRayDirMaxT[1] = _mm_set1_ps(Math::IsZero(ray.d.y) ? Math::Constants::Inf() : Math::Float(1) / ray.d.y);
+	invRayDirMaxT[2] = _mm_set1_ps(Math::IsZero(ray.d.z) ? Math::Constants::Inf() : Math::Float(1) / ray.d.z);
+#endif
 
 	int rayDirSign[3];
 	rayDirSign[0] = ray.d.x < 0.0f;
@@ -883,7 +934,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 			// Intermediate node
 			// Check intersection to 4 bounds simultaneously
 			auto* node = nodes[data];
-			int mask = node->Intersect(ray4, invRayDir, rayDirSign);
+			int mask = node->Intersect(ray4, invRayDirMinT, invRayDirMaxT, rayDirSign);
 			if (mask & 0x1) stack[++stackIndex] = node->children[0];
 			if (mask & 0x2) stack[++stackIndex] = node->children[1];
 			if (mask & 0x4) stack[++stackIndex] = node->children[2];

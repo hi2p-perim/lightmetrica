@@ -789,13 +789,13 @@ LM_FORCE_INLINE TVec4<T> Max(const TVec4<T>& v1, const TVec4<T>& v2)
 #if LM_SSE2
 
 LM_FORCE_INLINE Vec3f::TVec3()
-	: v(_mm_setzero_ps())
+	: v(_mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f))
 {
 
 }
 
 LM_FORCE_INLINE Vec3f::TVec3(const Vec2f& v)
-	: v(_mm_set_ps(0.0f, 0.0f, v.y, v.x))
+	: v(_mm_set_ps(1.0f, 0.0f, v.y, v.x))
 {
 
 }
@@ -825,13 +825,13 @@ LM_FORCE_INLINE Vec3f::TVec3(__m128 v)
 }
 
 LM_FORCE_INLINE Vec3f::TVec3(float x, float y, float z)
-	: v(_mm_set_ps(0.0f, z, y, x))
+	: v(_mm_set_ps(1.0f, z, y, x))
 {
 
 }
 
 LM_FORCE_INLINE Vec3f::TVec3(const Vec2f& v, float z)
-	: v(_mm_set_ps(0.0f, z, v.y, v.x))
+	: v(_mm_set_ps(1.0f, z, v.y, v.x))
 {
 
 }
@@ -1234,13 +1234,13 @@ LM_FORCE_INLINE Vec4f Max(const Vec4f& v1, const Vec4f& v2)
 #if LM_AVX
 
 LM_FORCE_INLINE Vec3d::TVec3()
-	: v(_mm256_setzero_pd())
+	: v(_mm256_set_pd(1, 0, 0, 0))
 {
 
 }
 
 LM_FORCE_INLINE Vec3d::TVec3(const Vec2d& v)
-	: v(_mm256_set_pd(0, 0, v.y, v.x))
+	: v(_mm256_set_pd(1, 0, v.y, v.x))
 {
 
 }
@@ -1254,13 +1254,13 @@ LM_FORCE_INLINE Vec3d::TVec3(const Vec3d& v)
 LM_FORCE_INLINE Vec3d::TVec3(const Vec4d& v)
 	: v(v.v)
 {
-	_ = 0;
+
 }
 
 LM_FORCE_INLINE Vec3d::TVec3(double v)
 	: v(_mm256_set1_pd(v))
 {
-	_ = 0;
+
 }
 
 LM_FORCE_INLINE Vec3d::TVec3(__m256d v)
@@ -1270,13 +1270,13 @@ LM_FORCE_INLINE Vec3d::TVec3(__m256d v)
 }
 
 LM_FORCE_INLINE Vec3d::TVec3(double x, double y, double z)
-	: v(_mm256_set_pd(0, z, y, x))
+	: v(_mm256_set_pd(1, z, y, x))
 {
 
 }
 
 LM_FORCE_INLINE Vec3d::TVec3(const Vec2d& v, double z)
-	: v(_mm256_set_pd(0, z, v.y, v.x))
+	: v(_mm256_set_pd(1, z, v.y, v.x))
 {
 
 }

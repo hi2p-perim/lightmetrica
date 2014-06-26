@@ -125,10 +125,15 @@ struct BVHTraversalData
 	BVHTraversalData(Ray& ray)
 		: ray(ray)
 	{
-		invRayDir = Math::Vec3(
-			Math::Float(Math::Float(1) / ray.d.x),
-			Math::Float(Math::Float(1) / ray.d.y),
-			Math::Float(Math::Float(1) / ray.d.z));
+		invRayDirMinT = Math::Vec3(
+			Math::IsZero(ray.d.x) ? Math::Float(0) : Math::Float(Math::Float(1) / ray.d.x),
+			Math::IsZero(ray.d.y) ? Math::Float(0) : Math::Float(Math::Float(1) / ray.d.y),
+			Math::IsZero(ray.d.z) ? Math::Float(0) : Math::Float(Math::Float(1) / ray.d.z));
+
+		invRayDirMaxT = Math::Vec3(
+			Math::IsZero(ray.d.x) ? Math::Constants::Inf() : Math::Float(Math::Float(1) / ray.d.x),
+			Math::IsZero(ray.d.y) ? Math::Constants::Inf() : Math::Float(Math::Float(1) / ray.d.y),
+			Math::IsZero(ray.d.z) ? Math::Constants::Inf() : Math::Float(Math::Float(1) / ray.d.z));
 
 		rayDirNegative = Math::Vec3i(
 			ray.d.x < Math::Float(0),
@@ -138,7 +143,8 @@ struct BVHTraversalData
 
 	Ray& ray;
 	Math::Vec3i rayDirNegative;			// Each component of the rayDir is negative
-	Math::Vec3 invRayDir;				// Inverse of the rayDir
+	Math::Vec3 invRayDirMinT;				// Inverse of the rayDir (for larger t)
+	Math::Vec3 invRayDirMaxT;				// Inverse of the rayDir (for smaller t)
 
 	// The following data is filled when intersected
 	unsigned int intersectedTriIdx;		// Intersected triangle index
@@ -440,22 +446,21 @@ bool BVHScene::Impl::Intersect( const std::shared_ptr<BVHNode>& node, BVHTravers
 bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) const
 {
 	auto& rayDirNegative = data.rayDirNegative;
-	auto& invRayDir = data.invRayDir;
+	auto& invRayDirMinT = data.invRayDirMinT;
+	auto& invRayDirMaxT = data.invRayDirMaxT;
 	auto& ray = data.ray;
 
-	Math::Float tmin =  (bound[    rayDirNegative[0]].x - ray.o.x) * invRayDir.x;
-	Math::Float tmax =  (bound[1 - rayDirNegative[0]].x - ray.o.x) * invRayDir.x;
-	Math::Float tymin = (bound[    rayDirNegative[1]].y - ray.o.y) * invRayDir.y;
-	Math::Float tymax = (bound[1 - rayDirNegative[1]].y - ray.o.y) * invRayDir.y;
-
+	Math::Float tmin  = (bound[    rayDirNegative[0]].x - ray.o.x) * invRayDirMinT.x;
+	Math::Float tmax  = (bound[1 - rayDirNegative[0]].x - ray.o.x) * invRayDirMaxT.x;
+	
+	Math::Float tymin = (bound[    rayDirNegative[1]].y - ray.o.y) * invRayDirMinT.y;
+	Math::Float tymax = (bound[1 - rayDirNegative[1]].y - ray.o.y) * invRayDirMaxT.y;
 	if ((tmin > tymax) || (tymin > tmax)) return false;
 	if (tymin > tmin) tmin = tymin;
 	if (tymax < tmax) tmax = tymax;
 
-	// Check for ray intersection against z slab
-	Math::Float tzmin = (bound[    rayDirNegative[2]].z - ray.o.z) * invRayDir.z;
-	Math::Float tzmax = (bound[1 - rayDirNegative[2]].z - ray.o.z) * invRayDir.z;
-
+	Math::Float tzmin = (bound[    rayDirNegative[2]].z - ray.o.z) * invRayDirMinT.z;
+	Math::Float tzmax = (bound[1 - rayDirNegative[2]].z - ray.o.z) * invRayDirMaxT.z;
 	if ((tmin > tzmax) || (tzmin > tmax)) return false;
 	if (tzmin > tmin) tmin = tzmin;
 	if (tzmax < tmax) tmax = tzmax;

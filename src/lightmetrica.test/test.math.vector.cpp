@@ -268,7 +268,8 @@ TYPED_TEST(MathVector3Test, MultiplyDivideAssign)
 	t = v1s2; t /= T(2);
 	EXPECT_TRUE(ExpectVec3Near(this->d->v1, v1s2 / T(2)));
 
-	t = v1v2; t /= this->d->v2;
+	t = v1v2;
+	t /= this->d->v2;
 	EXPECT_TRUE(ExpectVec3Near(this->d->v1, v1v2 / this->d->v2));
 }
 

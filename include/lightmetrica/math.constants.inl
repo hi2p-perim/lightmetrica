@@ -56,7 +56,7 @@ LM_FORCE_INLINE T TConstants<T>::InvTwoPi()
 template <typename T>
 LM_FORCE_INLINE T TConstants<T>::Inf()
 {
-	return std::numeric_limits<T>::infinity();
+	return std::numeric_limits<T>::max();
 }
 
 template <typename T>

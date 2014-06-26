@@ -48,8 +48,8 @@ bool FloatintPointUtils::EnableFPControl()
 							| _EM_DENORMAL			// Denormal operand 
 							| _EM_ZERODIVIDE		// Divide by zero
 							| _EM_OVERFLOW			// Overflow
-							| _EM_UNDERFLOW			// Underflow
-							| _EM_INEXACT);			// Inexact result
+							| _EM_UNDERFLOW);		// Underflow
+	//						| _EM_INEXACT);			// Inexact result
 
 	if ((error = _controlfp_s(&currentFPState, newFPState, _MCW_EM)) != 0)
 	{

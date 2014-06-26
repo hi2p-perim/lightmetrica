@@ -26,6 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_MATH_TYPES_H
 #define LIB_LIGHTMETRICA_MATH_TYPES_H
 
+#include "math.common.h"
 #include "math.vector.h"
 #include "math.matrix.h"
 #include "math.quat.h"
@@ -36,26 +37,6 @@
 
 LM_NAMESPACE_BEGIN
 LM_MATH_NAMESPACE_BEGIN
-
-// Precision mode
-#ifdef LM_USE_SINGLE_PRECISION
-	#define LM_SINGLE_PRECISION 1
-#else
-	#define LM_SINGLE_PRECISION 0
-#endif
-#ifdef LM_USE_DOUBLE_PRECISION
-	#define LM_DOUBLE_PRECISION 1
-#else
-	#define LM_DOUBLE_PRECISION 0
-#endif
-#ifdef LM_USE_MULTI_PRECISION
-	#define LM_MULTI_PRECISION 1
-#else
-	#define LM_MULTI_PRECISION 0
-#endif
-#if LM_SINGLE_PRECISION + LM_DOUBLE_PRECISION + LM_DOUBLE_PRECISION != 1
-	#error "Invalid precision mode"
-#endif
 
 // Define default floating point types
 #if LM_SINGLE_PRECISION
