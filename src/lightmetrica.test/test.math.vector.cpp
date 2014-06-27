@@ -345,6 +345,10 @@ TYPED_TEST(MathVector3Test, LInfinityNorm)
 	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(-3), T(-2), T(-1)))));
 	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(1), T(2), T(3)))));
 	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec3<T>(T(1), T(3), T(2)))));
+
+	// This is a little tricky case
+	// Fourth component of Vec3 is hidden when SIMD version of Vec3 is used
+	EXPECT_TRUE(ExpectNear(T(1), Math::LInfinityNorm(Math::TVec3<T>(Math::TVec4<T>(T(1), T(1), T(1), T(2))))));
 }
 
 TYPED_TEST(MathVector3Test, MinMax)

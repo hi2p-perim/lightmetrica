@@ -74,7 +74,7 @@ public:
 private:
 
 	void TracePhotons(const Scene& scene, Photons& photons, long long& tracedPaths) const;
-	void RenderProcessSingleSample(const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
+	void ProcessRenderSingleSample(const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
 	void VisualizePhotons(const Scene& scene, Film& film) const;
 
 private:
@@ -255,7 +255,7 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			RenderProcessSingleSample(scene, *rng, *film, collectedPhotons);
+			ProcessRenderSingleSample(scene, *rng, *film, collectedPhotons);
 		}
 
 		processedBlocks++;
@@ -306,7 +306,7 @@ void PhotonMappingRenderer::VisualizePhotons( const Scene& scene, Film& film ) c
 	}
 }
 
-void PhotonMappingRenderer::RenderProcessSingleSample( const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo ) const
+void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo ) const
 {
 	// Sample position on camera
 	SurfaceGeometry geomE;

@@ -347,9 +347,13 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 			const auto* xjNext	= FullPathVertex(j+1);
 			auto xjPdfDLE		= FullPathVertexDirectionPDF(j, TransportDirection::LE);
 			LM_ASSERT(xjPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-			fullpathPdf *=
-				xjPdfDLE.v *
-				RenderUtils::GeneralizedGeometryTerm(xj->geom, xjNext->geom);
+			auto G = RenderUtils::GeneralizedGeometryTerm(xj->geom, xjNext->geom);
+			fullpathPdf *= xjPdfDLE.v * G;
+			if (fullpathPdf > Math::Constants::Inf() * Math::Float(1e-7))
+			{
+				// Overflow
+				return Math::Float(0);
+			}
 		}
 	}
 
@@ -367,9 +371,13 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 			const auto* xjPrev	= FullPathVertex(j-1);
 			auto xjPdfDEL		= FullPathVertexDirectionPDF(j, TransportDirection::EL);
 			LM_ASSERT(xjPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-			fullpathPdf *=
-				xjPdfDEL.v *
-				RenderUtils::GeneralizedGeometryTerm(xj->geom, xjPrev->geom);
+			auto G = RenderUtils::GeneralizedGeometryTerm(xj->geom, xjPrev->geom);
+			fullpathPdf *= xjPdfDEL.v * G;
+			if (fullpathPdf > Math::Constants::Inf() * Math::Float(1e-7))
+			{
+				// Overflow
+				return Math::Float(0);
+			}
 		}
 	}
 

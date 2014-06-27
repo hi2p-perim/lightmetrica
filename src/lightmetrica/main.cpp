@@ -93,6 +93,7 @@ private:
 
 	void BeginProgress(const std::string& taskName);
 	void EndProgress();
+	void AbortProgress();
 	void OnReportProgress(double progress, bool done);
 
 private:
@@ -317,7 +318,7 @@ bool LightmetricaApplication::LoadAssets( const Config& config, DefaultAssets& a
 
 		if (!assets.Load(config.Root().Child("assets")))
 		{
-			EndProgress();
+			AbortProgress();
 			return false;
 		}
 
@@ -360,7 +361,7 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 
 		if (!scene.Build())
 		{
-			EndProgress();
+			AbortProgress();
 			return false;
 		}
 
@@ -393,7 +394,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 
 		if (!renderer.Preprocess(scene))
 		{
-			EndProgress();
+			AbortProgress();
 			return false;
 		}
 
@@ -410,7 +411,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 
 		if (!renderer.Render(scene))
 		{
-			EndProgress();
+			AbortProgress();
 			return false;
 		}
 
@@ -608,6 +609,56 @@ void LightmetricaApplication::EndProgress()
 	enableProgressBar = false;
 }
 
+void LightmetricaApplication::AbortProgress()
+{
+	std::unique_lock<std::mutex> lock(progressMutex);
+	requiresProgressUpdate = true;
+	progressDone = true;
+	progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
+	enableProgressBar = false;
+}
+
+#if LM_PLATFORM_WINDOWS
+void SETransFunc(unsigned int code, PEXCEPTION_POINTERS data)
+{
+	std::string desc;
+	switch (code)
+	{
+		case EXCEPTION_ACCESS_VIOLATION:			{ desc = "EXCEPTION_ACCESS_VIOLATION";			break; }
+		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:		{ desc = "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";		break; }
+		case EXCEPTION_BREAKPOINT:					{ desc = "EXCEPTION_BREAKPOINT";				break; }
+		case EXCEPTION_DATATYPE_MISALIGNMENT:		{ desc = "EXCEPTION_DATATYPE_MISALIGNMENT";		break; }
+		case EXCEPTION_FLT_DENORMAL_OPERAND:		{ desc = "EXCEPTION_FLT_DENORMAL_OPERAND";		break; }
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO:			{ desc = "EXCEPTION_FLT_DIVIDE_BY_ZERO";		break; }
+		case EXCEPTION_FLT_INEXACT_RESULT:			{ desc = "EXCEPTION_FLT_INEXACT_RESULT";		break; }
+		case EXCEPTION_FLT_INVALID_OPERATION:		{ desc = "EXCEPTION_FLT_INVALID_OPERATION";		break; }
+		case EXCEPTION_FLT_OVERFLOW:				{ desc = "EXCEPTION_FLT_OVERFLOW";				break; }
+		case EXCEPTION_FLT_STACK_CHECK:				{ desc = "EXCEPTION_FLT_STACK_CHECK";			break; }
+		case EXCEPTION_FLT_UNDERFLOW:				{ desc = "EXCEPTION_FLT_UNDERFLOW";				break; }
+		case EXCEPTION_ILLEGAL_INSTRUCTION:			{ desc = "EXCEPTION_ILLEGAL_INSTRUCTION";		break; }
+		case EXCEPTION_IN_PAGE_ERROR:				{ desc = "EXCEPTION_IN_PAGE_ERROR";				break; }
+		case EXCEPTION_INT_DIVIDE_BY_ZERO:			{ desc = "EXCEPTION_INT_DIVIDE_BY_ZERO";		break; }
+		case EXCEPTION_INT_OVERFLOW:				{ desc = "EXCEPTION_INT_OVERFLOW";				break; }
+		case EXCEPTION_INVALID_DISPOSITION:			{ desc = "EXCEPTION_INVALID_DISPOSITION";		break; }
+		case EXCEPTION_NONCONTINUABLE_EXCEPTION:	{ desc = "EXCEPTION_NONCONTINUABLE_EXCEPTION";	break; }
+		case EXCEPTION_PRIV_INSTRUCTION:			{ desc = "EXCEPTION_PRIV_INSTRUCTION";			break; }
+		case EXCEPTION_SINGLE_STEP:					{ desc = "EXCEPTION_SINGLE_STEP";				break; }
+		case EXCEPTION_STACK_OVERFLOW:				{ desc = "EXCEPTION_STACK_OVERFLOW";			break; }
+	}
+
+	LM_LOG_ERROR("Structured exception is detected");
+	LM_LOG_INDENTER();
+	LM_LOG_ERROR("Exception code    : " + boost::str(boost::format("0x%08x") % code));
+	LM_LOG_ERROR("Exception address : " + boost::str(boost::format("0x%08x") % data->ExceptionRecord->ExceptionAddress));
+	if (!desc.empty())
+	{
+		LM_LOG_ERROR("Description       : " + desc);
+	}
+	
+	throw std::runtime_error("Aborting");
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	int result = EXIT_SUCCESS;
@@ -618,11 +669,13 @@ int main(int argc, char** argv)
 		app.StartLogging();
 
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+		_set_se_translator(SETransFunc);
 		if (!FloatintPointUtils::EnableFPControl())
 		{
 			result = EXIT_FAILURE;
 		}
 #endif
+
 		if (result != EXIT_FAILURE)
 		{
 			try

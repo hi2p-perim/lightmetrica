@@ -24,6 +24,9 @@
 #include "pch.h"
 #include <lightmetrica/fp.h>
 #include <lightmetrica/logger.h>
+#if LM_PLATFORM_WINDOWS
+#include <windows.h>
+#endif
 
 LM_NAMESPACE_BEGIN
 
@@ -31,6 +34,7 @@ bool FloatintPointUtils::EnableFPControl()
 {
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 
+	/*
 	errno_t error;
 
 	// Restore current floating-point control word
@@ -56,6 +60,7 @@ bool FloatintPointUtils::EnableFPControl()
 		LM_LOG_ERROR("_controlfp_s failed : " + std::string(strerror(error)));
 		return false;
 	}
+	*/
 
 	return true;
 

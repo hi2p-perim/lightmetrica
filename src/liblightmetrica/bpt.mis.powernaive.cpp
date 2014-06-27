@@ -62,18 +62,28 @@ bool BPTPowerHeuristicsNaiveMISWeight::Configure( const ConfigNode& node, const 
 
 Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPath) const
 {
-	Math::Float invWeight(0);
+	Math::Float invWeight(1);
 	Math::Float ps = fullPath.EvaluateFullpathPDF(fullPath.s);
-	LM_ASSERT(Math::Abs(ps) > Math::Constants::Eps());
+	if (Math::IsZero(ps))
+	{
+		// p_s might be zero because of special handling of geometry term.
+		// In this case, the full-path is samples have some contribution value, but zero probability.
+		return Math::Float(0);
+	}
 
 	for (int i = 0; i <= fullPath.s + fullPath.t; i++)
 	{
+		if (i == fullPath.s)
+		{
+			// Note that due to specular connections,
+			// full-path PDF evaluation for p_s might not be correct, so
+			// we precomputed the value of p_s / p_s = 1 as an initial value of inverse weight.
+			// Otherwise, unnatural black points is observed in the rendered image.
+			continue;
+		}
+
 		auto pi = fullPath.EvaluateFullpathPDF(i);
-		//if (Math::IsZero(pi))
-		//{
-		//	continue;
-		//}
-		if (Math::Abs(pi) < Math::Constants::Eps())
+		if (Math::IsZero(pi))
 		{
 			continue;
 		}

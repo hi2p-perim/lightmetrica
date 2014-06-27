@@ -186,6 +186,7 @@ if (MSVC)
 	# Add floating-point flag if enabled
 	if (LM_ENABLE_STRICT_FP)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
 	endif()
 endif()
 
