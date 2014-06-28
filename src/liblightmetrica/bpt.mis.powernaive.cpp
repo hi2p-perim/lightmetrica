@@ -78,18 +78,24 @@ Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPa
 			// Note that due to specular connections,
 			// full-path PDF evaluation for p_s might not be correct, so
 			// we precomputed the value of p_s / p_s = 1 as an initial value of inverse weight.
-			// Otherwise, unnatural black points is observed in the rendered image.
+			// Otherwise, unnatural black points are observed in the rendered image.
 			continue;
 		}
 
 		auto pi = fullPath.EvaluateFullpathPDF(i);
-		if (Math::IsZero(pi))
+		if (pi > Math::Float(0))
 		{
-			continue;
+			auto ratio = pi / ps;
+			invWeight += ratio * ratio;
 		}
 
-		auto ratio = pi / ps;
-		invWeight += ratio * ratio;
+		//if (Math::IsZero(pi))
+		//{
+		//	continue;
+		//}
+
+		//auto ratio = pi / ps;
+		//invWeight += ratio * ratio;
 	}
 
 	return Math::Float(1) / invWeight;

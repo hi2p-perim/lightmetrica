@@ -27,6 +27,7 @@
 #include <lightmetrica/align.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/surfacegeometry.h>
+#include <lightmetrica/assert.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -59,7 +60,8 @@ public:
 
 private:
 
-	Math::Float EvalFrDielectic(Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT) const;
+	Math::Float EvalFrDielectic(const Math::Float& etaI, const Math::Float& etaT, const Math::Float& cosThetaI, Math::Float& cosThetaT) const;
+	bool CheckRefract(const Math::Float& etaI, const Math::Float& etaT, const Math::Float& cosThetaI, const Math::Float& cosThetaT) const;
 
 private:
 
@@ -184,10 +186,17 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 
 	// Refraction
 	// Refracted wi and wo must be same
+#if 1
+	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
+	{
+		return Math::Vec3();
+	}
+#else
 	if (!useT || Math::LInfinityNorm(Math::RefractZUp(localWi, eta, cosThetaT2) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::Vec3();
 	}
+#endif
 
 	// Correction factor for shading normal
 	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
@@ -234,8 +243,6 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 		std::swap(etaI, etaT);
 	}
 
-	auto eta = etaI / etaT;
-
 	// Fresnel term
 	Math::Float cosThetaT2;
 	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT2);
@@ -252,16 +259,27 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	}
 
 	// Refraction
+#if 1
+	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+#else
+	auto eta = etaI / etaT;
 	if (!useT || Math::LInfinityNorm(Math::RefractZUp(localWi, eta, cosThetaT2) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
+#endif
 
 	return Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT2), Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
-Math::Float DielectricBSDF::EvalFrDielectic( Math::Float etaI, Math::Float etaT, Math::Float cosThetaI, Math::Float& cosThetaT ) const
+Math::Float DielectricBSDF::EvalFrDielectic( const Math::Float& etaI, const Math::Float& etaT, const Math::Float& cosThetaI, Math::Float& cosThetaT ) const
 {
+#if 0
+	return Math::Float(1);
+#else
 	Math::Float Fr;
 	bool entering = cosThetaI > Math::Float(0);
 
@@ -275,31 +293,57 @@ Math::Float DielectricBSDF::EvalFrDielectic( Math::Float etaI, Math::Float etaT,
 		Fr = Math::Float(1); 
 		cosThetaT = Math::Float(0);
 	}
+
+	auto cosThetaI2 = Math::Abs(cosThetaI);
+	cosThetaT = Math::Sqrt(Math::Float(1) - sinThetaTSq);
+
+	if (etaI == etaT)
+	{
+		Fr = Math::Float(0);
+	}
 	else
 	{
-		cosThetaI = Math::Abs(cosThetaI);
-		cosThetaT = Math::Sqrt(Math::Float(1) - sinThetaTSq);
+		Math::Float Rs = (etaI * cosThetaI2 - etaT * cosThetaT) / (etaI * cosThetaI2 + etaT * cosThetaT);
+		Math::Float Rp = (etaT * cosThetaI2 - etaI * cosThetaT) / (etaT * cosThetaI2 + etaI * cosThetaT);
 
-		if (etaI == etaT)
+		Fr = (Rs * Rs + Rp * Rp) / Math::Float(2);
+
+		// Flip theta_t if incoming ray comes from negative z
+		if (entering)
 		{
-			Fr = Math::Float(0);
-		}
-		else
-		{
-			Math::Float Rs = (etaI * cosThetaI - etaT * cosThetaT) / (etaI * cosThetaI + etaT * cosThetaT);
-			Math::Float Rp = (etaT * cosThetaI - etaI * cosThetaT) / (etaT * cosThetaI + etaI * cosThetaT);
-
-			Fr = (Rs * Rs + Rp * Rp) / Math::Float(2);
-
-			// Flip theta_t if incoming ray comes from negative z
-			if (entering)
-			{
-				cosThetaT = -cosThetaT;
-			}
+			cosThetaT = -cosThetaT;
 		}
 	}
 
 	return Fr;
+#endif
+}
+
+bool DielectricBSDF::CheckRefract( const Math::Float& etaI, const Math::Float& etaT, const Math::Float& cosThetaI, const Math::Float& cosThetaT ) const
+{
+	// Due to numerical problem directly compute cosThetaT by EvalFrDielectic
+	// might result in poor accuracy, so we use this function instead.
+
+	Math::Float eta = etaI / etaT;
+	Math::Float sinThetaTSq = eta * eta * (Math::Float(1) - cosThetaI * cosThetaI);
+
+	if (sinThetaTSq >= Math::Float(1))
+	{
+		// Total internal reflection
+		// Should not be reached here
+		//LM_ASSERT(false);
+		return false;
+	}
+	
+	auto v1 = cosThetaT * cosThetaT;
+	auto v2 = (Math::Float(1) - sinThetaTSq);
+	auto abs = Math::Abs(v1 - v2) / Math::Abs(v2);
+	if (abs > Math::Constants::EpsLarge())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 LM_COMPONENT_REGISTER_IMPL(DielectricBSDF, BSDF);

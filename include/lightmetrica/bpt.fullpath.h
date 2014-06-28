@@ -92,7 +92,7 @@ public:
 	*/
 	LM_PUBLIC_API void DebugPrint() const;
 
-private:
+public:
 
 	/*!
 		Get i-th vertex of the full-path.

@@ -42,11 +42,11 @@ Math::Float RenderUtils::GeneralizedGeometryTerm( const SurfaceGeometry& geom1, 
 	Math::Float numerator(1);
 	if (!geom1.degenerated)
 	{
-		numerator *= Math::Dot(geom1.sn, p1p2);
+		numerator *= Math::Abs(Math::Dot(geom1.sn, p1p2));
 	}
 	if (!geom2.degenerated)
 	{
-		numerator *= Math::Dot(geom2.sn, -p1p2);
+		numerator *= Math::Abs(Math::Dot(geom2.sn, -p1p2));
 	}
 
 	// Cope with a singularity in the geometry term evaluation
