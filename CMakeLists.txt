@@ -220,7 +220,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(LM_VERSION_MAJOR "0")
 set(LM_VERSION_MINOR "0")
 set(LM_VERSION_PATCH "1")
-set(LM_VERSION_CODENAME "nanon")
+set(LM_VERSION_CODENAME "kokoro pyon pyon")
 
 # Execute git command in the project root and check revision number
 find_package(Git REQUIRED)

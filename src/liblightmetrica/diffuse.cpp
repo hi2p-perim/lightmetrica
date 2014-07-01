@@ -54,6 +54,7 @@ public:
 public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -94,6 +95,39 @@ bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, cons
 	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
 
 	return true;
+}
+
+Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+{
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	{
+		return Math::Vec3();
+	}
+
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+	result.pdf = Math::CosineSampleHemispherePDF(localWo);
+	if (Math::IsZero(result.pdf.v))
+	{
+		return Math::Vec3();
+	}
+
+	result.pdf.v /= Math::CosThetaZUp(localWo);
+	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+
+	Math::Float sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sf))
+	{
+		return Math::Vec3();
+	}
+
+	// f / p_{\sigma^\bot)
+	// R * \pi^-1 / (p_\sigma / \cos(w_o))
+	// R * \pi^-1 / (\pi^-1 * \cos(w_o) / \cos(w_o))
+	// R
+	return diffuseReflectance * sf;
 }
 
 Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

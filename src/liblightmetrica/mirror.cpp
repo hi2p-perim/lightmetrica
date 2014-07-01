@@ -52,6 +52,7 @@ public:
 public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return true; }
@@ -71,17 +72,43 @@ bool PerfectMirrorBSDF::Load( const ConfigNode& node, const Assets& assets )
 
 bool PerfectMirrorBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0)
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
 
-	auto localWi = geom.worldToShading * query.wi;
-	result.wo = geom.shadingToWorld * Math::ReflectZUp(localWi);
+	auto localWo = Math::ReflectZUp(localWi);
+	result.wo = geom.shadingToWorld * localWo;
 	result.sampledType = GeneralizedBSDFType::SpecularReflection;
-	result.pdf = Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.pdf = Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWo), Math::ProbabilityMeasure::ProjectedSolidAngle);
 
 	return true;
+}
+
+Math::Vec3 PerfectMirrorBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+{
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	{
+		return Math::Vec3();
+	}
+
+	auto localWo = Math::ReflectZUp(localWi);
+	result.wo = geom.shadingToWorld * localWo;
+	result.sampledType = GeneralizedBSDFType::SpecularReflection;
+	result.pdf = Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWo), Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sf))
+	{
+		return Math::Vec3();
+	}
+
+	// f / p_{\sigma^\bot}
+	// R / \cos(w_o) / (p_\sigma / \cos(w_o))
+	// R
+	return R * sf;
 }
 
 Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

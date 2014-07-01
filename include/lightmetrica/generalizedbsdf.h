@@ -156,6 +156,15 @@ public:
 	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const = 0;
 	
 	/*!
+		Sample and estimate direction.
+		\param query Query structure.
+		\param geom Surface geometry.
+		\param result Sampled result.
+		\return Evaluated estimate.
+	*/
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const = 0;
+
+	/*!
 		Evaluate generalized BSDF.
 		\param query Query structure.
 		\param geom Surface geometry.

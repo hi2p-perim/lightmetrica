@@ -50,6 +50,7 @@ public:
 public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -83,6 +84,11 @@ bool ThinLensCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 	return false;
 }
 
+Math::Vec3 ThinLensCamera::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+{
+	return Math::Vec3();
+}
+
 Math::Vec3 ThinLensCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	return Math::Vec3();
@@ -95,7 +101,7 @@ Math::PDFEval ThinLensCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 
 void ThinLensCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-
+	
 }
 
 Math::Vec3 ThinLensCamera::EvaluatePosition( const SurfaceGeometry& geom ) const

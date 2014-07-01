@@ -54,6 +54,7 @@ set(
 	"test.bpt.fullpath.cpp"
 	"test.bpt.fullpath2.cpp"
 	"test.pm.photonmap.cpp"
+	"test.generalizedbsdf.cpp"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

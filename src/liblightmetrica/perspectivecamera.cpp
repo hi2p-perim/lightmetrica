@@ -58,6 +58,7 @@ public:
 public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -214,6 +215,32 @@ bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query
 	return true;
 }
 
+Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+{
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	{
+		return Math::Vec3();
+	}
+
+	// Raster position in [-1, 1]^2
+	auto ndcRasterPos = Math::Vec3(query.sample * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
+
+	// Convert raster position to camera coordinates
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
+	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
+
+	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
+	result.pdf = Math::PDFEval(
+		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
+		Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+	// TODO : Add explanation
+	// We_D / p_{\sigma^\bot}
+	// = 1
+	return Math::Vec3(Math::Float(1));
+}
+
 Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Math::Vec3(Math::Float(1));
@@ -306,8 +333,9 @@ Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEval
 	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
 	auto refCam3 = Math::Vec3(refCam4);
 
+	// NOTE : This PDF evaluation is vulnerable with FP precision
 	return Math::PDFEval(
-		EvaluateImportance(-Math::CosThetaZUp(refCam3)),
+		EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))),
 		Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
