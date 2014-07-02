@@ -137,7 +137,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 	{
 		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
 		
-		const int Samples = 1<<9;
+		const int Samples = 1<<10;
 		for (int sample = 0; sample < Samples; sample++)
 		{
 			GeneralizedBSDFSampleQuery bsdfSQ;
@@ -162,7 +162,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 			EXPECT_FALSE(Math::IsZero(pdfD.v));
 			EXPECT_EQ(pdfD.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-			auto result = ExpectNear(bsdfSR.pdf.v, pdfD.v);
+			auto result = ExpectNear(bsdfSR.pdf.v, pdfD.v, Math::Float(1e-2));
 			EXPECT_TRUE(result);
 			if (!result)
 			{
@@ -179,7 +179,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_Fs)
 	{
 		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
 
-		const int Samples = 1<<3;
+		const int Samples = 1<<10;
 		for (int sample = 0; sample < Samples; sample++)
 		{
 			GeneralizedBSDFSampleQuery bsdfSQ;
@@ -206,7 +206,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_Fs)
 			EXPECT_FALSE(Math::IsZero(fsDivP1));
 			EXPECT_FALSE(Math::IsZero(fsDivP2));
 
-			auto result = ExpectVec3Near(fsDivP1, fsDivP2);
+			auto result = ExpectVec3Near(fsDivP1, fsDivP2, Math::Float(1e-2));
 			EXPECT_TRUE(result);
 			if (!result)
 			{

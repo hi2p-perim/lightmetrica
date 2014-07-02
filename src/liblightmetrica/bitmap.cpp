@@ -53,7 +53,7 @@ LM_PUBLIC_API Math::Float BitmapImage::EvaluateRMSE(const BitmapImage& bitmap, c
 		sum += t * t;
 	}
 
-	return Math::Sqrt(sum / Math::Float(data1.size()));
+	return Math::Sqrt(Math::Float(sum / Math::Float(data1.size())));
 }
 
 LM_PUBLIC_API std::vector<Math::Float>& BitmapImage::InternalData()

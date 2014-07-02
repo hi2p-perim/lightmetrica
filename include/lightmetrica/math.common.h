@@ -48,7 +48,7 @@
 #else
 	#define LM_MULTI_PRECISION 0
 #endif
-#if LM_SINGLE_PRECISION + LM_DOUBLE_PRECISION + LM_DOUBLE_PRECISION != 1
+#if LM_SINGLE_PRECISION + LM_DOUBLE_PRECISION + LM_MULTI_PRECISION != 1
 	#error "Invalid precision mode"
 #endif
 

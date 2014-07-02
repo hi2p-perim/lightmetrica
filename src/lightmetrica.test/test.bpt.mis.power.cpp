@@ -102,8 +102,7 @@ namespace
 				</light>
 			</lights>
 		</assets>
-		<scene type="qbvh">
-			<intersection_mode>sse</intersection_mode>
+		<scene type="naive">
 			<root>
 				<node>
 					<transform>

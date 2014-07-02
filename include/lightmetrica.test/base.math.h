@@ -121,6 +121,21 @@ inline ::testing::AssertionResult ExpectVec2Near(const Math::TVec2<T>& expect, c
 }
 
 template <typename T>
+inline ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual, const T& epsilon)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		auto result = ExpectNear(expect[i], actual[i], epsilon);
+		if (!result)
+		{
+			return result;
+		}
+	}
+
+	return ::testing::AssertionSuccess();
+}
+
+template <typename T>
 inline ::testing::AssertionResult ExpectVec3Near(const Math::TVec3<T>& expect, const Math::TVec3<T>& actual)
 {
 	for (int i = 0; i < 3; i++)

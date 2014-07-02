@@ -310,7 +310,7 @@ Math::Float PerspectiveCamera::EvaluateImportance( Math::Float cosTheta ) const
 		return Math::Float(0);
 	}
 
-	if (Math::Abs(cosTheta - Math::Float(1)) < Math::Constants::EpsLarge())
+	if (Math::Abs(Math::Float(cosTheta - Math::Float(1))) < Math::Constants::EpsLarge())
 	{
 		// Clamp to one to avoid nasty error introduced by 1/cos^3
 		// cf. BPTFullpathTest - EvaluateFullpathPDFRatio (3) fails without this compensation

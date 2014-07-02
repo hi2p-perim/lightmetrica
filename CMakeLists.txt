@@ -148,7 +148,7 @@ endif()
 cmake_dependent_option(
 	LM_USE_MULTI_PRECISION "Use multi precision floating-point number" ON
 	"NOT LM_USE_SINGLE_PRECISION;NOT LM_USE_DOUBLE_PRECISION" OFF)
-if (LM_MULTI_PRECISION)
+if (LM_USE_MULTI_PRECISION)
 	add_definitions(-DLM_ENABLE_MULTI_PRECISION)
 	add_definitions(-DLM_USE_MULTI_PRECISION)
 endif()
