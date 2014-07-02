@@ -118,6 +118,11 @@ public:
 	static void Reset();
 
 	/*!
+		Clear log entries.
+	*/
+	static void Clear();
+
+	/*!
 		Add an error log message.
 		\param message Log message.
 		\param prefix Prefix message (inserted before indentation).

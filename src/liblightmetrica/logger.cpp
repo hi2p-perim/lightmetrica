@@ -63,6 +63,7 @@ public:
 	int CountNoFileOutputEntries();
 	int CountFileOutputEntries();
 	void Reset();
+	void Clear();
 	void SetOutputFileName(const std::string& fileName);
 	void SetUpdateMode(Logger::LogUpdateMode mode);
 	bool Empty();
@@ -330,6 +331,13 @@ void LoggerImpl::Reset()
     signal_LogUpdate.disconnect_all_slots();
 }
 
+void LoggerImpl::Clear()
+{
+	std::unique_lock<std::mutex> lock(mutex);
+	entries.clear();
+	entriesForFileIO.clear();
+}
+
 void LoggerImpl::SetOutputFileName( const std::string& fileName )
 {
 	outputFileName = fileName;
@@ -435,6 +443,12 @@ void Logger::Reset()
 {
 	auto& p = LoggerImpl::Instance();
 	return p.Reset();
+}
+
+void Logger::Clear()
+{
+	auto& p = LoggerImpl::Instance();
+	return p.Clear();
 }
 
 void Logger::SetOutputFrequencyForFileOutput( int freq )

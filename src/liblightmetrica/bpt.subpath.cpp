@@ -309,21 +309,26 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = -pv->wo;
 
-		GeneralizedBSDFSampleResult bsdfSR;
 #if 0
-		v->fs_Estimated[transportDir] = v->bsdf->SampleAndEstimateDirection(bsdfSQ, v->geom, bsdfSR);
-		if (Math::IsZero(v->fs_Estimated[transportDir]))
+		GeneralizedBSDFSampleBidirResult bsdfSR;
+		if (!v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQ, v->geom, bsdfSR))
 		{
 			vertices.push_back(v);
 			break;
 		}
+
+		v->wo = bsdfSR.wo;
+		v->weight[transportDir]   = bsdfSR.weight[transportDir];
+		v->weight[1-transportDir] = bsdfSR.weight[1-transportDir];
+		v->pdfD[transportDir]     = bsdfSR.pdf[transportDir];
+		v->pdfD[1-transportDir]   = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
 #else
+		GeneralizedBSDFSampleResult bsdfSR;
 		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
 		{
 			vertices.push_back(v);
 			break;
 		}
-#endif
 
 		v->wo = bsdfSR.wo;
 		v->pdfD[transportDir] = bsdfSR.pdf;
@@ -365,6 +370,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		{
 			v->pdfD[1-transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
+#endif
 
 		vertices.push_back(v);
 	}

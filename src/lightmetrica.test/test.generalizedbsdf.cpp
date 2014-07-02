@@ -133,6 +133,12 @@ protected:
 
 TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 {
+	SurfaceGeometry geom;
+	geom.degenerated = false;
+	geom.p = Math::Vec3();
+	geom.sn = geom.gn = Math::Vec3(0, 1, 0);
+	geom.ComputeTangentSpace();
+
 	for (auto& bsdf : bsdfs)
 	{
 		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
@@ -146,12 +152,6 @@ TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 			bsdfSQ.transportDir = TransportDirection::EL;
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
-
-			SurfaceGeometry geom;
-			geom.degenerated = false;
-			geom.p = Math::Vec3();
-			geom.sn = geom.gn = Math::Vec3(0, 1, 0);
-			geom.ComputeTangentSpace();
 
 			GeneralizedBSDFSampleResult bsdfSR;
 			EXPECT_TRUE(bsdf->SampleDirection(bsdfSQ, geom, bsdfSR));
@@ -173,8 +173,14 @@ TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 	}
 }
 
-TEST_F(GeneralizedBSDFTest, Consistency_Fs)
+TEST_F(GeneralizedBSDFTest, Consistency_SampleAndEstimateDirection)
 {
+	SurfaceGeometry geom;
+	geom.degenerated = false;
+	geom.p = Math::Vec3();
+	geom.sn = geom.gn = Math::Vec3(0, 1, 0);
+	geom.ComputeTangentSpace();
+
 	for (auto& bsdf : bsdfs)
 	{
 		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
@@ -189,30 +195,87 @@ TEST_F(GeneralizedBSDFTest, Consistency_Fs)
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
 
-			SurfaceGeometry geom;
-			geom.degenerated = false;
-			geom.p = Math::Vec3();
-			geom.sn = geom.gn = Math::Vec3(0, 1, 0);
-			geom.ComputeTangentSpace();
-
 			GeneralizedBSDFSampleResult bsdfSR;
 			EXPECT_TRUE(bsdf->SampleDirection(bsdfSQ, geom, bsdfSR));
-			ASSERT_FALSE(Math::IsZero(bsdfSR.pdf.v));
+			EXPECT_FALSE(Math::IsZero(bsdfSR.pdf.v));
 			EXPECT_EQ(bsdfSR.pdf.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
-
 			auto fs = bsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), geom);
-			auto fsDivP1 = fs / bsdfSR.pdf.v;
-			auto fsDivP2 = bsdf->SampleAndEstimateDirection(bsdfSQ, geom, bsdfSR);
-			EXPECT_FALSE(Math::IsZero(fsDivP1));
-			EXPECT_FALSE(Math::IsZero(fsDivP2));
+			EXPECT_FALSE(Math::IsZero(fs));
+			auto w1 = fs / bsdfSR.pdf.v;
+			
+			GeneralizedBSDFSampleResult bsdfSR2;
+			auto w2 = bsdf->SampleAndEstimateDirection(bsdfSQ, geom, bsdfSR2);
+			EXPECT_FALSE(Math::IsZero(w2));
+			EXPECT_FALSE(Math::IsZero(bsdfSR2.pdf.v));
+			EXPECT_EQ(bsdfSR2.pdf.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-			auto result = ExpectVec3Near(fsDivP1, fsDivP2, Math::Float(1e-2));
+			EXPECT_TRUE(ExpectNear(bsdfSR.pdf.v, bsdfSR2.pdf.v));
+			auto result = ExpectVec3Near(w1, w2, Math::Float(1e-2));
 			EXPECT_TRUE(result);
 			if (!result)
 			{
-				LM_LOG_DEBUG("fsDivP1 = " + std::to_string(fsDivP1.x) + " " + std::to_string(fsDivP1.y) + " " +std::to_string(fsDivP1.z));
-				LM_LOG_DEBUG("fsDivP2 = " + std::to_string(fsDivP2.x) + " " + std::to_string(fsDivP2.y) + " " +std::to_string(fsDivP2.z));
+				LM_LOG_DEBUG("w1 = " + std::to_string(w1.x) + " " + std::to_string(w1.y) + " " +std::to_string(w1.z));
+				LM_LOG_DEBUG("w2 = " + std::to_string(w2.x) + " " + std::to_string(w2.y) + " " +std::to_string(w2.z));
 			}
+		}
+	}
+}
+
+TEST_F(GeneralizedBSDFTest, Consistency_SampleAndEstimateDirectionBidir)
+{
+	SurfaceGeometry geom;
+	geom.degenerated = false;
+	geom.p = Math::Vec3();
+	geom.sn = geom.gn = Math::Vec3(0, 1, 0);
+	geom.ComputeTangentSpace();
+
+	for (auto& bsdf : bsdfs)
+	{
+		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
+		
+		const int Samples = 1<<2;
+		for (int sample = 0; sample < Samples; sample++)
+		{
+			GeneralizedBSDFSampleQuery bsdfSQ;
+			bsdfSQ.sample = rng->NextVec2();
+			bsdfSQ.uComp = rng->Next();
+			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.type = GeneralizedBSDFType::All;
+			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
+
+			GeneralizedBSDFSampleBidirResult bsdfSR;
+			EXPECT_TRUE(bsdf->SampleAndEstimateDirectionBidir(bsdfSQ, geom, bsdfSR));
+			EXPECT_FALSE(Math::IsZero(bsdfSR.weight[0]));
+			EXPECT_FALSE(Math::IsZero(bsdfSR.weight[1]));
+			EXPECT_FALSE(Math::IsZero(bsdfSR.pdf[0].v));
+			EXPECT_FALSE(Math::IsZero(bsdfSR.pdf[1].v));
+			EXPECT_EQ(bsdfSR.pdf[0].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+			EXPECT_EQ(bsdfSR.pdf[1].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+			GeneralizedBSDFSampleResult bsdfSR2;
+			auto w2_0 = bsdf->SampleAndEstimateDirection(bsdfSQ, geom, bsdfSR2);
+			EXPECT_FALSE(Math::IsZero(w2_0));
+			EXPECT_FALSE(Math::IsZero(bsdfSR2.pdf.v));
+			EXPECT_EQ(bsdfSR2.pdf.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[0].v, bsdfSR2.pdf.v));
+			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[0], w2_0));
+
+			// Opposite direction
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.type = bsdfSR2.sampledType;
+			bsdfEQ.transportDir = TransportDirection(1 - bsdfSQ.transportDir);
+			bsdfEQ.wi = bsdfSR2.wo;
+			bsdfEQ.wo = bsdfSQ.wi;
+			auto fs2_1 = bsdf->EvaluateDirection(bsdfEQ, geom);
+			EXPECT_FALSE(Math::IsZero(fs2_1));
+			auto pdfD2_1 = bsdf->EvaluateDirectionPDF(bsdfEQ, geom);
+			EXPECT_FALSE(Math::IsZero(pdfD2_1.v));
+			EXPECT_EQ(pdfD2_1.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+			auto w2_1 = fs2_1 / pdfD2_1.v;
+
+			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[1].v, pdfD2_1.v));
+			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[1], w2_1));
 		}
 	}
 }

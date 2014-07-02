@@ -26,6 +26,7 @@ include (PCHTargets)
 
 set(
 	_SOURCE_FILES
+	"main.cpp"
 	"test.logger.cpp"
 	"test.component.cpp"
 	"test.confignode.cpp"

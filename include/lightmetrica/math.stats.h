@@ -35,6 +35,7 @@ template <typename T> LM_FORCE_INLINE TVec2<T> UniformConcentricDiskSample(const
 template <typename T> LM_FORCE_INLINE TPDFEval<T> UniformConcentricDiskSamplePDF();
 template <typename T> LM_FORCE_INLINE TVec3<T> CosineSampleHemisphere(const TVec2<T>& u);
 template <typename T> LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDF(const TVec3<T>& d);
+template <typename T> LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDFProjSA(const TVec3<T>& d);
 template <typename T> LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u);
 template <typename T> LM_FORCE_INLINE TPDFEval<T> UniformSampleHemispherePDF();
 template <typename T> LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u);

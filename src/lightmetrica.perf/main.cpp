@@ -22,52 +22,10 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica.test/base.h>
-#include <lightmetrica/logger.h>
+#include <gtest/gtest.h>
 
-namespace fs = boost::filesystem;
-
-LM_NAMESPACE_BEGIN
-LM_TEST_NAMESPACE_BEGIN
-
-const long long TestBase::OutputProcessTimeout = 500;
-
-void TestBase::SetUp()
+int main(int argc, char** argv)
 {
-
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
-
-void TestBase::TearDown()
-{
-
-}
-
-// --------------------------------------------------------------------------------
-
-TemporaryFile::~TemporaryFile()
-{
-	if (fs::exists(path))
-	{
-		EXPECT_TRUE(fs::remove(path));
-	}
-}
-
-TemporaryTextFile::TemporaryTextFile( const std::string& filename, const std::string& content )
-{
-	path = (fs::temp_directory_path() / filename).string();
-	std::ofstream ofs(path, std::ios::out | std::ios::trunc);
-	EXPECT_TRUE(ofs.is_open());
-	ofs << content;
-}
-
-TemporaryBinaryFile::TemporaryBinaryFile( const std::string& filename, const unsigned char* content, unsigned int length )
-{
-	path = (fs::temp_directory_path() / filename).string();
-	std::ofstream ofs(path, std::ios::out | std::ios::binary);
-	EXPECT_TRUE(ofs.is_open());
-	ofs.write((const char*)content, length);
-}
-
-LM_TEST_NAMESPACE_END
-LM_NAMESPACE_END

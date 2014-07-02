@@ -55,6 +55,7 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
+	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -128,6 +129,38 @@ Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQ
 	// R * \pi^-1 / (\pi^-1 * \cos(w_o) / \cos(w_o))
 	// R
 	return diffuseReflectance * sf;
+}
+
+bool DiffuseBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+{
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	{
+		return false;
+	}
+
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+	result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo);
+	result.pdf[1-query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWi);
+
+	auto sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sf))
+	{
+		return false;
+	}
+
+	auto sfInv = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sfInv))
+	{
+		return false;
+	}
+
+	result.weight[query.transportDir] = diffuseReflectance * sf;
+	result.weight[1-query.transportDir] = diffuseReflectance * sfInv;
+
+	return true;
 }
 
 Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

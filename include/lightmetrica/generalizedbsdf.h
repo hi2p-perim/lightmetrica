@@ -70,7 +70,7 @@ enum GeneralizedBSDFType
 
 /*!
 	Sample query for generalized BSDF.
-	Query structure for GeneralizedBSDF::SampleDirection.
+	Query structure for SampleDirection and SampleAndEstimateDirection.
 */
 struct GeneralizedBSDFSampleQuery
 {
@@ -85,7 +85,7 @@ struct GeneralizedBSDFSampleQuery
 
 /*!
 	Sampled result for generalized BSDF.
-	Sampled result of GeneralizedBSDF::SampleDirection.
+	Sampled result of SampleDirection and SampleAndEstimateDirection.
 */
 struct GeneralizedBSDFSampleResult
 {
@@ -93,6 +93,20 @@ struct GeneralizedBSDFSampleResult
 	int sampledType;					//!< Sampled BSDF type.
 	Math::Vec3 wo;						//!< Sampled outgoing direction in world coordinates.
 	Math::PDFEval pdf;					//!< Evaluated PDF. We note that some BSDFs, the PDF cannot be explicitly evaluated.
+
+};
+
+/*!
+	Sampled result for generalized BSDF.
+	Sampled result of SampleAndEstimateDirectionBidir.
+*/
+struct GeneralizedBSDFSampleBidirResult
+{
+
+	int sampledType;					//!< Sampled BSDF type.
+	Math::Vec3 wo;						//!< Sampled outgoing direction in world coordinates.
+	Math::Vec3 weight[2];				//!< Evaluated weights.
+	Math::PDFEval pdf[2];				//!< Evaluated PDFs.
 
 };
 
@@ -157,12 +171,26 @@ public:
 	
 	/*!
 		Sample and estimate direction.
+		Computes f_s / p_{\omega^\bot}.
 		\param query Query structure.
 		\param geom Surface geometry.
 		\param result Sampled result.
-		\return Evaluated estimate.
+		\return Estimate.
 	*/
 	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const = 0;
+
+	/*!
+		Sample and estimate direction bidirectionally.
+		In addition to SampleAndEstimateDirection, this function calculates values in the opposite direction.
+		This function is introduced in order to avoid nasty precision problem with specular BSDFs.
+		\param query Query structure.
+		\param geom Surface geometry.
+		\param weights Estimate.
+		\param results Sampled results.
+		\retval true Succeeded to sample.
+		\retval false Failed to sample.
+	*/
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const = 0;
 
 	/*!
 		Evaluate generalized BSDF.

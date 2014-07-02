@@ -87,6 +87,12 @@ LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDF(const TVec3<T>& d)
 }
 
 template <typename T>
+LM_FORCE_INLINE TPDFEval<T> CosineSampleHemispherePDFProjSA(const TVec3<T>& d)
+{
+	return TPDFEval<T>(TConstants<T>::InvPi(), ProbabilityMeasure::ProjectedSolidAngle);
+}
+
+template <typename T>
 LM_FORCE_INLINE TVec3<T> UniformSampleHemisphere(const TVec2<T>& u)
 {
 	const T& z = u[0];

@@ -45,7 +45,7 @@ set(
 	
 	# gtest
 	"${_GTEST_SOURCE_DIR}/src/gtest-all.cc"
-	"${_GTEST_SOURCE_DIR}/src/gtest_main.cc"
+	#"${_GTEST_SOURCE_DIR}/src/gtest_main.cc"
 
 	# pugixml
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
