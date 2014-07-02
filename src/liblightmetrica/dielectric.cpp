@@ -408,7 +408,7 @@ bool DielectricBSDF::CheckRefract( const Math::Float& etaI, const Math::Float& e
 	
 	auto v1 = cosThetaT * cosThetaT;
 	auto v2 = (Math::Float(1) - sinThetaTSq);
-	auto abs = Math::Abs(v1 - v2) / Math::Abs(v2);
+	auto abs = Math::Abs(v1 - v2);
 	if (abs > Math::Constants::EpsLarge())
 	{
 		return false;

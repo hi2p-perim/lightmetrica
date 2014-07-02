@@ -175,10 +175,10 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		// EyePosition
 		v->emitter = scene.MainCamera();
 		v->emitter->SamplePosition(rng.NextVec2(), v->geom, v->pdfP);
-		//if (!v->geom.degenerated)
-		//{
-		//	v->areaCamera = dynamic_cast<const Camera*>(v->emitter);
-		//}
+		if (!v->geom.degenerated)
+		{
+			v->areaCamera = dynamic_cast<const Camera*>(v->emitter);
+		}
 	}
 	else
 	{
@@ -188,10 +188,10 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		v->emitter = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 		v->emitter->SamplePosition(lightSampleP, v->geom, v->pdfP);
 		v->pdfP.v *= lightSelectionPdf.v;
-		//if (!v->geom.degenerated)
-		//{
-		//	v->areaLight = dynamic_cast<const Light*>(v->emitter);
-		//}
+		if (!v->geom.degenerated)
+		{
+			v->areaLight = dynamic_cast<const Light*>(v->emitter);
+		}
 	}
 
 	// Directional component
@@ -310,29 +310,46 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		bsdfSQ.wi = -pv->wo;
 
 		GeneralizedBSDFSampleResult bsdfSR;
+#if 0
+		v->fs_Estimated[transportDir] = v->bsdf->SampleAndEstimateDirection(bsdfSQ, v->geom, bsdfSR);
+		if (Math::IsZero(v->fs_Estimated[transportDir]))
+		{
+			vertices.push_back(v);
+			break;
+		}
+#else
 		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
 		{
 			vertices.push_back(v);
 			break;
 		}
+#endif
 
 		v->wo = bsdfSR.wo;
 		v->pdfD[transportDir] = bsdfSR.pdf;
 
 		// Evaluate PDF in the opposite transport direction
-		// TODO : Handle specular case
-		//GeneralizedBSDFEvaluateQuery bsdfEQ;
-		//bsdfEQ.type = bsdfSR.sampledType;
-		//bsdfEQ.transportDir = TransportDirection(1 - transportDir);
-		//bsdfEQ.wi = bsdfSR.wo;
-		//bsdfEQ.wo = bsdfSQ.wi;
-		//v->pdfD[1-transportDir] = v->bsdf->EvaluateDirectionPDF(bsdfEQ, v->geom);
-
 		if (!pv->geom.degenerated)
 		{
 			if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) != 0)
 			{
-				v->pdfD[1-transportDir] = v->pdfD[transportDir];
+				// For specular BSDF opposite PDF is evaluated directly because of numerical reason
+				if ((bsdfSR.sampledType & GeneralizedBSDFType::SpecularReflection) != 0)
+				{
+					v->pdfD[1-transportDir] = v->pdfD[transportDir];
+				}
+				else if ((bsdfSR.sampledType & GeneralizedBSDFType::SpecularTransmission) != 0)
+				{
+					auto localWi = v->geom.worldToShading * v->wi;
+					auto localWo = v->geom.worldToShading * v->wo;
+					v->pdfD[1-transportDir].measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+					v->pdfD[1-transportDir].v = v->pdfD[transportDir].v * (Math::AbsCosThetaZUp(localWi) / Math::AbsCosThetaZUp(localWo));
+				}
+				else
+				{
+					LM_LOG_ERROR("Invalid type");
+					break;
+				}
 			}
 			else
 			{

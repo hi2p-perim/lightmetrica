@@ -50,7 +50,7 @@ public:
 
 Math::Float BPTSimpleMISWeight::Evaluate(const BPTFullPath& fullPath) const
 {
-#if 0
+#if 1
 
 	int nonZeroProbPaths = 1;
 	const int n = fullPath.s + fullPath.t;

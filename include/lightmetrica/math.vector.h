@@ -147,6 +147,7 @@ template <typename T> LM_FORCE_INLINE bool IsZero(const TVec3<T>& v);
 // Useful trigonometric functions for shading coordinates.
 // Theta is the angle between z axis and the given vector.
 template <typename T> LM_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v);
+template <typename T> LM_FORCE_INLINE T AbsCosThetaZUp(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T SinTheta2ZUp(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE T TanThetaZUp(const TVec3<T>& v);
 template <typename T> LM_FORCE_INLINE TVec3<T> ReflectZUp(const TVec3<T>& wi);

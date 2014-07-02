@@ -247,7 +247,11 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& r
 	bsdfSQ.sample = rasterPos;
 	bsdfSQ.transportDir = TransportDirection::EL;
 	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+#if 1
+	auto We_Estimated = scene.MainCamera()->SampleAndEstimateDirection(bsdfSQ, geomE, bsdfSR);
+#else
 	scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
+#endif
 
 	// Construct initial ray
 	Ray ray;
@@ -258,6 +262,8 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& r
 
 	Math::Vec3 throughput;
 #if 1
+	throughput = We_Estimated;
+#elif 1
 	throughput = Math::Vec3(Math::Float(1));
 #else
 	// Evaluate importance
@@ -301,7 +307,18 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& r
 		bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.wi = -ray.d;
-					
+		
+#if 1
+		GeneralizedBSDFSampleResult bsdfSR;
+		auto fs_Estimated = isect.primitive->bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
+		if (Math::IsZero(fs_Estimated))
+		{
+			break;
+		}
+
+		// Update throughput
+		throughput *= fs_Estimated;
+#else
 		GeneralizedBSDFSampleResult bsdfSR;
 		if (!isect.primitive->bsdf->SampleDirection(bsdfSQ, isect.geom, bsdfSR))
 		{
@@ -317,6 +334,7 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& r
 		// Update throughput
 		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 		throughput *= bsdf / bsdfSR.pdf.v;
+#endif
 
 		// Setup next ray
 		ray.d = bsdfSR.wo;

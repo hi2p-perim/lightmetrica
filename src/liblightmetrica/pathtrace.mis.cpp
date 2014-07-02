@@ -66,6 +66,10 @@ public:
 
 private:
 
+	void ProcessRenderSingleSample(const Scene& scene, Random& rng, Film& film) const;
+
+private:
+
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;		// Number of samples
@@ -174,202 +178,7 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			// Sample position on camera
-			SurfaceGeometry geomE;
-			Math::PDFEval pdfPE;
-			scene.MainCamera()->SamplePosition(rng->NextVec2(), geomE, pdfPE);
-
-			// Evaluate positional component of We
-			auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
-
-			// Trace ray from camera
-			auto throughput = positionalWe / pdfPE.v;
-			auto currGeom = geomE;
-			Math::Vec3 currWi;
-			const GeneralizedBSDF* currBsdf = scene.MainCamera();
-			int depth = 0;
-			Math::Vec2 rasterPos;
-
-			while (true)
-			{
-				// Sample a position on light
-				SurfaceGeometry geomL;
-				Math::PDFEval pdfPL;
-				auto lightSampleP = rng->NextVec2();
-				Math::PDFEval lightSelectionPdf;
-				const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-				light->SamplePosition(lightSampleP, geomL, pdfPL);
-				pdfPL.v *= lightSelectionPdf.v;
-
-				// Check connectivity between #currGeom.p and #geomL.p  
-				auto ppL = Math::Normalize(geomL.p - currGeom.p);
-				if (RenderUtils::Visible(scene, currGeom.p, geomL.p))
-				{
-					// Calculate raster position if the depth is zero
-					bool visible = true;
-					if (depth == 0)
-					{
-						visible = scene.MainCamera()->RayToRasterPosition(currGeom.p, ppL, rasterPos);
-					}
-
-					if (visible)
-					{
-						GeneralizedBSDFEvaluateQuery bsdfEQ;
-
-						// fsE
-						bsdfEQ.transportDir = TransportDirection::EL;
-						bsdfEQ.type = GeneralizedBSDFType::All;
-						bsdfEQ.wi = currWi;
-						bsdfEQ.wo = ppL;
-						auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
-
-						// fsL
-						bsdfEQ.transportDir = TransportDirection::LE;
-						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-						bsdfEQ.wo = -ppL;
-						auto fsL = light->EvaluateDirection(bsdfEQ, geomL);
-
-						// Positional component of Le
-						auto positionalLe = light->EvaluatePosition(geomL);
-
-						// Geometry term
-						auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomL);
-
-						if (!Math::IsZero(G))
-						{
-							// PDF for direct light sampling (in projected solid angle measure)
-							auto pdfD_DirectLight = pdfPL.v / G;
-							LM_ASSERT(pdfD_DirectLight > Math::Float(0));
-
-							// PDF for BSDF sampling (in projected solid angle measure)
-							bsdfEQ.transportDir = TransportDirection::EL;
-							bsdfEQ.type = GeneralizedBSDFType::All;
-							bsdfEQ.wi = currWi;
-							bsdfEQ.wo = ppL;
-							auto pdfD_BSDF = currBsdf->EvaluateDirectionPDF(bsdfEQ, currGeom).v;
-
-							// MIS weight for direct light sampling
-							auto w = pdfD_DirectLight / (pdfD_DirectLight + pdfD_BSDF);
-
-							// Evaluate contribution and accumulate to film
-							auto contrb = w * throughput * fsE * G * fsL * positionalLe / pdfPL.v;
-							film->AccumulateContribution(rasterPos, contrb);
-						}
-					}
-				}
-
-				// --------------------------------------------------------------------------------
-
-				if (++depth >= rrDepth)
-				{
-					// Russian roulette for path termination
-					Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-					if (rng->Next() > p)
-					{
-						break;
-					}
-
-					throughput /= p;
-				}
-				
-				// --------------------------------------------------------------------------------
-
-				// Sample generalized BSDF
-				GeneralizedBSDFSampleQuery bsdfSQ;
-				bsdfSQ.sample = rng->NextVec2();
-				bsdfSQ.uComp = rng->Next();
-				bsdfSQ.transportDir = TransportDirection::EL;
-				bsdfSQ.type = GeneralizedBSDFType::All;
-				bsdfSQ.wi = currWi;
-
-				GeneralizedBSDFSampleResult bsdfSR;
-				if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
-				{
-					break;
-				}
-
-				// Calculate raster position if the depth is one
-				if (depth == 1)
-				{
-					if (!scene.MainCamera()->RayToRasterPosition(currGeom.p, bsdfSR.wo, rasterPos))
-					{
-						// Should not be here
-						LM_ASSERT(false);
-						break;
-					}
-				}
-
-				// Evaluate generalized BSDF
-				auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
-				if (Math::IsZero(fs))
-				{
-					break;
-				}
-
-				// Update throughput
-				LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-				throughput *= fs / bsdfSR.pdf.v;
-
-				// --------------------------------------------------------------------------------
-
-				// Setup next ray
-				Ray ray;
-				ray.d = bsdfSR.wo;
-				ray.o = currGeom.p;
-				ray.minT = Math::Constants::Eps();
-				ray.maxT = Math::Constants::Inf();
-
-				// Intersection query
-				Intersection isect;
-				if (!scene.Intersect(ray, isect))
-				{
-					break;
-				}
-
-				// Intersected point is light
-				{
-					const auto* light = isect.primitive->light;
-					if (light != nullptr)
-					{
-						// Evaluate Le
-						GeneralizedBSDFEvaluateQuery bsdfEQ;
-						bsdfEQ.transportDir = TransportDirection::LE;
-						bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-						bsdfEQ.wo = -ray.d;
-						auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
-						auto LeP = light->EvaluatePosition(isect.geom);
-
-						if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
-						{
-							// Previous BSDF is specular
-							// There is no probability that direct light sampling
-							// generate #bsdfSR.wo, so use only BSDF sampling
-							film->AccumulateContribution(rasterPos, throughput * LeD * LeP);
-						}
-						else
-						{
-							// PDF for direct light sampling
-							auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, isect.geom);
-							auto pdfD_DirectLight = Math::IsZero(G) ? Math::Float(0) : scene.LightSelectionPdf().v * light->EvaluatePositionPDF(isect.geom).v / G;
-
-							// MIS weight
-							auto w = bsdfSR.pdf.v / (bsdfSR.pdf.v + pdfD_DirectLight);
-
-							// Evaluate contribution and accumulate to film
-							auto contrb = w * throughput * LeD * LeP;
-							film->AccumulateContribution(rasterPos, contrb);
-						}
-					}
-				}
-
-				// --------------------------------------------------------------------------------
-
-				// Update information
-				currGeom = isect.geom;
-				currWi = -ray.d;
-				currBsdf = isect.primitive->bsdf;
-				depth++;
-			}
+			ProcessRenderSingleSample(scene, *rng, *film);
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
 			LM_EXPT_NOTIFY(expts, "SampleFinished");
@@ -398,6 +207,222 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 	return true;
+}
+
+void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& rng, Film& film ) const
+{
+	// Sample position on camera
+	SurfaceGeometry geomE;
+	Math::PDFEval pdfPE;
+	scene.MainCamera()->SamplePosition(rng.NextVec2(), geomE, pdfPE);
+
+	// Evaluate positional component of We
+	auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
+
+	// Trace ray from camera
+	auto throughput = positionalWe / pdfPE.v;
+	auto currGeom = geomE;
+	Math::Vec3 currWi;
+	const GeneralizedBSDF* currBsdf = scene.MainCamera();
+	int depth = 0;
+	Math::Vec2 rasterPos;
+
+	while (true)
+	{
+		// Skip if current BSDF is directionally degenerated
+		if (!currBsdf->Degenerated())
+		{
+			// Sample a position on light
+			SurfaceGeometry geomL;
+			Math::PDFEval pdfPL;
+			auto lightSampleP = rng.NextVec2();
+			Math::PDFEval lightSelectionPdf;
+			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
+			light->SamplePosition(lightSampleP, geomL, pdfPL);
+			pdfPL.v *= lightSelectionPdf.v;
+
+			// Check connectivity between #currGeom.p and #geomL.p  
+			auto ppL = Math::Normalize(geomL.p - currGeom.p);
+			if (RenderUtils::Visible(scene, currGeom.p, geomL.p))
+			{
+				// Calculate raster position if the depth is zero
+				bool visible = true;
+				if (depth == 0)
+				{
+					visible = scene.MainCamera()->RayToRasterPosition(currGeom.p, ppL, rasterPos);
+				}
+
+				if (visible)
+				{
+					GeneralizedBSDFEvaluateQuery bsdfEQ;
+
+					// fsE
+					bsdfEQ.transportDir = TransportDirection::EL;
+					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.wi = currWi;
+					bsdfEQ.wo = ppL;
+					auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
+
+					// fsL
+					bsdfEQ.transportDir = TransportDirection::LE;
+					bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+					bsdfEQ.wo = -ppL;
+					auto fsL = light->EvaluateDirection(bsdfEQ, geomL);
+
+					// Positional component of Le
+					auto positionalLe = light->EvaluatePosition(geomL);
+
+					// Geometry term
+					auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, geomL);
+
+					if (!Math::IsZero(G))
+					{
+						// PDF for direct light sampling (in projected solid angle measure)
+						auto pdfD_DirectLight = pdfPL.v / G;
+						LM_ASSERT(pdfD_DirectLight > Math::Float(0));
+
+						// PDF for BSDF sampling (in projected solid angle measure)
+						bsdfEQ.transportDir = TransportDirection::EL;
+						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.wi = currWi;
+						bsdfEQ.wo = ppL;
+						auto pdfD_BSDF = currBsdf->EvaluateDirectionPDF(bsdfEQ, currGeom).v;
+
+						// MIS weight for direct light sampling
+						auto w = pdfD_DirectLight / (pdfD_DirectLight + pdfD_BSDF);
+
+						// Evaluate contribution and accumulate to film
+						auto contrb = w * throughput * fsE * G * fsL * positionalLe / pdfPL.v;
+						film.AccumulateContribution(rasterPos, contrb);
+					}
+				}
+			}
+		}
+
+		// --------------------------------------------------------------------------------
+
+		if (++depth >= rrDepth)
+		{
+			// Russian roulette for path termination
+			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
+			if (rng.Next() > p)
+			{
+				break;
+			}
+
+			throughput /= p;
+		}
+
+		// --------------------------------------------------------------------------------
+
+		// Sample generalized BSDF
+		GeneralizedBSDFSampleQuery bsdfSQ;
+		bsdfSQ.sample = rng.NextVec2();
+		bsdfSQ.uComp = rng.Next();
+		bsdfSQ.transportDir = TransportDirection::EL;
+		bsdfSQ.type = GeneralizedBSDFType::All;
+		bsdfSQ.wi = currWi;
+
+#if 1
+		GeneralizedBSDFSampleResult bsdfSR;
+		auto fs_Estimated = currBsdf->SampleAndEstimateDirection(bsdfSQ, currGeom, bsdfSR);
+		if (Math::IsZero(fs_Estimated))
+		{
+			break;
+		}
+
+		// Update throughput
+		throughput *= fs_Estimated;
+#else
+		GeneralizedBSDFSampleResult bsdfSR;
+		if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
+		{
+			break;
+		}
+
+		// Evaluate generalized BSDF
+		auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
+		if (Math::IsZero(fs))
+		{
+			break;
+		}
+
+		// Update throughput
+		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+		throughput *= fs / bsdfSR.pdf.v;
+#endif
+
+		// Calculate raster position if the depth is one
+		if (depth == 1)
+		{
+			if (!scene.MainCamera()->RayToRasterPosition(currGeom.p, bsdfSR.wo, rasterPos))
+			{
+				// Should not be here
+				LM_ASSERT(false);
+				break;
+			}
+		}
+
+		// --------------------------------------------------------------------------------
+
+		// Setup next ray
+		Ray ray;
+		ray.d = bsdfSR.wo;
+		ray.o = currGeom.p;
+		ray.minT = Math::Constants::Eps();
+		ray.maxT = Math::Constants::Inf();
+
+		// Intersection query
+		Intersection isect;
+		if (!scene.Intersect(ray, isect))
+		{
+			break;
+		}
+
+		// Intersected point is light
+		{
+			const auto* light = isect.primitive->light;
+			if (light != nullptr)
+			{
+				// Evaluate Le
+				GeneralizedBSDFEvaluateQuery bsdfEQ;
+				bsdfEQ.transportDir = TransportDirection::LE;
+				bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+				bsdfEQ.wo = -ray.d;
+				auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
+				auto LeP = light->EvaluatePosition(isect.geom);
+
+				if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
+				{
+					// Previous BSDF is specular
+					// There is no probability that direct light sampling
+					// generate #bsdfSR.wo, so use only BSDF sampling
+					film.AccumulateContribution(rasterPos, throughput * LeD * LeP);
+				}
+				else
+				{
+					// PDF for direct light sampling
+					auto G = RenderUtils::GeneralizedGeometryTerm(currGeom, isect.geom);
+					auto pdfD_DirectLight = Math::IsZero(G) ? Math::Float(0) : scene.LightSelectionPdf().v * light->EvaluatePositionPDF(isect.geom).v / G;
+
+					// MIS weight
+					auto w = bsdfSR.pdf.v / (bsdfSR.pdf.v + pdfD_DirectLight);
+
+					// Evaluate contribution and accumulate to film
+					auto contrb = w * throughput * LeD * LeP;
+					film.AccumulateContribution(rasterPos, contrb);
+				}
+			}
+		}
+
+		// --------------------------------------------------------------------------------
+
+		// Update information
+		currGeom = isect.geom;
+		currWi = -ray.d;
+		currBsdf = isect.primitive->bsdf;
+		depth++;
+	}
 }
 
 LM_COMPONENT_REGISTER_IMPL(MISPathtraceRenderer, Renderer);

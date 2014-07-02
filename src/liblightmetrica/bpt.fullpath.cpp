@@ -37,7 +37,8 @@
 
 LM_NAMESPACE_BEGIN
 
-BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath ) : s(s)
+BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BPTSubpath& eyeSubpath )
+	: s(s)
 	, t(t)
 	, lightSubpath(lightSubpath)
 	, eyeSubpath(eyeSubpath)

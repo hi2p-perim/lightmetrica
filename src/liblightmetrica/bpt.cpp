@@ -390,10 +390,8 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			}
 #endif
 
-			// Evaluate contribution C_{s,t}
+			// Evaluate contribution C_{s,t} and record to the film
 			auto C = w * Cstar;
-
-			// Record to the film
 			film.AccumulateContribution(rasterPosition, C);
 
 #if LM_ENABLE_BPT_EXPERIMENTAL

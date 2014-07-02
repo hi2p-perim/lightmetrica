@@ -253,7 +253,6 @@ set(
 	"pathtrace.mis.cpp"
 	"lighttrace.cpp"
 	"simplebpt.cpp"
-	"explicitpathtrace.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})

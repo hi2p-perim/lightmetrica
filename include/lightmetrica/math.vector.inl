@@ -510,6 +510,12 @@ LM_FORCE_INLINE T CosThetaZUp(const TVec3<T>& v)
 }
 
 template <typename T>
+LM_FORCE_INLINE T AbsCosThetaZUp(const TVec3<T>& v)
+{
+	return Math::Abs(v.z);
+}
+
+template <typename T>
 LM_FORCE_INLINE T SinTheta2ZUp(const TVec3<T>& v)
 {
 	return T(1) - v.z - v.z;

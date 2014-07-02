@@ -333,6 +333,17 @@ void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Rando
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;
 
+#if 1
+		GeneralizedBSDFSampleResult bsdfSR;
+		auto fs_Estimated = currBsdf->SampleAndEstimateDirection(bsdfSQ, currGeom, bsdfSR);
+		if (Math::IsZero(fs_Estimated))
+		{
+			break;
+		}
+
+		// Update throughput
+		throughput *= fs_Estimated;
+#else
 		GeneralizedBSDFSampleResult bsdfSR;
 		if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
 		{
@@ -346,6 +357,10 @@ void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Rando
 			break;
 		}
 
+		// Update throughput
+		throughput *= fs / bsdfSR.pdf.v;
+#endif
+
 		// Compute raster position if needed
 		if (currBsdf == scene.MainCamera())
 		{
@@ -354,9 +369,6 @@ void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Rando
 				break;
 			}
 		}
-
-		// Update throughput
-		throughput *= fs / bsdfSR.pdf.v;
 
 		// --------------------------------------------------------------------------------
 
@@ -508,6 +520,16 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = currWi;
 
+#if 1
+			GeneralizedBSDFSampleResult bsdfSR;
+			auto fs_Estimated = currBsdf->SampleAndEstimateDirection(bsdfSQ, currGeom, bsdfSR);
+			if (Math::IsZero(fs_Estimated))
+			{
+				break;
+			}
+
+			auto nextThroughput = throughput * fs_Estimated;
+#else
 			GeneralizedBSDFSampleResult bsdfSR;
 			if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
 			{
@@ -522,6 +544,7 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 			}
 
 			auto nextThroughput = throughput * fs / bsdfSR.pdf.v;
+#endif
 
 			// Russian roulette for path termination
 			if (depth >= 1)
