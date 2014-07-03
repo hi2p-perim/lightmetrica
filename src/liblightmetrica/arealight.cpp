@@ -59,7 +59,7 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const { return false; }
+	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -175,50 +175,54 @@ void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom,
 
 bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
 	{
 		return false;
 	}
 
-	// Sampled type
 	result.sampledType = GeneralizedBSDFType::LightDirection;
-
-	// Sample direction
-	auto localDir = Math::CosineSampleHemisphere(query.sample);
-	result.wo = geom.shadingToWorld * localDir;
-
-	// PDF in projected solid angle measure
-	result.pdf = Math::PDFEval(
-		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
-		Math::ProbabilityMeasure::ProjectedSolidAngle);
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
 
 	return true;
 }
 
 Math::Vec3 AreaLight::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
 	{
 		return Math::Vec3();
 	}
 
-	// Sampled type
 	result.sampledType = GeneralizedBSDFType::LightDirection;
-
-	// Sample direction
-	auto localDir = Math::CosineSampleHemisphere(query.sample);
-	result.wo = geom.shadingToWorld * localDir;
-
-	// PDF in projected solid angle measure
-	result.pdf = Math::PDFEval(
-		Math::CosineSampleHemispherePDF(localDir).v / Math::CosThetaZUp(localDir),
-		Math::ProbabilityMeasure::ProjectedSolidAngle);
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
 
 	// Le_D / p_{\sigma^\bot}
 	// = \pi^-1 / (p_\sigma / cos(w_o))
 	// = \pi^-1 / (\pi^-1 * cos(w_o) / cos(w_o))
 	// = 1
 	return Math::Vec3(Math::Float(1));
+}
+
+bool AreaLight::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+{
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
+	{
+		return false;
+	}
+
+	result.sampledType = GeneralizedBSDFType::LightDirection;
+	auto localWo = Math::CosineSampleHemisphere(query.sample);
+	result.wo = geom.shadingToWorld * localWo;
+	result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo);
+	result.pdf[1-query.transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.weight[query.transportDir] = Math::Vec3(Math::Float(1));
+	result.weight[1-query.transportDir] = Math::Vec3();
+
+	return true;
 }
 
 Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
@@ -233,7 +237,7 @@ Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) 
 
 Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || Math::Dot(query.wo, geom.gn) <= 0)
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::Dot(query.wo, geom.gn) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -246,14 +250,12 @@ Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& que
 Math::PDFEval AreaLight::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
 
-	return Math::PDFEval(
-		Math::CosineSampleHemispherePDF(localWo).v / Math::CosThetaZUp(localWo),
-		Math::ProbabilityMeasure::ProjectedSolidAngle);
+	return CosineSampleHemispherePDFProjSA(localWo);
 }
 
 LM_COMPONENT_REGISTER_IMPL(AreaLight, Light);

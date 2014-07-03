@@ -53,7 +53,7 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const { return false; }
+	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return true; }
@@ -110,6 +110,38 @@ Math::Vec3 PerfectMirrorBSDF::SampleAndEstimateDirection( const GeneralizedBSDFS
 	// R / \cos(w_o) / (p_\sigma / \cos(w_o))
 	// R
 	return R * sf;
+}
+
+bool PerfectMirrorBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+{
+	auto localWi = geom.worldToShading * query.wi;
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	{
+		return false;
+	}
+
+	auto localWo = Math::ReflectZUp(localWi);
+	result.wo = geom.shadingToWorld * localWo;
+	result.sampledType = GeneralizedBSDFType::SpecularReflection;
+	result.pdf[query.transportDir] = Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWo), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.pdf[1-query.transportDir] = result.pdf[query.transportDir];
+
+	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sf))
+	{
+		return false;
+	}
+
+	auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	if (Math::IsZero(sfInv))
+	{
+		return false;
+	}
+
+	result.weight[query.transportDir] = R * sf;
+	result.weight[1-query.transportDir] = R * sfInv;
+
+	return true;
 }
 
 Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

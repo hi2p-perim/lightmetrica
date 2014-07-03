@@ -102,7 +102,7 @@ set(
 set(
 	_ASSETS_CAMERAS_SOURCES
 	"perspectivecamera.cpp"
-	"thinlenscamera.cpp"
+	#"thinlenscamera.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_CAMERAS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\cameras" FILES ${_ASSETS_CAMERAS_SOURCES})

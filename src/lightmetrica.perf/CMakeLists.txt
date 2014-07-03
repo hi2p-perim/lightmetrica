@@ -26,6 +26,7 @@ include (PCHTargets)
 
 set(
 	_SOURCE_FILES
+	"main.cpp"
 	"base.perf.h"
 	"perf.scene.intersection.cpp"
 )

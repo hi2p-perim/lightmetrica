@@ -54,7 +54,7 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const { return false; }
+	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return true; }
@@ -85,8 +85,7 @@ bool DielectricBSDF::Load( const ConfigNode& node, const Assets& assets )
 
 bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 ||
-		(query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
 	{
 		return false;
 	}
@@ -132,8 +131,7 @@ bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 
 Math::Vec3 DielectricBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 ||
-		(query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
 	{
 		return Math::Vec3();
 	}
@@ -206,6 +204,90 @@ Math::Vec3 DielectricBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSamp
 	// = (1/eta)^2 * T * eta^2
 	// = T
 	return T * (tf * tf * sf);
+}
+
+bool DielectricBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+{
+	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	{
+		return false;
+	}
+
+	auto localWi = geom.worldToShading * query.wi;
+	auto cosThetaI = Math::CosThetaZUp(localWi);
+	bool entering = cosThetaI > Math::Float(0);
+
+	// Index of refraction
+	auto etaI = n1;
+	auto etaT = n2;
+	if (!entering)
+	{
+		std::swap(etaI, etaT);
+	}
+
+	auto eta = etaI / etaT;
+
+	// Fresnel term
+	Math::Float cosThetaT;
+	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT);
+
+	// Choose reflection or transmission using RR
+	if (query.uComp < Fr)
+	{
+		// Reflection
+		auto localWo = Math::ReflectZUp(localWi);
+		result.wo = geom.shadingToWorld * localWo;
+		result.sampledType = GeneralizedBSDFType::SpecularReflection;
+		result.pdf[query.transportDir] = Math::PDFEval(Fr / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		result.pdf[1-query.transportDir] = result.pdf[query.transportDir];
+
+		// Correction factor for shading normal
+		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+		if (Math::IsZero(sf))
+		{
+			return false;
+		}
+
+		auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+		if (Math::IsZero(sfInv))
+		{
+			return false;
+		}
+
+		result.weight[query.transportDir] = R * sf;
+		result.weight[1-query.transportDir] = R * sfInv;
+	}
+	else
+	{
+		// Transmission
+		auto localWo = Math::RefractZUp(localWi, eta, cosThetaT);
+		result.wo = geom.shadingToWorld * localWo;
+		result.sampledType = GeneralizedBSDFType::SpecularTransmission;
+		result.pdf[query.transportDir] = Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		result.pdf[1-query.transportDir] = Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+		// Correction factor for shading normal
+		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+		if (Math::IsZero(sf))
+		{
+			return false;
+		}
+
+		auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+		if (Math::IsZero(sfInv))
+		{
+			return false;
+		}
+
+		// Correction factor for transmission
+		auto tf = query.transportDir == TransportDirection::EL ? eta : Math::Float(1);
+		auto tfInv = query.transportDir == TransportDirection::LE ? eta : Math::Float(1);
+
+		result.weight[query.transportDir] = T * (tf * tf * sf);
+		result.weight[1-query.transportDir] = T * (tfInv * tfInv * sfInv);
+	}
+
+	return true;
 }
 
 Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

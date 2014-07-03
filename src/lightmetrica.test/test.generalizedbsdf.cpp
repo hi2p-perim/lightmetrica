@@ -149,7 +149,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_PDF)
 			GeneralizedBSDFSampleQuery bsdfSQ;
 			bsdfSQ.sample = rng->NextVec2();
 			bsdfSQ.uComp = rng->Next();
-			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.transportDir = (bsdf->BSDFTypes() & GeneralizedBSDFType::LightDirection) != 0 ? TransportDirection::LE : TransportDirection::EL;
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
 
@@ -191,7 +191,7 @@ TEST_F(GeneralizedBSDFTest, Consistency_SampleAndEstimateDirection)
 			GeneralizedBSDFSampleQuery bsdfSQ;
 			bsdfSQ.sample = rng->NextVec2();
 			bsdfSQ.uComp = rng->Next();
-			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.transportDir = (bsdf->BSDFTypes() & GeneralizedBSDFType::LightDirection) != 0 ? TransportDirection::LE : TransportDirection::EL;
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
 
@@ -233,33 +233,27 @@ TEST_F(GeneralizedBSDFTest, Consistency_SampleAndEstimateDirectionBidir)
 	{
 		LM_LOG_DEBUG("Testing generalized BSDF type '" + bsdf->ComponentImplTypeName() + " (" + bsdf->ComponentInterfaceTypeName() + ")'");
 		
-		const int Samples = 1<<2;
+		const int Samples = 1<<9;
 		for (int sample = 0; sample < Samples; sample++)
 		{
 			GeneralizedBSDFSampleQuery bsdfSQ;
 			bsdfSQ.sample = rng->NextVec2();
 			bsdfSQ.uComp = rng->Next();
-			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.transportDir = (bsdf->BSDFTypes() & GeneralizedBSDFType::LightDirection) != 0 ? TransportDirection::LE : TransportDirection::EL;
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = Math::Normalize(Math::Vec3(Math::Float(1)));
 
 			GeneralizedBSDFSampleBidirResult bsdfSR;
 			EXPECT_TRUE(bsdf->SampleAndEstimateDirectionBidir(bsdfSQ, geom, bsdfSR));
-			EXPECT_FALSE(Math::IsZero(bsdfSR.weight[0]));
-			EXPECT_FALSE(Math::IsZero(bsdfSR.weight[1]));
-			EXPECT_FALSE(Math::IsZero(bsdfSR.pdf[0].v));
-			EXPECT_FALSE(Math::IsZero(bsdfSR.pdf[1].v));
-			EXPECT_EQ(bsdfSR.pdf[0].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
-			EXPECT_EQ(bsdfSR.pdf[1].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+			EXPECT_EQ(bsdfSR.pdf[bsdfSQ.transportDir].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
+			EXPECT_EQ(bsdfSR.pdf[1-bsdfSQ.transportDir].measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
 
 			GeneralizedBSDFSampleResult bsdfSR2;
 			auto w2_0 = bsdf->SampleAndEstimateDirection(bsdfSQ, geom, bsdfSR2);
-			EXPECT_FALSE(Math::IsZero(w2_0));
-			EXPECT_FALSE(Math::IsZero(bsdfSR2.pdf.v));
 			EXPECT_EQ(bsdfSR2.pdf.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
 
-			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[0].v, bsdfSR2.pdf.v));
-			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[0], w2_0));
+			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[bsdfSQ.transportDir].v, bsdfSR2.pdf.v, Math::Float(1e-2)));
+			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[bsdfSQ.transportDir], w2_0, Math::Float(1e-2)));
 
 			// Opposite direction
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
@@ -268,14 +262,12 @@ TEST_F(GeneralizedBSDFTest, Consistency_SampleAndEstimateDirectionBidir)
 			bsdfEQ.wi = bsdfSR2.wo;
 			bsdfEQ.wo = bsdfSQ.wi;
 			auto fs2_1 = bsdf->EvaluateDirection(bsdfEQ, geom);
-			EXPECT_FALSE(Math::IsZero(fs2_1));
 			auto pdfD2_1 = bsdf->EvaluateDirectionPDF(bsdfEQ, geom);
-			EXPECT_FALSE(Math::IsZero(pdfD2_1.v));
 			EXPECT_EQ(pdfD2_1.measure, Math::ProbabilityMeasure::ProjectedSolidAngle);
-			auto w2_1 = fs2_1 / pdfD2_1.v;
+			auto w2_1 = Math::IsZero(pdfD2_1.v) ? Math::Vec3() : fs2_1 / pdfD2_1.v;
 
-			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[1].v, pdfD2_1.v));
-			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[1], w2_1));
+			EXPECT_TRUE(ExpectNear(bsdfSR.pdf[1-bsdfSQ.transportDir].v, pdfD2_1.v, Math::Float(1e-2)));
+			EXPECT_TRUE(ExpectVec3Near(bsdfSR.weight[1-bsdfSQ.transportDir], w2_1, Math::Float(1e-2)));
 		}
 	}
 }

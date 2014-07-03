@@ -59,7 +59,7 @@ public:
 
 	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
 	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const { return false; }
+	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
 	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
 	virtual bool Degenerated() const { return false; }
@@ -195,7 +195,7 @@ void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometr
 
 bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return false;
 	}
@@ -218,7 +218,7 @@ bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query
 
 Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::Vec3();
 	}
@@ -242,6 +242,30 @@ Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFS
 	return Math::Vec3(Math::Float(1));
 }
 
+bool PerspectiveCamera::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+{
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	{
+		return false;
+	}
+
+	// Raster position in [-1, 1]^2
+	auto ndcRasterPos = Math::Vec3(query.sample * Math::Float(2) - Math::Vec2(Math::Float(1)), Math::Float(0));
+
+	// Convert raster position to camera coordinates
+	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
+	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
+
+	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
+	result.pdf[query.transportDir] = Math::PDFEval(EvaluateImportance(-Math::CosThetaZUp(dirTCam3)), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.pdf[1-query.transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.weight[query.transportDir] = Math::Vec3(Math::Float(1));
+	result.weight[1-query.transportDir] = Math::Vec3();
+
+	return true;
+}
+
 Math::Vec3 PerspectiveCamera::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
 {
 	return Math::Vec3(Math::Float(1));
@@ -254,7 +278,7 @@ Math::PDFEval PerspectiveCamera::EvaluatePositionPDF( const SurfaceGeometry& /*g
 
 Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::Vec3();
 	}
@@ -325,7 +349,7 @@ Math::Float PerspectiveCamera::EvaluateImportance( Math::Float cosTheta ) const
 
 Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0)
+	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

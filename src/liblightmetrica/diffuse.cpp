@@ -63,7 +63,6 @@ public:
 
 private:
 
-	DiffuseBSDF* self;
 	Math::Vec3 diffuseReflectance;
 
 };
@@ -118,7 +117,7 @@ Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQ
 	result.pdf.v /= Math::CosThetaZUp(localWo);
 	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
 
-	Math::Float sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
 	if (Math::IsZero(sf))
 	{
 		return Math::Vec3();
@@ -145,13 +144,13 @@ bool DiffuseBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQu
 	result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo);
 	result.pdf[1-query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWi);
 
-	auto sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
 	if (Math::IsZero(sf))
 	{
 		return false;
 	}
 
-	auto sfInv = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
 	if (Math::IsZero(sfInv))
 	{
 		return false;
@@ -172,7 +171,7 @@ Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& q
 		return Math::Vec3();
 	}
 
-	Math::Float sf = self->ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+	Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 	if (Math::IsZero(sf))
 	{
 		return Math::Vec3();
