@@ -52,6 +52,20 @@ Math::Float BPTSimpleMISWeight::Evaluate(const BPTFullPath& fullPath) const
 {
 #if 1
 
+	int nonZeroProbPaths = 0;
+	const int n = fullPath.s + fullPath.t;
+	for (int i = 0; i <= n; i++)
+	{
+		if (!fullPath.FullpathPDFIsZero(i))
+		{
+			nonZeroProbPaths++;
+		}
+	}
+
+	return Math::Float(1) / Math::Float(nonZeroProbPaths);
+
+#elif 1
+
 	int nonZeroProbPaths = 1;
 	const int n = fullPath.s + fullPath.t;
 	for (int i = 0; i <= n; i++)
