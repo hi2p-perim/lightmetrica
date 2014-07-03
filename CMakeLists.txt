@@ -201,7 +201,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	endif()
 
 	# Enable all warnings
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 	# Enable -fPIC
 	# TODO : Find why with the static version of boost the linker generates an error
