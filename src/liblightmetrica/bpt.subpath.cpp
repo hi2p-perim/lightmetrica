@@ -202,11 +202,20 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 	bsdfSQE.transportDir = transportDir;
 	bsdfSQE.type = GeneralizedBSDFType::AllEmitter;
 
+#if 1
+	GeneralizedBSDFSampleBidirResult bsdfSRE;
+	v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQE, v->geom, bsdfSRE);
+	v->wo = bsdfSRE.wo;
+	v->weight = bsdfSRE.weight[transportDir];
+	v->pdfD[transportDir] = bsdfSRE.pdf[transportDir];
+	v->pdfD[1-transportDir] = bsdfSRE.pdf[1-transportDir];
+#else
 	GeneralizedBSDFSampleResult bsdfSRE;
 	v->bsdf->SampleDirection(bsdfSQE, v->geom, bsdfSRE);
 	v->pdfD[transportDir] = bsdfSRE.pdf;
 	v->pdfD[1-transportDir] = Math::PDFEval();
 	v->wo = bsdfSRE.wo;
+#endif
 
 	// # of vertices is always greater than 1
 	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
@@ -309,7 +318,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = -pv->wo;
 
-#if 0
+#if 1
 		GeneralizedBSDFSampleBidirResult bsdfSR;
 		if (!v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQ, v->geom, bsdfSR))
 		{
@@ -318,10 +327,9 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		}
 
 		v->wo = bsdfSR.wo;
-		v->weight[transportDir]   = bsdfSR.weight[transportDir];
-		v->weight[1-transportDir] = bsdfSR.weight[1-transportDir];
-		v->pdfD[transportDir]     = bsdfSR.pdf[transportDir];
-		v->pdfD[1-transportDir]   = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
+		v->weight = bsdfSR.weight[transportDir];
+		v->pdfD[transportDir] = bsdfSR.pdf[transportDir];
+		v->pdfD[1-transportDir] = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
 #else
 		GeneralizedBSDFSampleResult bsdfSR;
 		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
@@ -416,11 +424,15 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 				bsdfEQ.transportDir = transportDir;
 				bsdfEQ.wi = v->wi;
 				bsdfEQ.wo = v->wo;
+#if 1
+				alpha *= v->weight;
+#else
 				auto fs = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
 
 				// Update #alphaL or #alphaE
 				LM_ASSERT(v->pdfD[transportDir].measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
 				alpha *= fs / v->pdfD[transportDir].v;
+#endif
 
 				// RR probability
 				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);

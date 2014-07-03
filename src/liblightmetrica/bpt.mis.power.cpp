@@ -64,35 +64,72 @@ Math::Float BPTPowerHeuristicsMISWeight::Evaluate(const BPTFullPath& fullPath) c
 {
 	const int n = fullPath.s + fullPath.t;
 
+	Math::Float ps = fullPath.EvaluateFullpathPDF(fullPath.s);
+	if (Math::IsZero(ps))
+	{
+		return Math::Float(0);
+	}
+
 	// Inverse of the weight 1/w_{s,t}. Initial weight is p_s/p_s = 1
 	Math::Float invWeight(1);
-	Math::Float piDivPs;
 
 	// Iteratively compute p_i/p_s where i = s-1 downto 0
-	piDivPs = Math::Float(1);
+	Math::Float piDivPs(1);
+	bool prevPDFIsZero = false;
 	for (int i = fullPath.s-1; i >= 0; i--)
 	{
-		auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
-		if (Math::IsZero(ratio))
+		if (fullPath.FullpathPDFIsZero(i))
 		{
-			break;
+			prevPDFIsZero = true;
+			continue;
 		}
 
-		piDivPs *= Math::Float(1) / ratio;
+		if (prevPDFIsZero)
+		{
+			piDivPs = fullPath.EvaluateFullpathPDF(i) / ps;
+			prevPDFIsZero = false;
+		}
+		else
+		{
+			auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
+			if (Math::IsZero(ratio))
+			{
+				break;
+			}
+
+			piDivPs *= Math::Float(1) / ratio;
+		}
+
 		invWeight += piDivPs * piDivPs;
 	}
 
 	// Iteratively compute p_i/p_s where i = s+1 to n
 	piDivPs = Math::Float(1);
+	prevPDFIsZero = false;
 	for (int i = fullPath.s; i < n; i++)
 	{
-		auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
-		if (Math::IsZero(ratio))
+		if (fullPath.FullpathPDFIsZero(i+1))
 		{
-			break;
+			prevPDFIsZero = true;
+			continue;
 		}
 
-		piDivPs *= ratio;
+		if (prevPDFIsZero)
+		{
+			piDivPs = fullPath.EvaluateFullpathPDF(i+1) / ps;
+			prevPDFIsZero = false;
+		}
+		else
+		{
+			auto ratio = fullPath.EvaluateFullpathPDFRatio(i);
+			if (Math::IsZero(ratio))
+			{
+				break;
+			}
+
+			piDivPs *= ratio;
+		}
+
 		invWeight += piDivPs * piDivPs;
 	}
 

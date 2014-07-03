@@ -87,6 +87,14 @@ public:
 	LM_PUBLIC_API Math::Float EvaluateFullpathPDFRatio(int i) const;
 
 	/*!
+		Check if p_i(x_{s,t}) is zero.
+		\param i Index of PDF.
+		\retval true Zero.
+		\retval false Non-zero.
+	*/
+	LM_PUBLIC_API bool FullpathPDFIsZero(int i) const;
+
+	/*!
 		Debug print.
 		Prints contents of the full-path.
 	*/

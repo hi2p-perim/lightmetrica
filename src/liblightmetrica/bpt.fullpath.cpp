@@ -430,25 +430,66 @@ Math::Float BPTFullPath::EvaluateFullpathPDFRatio( int i ) const
 		return xnPrev2PdfDLE.v * RenderUtils::GeneralizedGeometryTerm(xnPrev2->geom, xnPrev->geom) / denom;
 	}
 
-	// p_{i+1} / p_i =
-	//     p_{\sigma^\bot}(x_{i-1}\to x_i)G(x_{i-1}\leftrightarrow x_i) /
-	//     p_{\sigma^\bot}(x_{i+1}\to x_i)G(x_{i+1}\leftrightarrow x_i)
-	const auto* xi		= FullPathVertex(i);
-	const auto* xiNext	= FullPathVertex(i+1);
-	const auto* xiPrev	= FullPathVertex(i-1);
-	auto xiPrevPdfDLE	= FullPathVertexDirectionPDF(i-1, TransportDirection::LE);
-	auto xiNextPdfDEL	= FullPathVertexDirectionPDF(i+1, TransportDirection::EL);
-
-	LM_ASSERT(xiPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-	LM_ASSERT(xiNextPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-
-	auto denom = xiNextPdfDEL.v * RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom);
-	if (Math::Abs(denom) < Math::Constants::Eps())
 	{
-		return Math::Float(0);
+		// p_{i+1} / p_i =
+		//     p_{\sigma^\bot}(x_{i-1}\to x_i)G(x_{i-1}\leftrightarrow x_i) /
+		//     p_{\sigma^\bot}(x_{i+1}\to x_i)G(x_{i+1}\leftrightarrow x_i)
+		const auto* xi		= FullPathVertex(i);
+		const auto* xiNext	= FullPathVertex(i+1);
+		const auto* xiPrev	= FullPathVertex(i-1);
+		auto xiPrevPdfDLE	= FullPathVertexDirectionPDF(i-1, TransportDirection::LE);
+		auto xiNextPdfDEL	= FullPathVertexDirectionPDF(i+1, TransportDirection::EL);
+
+		LM_ASSERT(xiPrevPdfDLE.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+		LM_ASSERT(xiNextPdfDEL.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+		auto denom = xiNextPdfDEL.v * RenderUtils::GeneralizedGeometryTerm(xiNext->geom, xi->geom);
+		if (Math::Abs(denom) < Math::Constants::Eps())
+		{
+			return Math::Float(0);
+		}
+
+		return xiPrevPdfDLE.v * RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) / denom;
+	}
+}
+
+bool BPTFullPath::FullpathPDFIsZero( int i ) const
+{
+	if (i == s)
+	{
+		return false;
 	}
 
-	return xiPrevPdfDLE.v * RenderUtils::GeneralizedGeometryTerm(xiPrev->geom, xi->geom) / denom;
+	const int n = s + t;
+	if (i == 0)
+	{
+		const auto* p0 = FullPathVertex(0);
+		if (p0->areaLight == nullptr || p0->geom.degenerated)
+		{
+			return true;
+		}
+	}
+	else if (i == n)
+	{
+		const auto* pn = FullPathVertex(n-1);
+		if (pn->areaCamera == nullptr || pn->geom.degenerated)
+		{
+			return true;
+		}
+	}
+	else if (0 < i && i < n)
+	{
+		// Check if one of connection vertices are degenerated
+		// which cannot be sampled by p_i
+		const auto* pi     = FullPathVertex(i-1);
+		const auto* piNext = FullPathVertex(i);
+		if (pi->bsdf->Degenerated() || piNext->bsdf->Degenerated())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 const BPTPathVertex* BPTFullPath::FullPathVertex( int i ) const

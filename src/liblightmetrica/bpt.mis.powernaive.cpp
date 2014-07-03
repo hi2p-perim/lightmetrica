@@ -88,14 +88,6 @@ Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPa
 			auto ratio = pi / ps;
 			invWeight += ratio * ratio;
 		}
-
-		//if (Math::IsZero(pi))
-		//{
-		//	continue;
-		//}
-
-		//auto ratio = pi / ps;
-		//invWeight += ratio * ratio;
 	}
 
 	return Math::Float(1) / invWeight;
