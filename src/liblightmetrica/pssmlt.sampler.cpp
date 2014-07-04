@@ -26,7 +26,7 @@
 
 LM_NAMESPACE_BEGIN
 
-LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, unsigned int seed )
+PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, unsigned int seed )
 	: initialSeed(seed)
 	, rng(rng)
 	, currentIndex(0)
@@ -34,7 +34,7 @@ LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, uns
 	rng->SetSeed(seed);
 }
 
-LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, const PSSMLTRestorableSampler& sampler )
+PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, const PSSMLTRestorableSampler& sampler )
 	: initialSeed(sampler.initialSeed)
 	, rng(rng)
 	, currentIndex(0)
@@ -42,18 +42,18 @@ LM_PUBLIC_API PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, con
 	rng->SetSeed(sampler.initialSeed);
 }
 
-LM_PUBLIC_API Math::Float PSSMLTRestorableSampler::Next()
+Math::Float PSSMLTRestorableSampler::Next()
 {
 	currentIndex++;
 	return rng->Next();
 }
 
-LM_PUBLIC_API Random* PSSMLTRestorableSampler::Rng()
+Random* PSSMLTRestorableSampler::Rng()
 {
 	return rng.get();
 }
 
-LM_PUBLIC_API void PSSMLTRestorableSampler::SetIndex( int index )
+void PSSMLTRestorableSampler::SetIndex( int index )
 {
 	// Reset the initial seed
 	currentIndex = 0;
@@ -68,14 +68,14 @@ LM_PUBLIC_API void PSSMLTRestorableSampler::SetIndex( int index )
 	}
 }
 
-LM_PUBLIC_API int PSSMLTRestorableSampler::Index()
+int PSSMLTRestorableSampler::Index()
 {
 	return currentIndex;
 }
 
 // --------------------------------------------------------------------------------
 
-LM_PUBLIC_API PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Float& s2 )
+PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Float& s2 )
 	: s1(s1)
 	, s2(s2)
 	, kernelSizeScale(1)
@@ -87,17 +87,17 @@ LM_PUBLIC_API PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, c
 	currentIndex = 0;
 }
 
-LM_PUBLIC_API Math::Float PSSMLTPrimarySample::Next()
+Math::Float PSSMLTPrimarySample::Next()
 {
 	return PrimarySample(currentIndex++);
 }
 
-LM_PUBLIC_API Random* PSSMLTPrimarySample::Rng()
+Random* PSSMLTPrimarySample::Rng()
 {
 	return rng;
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::Accept()
+void PSSMLTPrimarySample::Accept()
 {
 	if (largeStep)
 	{
@@ -110,7 +110,7 @@ LM_PUBLIC_API void PSSMLTPrimarySample::Accept()
 	currentIndex = 0;
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::Reject()
+void PSSMLTPrimarySample::Reject()
 {
 	// Restore samples
 	for (auto& v : prevSamples)
@@ -205,22 +205,22 @@ Math::Float PSSMLTPrimarySample::Mutate( const Math::Float& value )
 	return result;
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::SetLargeStep( bool largeStep )
+void PSSMLTPrimarySample::SetLargeStep( bool largeStep )
 {
 	this->largeStep = largeStep;
 }
 
-LM_PUBLIC_API bool PSSMLTPrimarySample::LargeStep()
+bool PSSMLTPrimarySample::LargeStep()
 {
 	return largeStep;
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::SetRng( Random* rng )
+void PSSMLTPrimarySample::SetRng( Random* rng )
 {
 	this->rng = rng;
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples ) const
+void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples ) const
 {
 	samples.clear();
 	for (auto& sample : u)
@@ -229,7 +229,7 @@ LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math:
 	}
 }
 
-LM_PUBLIC_API void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
+void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
 {
 	samples.clear();
 	for (int i = 0; i < numSamples; i++)

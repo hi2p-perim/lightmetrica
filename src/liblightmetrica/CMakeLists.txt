@@ -268,6 +268,7 @@ set(
 set(
 	_RENDERER_PSSMLT_SOURCES
 	"pssmlt.cpp"
+	"pssmlt.bpt.cpp"
 	"pssmlt.sampler.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_HEADERS})
