@@ -22,60 +22,27 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
+#include <lightmetrica/pssmlt.splat.h>
+#include <lightmetrica/film.h>
 
 LM_NAMESPACE_BEGIN
 
-class BPTPathVertexPool::Impl
+Math::Float PSSMLTSplats::SumI() const
 {
-public:
-
-	Impl() {}
-
-public:
-
-	BPTPathVertex* Construct()
+	Math::Float sumI(0);
+	for (auto& splat : splats)
 	{
-		pool.push_back(new BPTPathVertex);
-		return pool.back();
+		sumI += Math::Luminance(splat.L);
 	}
+	return sumI;
+}
 
-	void Release()
+void PSSMLTSplats::AccumulateContributionToFilm( Film& film, const Math::Float& weight ) const
+{
+	for (auto& splat : splats)
 	{
-		for (auto* v : pool) { LM_SAFE_DELETE(v); }
-		pool.clear();
+		film.AccumulateContribution(splat.rasterPos, splat.L * weight);
 	}
-
-private:
-
-	std::vector<BPTPathVertex*> pool;
-
-};
-
-// --------------------------------------------------------------------------------
-
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
-{
-
-}
-
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
-
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release()
-{
-	p->Release();
 }
 
 LM_NAMESPACE_END

@@ -62,10 +62,17 @@ struct BPTThreadContext
 	std::unique_ptr<Film> film;					//!< Film
 	std::unique_ptr<BPTPathVertexPool> pool;	//!< Memory pool for path vertices
 
+	// Sub-paths are reused in the same thread in order to
+	// avoid unnecessary memory allocation
+	BPTSubpath lightSubpath;					//!< Light subpath
+	BPTSubpath eyeSubpath;						//!< Eye subpath
+
 	BPTThreadContext(Random* rng, Film* film)
 		: rng(rng)
 		, film(film)
 		, pool(new BPTPathVertexPool)
+		, lightSubpath(TransportDirection::LE)
+		, eyeSubpath(TransportDirection::EL)
 	{
 
 	}
@@ -74,6 +81,8 @@ struct BPTThreadContext
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
 		, pool(new BPTPathVertexPool)
+		, lightSubpath(TransportDirection::LE)
+		, eyeSubpath(TransportDirection::EL)
 	{
 
 	}
@@ -210,27 +219,24 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	{
 		// Thread ID
 		int threadId = omp_get_thread_num();
-		auto& rng = contexts[threadId].rng;
+		auto& rng  = contexts[threadId].rng;
 		auto& film = contexts[threadId].film;
 		auto& pool = contexts[threadId].pool;
+		auto& lightSubpath = contexts[threadId].lightSubpath;
+		auto& eyeSubpath   = contexts[threadId].eyeSubpath;
 
 		// Sample range
 		long long sampleBegin = config.samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + config.samplesPerBlock, config.numSamples);
-
-		// Sub-paths are reused in the sample block
-		// but probably it should be shared by per thread configuration
-		// (TODO : check performance gain)
-		BPTSubpath lightSubpath(TransportDirection::LE);
-		BPTSubpath eyeSubpath(TransportDirection::EL);
 
 		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			// Release and clear paths
-			lightSubpath.Release(*pool);
-			eyeSubpath.Release(*pool);
+			pool->Release();
+			lightSubpath.Clear();
+			eyeSubpath.Clear();
 
 			// Sample sub-paths
 			lightSubpath.Sample(config, scene, *rng, *pool);

@@ -22,60 +22,39 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_PSSMLT_PATH_SEED_H
+#define LIB_LIGHTMETRICA_PSSMLT_PATH_SEED_H
+
+#include "common.h"
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-class BPTPathVertexPool::Impl
+/*!
+	Light path seed.
+	Required data to generate a seed light path.
+*/
+struct PSSMLTPathSeed
 {
-public:
 
-	Impl() {}
+	int index;			//!< Sample index of restorable sampler
+	Math::Float I;		//!< Luminance of the sampled light path (used for debugging)
 
-public:
-
-	BPTPathVertex* Construct()
+	PSSMLTPathSeed()
 	{
-		pool.push_back(new BPTPathVertex);
-		return pool.back();
+
 	}
 
-	void Release()
+	PSSMLTPathSeed(int index, const Math::Float& I)
+		: index(index)
+		, I(I)
 	{
-		for (auto* v : pool) { LM_SAFE_DELETE(v); }
-		pool.clear();
+
 	}
-
-private:
-
-	std::vector<BPTPathVertex*> pool;
 
 };
 
-// --------------------------------------------------------------------------------
-
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
-{
-
-}
-
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
-
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release()
-{
-	p->Release();
-}
-
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_PSSMLT_PATH_SEED_H

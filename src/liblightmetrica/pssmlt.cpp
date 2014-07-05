@@ -24,6 +24,8 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/pssmlt.common.h>
+#include <lightmetrica/pssmlt.pathseed.h>
 #include <lightmetrica/pssmlt.sampler.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
@@ -46,38 +48,7 @@
 #include <atomic>
 #include <omp.h>
 
-//#define LM_ENABLE_PSSMLT_EXPERIMENTAL
-//#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
-//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 1
-//#else
-//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 0
-//#endif
-
 LM_NAMESPACE_BEGIN
-
-/*
-	Light path seed.
-	Required data to generate a seed light path.
-*/
-struct PSSMLTPathSeed
-{
-
-	int index;			// Sample index of restorable sampler
-	Math::Float I;		// Luminance of the sampled light path (used for debugging)
-
-	PSSMLTPathSeed()
-	{
-
-	}
-
-	PSSMLTPathSeed(int index, const Math::Float& I)
-		: index(index)
-		, I(I)
-	{
-
-	}
-
-};
 
 /*
 	Light path sample record.

@@ -49,8 +49,7 @@ struct BPTSubpaths
 
 	~BPTSubpaths()
 	{
-		lightSubpath.Release(pool);
-		eyeSubpath.Release(pool);
+		pool.Release();
 	}
 
 	BPTPathVertexPool pool;

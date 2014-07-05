@@ -123,13 +123,8 @@ BPTSubpath::BPTSubpath( TransportDirection transportDir )
 
 }
 
-void BPTSubpath::Release( BPTPathVertexPool& pool )
+void BPTSubpath::Clear()
 {
-	for (auto* vertex : vertices)
-	{
-		pool.Release(vertex);
-	}
-
 	vertices.clear();
 }
 

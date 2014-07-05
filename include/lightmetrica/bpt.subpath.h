@@ -30,6 +30,7 @@
 #include "math.types.h"
 #include "surfacegeometry.h"
 #include "transportdirection.h"
+#include "align.h"
 #include <vector>
 
 LM_NAMESPACE_BEGIN
@@ -55,7 +56,7 @@ enum class BPTPathVertexType
 	Represents a light path vertex.
 	TODO : Use unrestricted unions in future implementation.
 */
-class BPTPathVertex
+class BPTPathVertex : public SIMDAlignedType
 {
 public:
 
@@ -124,17 +125,16 @@ private:
 public:
 
 	/*!
-		Release sampled sub-path.
-		\param pool Memory pool for path vertex.
+		Clear.
+		Clears sampled sub-path.
 	*/
-	LM_PUBLIC_API void Release(BPTPathVertexPool& pool);
+	LM_PUBLIC_API void Clear();
 
 	/*!
 		Debug print.
 		Prints contents of the sub-path.
 	*/
 	LM_PUBLIC_API void DebugPrint() const;
-
 
 	/*!
 		Debug print (by # of vertices).

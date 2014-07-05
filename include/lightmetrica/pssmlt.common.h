@@ -22,60 +22,17 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_PSSMLT_COMMON_H
+#define LIB_LIGHTMETRICA_PSSMLT_COMMON_H
 
-LM_NAMESPACE_BEGIN
+#include "common.h"
 
-class BPTPathVertexPool::Impl
-{
-public:
+//#define LM_ENABLE_PSSMLT_EXPERIMENTAL
+//#ifdef LM_ENABLE_PSSMLT_EXPERIMENTAL
+//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 1
+//#else
+//	#define LM_PSSMLT_EXPERIMENTAL_MDOE 0
+//#endif
 
-	Impl() {}
-
-public:
-
-	BPTPathVertex* Construct()
-	{
-		pool.push_back(new BPTPathVertex);
-		return pool.back();
-	}
-
-	void Release()
-	{
-		for (auto* v : pool) { LM_SAFE_DELETE(v); }
-		pool.clear();
-	}
-
-private:
-
-	std::vector<BPTPathVertex*> pool;
-
-};
-
-// --------------------------------------------------------------------------------
-
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
-{
-
-}
-
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
-
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release()
-{
-	p->Release();
-}
-
-LM_NAMESPACE_END
+#endif // LIB_LIGHTMETRICA_PSSMLT_COMMON_H

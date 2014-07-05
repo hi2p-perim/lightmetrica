@@ -183,8 +183,9 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	const int Samples = 1<<12;
 	for (int sample = 0; sample < Samples; sample++)
 	{
-		lightSubpath.Release(pool);
-		eyeSubpath.Release(pool);
+		pool.Release();
+		lightSubpath.Clear();
+		eyeSubpath.Clear();
 		lightSubpath.Sample(bptConfig, *scene, *rng, pool);
 		eyeSubpath.Sample(bptConfig, *scene, *rng, pool);
 

@@ -22,60 +22,47 @@
 	THE SOFTWARE.
 */
 
-#include "pch.h"
-#include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/align.h>
+#pragma once
+#ifndef LIB_LIGHTMETRICA_PSSMLT_SPLAT_H
+#define LIB_LIGHTMETRICA_PSSMLT_SPLAT_H
+
+#include "common.h"
+#include "math.types.h"
+#include "align.h"
+#include <vector>
 
 LM_NAMESPACE_BEGIN
 
-class BPTPathVertexPool::Impl
+/*!
+	Splat for path sampler.
+	Used as a sampled result of light path sampler in PSSMLT.
+*/
+struct PSSMLTSplat
 {
-public:
 
-	Impl() {}
-
-public:
-
-	BPTPathVertex* Construct()
-	{
-		pool.push_back(new BPTPathVertex);
-		return pool.back();
-	}
-
-	void Release()
-	{
-		for (auto* v : pool) { LM_SAFE_DELETE(v); }
-		pool.clear();
-	}
-
-private:
-
-	std::vector<BPTPathVertex*> pool;
+	int s;						//!< # of light subpath vertices
+	int t;						//!< # of eye subpath vertices
+	Math::Vec2 rasterPos;		//!< Raster position
+	Math::Vec3 L;				//!< Radiance
 
 };
 
-// --------------------------------------------------------------------------------
+class Film;
 
-BPTPathVertexPool::BPTPathVertexPool()
-	: p(new Impl)
+/*!
+	List of splats.
+	List of evaluated result of the sampled light paths.
+*/
+struct PSSMLTSplats
 {
 
-}
+	std::vector<PSSMLTSplat, aligned_allocator<PSSMLTSplat, std::alignment_of<PSSMLTSplat>::value>> splats;
 
-BPTPathVertexPool::~BPTPathVertexPool()
-{
-	LM_SAFE_DELETE(p);
-}
+	Math::Float SumI() const;
+	void AccumulateContributionToFilm(Film& film, const Math::Float& weight) const;
 
-BPTPathVertex* BPTPathVertexPool::Construct()
-{
-	return p->Construct();
-}
-
-void BPTPathVertexPool::Release()
-{
-	p->Release();
-}
+};
 
 LM_NAMESPACE_END
+
+#endif // LIB_LIGHTMETRICA_PSSMLT_SPLAT_H

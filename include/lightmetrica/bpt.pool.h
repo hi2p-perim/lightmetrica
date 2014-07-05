@@ -58,16 +58,9 @@ public:
 
 	/*!
 		Release.
-		Releases memory.
-		\param v Allocated instance.
-	*/
-	void Release(BPTPathVertex* v);
-
-	/*!
-		Release all.
 		Releases all allocated path vertices.
 	*/
-	//void ReleaseAll();
+	void Release();
 
 private:
 
