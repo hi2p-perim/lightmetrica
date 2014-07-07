@@ -240,6 +240,22 @@ list(APPEND _HEADER_FILES ${_MATH_TYPES_HEADERS})
 ################################################################################
 
 set(
+	_SAMPLER_HEADERS
+	"${_INCLUDE_DIR}/sampler.h"
+	"${_INCLUDE_DIR}/camerasampler.h"
+)
+set(
+	_SAMPLER_SOURCES
+	"randomsampler.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\sampler" FILES ${_SAMPLER_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\sampler" FILES ${_SAMPLER_SOURCES})
+list(APPEND _HEADER_FILES ${_SAMPLER_HEADERS})
+list(APPEND _SOURCE_FILES ${_SAMPLER_SOURCES})
+
+################################################################################
+
+set(
 	_RENDERER_HEADERS
 	"${_INCLUDE_DIR}/renderer.h"
 	"${_INCLUDE_DIR}/renderutils.h"

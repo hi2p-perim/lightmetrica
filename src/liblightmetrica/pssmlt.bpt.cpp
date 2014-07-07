@@ -30,6 +30,7 @@
 #include <lightmetrica/pssmlt.sampler.h>
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
+#include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
@@ -60,16 +61,23 @@ LM_NAMESPACE_BEGIN
 struct BPTPSSMLTThreadContext : public SIMDAlignedType
 {
 	
-	std::unique_ptr<Random> rng;						// Random number generator
-	std::unique_ptr<Film> film;							// Film
-	std::unique_ptr<PSSMLTPrimarySample> sampler;		// Kelemen's lazy sampler
-	PSSMLTSplats records[2];							// Path sample records (current or proposed)
-	int current;										// Index of current record
+	std::unique_ptr<Random> rng;						//!< Random number generator
+	std::unique_ptr<Film> film;							//!< Film
+	std::unique_ptr<PSSMLTPrimarySample> sampler;		//!< Kelemen's lazy sampler
+	PSSMLTSplats records[2];							//!< Path sample records (current or proposed)
+	int current;										//!< Index of current record
+
+	std::unique_ptr<BPTPathVertexPool> pool;			//!< Memory pool for path vertices
+	BPTSubpath lightSubpath;							//!< Light subpath
+	BPTSubpath eyeSubpath;								//!< Eye subpath
 
 	BPTPSSMLTThreadContext(Random* rng, Film* film, PSSMLTPrimarySample* sampler)
 		: rng(rng)
 		, film(film)
 		, sampler(sampler)
+		, pool(new BPTPathVertexPool)
+		, lightSubpath(TransportDirection::LE)
+		, eyeSubpath(TransportDirection::EL)
 	{
 
 	}
@@ -78,6 +86,9 @@ struct BPTPSSMLTThreadContext : public SIMDAlignedType
 		: rng(std::move(context.rng))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
+		, pool(new BPTPathVertexPool)
+		, lightSubpath(TransportDirection::LE)
+		, eyeSubpath(TransportDirection::EL)
 	{
 
 	}
@@ -112,7 +123,7 @@ public:
 private:
 
 	void ProcessRenderSingleSample(const Scene& scene, BPTPSSMLTThreadContext& context) const;
-	void SampleAndEvaluateBPTPaths(const Scene& scene, PSSMLTSampler& sampler, PSSMLTSplats& splats) const;
+	void SampleAndEvaluateBPTPaths(const Scene& scene, PSSMLTSampler& sampler, BPTPathVertexPool& pool, BPTSubpath& lightSubpath, BPTSubpath& eyeSubpath, PSSMLTSplats& splats) const;
 
 private:
 
@@ -345,13 +356,19 @@ void BPTPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, BPTPSSMLT
 	current.AccumulateContributionToFilm(*context.film, a * normFactor / proposedI);
 }
 
-void BPTPSSMLTRenderer::SampleAndEvaluateBPTPaths( const Scene& scene, PSSMLTSampler& sampler, PSSMLTSplats& splats ) const
+void BPTPSSMLTRenderer::SampleAndEvaluateBPTPaths( const Scene& scene, PSSMLTSampler& sampler, BPTPathVertexPool& pool, BPTSubpath& lightSubpath, BPTSubpath& eyeSubpath, PSSMLTSplats& splats ) const
 {
 	// Clear result
 	splats.splats.clear();
 
-	BPTSubpath lightSubpath(TransportDirection::LE);
-	BPTSubpath eyeSubpath(TransportDirection::EL);
+	// Release and clear paths
+	pool.Release();
+	lightSubpath.Clear();
+	eyeSubpath.Clear();
+
+	// Sample subpaths
+	lightSubpath.Sample(config, scene, *rng, *pool);
+	eyeSubpath.Sample(config, scene, *rng, *pool);
 
 
 }
