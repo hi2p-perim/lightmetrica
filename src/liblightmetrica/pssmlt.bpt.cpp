@@ -197,6 +197,10 @@ bool BPTPSSMLTRenderer::Preprocess( const Scene& scene )
 	Math::Float sumI(0);
 	std::vector<PSSMLTPathSeed> candidates;
 
+	BPTPathVertexPool pool;
+	BPTSubpath lightSubpath(TransportDirection::LE);
+	BPTSubpath eyeSubpath(TransportDirection::EL);
+
 	for (long long sample = 0; sample < numSeedSamples; sample++)
 	{
 		// Current sample index
@@ -204,7 +208,7 @@ bool BPTPSSMLTRenderer::Preprocess( const Scene& scene )
 
 		// Sample light paths
 		// We note that BPT might generate multiple light paths
-		SampleAndEvaluateBPTPaths(scene, *restorableSampler, splats);
+		SampleAndEvaluateBPTPaths(scene, *restorableSampler, pool, lightSubpath, eyeSubpath, splats);
 
 		// Calculate sum of luminance (TODO : or max?)
 		auto I = splats.SumI();
@@ -273,7 +277,7 @@ bool BPTPSSMLTRenderer::Render( const Scene& scene )
 		// Sample light paths with Kelemen's sampler
 		context->current = 0;
 		auto& current = context->CurentRecord();
-		SampleAndEvaluateBPTPaths(scene, *context->sampler, current);
+		SampleAndEvaluateBPTPaths(scene, *context->sampler, *context->pool, context->lightSubpath, context->eyeSubpath, current);
 		LM_ASSERT(Math::Abs(current.SumI() - seeds[i].I) < Math::Constants::Eps());
 
 		// Restore normal sampler
@@ -333,7 +337,7 @@ void BPTPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, BPTPSSMLT
 	context.sampler->SetLargeStep(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	SampleAndEvaluateBPTPaths(scene, *context.sampler, proposed);
+	SampleAndEvaluateBPTPaths(scene, *context.sampler, *context.pool, context.lightSubpath, context.eyeSubpath, proposed);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();
@@ -367,8 +371,8 @@ void BPTPSSMLTRenderer::SampleAndEvaluateBPTPaths( const Scene& scene, PSSMLTSam
 	eyeSubpath.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(config, scene, *rng, *pool);
-	eyeSubpath.Sample(config, scene, *rng, *pool);
+	//lightSubpath.Sample(config, scene, *rng, *pool);
+	//eyeSubpath.Sample(config, scene, *rng, *pool);
 
 
 }

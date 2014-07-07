@@ -27,7 +27,7 @@
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <thread>
 
 LM_NAMESPACE_BEGIN
@@ -48,13 +48,15 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
-	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered<Random>(rngType))
+
+	// Sampler
+	auto samplerNode = node.Child("sampler");
+	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
-		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+		LM_LOG_ERROR("Invalid sampler");
 		return false;
 	}
-	node.ChildValueOrDefault("rng_seed", 1, rngSeed);
 
 	// MIS weight function
 	auto misWeightModeNode = node.Child("mis_weight");

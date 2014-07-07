@@ -41,7 +41,7 @@
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/bpt.config.h>
 #include <lightmetrica/bpt.mis.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/renderutils.h>
 
 namespace
@@ -173,8 +173,9 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	bptConfig.rrDepth = 3;
 	bptConfig.enableExperimentalMode = false;
 
-	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("sfmt"));
-	rng->SetSeed(1);
+	std::unique_ptr<Sampler> sampler(ComponentFactory::Create<Sampler>("random"));
+	ASSERT_TRUE(sampler->Configure(ConfigNode(), assets));
+	sampler->SetSeed(1);
 
 	// BPT weights
 	std::unique_ptr<BPTMISWeight> misWeightFunc_Power(ComponentFactory::Create<BPTMISWeight>("power"));
@@ -186,8 +187,8 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 		pool.Release();
 		lightSubpath.Clear();
 		eyeSubpath.Clear();
-		lightSubpath.Sample(bptConfig, *scene, *rng, pool);
-		eyeSubpath.Sample(bptConfig, *scene, *rng, pool);
+		lightSubpath.Sample(bptConfig, *scene, *sampler, pool);
+		eyeSubpath.Sample(bptConfig, *scene, *sampler, pool);
 
 		const int nL = lightSubpath.NumVertices();
 		const int nE = eyeSubpath.NumVertices();

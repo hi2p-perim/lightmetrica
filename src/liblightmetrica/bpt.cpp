@@ -33,7 +33,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -58,7 +58,7 @@ LM_NAMESPACE_BEGIN
 struct BPTThreadContext
 {
 	
-	std::unique_ptr<Random> rng;				//!< Random number generator
+	std::unique_ptr<Sampler> sampler;			//!< Sampler
 	std::unique_ptr<Film> film;					//!< Film
 	std::unique_ptr<BPTPathVertexPool> pool;	//!< Memory pool for path vertices
 
@@ -67,8 +67,8 @@ struct BPTThreadContext
 	BPTSubpath lightSubpath;					//!< Light subpath
 	BPTSubpath eyeSubpath;						//!< Eye subpath
 
-	BPTThreadContext(Random* rng, Film* film)
-		: rng(rng)
+	BPTThreadContext(Sampler* sampler, Film* film)
+		: sampler(sampler)
 		, film(film)
 		, pool(new BPTPathVertexPool)
 		, lightSubpath(TransportDirection::LE)
@@ -78,7 +78,7 @@ struct BPTThreadContext
 	}
 
 	BPTThreadContext(BPTThreadContext&& context)
-		: rng(std::move(context.rng))
+		: sampler(std::move(context.sampler))
 		, film(std::move(context.film))
 		, pool(new BPTPathVertexPool)
 		, lightSubpath(TransportDirection::LE)
@@ -185,11 +185,10 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 	// Random number generators and films
 	std::vector<BPTThreadContext> contexts;
-	int seed = static_cast<int>(config.rngSeed < 0 ? std::time(nullptr) : config.rngSeed);
 	for (int i = 0; i < config.numThreads; i++)
 	{
-		contexts.emplace_back(ComponentFactory::Create<Random>(config.rngType), masterFilm->Clone());
-		contexts.back().rng->SetSeed(seed + i);
+		contexts.emplace_back(config.initialSampler->Clone(), masterFilm->Clone());
+		contexts.back().sampler->SetSeed(config.initialSampler->NextUInt());
 	}
 
 	// Number of blocks to be separated
@@ -219,9 +218,9 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	{
 		// Thread ID
 		int threadId = omp_get_thread_num();
-		auto& rng  = contexts[threadId].rng;
-		auto& film = contexts[threadId].film;
-		auto& pool = contexts[threadId].pool;
+		auto& sampler = contexts[threadId].sampler;
+		auto& film    = contexts[threadId].film;
+		auto& pool    = contexts[threadId].pool;
 		auto& lightSubpath = contexts[threadId].lightSubpath;
 		auto& eyeSubpath   = contexts[threadId].eyeSubpath;
 
@@ -239,8 +238,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			lightSubpath.Sample(config, scene, *rng, *pool);
-			eyeSubpath.Sample(config, scene, *rng, *pool);
+			lightSubpath.Sample(config, scene, *sampler, *pool);
+			eyeSubpath.Sample(config, scene, *sampler, *pool);
 
 			// Debug print
 #if 0

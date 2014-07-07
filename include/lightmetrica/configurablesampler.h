@@ -23,67 +23,42 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
-#define LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
+#ifndef LIB_LIGHTMETRICA_CONFIGUABLE_SAMPLER_H
+#define LIB_LIGHTMETRICA_CONFIGUABLE_SAMPLER_H
 
-#include "component.h"
-#include "math.types.h"
+#include "sampler.h"
 
 LM_NAMESPACE_BEGIN
 
-class Assets;
-class ConfigNode;
-
 /*!
-	Sampler.
-	An interface for samplers.
+	Configurable sampler.
+	An interface for sampler classes which are able to configure with a config node.
 */
-class Sampler : public Component
+class ConfiguableSampler : public Sampler
 {
 public:
 
-	Sampler() {}
-	virtual ~Sampler() {}
+	LM_COMPONENT_INTERFACE_DEF("configuablesampler");
 
-private:
+public:
 
-	LM_DISABLE_COPY_AND_MOVE(Sampler);
+	ConfiguableSampler() {}
+	virtual ~ConfiguableSampler() {}
 
 public:
 
 	/*!
-		Clone the sampler.
-		\return Duplicated sampler.
+		Configure.
+		Configure and initialize the sampler by the XML elements given by #node.
+		\param node XML node for the configuration.
+		\param assets Asset manager.
+		\param true Succeeded to configure.
+		\param false Failed to configure.
 	*/
-	virtual Sampler* Clone() = 0;
-
-	/*!
-		Set seed and initialize internal state.
-		This function is valid only for 
-		\param seed Seed.
-	*/
-	virtual void SetSeed(unsigned int seed) = 0;
-
-	/*!
-		Sample a floating-point value.
-		\return Sampled value.
-	*/
-	virtual Math::Float Next() = 0;
-
-	/*!
-		Sample a unsigned integer value.
-		\return Sampled value.
-	*/
-	virtual unsigned int NextUInt() = 0;
-
-	/*!
-		Sample a floating-point 2d vector value.
-		\return Sampled value.
-	*/
-	virtual Math::Vec2 NextVec2() = 0;
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
+#endif // LIB_LIGHTMETRICA_CONFIGUABLE_SAMPLER_H

@@ -66,6 +66,18 @@ public:
 	An implementation of uniform random number generator
 	which can be restored in the specified index.
 */
+class PSSMLTRestorableSampler : public Sampler
+{
+public:
+
+	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, unsigned int seed);
+	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, const PSSMLTRestorableSampler& sampler);
+
+	
+
+};
+
+/*
 class PSSMLTRestorableSampler : public PSSMLTSampler
 {
 public:
@@ -90,6 +102,7 @@ private:
 	int currentIndex;				//!< Number of generated samples
 
 };
+*/
 
 // --------------------------------------------------------------------------------
 

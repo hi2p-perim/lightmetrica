@@ -26,6 +26,7 @@
 
 LM_NAMESPACE_BEGIN
 
+/*
 PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, unsigned int seed )
 	: initialSeed(seed)
 	, rng(rng)
@@ -72,6 +73,7 @@ int PSSMLTRestorableSampler::Index()
 {
 	return currentIndex;
 }
+*/
 
 // --------------------------------------------------------------------------------
 

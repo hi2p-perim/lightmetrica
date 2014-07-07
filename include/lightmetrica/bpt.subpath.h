@@ -106,7 +106,7 @@ public:
 class BPTPathVertexPool;
 class BPTConfig;
 class Scene;
-class Random;
+class Sampler;
 
 /*!
 	BPT sub-path.
@@ -148,10 +148,10 @@ public:
 		Sample eye sub-path or light sub-path according to #transportDir.
 		\param config BPT configuration.
 		\param scene Scene.
-		\param rng Random number generator.
+		\param sampler Sampler.
 		\param pool Memory pool for path vertex.
 	*/
-	LM_PUBLIC_API void Sample(const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool);
+	LM_PUBLIC_API void Sample(const BPTConfig& config, const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool);
 
 	/*!
 		Evaluate alpha of sub-paths.

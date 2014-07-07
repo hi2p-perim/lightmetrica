@@ -37,6 +37,7 @@ LM_NAMESPACE_BEGIN
 
 class ConfigNode;
 class Assets;
+class Sampler;
 class BPTMISWeight;
 
 /*!
@@ -62,8 +63,7 @@ public:
 	int rrDepth;								//!< Depth of beginning RR
 	int numThreads;								//!< Number of threads
 	long long samplesPerBlock;					//!< Samples to be processed per block
-	std::string rngType;						//!< Random number generator type
-	int rngSeed;								//!< Initial seed for random number generator
+	std::unique_ptr<Sampler> initialSampler;	//!< Sampler
 	std::unique_ptr<BPTMISWeight> misWeight;	//!< MIS weighting function
 
 #if LM_ENABLE_BPT_EXPERIMENTAL

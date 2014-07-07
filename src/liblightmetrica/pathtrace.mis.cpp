@@ -31,7 +31,7 @@
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
@@ -66,17 +66,17 @@ public:
 
 private:
 
-	void ProcessRenderSingleSample(const Scene& scene, Random& rng, Film& film) const;
+	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;		// Number of samples
-	int rrDepth;				// Depth of beginning RR
-	int numThreads;				// Number of threads
-	long long samplesPerBlock;	// Samples to be processed per block
-	std::string rngType;		// Type of random number generator
+	long long numSamples;						// Number of samples
+	int rrDepth;								// Depth of beginning RR
+	int numThreads;								// Number of threads
+	long long samplesPerBlock;					// Samples to be processed per block
+	std::unique_ptr<Sampler> initialSampler;	// Sampler
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -100,10 +100,13 @@ bool MISPathtraceRenderer::Configure( const ConfigNode& node, const Assets& asse
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
-	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered<Random>(rngType))
+
+	// Sampler
+	auto samplerNode = node.Child("sampler");
+	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
-		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+		LM_LOG_ERROR("Invalid sampler");
 		return false;
 	}
 
@@ -147,13 +150,12 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 	omp_set_num_threads(numThreads);
 
 	// Random number generators and films
-	std::vector<std::unique_ptr<Random>> rngs;
+	std::vector<std::unique_ptr<Sampler>> samplers;
 	std::vector<std::unique_ptr<Film>> films;
-	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		rngs.emplace_back(ComponentFactory::Create<Random>(rngType));
-		rngs.back()->SetSeed(seed + i);
+		samplers.emplace_back(initialSampler->Clone());
+		samplers.back()->SetSeed(initialSampler->NextUInt());
 		films.emplace_back(masterFilm->Clone());
 	}
 
@@ -167,7 +169,7 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 	{
 		// Thread ID
 		int threadId = omp_get_thread_num();
-		auto& rng = rngs[threadId];
+		auto& sampler = samplers[threadId];
 		auto& film = films[threadId];
 
 		// Sample range
@@ -178,7 +180,7 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			ProcessRenderSingleSample(scene, *rng, *film);
+			ProcessRenderSingleSample(scene, *sampler, *film);
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
 			LM_EXPT_NOTIFY(expts, "SampleFinished");
@@ -209,12 +211,12 @@ bool MISPathtraceRenderer::Render( const Scene& scene )
 	return true;
 }
 
-void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random& rng, Film& film ) const
+void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& sampler, Film& film ) const
 {
 	// Sample position on camera
 	SurfaceGeometry geomE;
 	Math::PDFEval pdfPE;
-	scene.MainCamera()->SamplePosition(rng.NextVec2(), geomE, pdfPE);
+	scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfPE);
 
 	// Evaluate positional component of We
 	auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
@@ -235,7 +237,7 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random
 			// Sample a position on light
 			SurfaceGeometry geomL;
 			Math::PDFEval pdfPL;
-			auto lightSampleP = rng.NextVec2();
+			auto lightSampleP = sampler.NextVec2();
 			Math::PDFEval lightSelectionPdf;
 			const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 			light->SamplePosition(lightSampleP, geomL, pdfPL);
@@ -305,7 +307,7 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-			if (rng.Next() > p)
+			if (sampler.Next() > p)
 			{
 				break;
 			}
@@ -317,8 +319,8 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Random
 
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = rng.NextVec2();
-		bsdfSQ.uComp = rng.Next();
+		bsdfSQ.sample = sampler.NextVec2();
+		bsdfSQ.uComp = sampler.Next();
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;

@@ -33,7 +33,7 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/scene.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
@@ -153,7 +153,7 @@ BPTPathVertex* BPTSubpath::GetVertex( int i ) const
 	return vertices[i];
 }
 
-void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rng, BPTPathVertexPool& pool )
+void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool )
 {
 	LM_ASSERT(vertices.empty());
 
@@ -169,7 +169,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 	{
 		// EyePosition
 		v->emitter = scene.MainCamera();
-		v->emitter->SamplePosition(rng.NextVec2(), v->geom, v->pdfP);
+		v->emitter->SamplePosition(sampler.NextVec2(), v->geom, v->pdfP);
 		if (!v->geom.degenerated)
 		{
 			v->areaCamera = dynamic_cast<const Camera*>(v->emitter);
@@ -178,7 +178,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 	else
 	{
 		// LightPosition
-		auto lightSampleP = rng.NextVec2();
+		auto lightSampleP = sampler.NextVec2();
 		Math::PDFEval lightSelectionPdf;
 		v->emitter = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 		v->emitter->SamplePosition(lightSampleP, v->geom, v->pdfP);
@@ -193,7 +193,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 	v->bsdf = v->emitter;
 
 	GeneralizedBSDFSampleQuery bsdfSQE;
-	bsdfSQE.sample = rng.NextVec2();
+	bsdfSQE.sample = sampler.NextVec2();
 	bsdfSQE.transportDir = transportDir;
 	bsdfSQE.type = GeneralizedBSDFType::AllEmitter;
 
@@ -289,7 +289,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 		{
 			// TODO : Replace with the more efficient one
 			auto p = Math::Float(0.5);
-			if (rng.Next() > p)
+			if (sampler.Next() > p)
 			{
 				vertices.push_back(v);
 				break;
@@ -307,8 +307,8 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Random& rn
 
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = rng.NextVec2();
-		bsdfSQ.uComp = rng.Next();
+		bsdfSQ.sample = sampler.NextVec2();
+		bsdfSQ.uComp = sampler.Next();
 		bsdfSQ.transportDir = transportDir;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = -pv->wo;

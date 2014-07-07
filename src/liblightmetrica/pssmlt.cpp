@@ -31,7 +31,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -65,18 +65,18 @@ struct PSSMLTPathSampleRecord : public Object
 
 // --------------------------------------------------------------------------------
 
-/*
+/*!
 	Per-thread data.
 	Contains data associated with a thread.
 */
 struct PSSMLTThreadContext : public SIMDAlignedType
 {
 	
-	std::unique_ptr<Random> rng;						// Random number generator
-	std::unique_ptr<Film> film;							// Film
-	std::unique_ptr<PSSMLTPrimarySample> sampler;		// Kelemen's lazy sampler
-	PSSMLTPathSampleRecord records[2];					// Path sample records (current or proposed)
-	int current;										// Index of current record
+	std::unique_ptr<Sampler> randomSampler;				//!< Ordinary random sampler
+	std::unique_ptr<Film> film;							//!< Film
+	std::unique_ptr<PSSMLTPrimarySample> sampler;		//!< Kelemen's lazy sampler
+	PSSMLTPathSampleRecord records[2];					//!< Path sample records (current or proposed)
+	int current;										//!< Index of current record
 
 	// Experimental variables
 	Math::Float kernelSizeScale;
@@ -85,8 +85,8 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	//long long kernelUpdateCount;
 	//Math::Float expectedAcceptanceRatio;
 
-	PSSMLTThreadContext(Random* rng, Film* film, PSSMLTPrimarySample* sampler)
-		: rng(rng)
+	PSSMLTThreadContext(Sampler* randomSampler, Film* film, PSSMLTPrimarySample* sampler)
+		: randomSampler(randomSampler)
 		, film(film)
 		, sampler(sampler)
 		, kernelSizeScale(1)
@@ -97,7 +97,7 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	}
 
 	PSSMLTThreadContext(PSSMLTThreadContext&& context)
-		: rng(std::move(context.rng))
+		: randomSampler(std::move(context.randomSampler))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
 		, kernelSizeScale(1)
@@ -136,7 +136,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
+	virtual bool Preprocess( const Scene& scene );
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
@@ -153,7 +153,7 @@ private:
 	int rrDepth;								// Depth of beginning RR
 	int numThreads;								// Number of threads
 	long long samplesPerBlock;					// Samples to be processed per block
-	std::string rngType;						// Type of random number generator
+	std::unique_ptr<Sampler> initialSampler;	// Sampler
 
 	PSSMLTEstimatorMode estimatorMode;			// Estimator mode
 	long long numSeedSamples;					// Number of seed samples
@@ -187,10 +187,13 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
-	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered<Random>(rngType))
+
+	// Sampler
+	auto samplerNode = node.Child("sampler");
+	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
-		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+		LM_LOG_ERROR("Invalid sampler");
 		return false;
 	}
 
@@ -261,6 +264,12 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	return true;
 }
 
+bool PSSMLTRenderer::Preprocess( const Scene& scene )
+{
+	signal_ReportProgress(0, true);
+	return true;
+}
+
 bool PSSMLTRenderer::Render( const Scene& scene )
 {
 	// Set number of threads
@@ -274,7 +283,8 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 	Math::Float B;
 	std::vector<PSSMLTPathSeed> seeds;
 	int seed = static_cast<int>(std::time(nullptr));
-	PSSMLTRestorableSampler restorableSampler(ComponentFactory::Create<Random>(rngType), seed++);
+	std::unique_ptr<Random> 
+	PSSMLTRestorableSampler restorableSampler(initialSampler->, initialSampler->NextUInt());
 
 	{
 		LM_LOG_INFO("Preprocessing");

@@ -22,68 +22,60 @@
 	THE SOFTWARE.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
-#define LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
-
-#include "component.h"
-#include "math.types.h"
+#include "pch.h"
+#include <lightmetrica/camerasampler.h>
 
 LM_NAMESPACE_BEGIN
 
-class Assets;
-class ConfigNode;
-
 /*!
-	Sampler.
-	An interface for samplers.
+	Stratified sampler.
+	Implements stratified sampling for samples for cameras.
 */
-class Sampler : public Component
+class StratifiedSampler : public CameraSampler
 {
 public:
 
-	Sampler() {}
-	virtual ~Sampler() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(Sampler);
+	LM_COMPONENT_IMPL_DEF("stratified");
 
 public:
 
-	/*!
-		Clone the sampler.
-		\return Duplicated sampler.
-	*/
-	virtual Sampler* Clone() = 0;
+	virtual void GenerateSamples( Math::Vec2i& pixelPos )
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
 
-	/*!
-		Set seed and initialize internal state.
-		This function is valid only for 
-		\param seed Seed.
-	*/
-	virtual void SetSeed(unsigned int seed) = 0;
+	virtual bool Configure( const ConfigNode& node, const Assets& assets )
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
 
-	/*!
-		Sample a floating-point value.
-		\return Sampled value.
-	*/
-	virtual Math::Float Next() = 0;
+	virtual Sampler* Clone()
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
 
-	/*!
-		Sample a unsigned integer value.
-		\return Sampled value.
-	*/
-	virtual unsigned int NextUInt() = 0;
+	virtual void SetSeed( unsigned int seed )
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
 
-	/*!
-		Sample a floating-point 2d vector value.
-		\return Sampled value.
-	*/
-	virtual Math::Vec2 NextVec2() = 0;
+	virtual Math::Float Next()
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
+
+	virtual unsigned int NextUInt()
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
+
+	virtual Math::Vec2 NextVec2()
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
 
 };
 
-LM_NAMESPACE_END
+LM_COMPONENT_REGISTER_IMPL(StratifiedSampler, ConfiguableSampler);
 
-#endif // LIB_LIGHTMETRICA_RANDOM_SAMPLER_H
+LM_NAMESPACE_END

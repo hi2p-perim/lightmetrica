@@ -29,7 +29,7 @@
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/random.h>
+#include <lightmetrica/sampler.h>
 #include <lightmetrica/surfacegeometry.h>
 #include <lightmetrica/generalizedbsdf.h>
 #include <lightmetrica/light.h>
@@ -74,22 +74,22 @@ public:
 private:
 
 	void TracePhotons(const Scene& scene, Photons& photons, long long& tracedPaths) const;
-	void ProcessRenderSingleSample(const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
+	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo) const;
 	void VisualizePhotons(const Scene& scene, Film& film) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;				// Number of samples
-	long long numPhotonTraceSamples;	// Number of samples emitted in photon tracing step
-	long long maxPhotons;				// Maximum number of photons stored in photon map
-	int maxPhotonTraceDepth;			// Maximum depth in photon tracing step
-	int numNNQueryPhotons;				// Number of photon to be collected in NN query
-	Math::Float maxNNQueryDist2;		// Maximum distance between query point and photons in photon map (squared)
-	int numThreads;						// Number of threads
-	long long samplesPerBlock;			// Samples to be processed per block
-	std::string rngType;				// Type of random number generator
+	long long numSamples;						// Number of samples
+	long long numPhotonTraceSamples;			// Number of samples emitted in photon tracing step
+	long long maxPhotons;						// Maximum number of photons stored in photon map
+	int maxPhotonTraceDepth;					// Maximum depth in photon tracing step
+	int numNNQueryPhotons;						// Number of photon to be collected in NN query
+	Math::Float maxNNQueryDist2;				// Maximum distance between query point and photons in photon map (squared)
+	int numThreads;								// Number of threads
+	long long samplesPerBlock;					// Samples to be processed per block
+	std::unique_ptr<Sampler> initialSampler;	// Sampler
 
 	bool visualizePhotons;
 
@@ -153,10 +153,13 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
-	node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
-	if (!ComponentFactory::CheckRegistered<Random>(rngType))
+
+	// Sampler
+	auto samplerNode = node.Child("sampler");
+	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
-		LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+		LM_LOG_ERROR("Invalid sampler");
 		return false;
 	}
 
@@ -221,13 +224,12 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 	omp_set_num_threads(numThreads);
 
 	// Random number generators and films
-	std::vector<std::unique_ptr<Random>> rngs;
+	std::vector<std::unique_ptr<Sampler>> samplers;
 	std::vector<std::unique_ptr<Film>> films;
-	int seed = static_cast<int>(std::time(nullptr));
 	for (int i = 0; i < numThreads; i++)
 	{
-		rngs.emplace_back(ComponentFactory::Create<Random>(rngType));
-		rngs.back()->SetSeed(seed + i);
+		samplers.emplace_back(initialSampler->Clone());
+		samplers.back()->SetSeed(initialSampler->NextUInt());
 		films.emplace_back(masterFilm->Clone());
 	}
 
@@ -241,7 +243,7 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 	{
 		// Thread ID
 		int threadId = omp_get_thread_num();
-		auto& rng = rngs[threadId];
+		auto& sampler = samplers[threadId];
 		auto& film = films[threadId];
 
 		// Collected photon information
@@ -255,7 +257,7 @@ bool PhotonMappingRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			ProcessRenderSingleSample(scene, *rng, *film, collectedPhotons);
+			ProcessRenderSingleSample(scene, *sampler, *film, collectedPhotons);
 		}
 
 		processedBlocks++;
@@ -306,12 +308,12 @@ void PhotonMappingRenderer::VisualizePhotons( const Scene& scene, Film& film ) c
 	}
 }
 
-void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Random& rng, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo ) const
+void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& sampler, Film& film, std::vector<CollectedPhotonInfo>& collectedPhotonInfo ) const
 {
 	// Sample position on camera
 	SurfaceGeometry geomE;
 	Math::PDFEval pdfPE;
-	scene.MainCamera()->SamplePosition(rng.NextVec2(), geomE, pdfPE);
+	scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfPE);
 
 	// Evaluate positional component of We
 	auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
@@ -327,8 +329,8 @@ void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Rando
 	{
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = rng.NextVec2();
-		bsdfSQ.uComp = rng.Next();
+		bsdfSQ.sample = sampler.NextVec2();
+		bsdfSQ.uComp = sampler.Next();
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;
@@ -482,10 +484,9 @@ void PhotonMappingRenderer::ProcessRenderSingleSample( const Scene& scene, Rando
 
 void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, long long& tracedPaths ) const
 {
-	// Random number generators
-	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>(rngType));
-	rng->SetSeed(static_cast<unsigned int>(std::time(nullptr)));
-
+	std::unique_ptr<Sampler> sampler(initialSampler->Clone());
+	sampler->SetSeed(initialSampler->NextUInt());
+	
 	for (long long sample = 0; sample < numPhotonTraceSamples && static_cast<long long>(photons.size()) < maxPhotons; sample++)
 	{
 		tracedPaths++;
@@ -494,7 +495,7 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 		Math::PDFEval pdfPL;
 
 		// Sample a position on the light
-		auto lightSampleP = rng->NextVec2();
+		auto lightSampleP = sampler->NextVec2();
 		Math::PDFEval lightSelectionPdf;
 		const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 		light->SamplePosition(lightSampleP, geomL, pdfPL);
@@ -514,8 +515,8 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 		{
 			// Sample generalized BSDF
 			GeneralizedBSDFSampleQuery bsdfSQ;
-			bsdfSQ.sample = rng->NextVec2();
-			bsdfSQ.uComp = rng->Next();
+			bsdfSQ.sample = sampler->NextVec2();
+			bsdfSQ.uComp = sampler->Next();
 			bsdfSQ.transportDir = TransportDirection::LE;
 			bsdfSQ.type = GeneralizedBSDFType::All;
 			bsdfSQ.wi = currWi;
@@ -550,7 +551,7 @@ void PhotonMappingRenderer::TracePhotons( const Scene& scene, Photons& photons, 
 			if (depth >= 1)
 			{
 				auto continueProb = Math::Min(Math::Float(1), Math::Luminance(nextThroughput) / Math::Luminance(throughput));
-				if (rng->Next() > continueProb)
+				if (sampler->Next() > continueProb)
 				{
 					break;
 				}

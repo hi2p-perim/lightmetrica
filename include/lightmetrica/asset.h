@@ -57,6 +57,8 @@ public:
 		Dependent asset must be loaded beforehand.
 		\param node XML node for the configuration.
 		\param assets Asset manager.
+		\param true Succeeded to load.
+		\param false Failed to load.
 	*/
 	virtual bool Load(const ConfigNode& node, const Assets& assets) = 0;
 

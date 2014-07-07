@@ -23,7 +23,11 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/confignode.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/random.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -32,14 +36,75 @@ LM_NAMESPACE_BEGIN
 	A sampler implementation with simple random number generation.
 	This implementation simply routes random number generator.
 */
-class RandomSampler : public Sampler
+class RandomSampler : public ConfiguableSampler
 {
 public:
 
 	LM_COMPONENT_IMPL_DEF("random");
 
+public:
+
+	virtual bool Configure( const ConfigNode& node, const Assets& assets )
+	{
+		// Load parameters
+		std::string rngType;
+		node.ChildValueOrDefault("rng", std::string("sfmt"), rngType);
+		if (!ComponentFactory::CheckRegistered<Random>(rngType))
+		{
+			LM_LOG_ERROR("Unsupported random number generator '" + rngType + "'");
+			return false;
+		}
+
+		// Seed for random number
+		node.ChildValueOrDefault("rng_seed", -1, initialSeed);
+		if (initialSeed < 0)
+		{
+			initialSeed = static_cast<int>(std::time(nullptr));
+		}
+		
+		// Create random number generator
+		rng.reset(ComponentFactory::Create<Random>(rngType));
+		rng->SetSeed(initialSeed);
+
+		return true;
+	}
+
+	virtual Sampler* Clone()
+	{
+		auto* sampler = new RandomSampler;
+		sampler->rng.reset(ComponentFactory::Create<Random>(rng->ComponentImplTypeName()));
+		sampler->SetSeed(initialSeed);
+		return sampler;
+	}
+
+	virtual void SetSeed( unsigned int seed )
+	{
+		initialSeed = seed;
+		rng->SetSeed(initialSeed);
+	}
+
+	virtual Math::Float Next()
+	{
+		return rng->Next();
+	}
+
+	virtual unsigned int NextUInt()
+	{
+		return rng->NextUInt();
+	}
+
+	virtual Math::Vec2 NextVec2()
+	{
+		return rng->NextVec2();
+	}
+
+private:
+
+	std::unique_ptr<Random> rng;
+	int initialSeed;
+
 };
 
-LM_COMPONENT_REGISTER_IMPL(RandomSampler, Sampler);
+LM_COMPONENT_REGISTER_IMPL(RandomSampler, ConfiguableSampler);
 
 LM_NAMESPACE_END

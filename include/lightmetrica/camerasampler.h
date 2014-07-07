@@ -26,7 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_CAMERA_SAMPLER_H
 #define LIB_LIGHTMETRICA_CAMERA_SAMPLER_H
 
-#include "sampler.h"
+#include "configurablesampler.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -36,12 +36,12 @@ LM_NAMESPACE_BEGIN
 	The class is limited to some renderer implementations
 	based on the sampling of eye subpaths.
 */
-class CameraSampler : public Sampler
+class CameraSampler : public ConfiguableSampler
 {
 public:
 
-	CameraSampler();
-	virtual ~CameraSampler();
+	CameraSampler() {}
+	virtual ~CameraSampler() {}
 
 public:
 
