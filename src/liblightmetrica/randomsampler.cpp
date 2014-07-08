@@ -36,7 +36,7 @@ LM_NAMESPACE_BEGIN
 	A sampler implementation with simple random number generation.
 	This implementation simply routes random number generator.
 */
-class RandomSampler : public ConfiguableSampler
+class RandomSampler : public ConfigurableSampler
 {
 public:
 
@@ -98,6 +98,11 @@ public:
 		return rng->NextVec2();
 	}
 
+	virtual Random* Rng()
+	{
+		return rng.get();
+	}
+
 private:
 
 	std::unique_ptr<Random> rng;
@@ -105,6 +110,6 @@ private:
 
 };
 
-LM_COMPONENT_REGISTER_IMPL(RandomSampler, ConfiguableSampler);
+LM_COMPONENT_REGISTER_IMPL(RandomSampler, ConfigurableSampler);
 
 LM_NAMESPACE_END

@@ -54,6 +54,8 @@
 
 LM_NAMESPACE_BEGIN
 
+#if 0
+
 /*!
 	Per-thread data.
 	Contains data associated with a thread.
@@ -378,5 +380,7 @@ void BPTPSSMLTRenderer::SampleAndEvaluateBPTPaths( const Scene& scene, PSSMLTSam
 }
 
 LM_COMPONENT_REGISTER_IMPL(BPTPSSMLTRenderer, Renderer);
+
+#endif
 
 LM_NAMESPACE_END

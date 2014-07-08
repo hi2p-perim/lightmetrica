@@ -29,7 +29,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
@@ -73,11 +73,11 @@ private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;						// Number of samples
-	int rrDepth;								// Depth of beginning RR
-	int numThreads;								// Number of threads
-	long long samplesPerBlock;					// Samples to be processed per block
-	std::unique_ptr<Sampler> initialSampler;	// Sampler
+	long long numSamples;									// Number of samples
+	int rrDepth;											// Depth of beginning RR
+	int numThreads;											// Number of threads
+	long long samplesPerBlock;								// Samples to be processed per block
+	std::unique_ptr<ConfigurableSampler> initialSampler;		// Sampler
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -104,7 +104,13 @@ bool SimpleBidirectionalPathtraceRenderer::Configure( const ConfigNode& node, co
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
-	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	auto samplerNodeType = samplerNode.AttributeValue("type");
+	if (samplerNodeType != "random")
+	{
+		LM_LOG_ERROR("Invalid sampler type. This renderer requires 'random' sampler");
+		return false;
+	}
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNodeType));
 	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
 		LM_LOG_ERROR("Invalid sampler");

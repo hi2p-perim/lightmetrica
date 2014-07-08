@@ -26,34 +26,37 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica/pssmlt.sampler.h>
+#include <lightmetrica/rewindablesampler.h>
 #include <lightmetrica/random.h>
 
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class PSSMLTRestorableSamplerTest : public TestBase {};
+class RewindableSamplerTest : public TestBase {};
 
-TEST_F(PSSMLTRestorableSamplerTest, GenerateAndRestore)
+TEST_F(RewindableSamplerTest, GenerateAndRestore)
 {
 	// Initialize using seed 1
-	PSSMLTRestorableSampler sampler(ComponentFactory::Create<Random>("standardmt"), 1);
+	std::unique_ptr<RewindableSampler> sampler(ComponentFactory::Create<RewindableSampler>());
+	sampler->Configure(ComponentFactory::Create<Random>("standardmt"));
+	sampler->SetSeed(1);
 
 	// Generate some samples
 	const int Count = 1<<9;
 	std::vector<Math::Float> samples;
 	for (int i = 0; i < Count; i++)
 	{
-		samples.push_back(sampler.Next());
+		samples.push_back(sampler->Next());
 	}
 
 	// Restore state and re-generate samples
 	for (int index = 0; index < Count-1; index++)
 	{
-		sampler.SetIndex(index);
+		sampler->Rewind(index);
 		for (int i = index; i < Count; i++)
 		{
 			// Check generated values
-			EXPECT_TRUE(ExpectNear(sampler.Next(), samples[i]));
+			EXPECT_TRUE(ExpectNear(sampler->Next(), samples[i]));
 		}
 	}
 }
@@ -66,49 +69,46 @@ public:
 
 	PSSMLTPrimarySampleTest()
 		: Count(1<<9)
-		, primarySample(
-			Math::Float(1) / Math::Float(1024),
-			Math::Float(1) / Math::Float(64))
+		, primarySample(ComponentFactory::Create<PSSMLTPrimarySampler>())
 	{
-
+		primarySample->Configure(
+			ComponentFactory::Create<Random>("standardmt"),
+			Math::Float(1) / Math::Float(1024),
+			Math::Float(1) / Math::Float(64));
+		primarySample->SetSeed(1);
 	}
 
 protected:
 
 	int Count;
-	PSSMLTPrimarySample primarySample;
+	std::unique_ptr<PSSMLTPrimarySampler> primarySample;
 
 };
 
 TEST_F(PSSMLTPrimarySampleTest, Reject)
 {
-	// Set random number generator
-	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
-	rng->SetSeed(1);
-	primarySample.SetRng(rng.get());
-
 	// Generate initial samples
 	std::vector<Math::Float> samples;
 	for (int i = 0; i < Count; i++)
 	{
-		samples.push_back(primarySample.Next());
+		samples.push_back(primarySample->Next());
 	}
-	primarySample.Accept();
+	primarySample->Accept();
 	
 	for (int mode = 0; mode < 2; mode++)
 	{
 		// Mutate samples by large step mutation or small step mutation
-		primarySample.SetLargeStep(mode == 0);
+		primarySample->EnableLargeStepMutation(mode == 0);
 		for (int i = 0; i < Count; i++)
 		{
-			primarySample.Next();
+			primarySample->Next();
 		}
 
 		// Reject -> the sample should be the previous state
-		primarySample.Reject();
+		primarySample->Reject();
 
 		std::vector<Math::Float> currentSamples;
-		primarySample.GetCurrentSampleState(currentSamples);
+		primarySample->GetCurrentSampleState(currentSamples);
 		for (int i = 0; i < Count; i++)
 		{
 			EXPECT_TRUE(ExpectNear(currentSamples[i], samples[i]));
@@ -118,33 +118,28 @@ TEST_F(PSSMLTPrimarySampleTest, Reject)
 
 TEST_F(PSSMLTPrimarySampleTest, Accept)
 {
-	// Set random number generator
-	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
-	rng->SetSeed(1);
-	primarySample.SetRng(rng.get());
-
 	// Generate initial samples
 	for (int i = 0; i < Count; i++)
 	{
-		primarySample.Next();
+		primarySample->Next();
 	}
-	primarySample.Accept();
+	primarySample->Accept();
 
 	for (int mode = 0; mode < 2; mode++)
 	{
 		// Mutate samples by large step mutation or small step mutation
-		primarySample.SetLargeStep(mode == 0);
+		primarySample->EnableLargeStepMutation(mode == 0);
 		std::vector<Math::Float> samples;
 		for (int i = 0; i < Count; i++)
 		{
-			samples.push_back(primarySample.Next());
+			samples.push_back(primarySample->Next());
 		}
 
 		// Reject -> the mutated sample is preserved
-		primarySample.Accept();
+		primarySample->Accept();
 
 		std::vector<Math::Float> currentSamples;
-		primarySample.GetCurrentSampleState(currentSamples);
+		primarySample->GetCurrentSampleState(currentSamples);
 		for (int i = 0; i < Count; i++)
 		{
 			EXPECT_TRUE(ExpectNear(currentSamples[i], samples[i]));
@@ -154,18 +149,16 @@ TEST_F(PSSMLTPrimarySampleTest, Accept)
 
 TEST_F(PSSMLTPrimarySampleTest, Sequence)
 {
-	// Set random number generator
+	// Another random number generator
 	std::unique_ptr<Random> rng(ComponentFactory::Create<Random>("standardmt"));
-	rng->SetSeed(1);
-	primarySample.SetRng(rng.get());
 
 	// Generate initial samples
 	const int Delta = 10;
 	for (int i = 0; i < Delta; i++)
 	{
-		primarySample.Next();
+		primarySample->Next();
 	}
-	primarySample.Accept();
+	primarySample->Accept();
 
 	// Iterate sequence of events
 	const int Iter = 1<<5;
@@ -173,27 +166,27 @@ TEST_F(PSSMLTPrimarySampleTest, Sequence)
 	for (int i = 0; i < Iter; i++)
 	{
 		// Current state
-		primarySample.GetCurrentSampleState(current);
+		primarySample->GetCurrentSampleState(current);
 
 		// Large step or small step
-		primarySample.SetLargeStep(rng->Next() < Math::Float(0.5));
+		primarySample->EnableLargeStepMutation(rng->Next() < Math::Float(0.5));
 		
 		// Generate samples
 		for (int j = 0; j < Delta; j++)
 		{
-			primarySample.Next();
+			primarySample->Next();
 		}
 
 		// Proposed state
-		primarySample.GetCurrentSampleState(proposed);
+		primarySample->GetCurrentSampleState(proposed);
 
 		// Accept or reject
 		if (rng->Next() < Math::Float(0.5))
 		{
-			primarySample.Accept();
+			primarySample->Accept();
 			
 			// State must be #proposed
-			primarySample.GetCurrentSampleState(state);
+			primarySample->GetCurrentSampleState(state);
 			EXPECT_TRUE(proposed.size() <= state.size());
 			for (size_t k = 0; k < proposed.size(); k++)
 			{
@@ -202,10 +195,10 @@ TEST_F(PSSMLTPrimarySampleTest, Sequence)
 		}
 		else
 		{
-			primarySample.Reject();
+			primarySample->Reject();
 
 			// State must be #current
-			primarySample.GetCurrentSampleState(state);
+			primarySample->GetCurrentSampleState(state);
 			EXPECT_TRUE(current.size() <= state.size());
 			for (size_t k = 0; k < current.size(); k++)
 			{

@@ -41,7 +41,7 @@
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/bpt.config.h>
 #include <lightmetrica/bpt.mis.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/renderutils.h>
 
 namespace
@@ -173,7 +173,7 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	bptConfig.rrDepth = 3;
 	bptConfig.enableExperimentalMode = false;
 
-	std::unique_ptr<Sampler> sampler(ComponentFactory::Create<Sampler>("random"));
+	std::unique_ptr<ConfigurableSampler> sampler(ComponentFactory::Create<ConfigurableSampler>("random"));
 	ASSERT_TRUE(sampler->Configure(ConfigNode(), assets));
 	sampler->SetSeed(1);
 

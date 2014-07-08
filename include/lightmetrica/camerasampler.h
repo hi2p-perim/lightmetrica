@@ -36,7 +36,7 @@ LM_NAMESPACE_BEGIN
 	The class is limited to some renderer implementations
 	based on the sampling of eye subpaths.
 */
-class CameraSampler : public ConfiguableSampler
+class CameraSampler : public ConfigurableSampler
 {
 public:
 

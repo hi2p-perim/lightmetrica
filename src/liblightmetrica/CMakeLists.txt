@@ -248,6 +248,7 @@ set(
 )
 set(
 	_SAMPLER_SOURCES
+	"sampler.cpp"
 	"randomsampler.cpp"
 	"stratified.cpp"
 	"rewindablesampler.cpp"

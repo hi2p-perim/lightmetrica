@@ -34,16 +34,16 @@ LM_NAMESPACE_BEGIN
 	Configurable sampler.
 	An interface for sampler classes which are able to configure with a config node.
 */
-class ConfiguableSampler : public Sampler
+class ConfigurableSampler : public Sampler
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("configuablesampler");
+	LM_COMPONENT_INTERFACE_DEF("configurablesampler");
 
 public:
 
-	ConfiguableSampler() {}
-	virtual ~ConfiguableSampler() {}
+	ConfigurableSampler() {}
+	virtual ~ConfigurableSampler() {}
 
 public:
 

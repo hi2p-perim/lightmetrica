@@ -29,6 +29,8 @@
 
 LM_NAMESPACE_BEGIN
 
+#if 0
+
 /*!
 	PSSMLT traceplot.
 	Traces sample plots through PSSMLT updates.
@@ -60,7 +62,7 @@ private:
 private:
 
 	long long sample;
-	PSSMLTPrimarySample* primarySample;
+	PSSMLTPrimarySampler* primarySample;
 
 private:
 
@@ -87,7 +89,7 @@ void PSSMLTTraceplotExperiment::Notify( const std::string& type )
 void PSSMLTTraceplotExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
-	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySample*)param;
+	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySampler*)param;
 }
 
 void PSSMLTTraceplotExperiment::HandleNotify_RenderStarted()
@@ -132,5 +134,7 @@ void PSSMLTTraceplotExperiment::HandleNotify_RenderFinished()
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTTraceplotExperiment, Experiment);
+
+#endif
 
 LM_NAMESPACE_END

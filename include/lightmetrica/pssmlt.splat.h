@@ -45,6 +45,24 @@ struct PSSMLTSplat
 	Math::Vec2 rasterPos;		//!< Raster position
 	Math::Vec3 L;				//!< Radiance
 
+	PSSMLTSplat(int s, int t, const Math::Vec2& rasterPos, const Math::Vec3& L)
+		: s(s)
+		, t(t)
+		, rasterPos(rasterPos)
+		, L(L)
+	{
+		
+	}
+
+	PSSMLTSplat(const Math::Vec2& rasterPos, const Math::Vec3& L)
+		: s(0)
+		, t(0)
+		, rasterPos(rasterPos)
+		, L(L)
+	{
+
+	}
+
 };
 
 class Film;

@@ -33,7 +33,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>

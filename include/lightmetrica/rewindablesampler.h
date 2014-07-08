@@ -31,8 +31,6 @@
 
 LM_NAMESPACE_BEGIN
 
-class Random;
-
 /*!
 	Rewindable sampler.
 	A sampler implementation for restoring sample sequence afterwards.

@@ -33,6 +33,7 @@ LM_NAMESPACE_BEGIN
 
 class Assets;
 class ConfigNode;
+class Random;
 
 /*!
 	Sampler.
@@ -81,6 +82,20 @@ public:
 		\return Sampled value.
 	*/
 	virtual Math::Vec2 NextVec2() = 0;
+
+	/*!
+		Ger underlying random number generator if available.
+		\return Random number generator.
+	*/
+	virtual Random* Rng() = 0;
+
+public:
+
+	/*!
+		Set seed with current time.
+		Sets the sampler seed with current time.
+	*/
+	LM_PUBLIC_API void SetSeedWithCurrentTime();
 
 };
 

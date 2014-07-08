@@ -29,7 +29,7 @@
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/surfacegeometry.h>
 #include <lightmetrica/generalizedbsdf.h>
 #include <lightmetrica/light.h>
@@ -81,15 +81,15 @@ private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;						// Number of samples
-	long long numPhotonTraceSamples;			// Number of samples emitted in photon tracing step
-	long long maxPhotons;						// Maximum number of photons stored in photon map
-	int maxPhotonTraceDepth;					// Maximum depth in photon tracing step
-	int numNNQueryPhotons;						// Number of photon to be collected in NN query
-	Math::Float maxNNQueryDist2;				// Maximum distance between query point and photons in photon map (squared)
-	int numThreads;								// Number of threads
-	long long samplesPerBlock;					// Samples to be processed per block
-	std::unique_ptr<Sampler> initialSampler;	// Sampler
+	long long numSamples;										// Number of samples
+	long long numPhotonTraceSamples;							// Number of samples emitted in photon tracing step
+	long long maxPhotons;										// Maximum number of photons stored in photon map
+	int maxPhotonTraceDepth;									// Maximum depth in photon tracing step
+	int numNNQueryPhotons;										// Number of photon to be collected in NN query
+	Math::Float maxNNQueryDist2;								// Maximum distance between query point and photons in photon map (squared)
+	int numThreads;												// Number of threads
+	long long samplesPerBlock;									// Samples to be processed per block
+	std::unique_ptr<ConfigurableSampler> initialSampler;			// Sampler
 
 	bool visualizePhotons;
 
@@ -156,7 +156,13 @@ bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& ass
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
-	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	auto samplerNodeType = samplerNode.AttributeValue("type");
+	if (samplerNodeType != "random")
+	{
+		LM_LOG_ERROR("Invalid sampler type. This renderer requires 'random' sampler");
+		return false;
+	}
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNodeType));
 	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
 		LM_LOG_ERROR("Invalid sampler");

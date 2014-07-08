@@ -65,10 +65,10 @@ public:
 	virtual void SetSeed(unsigned int seed) = 0;
 
 	/*!
-		Get the type of the random number generator.
-		\return Type in string.
+		Clone.
+		\return Duplicated instance.
 	*/
-	//virtual std::string Type() const = 0;
+	virtual Random* Clone() const = 0;
 
 public:
 

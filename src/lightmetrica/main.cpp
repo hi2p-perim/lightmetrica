@@ -655,6 +655,10 @@ void SETransFunc(unsigned int code, PEXCEPTION_POINTERS data)
 		LM_LOG_ERROR("Description       : " + desc);
 	}
 	
+#if LM_DEBUG_MODE
+	__debugbreak();
+#endif
+
 	throw std::runtime_error("Aborting");
 }
 #endif

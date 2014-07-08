@@ -74,8 +74,13 @@ public:
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
+	virtual Random* Rng()
+	{
+		throw std::logic_error("The method or operation is not implemented.");
+	}
+
 };
 
-LM_COMPONENT_REGISTER_IMPL(StratifiedSampler, ConfiguableSampler);
+LM_COMPONENT_REGISTER_IMPL(StratifiedSampler, ConfigurableSampler);
 
 LM_NAMESPACE_END

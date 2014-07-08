@@ -27,11 +27,12 @@
 #include <lightmetrica/pssmlt.common.h>
 #include <lightmetrica/pssmlt.pathseed.h>
 #include <lightmetrica/pssmlt.sampler.h>
+#include <lightmetrica/pssmlt.splat.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/ray.h>
@@ -44,27 +45,13 @@
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/defaultexpts.h>
-#include <lightmetrica/restorablesampler.h>
+#include <lightmetrica/rewindablesampler.h>
+#include <lightmetrica/random.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
 
 LM_NAMESPACE_BEGIN
-
-/*
-	Light path sample record.
-	Contains some information of sampled light paths.
-*/
-struct PSSMLTPathSampleRecord : public Object
-{
-
-	Math::Vec2 rasterPos;		// Raster position
-	Math::Vec3 L;				// Sampled radiance
-	int depth;					// Length of the light path
-
-};
-
-// --------------------------------------------------------------------------------
 
 /*!
 	Per-thread data.
@@ -75,24 +62,29 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	
 	std::unique_ptr<Sampler> randomSampler;				//!< Ordinary random sampler
 	std::unique_ptr<Film> film;							//!< Film
-	std::unique_ptr<PSSMLTPrimarySample> sampler;		//!< Kelemen's lazy sampler
-	PSSMLTPathSampleRecord records[2];					//!< Path sample records (current or proposed)
+	std::unique_ptr<PSSMLTPrimarySampler> sampler;		//!< Kelemen's lazy sampler
+	PSSMLTSplats records[2];							//!< Path sample records (current or proposed)
 	int current;										//!< Index of current record
 
+#if 0
 	// Experimental variables
 	Math::Float kernelSizeScale;
 	long long mutated;
 	long long accepted;
 	//long long kernelUpdateCount;
 	//Math::Float expectedAcceptanceRatio;
+#endif
 
-	PSSMLTThreadContext(Sampler* randomSampler, Film* film, PSSMLTPrimarySample* sampler)
+	PSSMLTThreadContext(Sampler* randomSampler, Film* film, PSSMLTPrimarySampler* sampler)
 		: randomSampler(randomSampler)
 		, film(film)
 		, sampler(sampler)
+		, current(0)
+#if 0
 		, kernelSizeScale(1)
 		, mutated(0)
 		, accepted(0)
+#endif
 	{
 
 	}
@@ -101,12 +93,18 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 		: randomSampler(std::move(context.randomSampler))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
+		, current(0)
+#if 0
 		, kernelSizeScale(1)
 		, mutated(0)
 		, accepted(0)
+#endif
 	{
 
 	}
+
+	PSSMLTSplats& CurentRecord() { return records[current]; }
+	PSSMLTSplats& ProposedRecord() { return records[1-current]; }
 
 };
 
@@ -143,18 +141,18 @@ public:
 
 private:
 
-	void GenerateAndSampleSeeds(const Scene& scene, RestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds) const;
-	void SampleAndEvaluatePath(const Scene& scene, Sampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth) const;
+	void ProcessRenderSingleSample(const Scene& scene, PSSMLTThreadContext& context) const;
+	void SampleAndEvaluatePaths(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;						// Number of sample mutations
-	int rrDepth;								// Depth of beginning RR
-	int numThreads;								// Number of threads
-	long long samplesPerBlock;					// Samples to be processed per block
-	std::unique_ptr<Sampler> initialSampler;	// Sampler
+	long long numSamples;									// Number of sample mutations
+	int rrDepth;											// Depth of beginning RR
+	int numThreads;											// Number of threads
+	long long samplesPerBlock;								// Samples to be processed per block
+	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
 
 	PSSMLTEstimatorMode estimatorMode;			// Estimator mode
 	long long numSeedSamples;					// Number of seed samples
@@ -162,9 +160,11 @@ private:
 	Math::Float kernelSizeS1;					// Minimum kernel size
 	Math::Float kernelSizeS2;					// Maximum kernel size
 
+#if 0
 	bool adaptiveKernel;
 	//long long kernelUpdateCount;
 	//Math::Float kernelScaleDelta;
+#endif
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -172,7 +172,8 @@ private:
 
 private:
 
-	std::unique_ptr<RestorableSampler> restorableSampler;		// Restorable sampler for light path generation
+	Math::Float normFactor;										// Normalization factor
+	std::unique_ptr<RewindableSampler> rewindableSampler;		// Rewindable sampler for light path generation
 	std::vector<PSSMLTPathSeed> seeds;							// Path seeds for each thread
 
 };
@@ -194,9 +195,18 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 
+	// Set number of threads
+	omp_set_num_threads(numThreads);
+
 	// Sampler
 	auto samplerNode = node.Child("sampler");
-	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	auto samplerNodeType = samplerNode.AttributeValue("type");
+	if (samplerNodeType != "random")
+	{
+		LM_LOG_ERROR("Invalid sampler type. This renderer requires 'random' sampler");
+		return false;
+	}
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNodeType));
 	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
 		LM_LOG_ERROR("Invalid sampler");
@@ -236,6 +246,7 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
 
+#if 0
 	// Experimental params
 	auto experimentalNode = node.Child("experimental");
 	if (!experimentalNode.Empty())
@@ -244,6 +255,7 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 		//experimentalNode.ChildValueOrDefault("kernel_scale_delta", Math::Float(0.01), kernelScaleDelta);
 		//experimentalNode.ChildValueOrDefault("kernel_update_count", 1000LL, kernelUpdateCount);
 	}
+#endif
 
 #if LM_EXPERIMENTAL_MODE
 	// Experiments
@@ -275,78 +287,108 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 	signal_ReportProgress(0, true);
 
 	// Initialize sampler
-	restorableSampler.reset(new RestorableSampler("sfmt", initialSampler->NextUInt()));
+	rewindableSampler.reset(ComponentFactory::Create<RewindableSampler>());
+	rewindableSampler->Configure(initialSampler->Rng()->Clone());
+	rewindableSampler->SetSeed(initialSampler->NextUInt());
 
+	// Take #numSeedSamples path samples and generate seeds for each thread
+	// This process must be done in a single thread in order to keep consistency of sample indexes
+	PSSMLTSplats splats;
+	Math::Float sumI(0);
+	std::vector<PSSMLTPathSeed> candidates;
+	
+	for (long long sample = 0; sample < numSeedSamples; sample++)
+	{
+		// Current sample index
+		int index = rewindableSampler->SampleIndex();
+
+		// Sample light paths
+		// We note that path sampler might generate multiple light paths
+		SampleAndEvaluatePaths(scene, *rewindableSampler, splats);
+
+		// Calculate sum of luminance
+		auto I = splats.SumI();
+		if (!Math::IsZero(I))
+		{
+			sumI += I;
+			candidates.emplace_back(index, I);
+		}
+
+		signal_ReportProgress(static_cast<double>(sample) / numSeedSamples, false);
+	}
+
+	// Normalization factor
+	normFactor = sumI / Math::Float(numSeedSamples);
+
+	// Create CDF
+	std::vector<Math::Float> cdf;
+	cdf.push_back(Math::Float(0));
+	for (auto& candidate : candidates)
+	{
+		cdf.push_back(cdf.back() + candidate.I);
+	}
+
+	// Normalize
+	auto sum = cdf.back();
+	for (auto& v : cdf)
+	{
+		v /= sum;
+	}
+
+	// Sample seeds for each thread
+	seeds.clear();
+	LM_ASSERT(candidates.size() >= numThreads);
+	for (int i = 0; i < numThreads; i++)
+	{
+		double u = rewindableSampler->Next();
+		int idx =
+			Math::Clamp(
+			static_cast<int>(std::upper_bound(cdf.begin(), cdf.end(), u) - cdf.begin()) - 1,
+			0, static_cast<int>(cdf.size()) - 1);
+
+		seeds.push_back(candidates[idx]);
+	}
+
+	signal_ReportProgress(1, true);
 
 	return true;
 }
 
 bool PSSMLTRenderer::Render( const Scene& scene )
 {
-	// Set number of threads
-	omp_set_num_threads(numThreads);
-
 	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
 
-	// Preprocess
-	Math::Float B;
-	std::vector<PSSMLTPathSeed> seeds;
-	int seed = static_cast<int>(std::time(nullptr));
-	std::unique_ptr<Random> 
-	PSSMLTRestorableSampler restorableSampler(initialSampler->, initialSampler->NextUInt());
+	// # Initialize thread context
 
-	{
-		LM_LOG_INFO("Preprocessing");
-		LM_LOG_INDENTER();
-		LM_LOG_INFO("Generating " + std::to_string(numSeedSamples) + " seed samples");
-		GenerateAndSampleSeeds(scene, restorableSampler, B, seeds);
-		LM_LOG_INFO("Completed");
-	}
-
-	// --------------------------------------------------------------------------------
-
-	// Setup thread context
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::vector<std::unique_ptr<PSSMLTThreadContext>> contexts;
 	for (int i = 0; i < numThreads; i++)
 	{
-		// Add a entry to the context
-		contexts.emplace_back(
-			new PSSMLTThreadContext(
-				ComponentFactory::Create<Random>(rngType),
-				masterFilm->Clone(),
-				new PSSMLTPrimarySample(kernelSizeS1, kernelSizeS2)));
-		contexts.back()->rng->SetSeed(seed++);
+		// Add an entry
+		contexts.emplace_back(new PSSMLTThreadContext(initialSampler->Clone(), masterFilm->Clone(), ComponentFactory::Create<PSSMLTPrimarySampler>()));
 		
-		// Setup initial state of the primary sample space sampler
-		// by restoring the state of the initial path.
-
-		// Set the sample index to the restorable sampler
-		// and prepare for restoring the sampled light path.
+		// Configure and set seeds
 		auto& context = contexts.back();
-		restorableSampler.SetIndex(seeds[i].index);
-		context->sampler->SetRng(restorableSampler.Rng());
+		context->sampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
+		context->sampler->SetSeed(initialSampler->NextUInt());
+		context->randomSampler->SetSeed(initialSampler->NextUInt());
 
-		// Sample a seed light path and initialize the state of Kelemen's lazy sampler
-		context->current = 0;
-		auto& current = context->records[context->current];
-		SampleAndEvaluatePath(scene, *context->sampler, current.L, current.rasterPos, current.depth);
-		LM_ASSERT(Math::Abs(seeds[i].I - Math::Luminance(current.L)) < Math::Constants::Eps());
-
-		// Get back to the normal generator
-		context->sampler->SetRng(context->rng.get());
+		// Setup initial state of the primary sample space sampler by restoring the state of the seed path
+		context->sampler->BeginRestore(*rewindableSampler, seeds[i].index);
+		SampleAndEvaluatePaths(scene, *context->sampler, context->CurentRecord());
+		context->sampler->EndRestore();
+		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
 
 	// --------------------------------------------------------------------------------
 
-	// Rendering
-	std::atomic<long long> processedBlocks(0);								// # of processes blocks
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;	// # of blocks
-	signal_ReportProgress(0, false);
+	// # Rendering process
 
-	LM_LOG_INFO("Rendering");
+	std::atomic<long long> processedBlocks(0);								// Number of processes blocks
+	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;	// Number of blocks
+	signal_ReportProgress(0, false);
 
 	#pragma omp parallel for
 	for (long long block = 0; block < blocks; block++)
@@ -364,76 +406,13 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
-			auto& current = context->records[context->current];
-			auto& proposed = context->records[1-context->current];
-
-			// Enable flag for large step mutation
-			// Note that the probability is not related to the state
-			bool enableLargeStep = context->rng->Next() < largeStepProb;
-			context->sampler->SetLargeStep(enableLargeStep);
-
-			// Sample and evaluate proposed path
-			SampleAndEvaluatePath(scene, *context->sampler, proposed.L, proposed.rasterPos, proposed.depth);
-
-			// Compute acceptance ratio
-			auto currentI = Math::Luminance(current.L);
-			auto proposedI = Math::Luminance(proposed.L);
-			auto a = currentI > Math::Float(0)
-				? Math::Min(Math::Float(1), proposedI / currentI)
-				: Math::Float(1);
-
-			context->mutated++;
-			if (context->rng->Next() < a)
-			{
-				// Accepted
-				context->sampler->Accept();
-				context->current = 1 - context->current;
-				context->accepted++;
-			}
-			else
-			{
-				// Rejected
-				context->sampler->Reject();
-			}
-
-			// Accumulate contribution
-			if (estimatorMode == PSSMLTEstimatorMode::MeanValueSubstitution)
-			{
-				context->film->AccumulateContribution(
-					current.rasterPos,
-					current.L * (1 - a) * B / currentI);
-				context->film->AccumulateContribution(
-					proposed.rasterPos,
-					proposed.L * a * B / proposedI);
-			}
-			else if (estimatorMode == PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS)
-			{
-				context->film->AccumulateContribution(
-					current.rasterPos,
-					current.L * (1 - a) / (currentI / B + largeStepProb));
-				context->film->AccumulateContribution(
-					proposed.rasterPos,
-					proposed.L * (a + (enableLargeStep ? Math::Float(1) : Math::Float(0))) / (proposedI / B + largeStepProb));
-			}
-			else if (estimatorMode == PSSMLTEstimatorMode::Normal)
-			{
-				auto& current = context->records[context->current];
-				auto currentI = Math::Luminance(current.L);
-				context->film->AccumulateContribution(
-					current.rasterPos,
-					current.L * B / currentI);
-			}
-
-			if (adaptiveKernel)
-			{
-				double R = (double)context->accepted / context->mutated;
-				context->kernelSizeScale += Math::Float(R - 0.234) / context->mutated;
-				context->sampler->SetKernelSizeScale(context->kernelSizeScale);
-			}
+			ProcessRenderSingleSample(scene, *context);
 
 			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+#if 0
 			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_path_length", &current.depth);
 			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_acceptance_ratio", &a);
+#endif
 			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
@@ -462,74 +441,85 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 	return true;
 }
 
-void PSSMLTRenderer::GenerateAndSampleSeeds( const Scene& scene, PSSMLTRestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds ) const
+void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThreadContext& context ) const
 {
-	// Generate candidates for seeds
-	std::vector<PSSMLTPathSeed> candidates;
-	Math::Float sumI(0);
+#if 1
 
-	signal_ReportProgress(0, false);
+	auto& current  = context.CurentRecord();
+	auto& proposed = context.ProposedRecord();
 
-	for (long long sample = 0; sample < numSeedSamples; sample++)
+	// Enable large step mutation
+	bool enableLargeStep = context.randomSampler->Next() < largeStepProb;
+	context.sampler->EnableLargeStepMutation(enableLargeStep);
+
+	// Sample and evaluate proposed path
+	SampleAndEvaluatePaths(scene, *context.sampler, proposed);
+
+	// Compute acceptance ratio
+	auto currentI  = current.SumI();
+	auto proposedI = proposed.SumI();
+	auto a = Math::IsZero(currentI) ? Math::Float(1) : Math::Min(Math::Float(1), proposedI / currentI);
+
+	// Determine accept or reject
+	if (context.randomSampler->Next() < a)
 	{
-		// Current sample index of #restorableSampler
-		int index = restorableSampler.Index();
+		context.sampler->Accept();
+		context.current = 1 - context.current;
+	}
+	else
+	{
+		context.sampler->Reject();
+	}
 
-		// Sample a light path and evaluate radiance
-		Math::Vec3 L;
-		Math::Vec2 _;
-		int __;
-		SampleAndEvaluatePath(scene, restorableSampler, L, _, __);
-
-		if (!Math::IsZero(L))
+	// Accumulate contribution
+	switch (estimatorMode)
+	{
+		case PSSMLTEstimatorMode::MeanValueSubstitution:
 		{
-			auto I = Math::Luminance(L);
-			sumI += I;
-			candidates.emplace_back(index, I);
+			if (proposedI > Math::Float(0))
+			{
+				current.AccumulateContributionToFilm(*context.film, (1 - a) * normFactor / currentI);
+				proposed.AccumulateContributionToFilm(*context.film, a * normFactor / proposedI);
+			}
+			else
+			{
+				current.AccumulateContributionToFilm(*context.film, normFactor / currentI);
+			}
+			break;
 		}
-
-		signal_ReportProgress(static_cast<double>(sample) / numSeedSamples, false);
+		case PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS:
+		{
+			current.AccumulateContributionToFilm(*context.film, (1 - a) / (currentI / normFactor + largeStepProb));
+			proposed.AccumulateContributionToFilm(*context.film, (a + (enableLargeStep ? Math::Float(1) : Math::Float(0))) / (proposedI / normFactor + largeStepProb));
+			break;
+		}
+		case PSSMLTEstimatorMode::Normal:
+		{
+			auto& current = context.CurentRecord();
+			current.AccumulateContributionToFilm(*context.film, normFactor / current.SumI());
+			break;
+		}
 	}
-	
-	// Compute #B
-	B = sumI / Math::Float(numSeedSamples);
 
-	// Sample seeds according to I
+#else
 
-	// Create CDF
-	std::vector<Math::Float> cdf;
-	cdf.push_back(Math::Float(0));
-	for (auto& candidate : candidates)
+	auto& current = context.CurentRecord();
+	SampleAndEvaluatePaths(scene, *context.sampler, current);
+	if (!current.splats.empty())
 	{
-		cdf.push_back(cdf.back() + candidate.I);
+		context.film->AccumulateContribution(current.splats[0].rasterPos, current.splats[0].L);
 	}
 
-	// Normalize
-	auto sum = cdf.back();
-	for (auto& v : cdf)
-	{
-		v /= sum;
-	}
-
-	// Sample seeds for each thread
-	seeds.clear();
-	LM_ASSERT(candidates.size() >= numThreads);
-	for (int i = 0; i < numThreads; i++)
-	{
-		double u = restorableSampler.Next();
-		int idx =
-			Math::Clamp(
-				static_cast<int>(std::upper_bound(cdf.begin(), cdf.end(), u) - cdf.begin()) - 1,
-				0, static_cast<int>(cdf.size()) - 1);
-
-		seeds.push_back(candidates[idx]);
-	}
+#endif
 }
 
-void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth ) const
+void PSSMLTRenderer::SampleAndEvaluatePaths( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats ) const
 {
+	// Clear result
+	splats.splats.clear();
+
 	// Raster position
-	rasterPos = sampler.NextVec2();
+	auto rasterPos = sampler.NextVec2();
 
 	// Sample position on camera
 	SurfaceGeometry geomE;
@@ -542,7 +532,7 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 	bsdfSQ.sample = rasterPos;
 	bsdfSQ.transportDir = TransportDirection::EL;
 	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-	scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
+	auto We_Estimated = scene.MainCamera()->SampleAndEstimateDirection(bsdfSQ, geomE, bsdfSR);
 
 	// Construct initial ray
 	Ray ray;
@@ -551,14 +541,9 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 	ray.minT = Math::Float(0);
 	ray.maxT = Math::Constants::Inf();
 
-	// Evaluate importance
-	auto We =
-		scene.MainCamera()->EvaluatePosition(geomE) *
-		scene.MainCamera()->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), geomE);
-
-	L = Math::Vec3();
-	Math::Vec3 throughput = We / bsdfSR.pdf.v / pdfP.v; // = 1 !!
-	depth = 0;
+	Math::Vec3 throughput = We_Estimated;
+	Math::Vec3 L;
+	int depth = 0;
 
 	while (true)
 	{
@@ -592,7 +577,6 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.wi = -ray.d;
 
-#if 1
 		GeneralizedBSDFSampleResult bsdfSR;
 		auto fs_Estimated = isect.primitive->bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
 		if (Math::IsZero(fs_Estimated))
@@ -602,23 +586,6 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 
 		// Update throughput
 		throughput *= fs_Estimated;
-#else
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!isect.primitive->bsdf->SampleDirection(bsdfSQ, isect.geom, bsdfSR))
-		{
-			break;
-		}
-
-		auto bsdf = isect.primitive->bsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), isect.geom);
-		if (Math::IsZero(bsdf))
-		{
-			break;
-		}
-
-		// Update throughput
-		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-		throughput *= bsdf / bsdfSR.pdf.v;
-#endif
 
 		// Setup next ray
 		ray.d = bsdfSR.wo;
@@ -640,6 +607,8 @@ void PSSMLTRenderer::SampleAndEvaluatePath( const Scene& scene, PSSMLTSampler& s
 			throughput /= p;
 		}
 	}
+
+	splats.splats.emplace_back(rasterPos, L);
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer, Renderer);

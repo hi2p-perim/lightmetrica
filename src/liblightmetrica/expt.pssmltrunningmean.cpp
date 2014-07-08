@@ -30,6 +30,8 @@
 
 LM_NAMESPACE_BEGIN
 
+#if 0
+
 /*!
 	PSSMLT running mean.
 	Traces running means of primary samples.
@@ -64,7 +66,7 @@ private:
 private:
 
 	long long sample;
-	PSSMLTPrimarySample* primarySample;
+	PSSMLTPrimarySampler* primarySample;
 
 private:
 
@@ -92,7 +94,7 @@ void PSSMLTRunningMeanExperiment::Notify( const std::string& type )
 void PSSMLTRunningMeanExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
-	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySample*)param;
+	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySampler*)param;
 }
 
 void PSSMLTRunningMeanExperiment::HandleNotify_RenderStarted()
@@ -148,5 +150,7 @@ void PSSMLTRunningMeanExperiment::HandleNotify_RenderFinished()
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTRunningMeanExperiment, Experiment);
+
+#endif
 
 LM_NAMESPACE_END

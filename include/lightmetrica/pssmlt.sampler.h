@@ -32,6 +32,7 @@
 LM_NAMESPACE_BEGIN
 
 class Random;
+class RewindableSampler;
 
 /*!
 	Kelemen's primary sample.
@@ -91,7 +92,7 @@ public:
 		\retval true Current mutation is large step mutation.
 		\retval false Current mutation is small step mutation.
 	*/
-	virtual bool LargeStep() const = 0;
+	virtual bool LargeStepMutation() const = 0;
 
 	/*!
 		Begin to restore samples.
@@ -99,19 +100,23 @@ public:
 		using the restored sequence of samples with rewindable sampler.
 		Path sampling process dispatched between #BeginRestore and #EndRestore is
 		recorded in a form of primary samples.
+		\param rewindableSampler Rewindable sampler.
+		\param index Sample index.
+		\sa EndRestore
 	*/
-	virtual void BeginRestore() const = 0;
+	virtual void BeginRestore(RewindableSampler& rewindableSampler, int index) = 0;
 	
-	LM_PUBLIC_API Random* Rng();
-	LM_PUBLIC_API void SetRng(Random* rng);
-
-
+	/*!
+		End to restore samples.
+		Corresponds to #BeginRestore.
+		\sa BeginRestore
+	*/
+	virtual void EndRestore() = 0;
 
 public:
 
-	//LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples) const;
-	//LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples);
-	//LM_PUBLIC_API void SetKernelSizeScale(const Math::Float& scale);
+	virtual void GetCurrentSampleState(std::vector<Math::Float>& samples) const = 0;
+	virtual void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples) = 0;
 
 };
 

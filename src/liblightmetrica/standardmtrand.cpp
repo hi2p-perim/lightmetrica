@@ -41,11 +41,8 @@ public:
 public:
 
 	virtual unsigned int NextUInt() { return uniformInt(engine); }
-	virtual void SetSeed( unsigned int seed )
-	{
-		engine.seed(seed);
-		uniformInt.reset();
-	}
+	virtual void SetSeed( unsigned int seed ) { engine.seed(seed); uniformInt.reset(); }
+	virtual Random* Clone() const { return new StandardMTRandom; }
 
 private:
 

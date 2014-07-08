@@ -186,6 +186,18 @@ public:
 		return p2;
 	}
 
+	/*!
+		Create an instance of a component with interface type.
+		This function creates default implementation for the givan interface.
+		\tparam InterfaceType Interface type.
+		\return Instance. nullptr if not registered, or failed to cast.
+	*/
+	template <typename InterfaceType>
+	static InterfaceType* Create()
+	{
+		return Create<InterfaceType>("default");
+	}
+
 };
 
 // --------------------------------------------------------------------------------

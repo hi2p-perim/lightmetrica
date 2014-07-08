@@ -27,7 +27,7 @@
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <thread>
 
 LM_NAMESPACE_BEGIN
@@ -51,7 +51,13 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
-	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	auto samplerNodeType = samplerNode.AttributeValue("type");
+	if (samplerNodeType != "random")
+	{
+		LM_LOG_ERROR("Invalid sampler type. This renderer requires 'random' sampler");
+		return false;
+	}
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNodeType));
 	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
 		LM_LOG_ERROR("Invalid sampler");

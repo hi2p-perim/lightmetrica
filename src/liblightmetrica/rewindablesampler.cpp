@@ -32,7 +32,7 @@ class RewindableSamplerImpl : public RewindableSampler
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("impl");
+	LM_COMPONENT_IMPL_DEF("default");
 
 public:
 
@@ -65,6 +65,11 @@ public:
 	{
 		currentIndex += 2;
 		return rng->NextVec2();
+	}
+
+	virtual Random* Rng()
+	{
+		return rng.get();
 	}
 
 public:

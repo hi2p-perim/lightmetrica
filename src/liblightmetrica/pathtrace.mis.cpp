@@ -31,7 +31,7 @@
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/light.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/sampler.h>
+#include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/logger.h>
@@ -72,11 +72,11 @@ private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;						// Number of samples
-	int rrDepth;								// Depth of beginning RR
-	int numThreads;								// Number of threads
-	long long samplesPerBlock;					// Samples to be processed per block
-	std::unique_ptr<Sampler> initialSampler;	// Sampler
+	long long numSamples;									// Number of samples
+	int rrDepth;											// Depth of beginning RR
+	int numThreads;											// Number of threads
+	long long samplesPerBlock;								// Samples to be processed per block
+	std::unique_ptr<ConfigurableSampler> initialSampler;		// Sampler
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -103,7 +103,7 @@ bool MISPathtraceRenderer::Configure( const ConfigNode& node, const Assets& asse
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
-	initialSampler.reset(ComponentFactory::Create<Sampler>("random"));
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNode.AttributeValue("type")));
 	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
 	{
 		LM_LOG_ERROR("Invalid sampler");

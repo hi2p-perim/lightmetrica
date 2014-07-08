@@ -23,210 +23,266 @@
 */
 
 #include <lightmetrica/pssmlt.sampler.h>
+#include <lightmetrica/rewindablesampler.h>
 #include <lightmetrica/random.h>
 
 LM_NAMESPACE_BEGIN
 
-
-
-/*
-PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Float& s2 )
-	: s1(s1)
-	, s2(s2)
-	, kernelSizeScale(1)
+struct PSSMLTPrimarySample
 {
-	logRatio = -Math::Log(s2 / s1);
-	time = 0;
-	largeStepTime = 0;
-	largeStep = false;
-	currentIndex = 0;
-}
+	PSSMLTPrimarySample(const Math::Float& value)
+		: value(value)
+		, modify(0)
+	{}
 
-Sampler* PSSMLTPrimarySample::Clone()
-{
-	LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySample");
-	return nullptr;
-}
+	Math::Float value;		//!< Sample value
+	long long modify;		//!< Last modified time
+};
 
-void PSSMLTPrimarySample::SetSeed( unsigned int seed )
+class PSSMLTPrimarySamplerImpl : public PSSMLTPrimarySampler
 {
-	time = 0;
-	largeStepTime = 0;
-	largeStep = false;
-	currentIndex = 0;
-	rng->SetSeed(seed);
-}
+public:
 
-Math::Float PSSMLTPrimarySample::Next()
-{
-	return PrimarySample(currentIndex++);
-}
+	LM_COMPONENT_IMPL_DEF("default");
 
-unsigned int PSSMLTPrimarySample::NextUInt()
-{
-	LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySample");
-	return 0;
-}
+public:
 
-Random* PSSMLTPrimarySample::Rng()
-{
-	return rng;
-}
-
-void PSSMLTPrimarySample::Accept()
-{
-	if (largeStep)
+	virtual Sampler* Clone()
 	{
-		// Update large step time
-		largeStepTime = time;
+		LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySampler");
+		return nullptr;
 	}
 
-	time++;
-	prevSamples.clear();
-	currentIndex = 0;
-}
-
-void PSSMLTPrimarySample::Reject()
-{
-	// Restore samples
-	for (auto& v : prevSamples)
+	virtual void SetSeed( unsigned int seed )
 	{
-		int i = std::get<0>(v);
-		auto& prevSample = std::get<1>(v);
-		u[i] = prevSample;
+		time = 0;
+		largeStepTime = 0;
+		enableLargeStep = false;
+		currentIndex = 0;
+		rng->SetSeed(seed);
 	}
 
-	prevSamples.clear();
-	currentIndex = 0;
-}
-
-Math::Float PSSMLTPrimarySample::PrimarySample( int i )
-{
-	// Not sampled yet
-	while (i >= (int)u.size())
+	virtual Math::Float Next()
 	{
-		u.emplace_back(rng->Next());
+		return PrimarySample(currentIndex++);
 	}
 
-	// If the modified time of the requested sample is not updated
-	// it requires the lazy evaluation of mutations.
-	if (u[i].modify < time)
+	virtual unsigned int NextUInt()
 	{
-		if (largeStep)
+		LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySampler");
+		return 0;
+	}
+
+	virtual Math::Vec2 NextVec2()
+	{
+		return Math::Vec2(Next(), Next());
+	}
+
+	virtual Random* Rng()
+	{
+		return managedRng.get();
+	}
+
+public:
+
+	virtual void Configure( Random* rng, const Math::Float& s1, const Math::Float& s2 )
+	{
+		this->s1 = s1;
+		this->s2 = s2;
+		this->rng = rng;
+		managedRng.reset(rng);
+		logRatio = -Math::Log(s2 / s1);
+		time = 0;
+		largeStepTime = 0;
+		enableLargeStep = false;
+		currentIndex = 0;
+	}
+
+	virtual void Accept()
+	{
+		if (enableLargeStep)
 		{
-			// Large step case
-
-			// Save sample in order to restore previous state
-			prevSamples.emplace_back(i, u[i]);
-
-			// Update the modified time and value
-			u[i].modify = time;
-			u[i].value = rng->Next();
+			// Update large step time
+			largeStepTime = time;
 		}
-		else
-		{
-			// Small step case
 
-			// If the modified time is not updated since the last accepted
-			// large step mutation, then update sample to the state.
-			// Note that there is no need to go back before largeStepTime
-			// because these samples are independent of the sample on largeStepTime.
-			if (u[i].modify < largeStepTime)
+		time++;
+		prevSamples.clear();
+		currentIndex = 0;
+	}
+
+	virtual void Reject()
+	{
+		// Restore samples
+		for (auto& v : prevSamples)
+		{
+			int i = std::get<0>(v);
+			auto& prevSample = std::get<1>(v);
+			u[i] = prevSample;
+		}
+
+		prevSamples.clear();
+		currentIndex = 0;
+	}
+
+	virtual void EnableLargeStepMutation( bool enable )
+	{
+		enableLargeStep = enable;
+	}
+
+	virtual bool LargeStepMutation() const
+	{
+		return enableLargeStep;
+	}
+
+	virtual void BeginRestore( RewindableSampler& rewindableSampler, int index )
+	{
+		// Rewind to #index
+		rewindableSampler.Rewind(index);
+
+		// Replace current RNG and get ready
+		// to restore sampled state as primary samples
+		rng = rewindableSampler.Rng();
+	}
+
+	virtual void EndRestore()
+	{
+		// Restore RNG
+		rng = managedRng.get();
+	}
+
+	virtual void GetCurrentSampleState( std::vector<Math::Float>& samples ) const
+	{
+		samples.clear();
+		for (auto& sample : u)
+		{
+			samples.push_back(sample.value);
+		}
+	}
+
+	virtual void GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
+	{
+		samples.clear();
+		for (int i = 0; i < numSamples; i++)
+		{
+			if (i < static_cast<int>(u.size()))
 			{
-				u[i].modify = largeStepTime;
+				samples.push_back(u[i].value);
+			}
+			else
+			{
+				// The sample is not exist, use 0 instead
+				// TODO : Some better way?
+				samples.push_back(Math::Float(0));
+			}
+		}
+	}
+
+private:
+
+	Math::Float PrimarySample(int i)
+	{
+		// Not sampled yet
+		while (i >= static_cast<int>(u.size()))
+		{
+			u.emplace_back(rng->Next());
+		}
+
+		// If the modified time of the requested sample is not updated
+		// it requires the lazy evaluation of mutations.
+		if (u[i].modify < time)
+		{
+			if (enableLargeStep)
+			{
+				// Large step case
+
+				// Save sample in order to restore previous state
+				prevSamples.emplace_back(i, u[i]);
+
+				// Update the modified time and value
+				u[i].modify = time;
 				u[i].value = rng->Next();
 			}
-
-			// Lazy evaluation of Mutate
-			while (u[i].modify < time - 1)
+			else
 			{
+				// Small step case
+
+				// If the modified time is not updated since the last accepted
+				// large step mutation, then update sample to the state.
+				// Note that there is no need to go back before largeStepTime
+				// because these samples are independent of the sample on largeStepTime.
+				if (u[i].modify < largeStepTime)
+				{
+					u[i].modify = largeStepTime;
+					u[i].value = rng->Next();
+				}
+
+				// Lazy evaluation of Mutate
+				while (u[i].modify < time - 1)
+				{
+					u[i].value = Mutate(u[i].value);
+					u[i].modify++;
+				}
+
+				// Save state
+				prevSamples.emplace_back(i, u[i]);
+
+				// Update the modified time and value
 				u[i].value = Mutate(u[i].value);
 				u[i].modify++;
 			}
-
-			// Save state
-			prevSamples.emplace_back(i, u[i]);
-
-			// Update the modified time and value
-			u[i].value = Mutate(u[i].value);
-			u[i].modify++;
 		}
+
+		return u[i].value;
 	}
 
-	return u[i].value;
-}
-
-Math::Float PSSMLTPrimarySample::Mutate( const Math::Float& value )
-{
-	Math::Float u = rng->Next();
-	bool positive = u < Math::Float(0.5);
-
-	// Convert to [0, 1]
-	u = positive ? u * Math::Float(2) : Math::Float(2) * (u - Math::Float(0.5)); 
-
-	Math::Float dv = kernelSizeScale * s2 * std::exp(logRatio * u);
-
-	Math::Float result = value;
-	if (positive)
+	Math::Float Mutate(const Math::Float& value)
 	{
-		result += dv;
-		if (result > Math::Float(1)) result -= Math::Float(1);
-	}
-	else
-	{
-		result -= dv;
-		if (result < Math::Float(0)) result += Math::Float(1);
-	}
+		auto u = rng->Next();
+		bool positive = u < Math::Float(0.5);
 
-	return result;
-}
+		// Convert to [0, 1]
+		u = positive ? u * Math::Float(2) : Math::Float(2) * (u - Math::Float(0.5)); 
 
-void PSSMLTPrimarySample::SetLargeStep( bool largeStep )
-{
-	this->largeStep = largeStep;
-}
+#if 1
+		auto dv = s2 * std::exp(logRatio * u);
+#else
+		auto dv = kernelSizeScale * s2 * std::exp(logRatio * u);
+#endif
 
-bool PSSMLTPrimarySample::LargeStep()
-{
-	return largeStep;
-}
-
-void PSSMLTPrimarySample::SetRng( Random* rng )
-{
-	this->rng = rng;
-}
-
-void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples ) const
-{
-	samples.clear();
-	for (auto& sample : u)
-	{
-		samples.push_back(sample.value);
-	}
-}
-
-void PSSMLTPrimarySample::GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
-{
-	samples.clear();
-	for (int i = 0; i < numSamples; i++)
-	{
-		if (i < static_cast<int>(u.size()))
+		Math::Float result = value;
+		if (positive)
 		{
-			samples.push_back(u[i].value);
+			result += dv;
+			if (result > Math::Float(1)) result -= Math::Float(1);
 		}
 		else
 		{
-			// The sample is not exist, use 0 instead
-			// TODO : Some better way?
-			samples.push_back(Math::Float(0));
+			result -= dv;
+			if (result < Math::Float(0)) result += Math::Float(1);
 		}
-	}
-}
 
-void PSSMLTPrimarySample::SetKernelSizeScale( const Math::Float& scale )
-{
-	kernelSizeScale = scale;
-}
-*/
+		return result;
+	}
+
+public:
+
+	Math::Float s1, s2;													//!< Kernel size parameters
+	Math::Float logRatio;												//!< Temporary variable (for efficiency)
+
+	Random* rng;														//!< Current random number generator
+	std::unique_ptr<Random> managedRng;									//!< Managed instance of RNG
+
+	long long time;														//!< Number of accepted mutations
+	long long largeStepTime;											//!< Time of the last accepted large step
+	bool enableLargeStep;												//!< Indicates the next mutation is the large step
+
+	int currentIndex;													//!< Current sample index
+	std::vector<PSSMLTPrimarySample> u;									//!< List of current samples
+	std::vector<std::tuple<int, PSSMLTPrimarySample>> prevSamples;		//!< Temporary list for preserving previous samples (restored if rejected)
+
+};
+
+LM_COMPONENT_REGISTER_IMPL(PSSMLTPrimarySamplerImpl, PSSMLTPrimarySampler);
 
 LM_NAMESPACE_END
