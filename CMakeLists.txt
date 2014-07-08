@@ -221,6 +221,8 @@ set(LM_VERSION_MAJOR "0")
 set(LM_VERSION_MINOR "0")
 set(LM_VERSION_PATCH "1")
 set(LM_VERSION_CODENAME "kokoro pyon pyon")
+#set(LM_VERSION_CODENAME "nantsutte tsuchatta")
+#set(LM_VERSION_CODENAME "nyanpass")
 
 # Execute git command in the project root and check revision number
 find_package(Git REQUIRED)

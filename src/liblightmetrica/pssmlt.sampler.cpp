@@ -23,60 +23,13 @@
 */
 
 #include <lightmetrica/pssmlt.sampler.h>
+#include <lightmetrica/random.h>
 
 LM_NAMESPACE_BEGIN
 
+
+
 /*
-PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, unsigned int seed )
-	: initialSeed(seed)
-	, rng(rng)
-	, currentIndex(0)
-{
-	rng->SetSeed(seed);
-}
-
-PSSMLTRestorableSampler::PSSMLTRestorableSampler( Random* rng, const PSSMLTRestorableSampler& sampler )
-	: initialSeed(sampler.initialSeed)
-	, rng(rng)
-	, currentIndex(0)
-{
-	rng->SetSeed(sampler.initialSeed);
-}
-
-Math::Float PSSMLTRestorableSampler::Next()
-{
-	currentIndex++;
-	return rng->Next();
-}
-
-Random* PSSMLTRestorableSampler::Rng()
-{
-	return rng.get();
-}
-
-void PSSMLTRestorableSampler::SetIndex( int index )
-{
-	// Reset the initial seed
-	currentIndex = 0;
-	rng->SetSeed(initialSeed);
-
-	// Generate samples until the given index
-	while (currentIndex < index)
-	{
-		// Discard the value
-		currentIndex++;
-		rng->Next();
-	}
-}
-
-int PSSMLTRestorableSampler::Index()
-{
-	return currentIndex;
-}
-*/
-
-// --------------------------------------------------------------------------------
-
 PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Float& s2 )
 	: s1(s1)
 	, s2(s2)
@@ -89,9 +42,30 @@ PSSMLTPrimarySample::PSSMLTPrimarySample( const Math::Float& s1, const Math::Flo
 	currentIndex = 0;
 }
 
+Sampler* PSSMLTPrimarySample::Clone()
+{
+	LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySample");
+	return nullptr;
+}
+
+void PSSMLTPrimarySample::SetSeed( unsigned int seed )
+{
+	time = 0;
+	largeStepTime = 0;
+	largeStep = false;
+	currentIndex = 0;
+	rng->SetSeed(seed);
+}
+
 Math::Float PSSMLTPrimarySample::Next()
 {
 	return PrimarySample(currentIndex++);
+}
+
+unsigned int PSSMLTPrimarySample::NextUInt()
+{
+	LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySample");
+	return 0;
 }
 
 Random* PSSMLTPrimarySample::Rng()
@@ -253,5 +227,6 @@ void PSSMLTPrimarySample::SetKernelSizeScale( const Math::Float& scale )
 {
 	kernelSizeScale = scale;
 }
+*/
 
 LM_NAMESPACE_END

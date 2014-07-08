@@ -243,13 +243,14 @@ set(
 	_SAMPLER_HEADERS
 	"${_INCLUDE_DIR}/sampler.h"
 	"${_INCLUDE_DIR}/camerasampler.h"
-	"${_INCLUDE_DIR}/configuablesampler.h"
-	"${_INCLUDE_DIR}/restorablesampler.h"
+	"${_INCLUDE_DIR}/configurablesampler.h"
+	"${_INCLUDE_DIR}/rewindablesampler.h"
 )
 set(
 	_SAMPLER_SOURCES
 	"randomsampler.cpp"
 	"stratified.cpp"
+	"rewindablesampler.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\sampler" FILES ${_SAMPLER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\sampler" FILES ${_SAMPLER_SOURCES})

@@ -44,6 +44,7 @@
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/restorablesampler.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -142,8 +143,8 @@ public:
 
 private:
 
-	void GenerateAndSampleSeeds(const Scene& scene, PSSMLTRestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds) const;
-	void SampleAndEvaluatePath(const Scene& scene, PSSMLTSampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth) const;
+	void GenerateAndSampleSeeds(const Scene& scene, RestorableSampler& restorableSampler, Math::Float& B, std::vector<PSSMLTPathSeed>& seeds) const;
+	void SampleAndEvaluatePath(const Scene& scene, Sampler& sampler, Math::Vec3& L, Math::Vec2& rasterPos, int& depth) const;
 
 private:
 
@@ -168,6 +169,11 @@ private:
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
 #endif
+
+private:
+
+	std::unique_ptr<RestorableSampler> restorableSampler;		// Restorable sampler for light path generation
+	std::vector<PSSMLTPathSeed> seeds;							// Path seeds for each thread
 
 };
 
@@ -267,6 +273,11 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 bool PSSMLTRenderer::Preprocess( const Scene& scene )
 {
 	signal_ReportProgress(0, true);
+
+	// Initialize sampler
+	restorableSampler.reset(new RestorableSampler("sfmt", initialSampler->NextUInt()));
+
+
 	return true;
 }
 

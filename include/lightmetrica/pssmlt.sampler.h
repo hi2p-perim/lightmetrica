@@ -26,94 +26,97 @@
 #ifndef LIB_LIGHTMETRICA_PSSMLT_SAMPLER_H
 #define LIB_LIGHTMETRICA_PSSMLT_SAMPLER_H
 
-#include "common.h"
+#include "sampler.h"
 #include "math.types.h"
-#include "random.h"
-#include <memory>
-#include <vector>
-#include <tuple>
 
 LM_NAMESPACE_BEGIN
 
+class Random;
+
 /*!
-	PSSMLT sampler.
-	Sampler interface for uniform random number generator
-	used in the PSSMLT implementation.
+	Kelemen's primary sample.
+	Represents an element of the primary sample space.
+	The class shares the same interface as generic Sampler class,
+	so we can use this class to sample light paths without modification
+	of the implementation of path samplers.
+	The function is also responsible for the lazy evaluation of the mutations
+	which is required to support infinite dimension space.
+	For details, see the original paper.
 */
-class PSSMLTSampler
+class PSSMLTPrimarySampler : public Sampler
 {
 public:
 
-	PSSMLTSampler() {}
-	virtual ~PSSMLTSampler() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(PSSMLTSampler);
+	LM_COMPONENT_INTERFACE_DEF("pssmltprimarysampler");
 
 public:
-	
-	LM_PUBLIC_API virtual Math::Float Next() = 0;
-	LM_PUBLIC_API virtual Random* Rng() = 0;
-	Math::Vec2 NextVec2() { return Math::Vec2(Next(), Next()); }
 
-};
+	PSSMLTPrimarySampler() {}
+	virtual ~PSSMLTPrimarySampler() {}
 
-// --------------------------------------------------------------------------------
-
-/*!
-	Restorable sampler.
-	An implementation of uniform random number generator
-	which can be restored in the specified index.
-*/
-class PSSMLTRestorableSampler : public Sampler
-{
 public:
 
-	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, unsigned int seed);
-	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, const PSSMLTRestorableSampler& sampler);
+	/*!
+		Configure the sampler.
+		Configure and initializes the sampler.
+		This function must be called before use.
+		\param rng Random number generator.
+		\param s1 Lower bound of the kernel.
+		\param s2 Upper bound of the kernel.
+	*/
+	virtual void Configure(Random* rng, const Math::Float& s1, const Math::Float& s2) = 0;
 
+	/*!
+		Accept mutation.
+		Indicates to accept mutated samples.
+	*/
+	virtual void Accept() = 0;
+
+	/*!
+		Reject mutation.
+		Indicates to reject mutated samples.
+		The internal state is restored to previous state.
+	*/
+	virtual void Reject() = 0;
+
+	/*!
+		Enable large step mutation.
+		Enables to use large step mutation in the next mutation step.
+		\param enable Enabled if true.
+	*/
+	virtual void EnableLargeStepMutation(bool enable) = 0;
+
+	/*!
+		Check if current mutation is large step mutation.
+		\retval true Current mutation is large step mutation.
+		\retval false Current mutation is small step mutation.
+	*/
+	virtual bool LargeStep() const = 0;
+
+	/*!
+		Begin to restore samples.
+		Begins to set internal sample state
+		using the restored sequence of samples with rewindable sampler.
+		Path sampling process dispatched between #BeginRestore and #EndRestore is
+		recorded in a form of primary samples.
+	*/
+	virtual void BeginRestore() const = 0;
 	
+	LM_PUBLIC_API Random* Rng();
+	LM_PUBLIC_API void SetRng(Random* rng);
+
+
+
+public:
+
+	//LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples) const;
+	//LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples);
+	//LM_PUBLIC_API void SetKernelSizeScale(const Math::Float& scale);
 
 };
 
 /*
-class PSSMLTRestorableSampler : public PSSMLTSampler
-{
-public:
-
-	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, unsigned int seed);
-	LM_PUBLIC_API PSSMLTRestorableSampler(Random* rng, const PSSMLTRestorableSampler& sampler);
-
-public:
-
-	LM_PUBLIC_API Math::Float Next();
-	LM_PUBLIC_API Random* Rng();
-
-public:
-
-	LM_PUBLIC_API void SetIndex(int index);
-	LM_PUBLIC_API int Index();
-
-private:
-
-	unsigned int initialSeed;		//!< Initial seed
-	std::unique_ptr<Random> rng;	//!< Random number generator
-	int currentIndex;				//!< Number of generated samples
-
-};
-*/
-
-// --------------------------------------------------------------------------------
-
-/*!
-	Kelemen's primary sample set.
-	A element of the primary sample space.
-	The class works as an implementation of the random number sampler
-	and is usable in the renderer implementation without modification.
-	For details, see the original paper.
-*/
-class PSSMLTPrimarySample : public PSSMLTSampler
+class PSSMLTPrimarySampler : public Sampler
 {
 public:
 
@@ -135,7 +138,10 @@ public:
 public:
 
 	LM_PUBLIC_API Math::Float Next();
-	LM_PUBLIC_API Random* Rng();
+	LM_PUBLIC_API virtual Sampler* Clone();
+	LM_PUBLIC_API virtual void SetSeed( unsigned int seed );
+	LM_PUBLIC_API virtual unsigned int NextUInt();
+	LM_PUBLIC_API virtual Math::Vec2 NextVec2();
 
 public:
 
@@ -144,6 +150,7 @@ public:
 
 	LM_PUBLIC_API void SetLargeStep(bool largeStep);
 	LM_PUBLIC_API bool LargeStep();
+	LM_PUBLIC_API Random* Rng();
 	LM_PUBLIC_API void SetRng(Random* rng);
 	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples) const;
 	LM_PUBLIC_API void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples);
@@ -173,6 +180,7 @@ private:
 	Math::Float kernelSizeScale;						// TODO
 
 };
+*/
 
 LM_NAMESPACE_END
 

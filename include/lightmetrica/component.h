@@ -327,13 +327,14 @@ LM_NAMESPACE_END
 // --------------------------------------------------------------------------------
 
 /*!
-	\def LM_COMPONENT_REGISTER_IMPL(ImplType)
+	\def LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)
 	Register implementation.
 	Registered class must follow the following conditions:
 	 - The class must define LM_COMPONENT_IMPL_DEF macro
 	 - The class must be inherited from component interface class
 	   in which defines LM_COMPONENT_INTERFACE_DEF macro
 	\tparam ImplType Component implementation type.
+	\tparam InterfaceType Component interface type.
 */
 
 #define LM_COMPONENT_REGISTER_IMPL(ImplType, InterfaceType)										\
