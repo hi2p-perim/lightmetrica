@@ -285,15 +285,17 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 set(
 	_RENDERER_PSSMLT_HEADERS
 	"${_INCLUDE_DIR}/pssmlt.common.h"
-	"${_INCLUDE_DIR}/pssmlt.sampler.h"
 	"${_INCLUDE_DIR}/pssmlt.splat.h"
+	"${_INCLUDE_DIR}/pssmlt.sampler.h"
+	"${_INCLUDE_DIR}/pssmlt.pathsampler.h"
 )
 set(
 	_RENDERER_PSSMLT_SOURCES
 	"pssmlt.cpp"
-	"pssmlt.bpt.cpp"
-	"pssmlt.sampler.cpp"
 	"pssmlt.splat.cpp"
+	"pssmlt.sampler.cpp"
+	"pssmlt.pt.cpp"
+	"pssmlt.bpt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_SOURCES})

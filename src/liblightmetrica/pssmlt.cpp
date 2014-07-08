@@ -28,25 +28,22 @@
 #include <lightmetrica/pssmlt.pathseed.h>
 #include <lightmetrica/pssmlt.sampler.h>
 #include <lightmetrica/pssmlt.splat.h>
+#include <lightmetrica/pssmlt.pathsampler.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/scene.h>
-#include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/bsdf.h>
-#include <lightmetrica/ray.h>
-#include <lightmetrica/intersection.h>
-#include <lightmetrica/primitive.h>
-#include <lightmetrica/light.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
-#include <lightmetrica/renderutils.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/defaultexpts.h>
 #include <lightmetrica/rewindablesampler.h>
 #include <lightmetrica/random.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/camera.h>
+#include <lightmetrica/film.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -61,6 +58,7 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 {
 	
 	std::unique_ptr<Sampler> randomSampler;				//!< Ordinary random sampler
+	std::unique_ptr<PSSMLTPathSampler> pathSampler;		//!< Path sampler
 	std::unique_ptr<Film> film;							//!< Film
 	std::unique_ptr<PSSMLTPrimarySampler> sampler;		//!< Kelemen's lazy sampler
 	PSSMLTSplats records[2];							//!< Path sample records (current or proposed)
@@ -75,8 +73,9 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	//Math::Float expectedAcceptanceRatio;
 #endif
 
-	PSSMLTThreadContext(Sampler* randomSampler, Film* film, PSSMLTPrimarySampler* sampler)
+	PSSMLTThreadContext(Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film, PSSMLTPrimarySampler* sampler)
 		: randomSampler(randomSampler)
+		, pathSampler(pathSampler)
 		, film(film)
 		, sampler(sampler)
 		, current(0)
@@ -91,6 +90,7 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 
 	PSSMLTThreadContext(PSSMLTThreadContext&& context)
 		: randomSampler(std::move(context.randomSampler))
+		, pathSampler(std::move(context.pathSampler))
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
 		, current(0)
@@ -142,17 +142,16 @@ public:
 private:
 
 	void ProcessRenderSingleSample(const Scene& scene, PSSMLTThreadContext& context) const;
-	void SampleAndEvaluatePaths(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;									// Number of sample mutations
-	int rrDepth;											// Depth of beginning RR
 	int numThreads;											// Number of threads
 	long long samplesPerBlock;								// Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
+	std::unique_ptr<PSSMLTPathSampler> pathSampler;			// Path sampler
 
 	PSSMLTEstimatorMode estimatorMode;			// Estimator mode
 	long long numSeedSamples;					// Number of seed samples
@@ -182,7 +181,6 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -211,6 +209,22 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	{
 		LM_LOG_ERROR("Invalid sampler");
 		return false;
+	}
+
+	// Path sampler
+	auto pathSamplerNode = node.Child("path_sampler");
+	if (pathSamplerNode.Empty())
+	{
+		LM_LOG_ERROR("Missing 'path_sampler' element");
+		return false;
+	}
+	else
+	{
+		pathSampler.reset(ComponentFactory::Create<PSSMLTPathSampler>(pathSamplerNode.AttributeValue("type")));
+		if (!pathSampler->Configure(pathSamplerNode, assets))
+		{
+			return false;
+		}
 	}
 
 	// Estimator mode
@@ -284,7 +298,7 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 
 bool PSSMLTRenderer::Preprocess( const Scene& scene )
 {
-	signal_ReportProgress(0, true);
+	signal_ReportProgress(0, false);
 
 	// Initialize sampler
 	rewindableSampler.reset(ComponentFactory::Create<RewindableSampler>());
@@ -304,7 +318,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 
 		// Sample light paths
 		// We note that path sampler might generate multiple light paths
-		SampleAndEvaluatePaths(scene, *rewindableSampler, splats);
+		pathSampler->SampleAndEvaluate(scene, *rewindableSampler, splats);
 
 		// Calculate sum of luminance
 		auto I = splats.SumI();
@@ -367,7 +381,9 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 	for (int i = 0; i < numThreads; i++)
 	{
 		// Add an entry
-		contexts.emplace_back(new PSSMLTThreadContext(initialSampler->Clone(), masterFilm->Clone(), ComponentFactory::Create<PSSMLTPrimarySampler>()));
+		contexts.emplace_back(new PSSMLTThreadContext(
+			initialSampler->Clone(), pathSampler->Clone(), masterFilm->Clone(),
+			ComponentFactory::Create<PSSMLTPrimarySampler>()));
 		
 		// Configure and set seeds
 		auto& context = contexts.back();
@@ -377,7 +393,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 
 		// Setup initial state of the primary sample space sampler by restoring the state of the seed path
 		context->sampler->BeginRestore(*rewindableSampler, seeds[i].index);
-		SampleAndEvaluatePaths(scene, *context->sampler, context->CurentRecord());
+		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurentRecord());
 		context->sampler->EndRestore();
 		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
@@ -443,8 +459,6 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 
 void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThreadContext& context ) const
 {
-#if 1
-
 	auto& current  = context.CurentRecord();
 	auto& proposed = context.ProposedRecord();
 
@@ -453,7 +467,7 @@ void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThread
 	context.sampler->EnableLargeStepMutation(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	SampleAndEvaluatePaths(scene, *context.sampler, proposed);
+	context.pathSampler->SampleAndEvaluate(scene, *context.sampler, proposed);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();
@@ -500,115 +514,6 @@ void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThread
 			break;
 		}
 	}
-
-#else
-
-	auto& current = context.CurentRecord();
-	SampleAndEvaluatePaths(scene, *context.sampler, current);
-	if (!current.splats.empty())
-	{
-		context.film->AccumulateContribution(current.splats[0].rasterPos, current.splats[0].L);
-	}
-
-#endif
-}
-
-void PSSMLTRenderer::SampleAndEvaluatePaths( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats ) const
-{
-	// Clear result
-	splats.splats.clear();
-
-	// Raster position
-	auto rasterPos = sampler.NextVec2();
-
-	// Sample position on camera
-	SurfaceGeometry geomE;
-	Math::PDFEval pdfP;
-	scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfP);
-
-	// Sample ray direction
-	GeneralizedBSDFSampleQuery bsdfSQ;
-	GeneralizedBSDFSampleResult bsdfSR;
-	bsdfSQ.sample = rasterPos;
-	bsdfSQ.transportDir = TransportDirection::EL;
-	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-	auto We_Estimated = scene.MainCamera()->SampleAndEstimateDirection(bsdfSQ, geomE, bsdfSR);
-
-	// Construct initial ray
-	Ray ray;
-	ray.o = geomE.p;
-	ray.d = bsdfSR.wo;
-	ray.minT = Math::Float(0);
-	ray.maxT = Math::Constants::Inf();
-
-	Math::Vec3 throughput = We_Estimated;
-	Math::Vec3 L;
-	int depth = 0;
-
-	while (true)
-	{
-		// Check intersection
-		Intersection isect;
-		if (!scene.Intersect(ray, isect))
-		{
-			break;
-		}
-
-		const auto* light = isect.primitive->light;
-		if (light)
-		{
-			// Evaluate Le
-			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.transportDir = TransportDirection::LE;
-			bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-			bsdfEQ.wo = -ray.d;
-			auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
-			auto LeP = light->EvaluatePosition(isect.geom);
-			L += throughput * LeD * LeP;
-		}
-
-		// --------------------------------------------------------------------------------
-
-		// Sample BSDF
-		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = sampler.NextVec2();
-		bsdfSQ.uComp = sampler.Next();
-		bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
-		bsdfSQ.transportDir = TransportDirection::EL;
-		bsdfSQ.wi = -ray.d;
-
-		GeneralizedBSDFSampleResult bsdfSR;
-		auto fs_Estimated = isect.primitive->bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
-		if (Math::IsZero(fs_Estimated))
-		{
-			break;
-		}
-
-		// Update throughput
-		throughput *= fs_Estimated;
-
-		// Setup next ray
-		ray.d = bsdfSR.wo;
-		ray.o = isect.geom.p;
-		ray.minT = Math::Constants::Eps();
-		ray.maxT = Math::Constants::Inf();
-
-		// --------------------------------------------------------------------------------
-
-		if (++depth >= rrDepth)
-		{
-			// Russian roulette for path termination
-			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-			if (sampler.Next() > p)
-			{
-				break;
-			}
-
-			throughput /= p;
-		}
-	}
-
-	splats.splats.emplace_back(rasterPos, L);
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer, Renderer);

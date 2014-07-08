@@ -104,7 +104,6 @@ public:
 };
 
 class BPTPathVertexPool;
-class BPTConfig;
 class Scene;
 class Sampler;
 
@@ -146,12 +145,12 @@ public:
 	/*!
 		Sample a sub-path.
 		Sample eye sub-path or light sub-path according to #transportDir.
-		\param config BPT configuration.
 		\param scene Scene.
 		\param sampler Sampler.
 		\param pool Memory pool for path vertex.
+		\param rrDepth Depth to begin Russian roulette.
 	*/
-	LM_PUBLIC_API void Sample(const BPTConfig& config, const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool);
+	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth);
 
 	/*!
 		Evaluate alpha of sub-paths.

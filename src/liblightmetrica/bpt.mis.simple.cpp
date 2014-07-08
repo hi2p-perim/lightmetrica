@@ -44,6 +44,7 @@ public:
 public:
 
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) { return true; }
+	virtual BPTMISWeight* Clone() const { return new BPTSimpleMISWeight; }
 	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
 
 };

@@ -238,8 +238,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			lightSubpath.Sample(config, scene, *sampler, *pool);
-			eyeSubpath.Sample(config, scene, *sampler, *pool);
+			lightSubpath.Sample(scene, *sampler, *pool, config.rrDepth);
+			eyeSubpath.Sample(scene, *sampler, *pool, config.rrDepth);
 
 			// Debug print
 #if 0
@@ -355,23 +355,23 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 	const int nL = static_cast<int>(lightSubpath.vertices.size());
 	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 
-	// For each sub-path vertex sums n
+	// For each subpath vertex sums n
 	// If n = 0 or 1 no valid path is generated
 	for (int n = 2; n <= nE + nL; n++)
 	{
-		// Process full-path with length n+1 (sub-path edges + connecting edge)
+		// Process full-path with length n+1 (subpath edges + connecting edge)
 		const int minS = Math::Max(0, n-nE);
 		const int maxS = Math::Min(nL, n);
 
 		for (int s = minS; s <= maxS; s++)
 		{
-			// Number of vertices in eye sub-path
+			// Number of vertices in eye subpath
 			const int t = n - s;
 
-			// Create full-path
+			// Create fullpath
 			BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
 
-			// Evaluate unweight contribution C^*_{s,t}
+			// Evaluate unweighted contribution C^*_{s,t}
 			Math::Vec2 rasterPosition;
 			auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
 			if (Math::IsZero(Cstar))
@@ -382,7 +382,7 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			}
 
 			// Evaluate weighting function w_{s,t}
-			Math::Float w = config.misWeight->Evaluate(fullPath);
+			auto w = config.misWeight->Evaluate(fullPath);
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films

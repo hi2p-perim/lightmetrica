@@ -63,7 +63,7 @@ public:
 	int rrDepth;											//!< Depth of beginning RR
 	int numThreads;											//!< Number of threads
 	long long samplesPerBlock;								//!< Samples to be processed per block
-	std::unique_ptr<ConfigurableSampler> initialSampler;		//!< Sampler
+	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
 	std::unique_ptr<BPTMISWeight> misWeight;				//!< MIS weighting function
 
 #if LM_ENABLE_BPT_EXPERIMENTAL

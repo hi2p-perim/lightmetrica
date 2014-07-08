@@ -25,7 +25,6 @@
 #include "pch.h"
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/bpt.config.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/generalizedbsdf.h>
 #include <lightmetrica/emitter.h>
@@ -153,7 +152,7 @@ BPTPathVertex* BPTSubpath::GetVertex( int i ) const
 	return vertices[i];
 }
 
-void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool )
+void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth )
 {
 	LM_ASSERT(vertices.empty());
 
@@ -276,16 +275,7 @@ void BPTSubpath::Sample( const BPTConfig& config, const Scene& scene, Sampler& s
 		// --------------------------------------------------------------------------------
 
 		// Apply RR
-		int rrDepthT = config.rrDepth;
-#if LM_ENABLE_BPT_EXPERIMENTAL
-		if (config.enableExperimentalMode)
-		{
-			// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
-			rrDepthT = Math::Max(rrDepthT, config.maxSubpathNumVertices);
-		}
-#endif
-
-		if (++depth >= rrDepthT)
+		if (++depth >= rrDepth)
 		{
 			// TODO : Replace with the more efficient one
 			auto p = Math::Float(0.5);

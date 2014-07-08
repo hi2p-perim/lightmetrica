@@ -96,6 +96,9 @@ bool BPTConfig::Load( const ConfigNode& node, const Assets& assets )
 		enableExperimentalMode = true;
 		experimentalNode.ChildValueOrDefault("max_subpath_num_vertices", 3, maxSubpathNumVertices);
 		experimentalNode.ChildValueOrDefault<std::string>("subpath_image_dir", "bpt", subpathImageDir);
+
+		// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
+		rrDepth = Math::Max(rrDepth, maxSubpathNumVertices);
 	}
 	else
 	{

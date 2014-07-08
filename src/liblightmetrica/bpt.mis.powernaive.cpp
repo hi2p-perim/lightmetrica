@@ -45,6 +45,7 @@ public:
 public:
 
 	virtual bool Configure(const ConfigNode& node, const Assets& assets);
+	virtual BPTMISWeight* Clone() const;
 	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
 
 private:
@@ -58,6 +59,13 @@ bool BPTPowerHeuristicsNaiveMISWeight::Configure( const ConfigNode& node, const 
 {
 	node.ChildValueOrDefault("beta_coeff", Math::Float(2), betaCoeff);
 	return true;
+}
+
+BPTMISWeight* BPTPowerHeuristicsNaiveMISWeight::Clone() const
+{
+	auto inst = new BPTPowerHeuristicsNaiveMISWeight;
+	inst->betaCoeff = betaCoeff;
+	return inst;
 }
 
 Math::Float BPTPowerHeuristicsNaiveMISWeight::Evaluate(const BPTFullPath& fullPath) const

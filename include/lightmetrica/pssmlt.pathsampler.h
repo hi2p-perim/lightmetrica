@@ -23,67 +23,64 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_BPT_MIS_H
-#define LIB_LIGHTMETRICA_BPT_MIS_H
+#ifndef LIB_LIGHTMETRICA_PSSMLT_PATH_SAMPLER_H
+#define LIB_LIGHTMETRICA_PSSMLT_PATH_SAMPLER_H
 
-#include "bpt.common.h"
 #include "component.h"
-#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-class BPTFullPath;
 class ConfigNode;
 class Assets;
+class Scene;
+class Sampler;
+struct PSSMLTSplats;
 
 /*!
-	MIS weighting function for Veach's BPT.
-	Veach's BPT requires to compute weighting function for full-path.
-	Various techniques can be considered so we separated the implmenetations
-	as component classes.
+	Path sampler.
+	An interface for light path samplers for PSSMLT.
 */
-class BPTMISWeight : public Component
+class PSSMLTPathSampler : public Component
 {
 public:
 
-	LM_COMPONENT_INTERFACE_DEF("bpt.mis");
+	LM_COMPONENT_INTERFACE_DEF("pssmltpathsampler");
 
 public:
 
-	BPTMISWeight() {}
-	virtual ~BPTMISWeight() {}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(BPTMISWeight);
+	PSSMLTPathSampler() {}
+	virtual ~PSSMLTPathSampler() {}
 
 public:
 
 	/*!
-		Configure.
-		Configures MIS weighting function.
-		\param node A XML element which consists of \a mis_weight element.
+		Configure the sampler from XML element.
+		\param node A XML element which consists of \a path_sampler element.
 		\param assets Assets manager.
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
-	
-	/*!
-		Clone the instance.
-		\return Duplicated instance.
-	*/
-	virtual BPTMISWeight* Clone() const = 0;
 
 	/*!
-		Evaluate MIS weight w_{s,t}.
-		\param fullPath Full-path.
-		\return MIS weight.
+		Clone the sampler.
+		\return Duplicated instance.
 	*/
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const = 0;
+	virtual PSSMLTPathSampler* Clone() = 0;
+
+	/*!
+		Sample and evaluate light paths.
+		Light path sampling strategy such as BPT might generate
+		multiple light paths which contribute different raster position.
+		We represent these different contributions by #PSSMLTSplats structure.
+		\param scene Scene.
+		\param sampler Abstract sampler.
+		\param splats Evaluated pixel contributions and their raster positions.
+	*/
+	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats) = 0;
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_BPT_MIS_H
+#endif // LIB_LIGHTMETRICA_PSSMLT_PATH_SAMPLER_H
