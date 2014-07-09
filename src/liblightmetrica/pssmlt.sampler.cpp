@@ -135,11 +135,8 @@ public:
 		return enableLargeStep;
 	}
 
-	virtual void BeginRestore( RewindableSampler& rewindableSampler, int index )
+	virtual void BeginRestore( RewindableSampler& rewindableSampler )
 	{
-		// Rewind to #index
-		rewindableSampler.Rewind(index);
-
 		// Replace current RNG and get ready
 		// to restore sampled state as primary samples
 		rng = rewindableSampler.Rng();

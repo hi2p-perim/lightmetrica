@@ -79,6 +79,18 @@ public:
 	*/
 	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats) = 0;
 
+	/*!
+		Sample and evaluate light paths (separated PSS version for BPT).
+		Primary sample spaces is separated into two parts:
+		for sampling light subpath and eye subpath,
+		which increase coherency between mutations.
+		\param scene Scene.
+		\param lightSubpathSampler Abstract sampler for light subpath.
+		\param eyeSubpathSampler Abstract sampler for eye subpath.
+		\param splats Evaluated pixel contributions and their raster positions.
+	*/
+	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats) = 0;
+
 };
 
 LM_NAMESPACE_END

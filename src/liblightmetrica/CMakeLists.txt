@@ -292,10 +292,11 @@ set(
 set(
 	_RENDERER_PSSMLT_SOURCES
 	"pssmlt.cpp"
+	"pssmlt.bptopt.cpp"
 	"pssmlt.splat.cpp"
 	"pssmlt.sampler.cpp"
-	"pssmlt.pt.cpp"
-	"pssmlt.bpt.cpp"
+	"pssmlt.pathsampler.pt.cpp"
+	"pssmlt.pathsampler.bpt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\pssmlt" FILES ${_RENDERER_PSSMLT_SOURCES})

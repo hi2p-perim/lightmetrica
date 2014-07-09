@@ -101,10 +101,9 @@ public:
 		Path sampling process dispatched between #BeginRestore and #EndRestore is
 		recorded in a form of primary samples.
 		\param rewindableSampler Rewindable sampler.
-		\param index Sample index.
 		\sa EndRestore
 	*/
-	virtual void BeginRestore(RewindableSampler& rewindableSampler, int index) = 0;
+	virtual void BeginRestore(RewindableSampler& rewindableSampler) = 0;
 	
 	/*!
 		End to restore samples.

@@ -62,6 +62,7 @@ public:
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats );
 
 private:
 
@@ -126,6 +127,11 @@ PSSMLTPathSampler* PSSMLTBPTPathSampler::Clone()
 
 void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats )
 {
+	SampleAndEvaluateBidir(scene, sampler, sampler, splats);
+}
+
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats )
+{
 	// Clear result
 	splats.splats.clear();
 
@@ -135,8 +141,8 @@ void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampl
 	eyeSubpath.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(scene, sampler, *pool, rrDepth);
-	eyeSubpath.Sample(scene, sampler, *pool, rrDepth);
+	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth);
+	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth);
 
 	// Evaluate combination of sub-paths
 	const int nL = static_cast<int>(lightSubpath.vertices.size());

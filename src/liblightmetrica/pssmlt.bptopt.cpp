@@ -54,51 +54,35 @@ LM_NAMESPACE_BEGIN
 	Per-thread data.
 	Contains data associated with a thread.
 */
-struct PSSMLTThreadContext : public SIMDAlignedType
+struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
 {
 	
-	std::unique_ptr<Sampler> randomSampler;				//!< Ordinary random sampler
-	std::unique_ptr<PSSMLTPathSampler> pathSampler;		//!< Path sampler
-	std::unique_ptr<Film> film;							//!< Film
-	std::unique_ptr<PSSMLTPrimarySampler> sampler;		//!< Kelemen's lazy sampler
-	PSSMLTSplats records[2];							//!< Path sample records (current or proposed)
-	int current;										//!< Index of current record
+	std::unique_ptr<Sampler> randomSampler;							//!< Ordinary random sampler
+	std::unique_ptr<PSSMLTPathSampler> pathSampler;					//!< Path sampler
+	std::unique_ptr<Film> film;										//!< Film
+	std::unique_ptr<PSSMLTPrimarySampler> lightSubpathSampler;		//!< Kelemen's lazy sampler (for light subpath)
+	std::unique_ptr<PSSMLTPrimarySampler> eyeSubpathSampler;		//!< Kelemen's lazy sampler (for eye subpath)
+	PSSMLTSplats records[2];										//!< Path sample records (current or proposed)
+	int current;													//!< Index of current record
 
-#if 0
-	// Experimental variables
-	Math::Float kernelSizeScale;
-	long long mutated;
-	long long accepted;
-	//long long kernelUpdateCount;
-	//Math::Float expectedAcceptanceRatio;
-#endif
-
-	PSSMLTThreadContext(Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film)
+	BPTOptimizedPSSMLTThreadContext(Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film)
 		: randomSampler(randomSampler)
 		, pathSampler(pathSampler)
 		, film(film)
-		, sampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
+		, lightSubpathSampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
+		, eyeSubpathSampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
 		, current(0)
-#if 0
-		, kernelSizeScale(1)
-		, mutated(0)
-		, accepted(0)
-#endif
 	{
 
 	}
 
-	PSSMLTThreadContext(PSSMLTThreadContext&& context)
+	BPTOptimizedPSSMLTThreadContext(BPTOptimizedPSSMLTThreadContext&& context)
 		: randomSampler(std::move(context.randomSampler))
 		, pathSampler(std::move(context.pathSampler))
 		, film(std::move(context.film))
-		, sampler(std::move(context.sampler))
+		, lightSubpathSampler(std::move(context.lightSubpathSampler))
+		, eyeSubpathSampler(std::move(context.eyeSubpathSampler))
 		, current(0)
-#if 0
-		, kernelSizeScale(1)
-		, mutated(0)
-		, accepted(0)
-#endif
 	{
 
 	}
@@ -108,28 +92,18 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 
 };
 
-// --------------------------------------------------------------------------------
-
-enum class PSSMLTEstimatorMode
-{
-	Normal,
-	MeanValueSubstitution,
-	MeanValueSubstitution_LargeStepMIS
-};
-
 /*!
-	Primary sample space Metropolis light transport renderer.
-	An implementation of primary sample space Metropolis light transport (PSSMLT) algorithm.
-	Reference:
-		Kelemen, C., Szirmay-Kalos, L., Antal, G., and Csonka, F.,
-		A simple and robust mutation strategy for the metropolis light transport algorithm,
-		In Computer Graphics Forum. pp. 531–540, 2002.
+	PSSMLT optimized for BPT.
+	An implementation of PSSMLT optimized for BPT path sampler
+	by separating primary sample space into two parts;
+	one for sampling light subpaths and the other for eye subpath.
+	Note: some experimental features and estimator modes are omitted.
 */
-class PSSMLTRenderer : public Renderer
+class BPTOptimizedPSSMLTRenderer : public Renderer
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pssmlt");
+	LM_COMPONENT_IMPL_DEF("pssmlt.bptopt");
 
 public:
 
@@ -141,7 +115,7 @@ public:
 
 private:
 
-	void ProcessRenderSingleSample(const Scene& scene, PSSMLTThreadContext& context) const;
+	void ProcessRenderSingleSample(const Scene& scene, BPTOptimizedPSSMLTThreadContext& context) const;
 
 private:
 
@@ -153,21 +127,10 @@ private:
 	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
 	std::unique_ptr<PSSMLTPathSampler> pathSampler;			//!< Path sampler
 
-	PSSMLTEstimatorMode estimatorMode;						//!< Estimator mode
 	long long numSeedSamples;								//!< Number of seed samples
 	Math::Float largeStepProb;								//!< Large step mutation probability
 	Math::Float kernelSizeS1;								//!< Minimum kernel size
 	Math::Float kernelSizeS2;								//!< Maximum kernel size
-
-#if 0
-	bool adaptiveKernel;
-	//long long kernelUpdateCount;
-	//Math::Float kernelScaleDelta;
-#endif
-
-#if LM_EXPERIMENTAL_MODE
-	DefaultExperiments expts;								//!< Experiments manager
-#endif
 
 private:
 
@@ -177,7 +140,7 @@ private:
 
 };
 
-bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool BPTOptimizedPSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
@@ -218,41 +181,16 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 		LM_LOG_ERROR("Missing 'path_sampler' element");
 		return false;
 	}
-	else
+	auto pathSamplerType = pathSamplerNode.AttributeValue("type");
+	if (pathSamplerType != "bpt")
 	{
-		pathSampler.reset(ComponentFactory::Create<PSSMLTPathSampler>(pathSamplerNode.AttributeValue("type")));
-		if (!pathSampler->Configure(pathSamplerNode, assets))
-		{
-			return false;
-		}
+		LM_LOG_ERROR("Path sampler type must be 'bpt'");
+		return false;
 	}
-
-	// Estimator mode
-	auto estimatorModeNode = node.Child("estimator_mode");
-	if (estimatorModeNode.Empty())
+	pathSampler.reset(ComponentFactory::Create<PSSMLTPathSampler>(pathSamplerType));
+	if (!pathSampler->Configure(pathSamplerNode, assets))
 	{
-		estimatorMode = PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS;
-		LM_LOG_WARN("Missing 'estimator_mode' element. Using default value.");
-	}
-	else
-	{
-		if (estimatorModeNode.Value() == "normal")
-		{
-			estimatorMode = PSSMLTEstimatorMode::Normal;
-		}
-		else if (estimatorModeNode.Value() == "mvs")
-		{
-			estimatorMode = PSSMLTEstimatorMode::MeanValueSubstitution;
-		}
-		else if (estimatorModeNode.Value() == "mvs_mis")
-		{
-			estimatorMode = PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS;
-		}
-		else
-		{
-			LM_LOG_ERROR("Invalid estimator mode '" + estimatorModeNode.Value() + "'");
-			return false;
-		}
+		return false;
 	}
 
 	node.ChildValueOrDefault("num_seed_samples", 1LL, numSeedSamples);
@@ -260,43 +198,10 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
 
-#if 0
-	// Experimental params
-	auto experimentalNode = node.Child("experimental");
-	if (!experimentalNode.Empty())
-	{
-		experimentalNode.ChildValueOrDefault("adaptive_kernel", false, adaptiveKernel);
-		//experimentalNode.ChildValueOrDefault("kernel_scale_delta", Math::Float(0.01), kernelScaleDelta);
-		//experimentalNode.ChildValueOrDefault("kernel_update_count", 1000LL, kernelUpdateCount);
-	}
-#endif
-
-#if LM_EXPERIMENTAL_MODE
-	// Experiments
-	auto experimentsNode = node.Child("experiments");
-	if (!experimentsNode.Empty())
-	{
-		LM_LOG_INFO("Configuring experiments");
-		LM_LOG_INDENTER();
-
-		if (!expts.Configure(experimentsNode, assets))
-		{
-			LM_LOG_ERROR("Failed to configure experiments");
-			return false;
-		}
-
-		if (numThreads != 1)
-		{
-			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
-		}
-	}
-#endif
-
 	return true;
 }
 
-bool PSSMLTRenderer::Preprocess( const Scene& scene )
+bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
 {
 	signal_ReportProgress(0, false);
 
@@ -310,7 +215,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 	PSSMLTSplats splats;
 	Math::Float sumI(0);
 	std::vector<PSSMLTPathSeed> candidates;
-	
+
 	for (long long sample = 0; sample < numSeedSamples; sample++)
 	{
 		// Current sample index
@@ -318,7 +223,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 
 		// Sample light paths
 		// We note that path sampler might generate multiple light paths
-		pathSampler->SampleAndEvaluate(scene, *rewindableSampler, splats);
+		pathSampler->SampleAndEvaluateBidir(scene, *rewindableSampler, *rewindableSampler, splats);
 
 		// Calculate sum of luminance
 		auto I = splats.SumI();
@@ -368,32 +273,33 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 	return true;
 }
 
-bool PSSMLTRenderer::Render( const Scene& scene )
+bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
 {
-	LM_EXPT_NOTIFY(expts, "RenderStarted");
-
-	// --------------------------------------------------------------------------------
-
 	// # Initialize thread context
 
 	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::vector<std::unique_ptr<PSSMLTThreadContext>> contexts;
+	std::vector<std::unique_ptr<BPTOptimizedPSSMLTThreadContext>> contexts;
 	for (int i = 0; i < numThreads; i++)
 	{
 		// Add an entry
-		contexts.emplace_back(new PSSMLTThreadContext(initialSampler->Clone(), pathSampler->Clone(), masterFilm->Clone()));
-		
+		contexts.emplace_back(new BPTOptimizedPSSMLTThreadContext(initialSampler->Clone(), pathSampler->Clone(), masterFilm->Clone()));
+
 		// Configure and set seeds
 		auto& context = contexts.back();
-		context->sampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
-		context->sampler->SetSeed(initialSampler->NextUInt());
+		context->lightSubpathSampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
+		context->lightSubpathSampler->SetSeed(initialSampler->NextUInt());
+		context->eyeSubpathSampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
+		context->eyeSubpathSampler->SetSeed(initialSampler->NextUInt());
 		context->randomSampler->SetSeed(initialSampler->NextUInt());
 
 		// Restore state of the seed path
 		rewindableSampler->Rewind(seeds[i].index);
-		context->sampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurentRecord());
-		context->sampler->EndRestore();
+		context->lightSubpathSampler->BeginRestore(*rewindableSampler);
+		context->eyeSubpathSampler->BeginRestore(*rewindableSampler);
+		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->CurentRecord());
+		context->eyeSubpathSampler->EndRestore();
+		context->lightSubpathSampler->EndRestore();
+
 		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
 
@@ -416,28 +322,14 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 		long long sampleBegin = samplesPerBlock * block;
 		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
-		LM_EXPT_UPDATE_PARAM(expts, "film", context->film.get());
-		LM_EXPT_UPDATE_PARAM(expts, "pssmlt_primary_sample", context->sampler.get());
-
 		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 		{
 			ProcessRenderSingleSample(scene, *context);
-
-			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-#if 0
-			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_path_length", &current.depth);
-			LM_EXPT_UPDATE_PARAM(expts, "pssmlt_acceptance_ratio", &a);
-#endif
-			LM_EXPT_NOTIFY(expts, "SampleFinished");
 		}
 
 		processedBlocks++;
 		auto progress = static_cast<double>(processedBlocks) / blocks;
 		signal_ReportProgress(progress, processedBlocks == blocks);
-
-		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
 	}
 
 	// --------------------------------------------------------------------------------
@@ -451,22 +343,21 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 	// Rescale master film
 	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
-	LM_EXPT_NOTIFY(expts, "RenderFinished");
-
 	return true;
 }
 
-void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThreadContext& context ) const
+void BPTOptimizedPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, BPTOptimizedPSSMLTThreadContext& context ) const
 {
 	auto& current  = context.CurentRecord();
 	auto& proposed = context.ProposedRecord();
 
 	// Enable large step mutation
 	bool enableLargeStep = context.randomSampler->Next() < largeStepProb;
-	context.sampler->EnableLargeStepMutation(enableLargeStep);
+	context.lightSubpathSampler->EnableLargeStepMutation(enableLargeStep);
+	context.eyeSubpathSampler->EnableLargeStepMutation(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	context.pathSampler->SampleAndEvaluate(scene, *context.sampler, proposed);
+	context.pathSampler->SampleAndEvaluateBidir(scene, *context.lightSubpathSampler, *context.eyeSubpathSampler, proposed);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();
@@ -476,45 +367,28 @@ void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThread
 	// Determine accept or reject
 	if (context.randomSampler->Next() < a)
 	{
-		context.sampler->Accept();
+		context.lightSubpathSampler->Accept();
+		context.eyeSubpathSampler->Accept();
 		context.current = 1 - context.current;
 	}
 	else
 	{
-		context.sampler->Reject();
+		context.lightSubpathSampler->Reject();
+		context.eyeSubpathSampler->Reject();
 	}
 
 	// Accumulate contribution
-	switch (estimatorMode)
+	if (proposedI > Math::Float(0))
 	{
-		case PSSMLTEstimatorMode::MeanValueSubstitution:
-		{
-			if (proposedI > Math::Float(0))
-			{
-				current.AccumulateContributionToFilm(*context.film, (1 - a) * normFactor / currentI);
-				proposed.AccumulateContributionToFilm(*context.film, a * normFactor / proposedI);
-			}
-			else
-			{
-				current.AccumulateContributionToFilm(*context.film, normFactor / currentI);
-			}
-			break;
-		}
-		case PSSMLTEstimatorMode::MeanValueSubstitution_LargeStepMIS:
-		{
-			current.AccumulateContributionToFilm(*context.film, (1 - a) / (currentI / normFactor + largeStepProb));
-			proposed.AccumulateContributionToFilm(*context.film, (a + (enableLargeStep ? Math::Float(1) : Math::Float(0))) / (proposedI / normFactor + largeStepProb));
-			break;
-		}
-		case PSSMLTEstimatorMode::Normal:
-		{
-			auto& current = context.CurentRecord();
-			current.AccumulateContributionToFilm(*context.film, normFactor / current.SumI());
-			break;
-		}
+		current.AccumulateContributionToFilm(*context.film, (1 - a) * normFactor / currentI);
+		proposed.AccumulateContributionToFilm(*context.film, a * normFactor / proposedI);
+	}
+	else
+	{
+		current.AccumulateContributionToFilm(*context.film, normFactor / currentI);
 	}
 }
 
-LM_COMPONENT_REGISTER_IMPL(PSSMLTRenderer, Renderer);
+LM_COMPONENT_REGISTER_IMPL(BPTOptimizedPSSMLTRenderer, Renderer);
 
 LM_NAMESPACE_END

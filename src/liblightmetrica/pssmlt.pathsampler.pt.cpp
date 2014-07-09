@@ -36,6 +36,7 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/assets.h>
+#include <lightmetrica/logger.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -54,6 +55,7 @@ public:
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats );
 
 private:
 
@@ -170,6 +172,11 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 	}
 
 	splats.splats.emplace_back(rasterPos, L);
+}
+
+void PSSMLTPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats )
+{
+	LM_LOG_ERROR("Invalid operation for PSSMLTPTPathSampler");
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTPTPathSampler, PSSMLTPathSampler);
