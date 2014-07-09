@@ -27,6 +27,10 @@ include (PCHTargets)
 set(
 	_SOURCE_FILES
 	"test.cpp"
+
+	# Common files
+	"${PROJECT_SOURCE_DIR}/include/lightmetrica/plugin.common.h"
+	"${PROJECT_SOURCE_DIR}/src/liblightmetrica/plugin.common.cpp"
 )
 
 # Create project

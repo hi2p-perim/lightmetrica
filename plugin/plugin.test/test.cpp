@@ -22,16 +22,9 @@
 	THE SOFTWARE.
 */
 
+#include <lightmetrica/plugin.common.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/math.stats.h>
-
-#define LM_COMPONENT_EXPORT_PLUGIN_IMPL(ImplType, InterfaceType) \
-	extern "C" \
-	{ \
-		LM_PLUGIN_API const char* LM_ImplTypeName_##ImplType##_##InterfaceType()		{ return ImplType::ImplTypeName(); } \
-		LM_PLUGIN_API const char* LM_InterfaceTypeName_##ImplType##_##InterfaceType()	{ return InterfaceType::InterfaceTypeName(); } \
-		LM_PLUGIN_API Component* LM_CreateInstance_##ImplType##_##InterfaceType()		{ return new ImplType; } \
-	}
 
 LM_NAMESPACE_BEGIN
 
@@ -49,6 +42,7 @@ public:
 
 	virtual bool Load( const ConfigNode& node, const Assets& assets ) 
 	{
+		R = Math::Vec3(Math::Float(1), Math::Float(0), Math::Float(0));
 		return true;
 	}
 
@@ -89,7 +83,7 @@ public:
 			return Math::Vec3();
 		}
 
-		return Math::Vec3(Math::Float(0), Math::Float(0), sf);
+		return sf * TexFunc(geom.uv);
 	}
 
 	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
@@ -118,8 +112,8 @@ public:
 			return false;
 		}
 
-		result.weight[query.transportDir] = Math::Vec3(Math::Float(0), Math::Float(0), sf);
-		result.weight[1-query.transportDir] = Math::Vec3(Math::Float(0), Math::Float(0), sfInv);
+		result.weight[query.transportDir] = sf * TexFunc(geom.uv);
+		result.weight[1-query.transportDir] = sfInv * TexFunc(geom.uv);
 
 		return true;
 	}
@@ -139,7 +133,7 @@ public:
 			return Math::Vec3();
 		}
 
-		return Math::Vec3(Math::Float(0), Math::Float(0), Math::Constants::InvPi() * sf);
+		return Math::Constants::InvPi() * sf * TexFunc(geom.uv);
 	}
 
 	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
@@ -164,8 +158,27 @@ public:
 		return GeneralizedBSDFType::DiffuseReflection;
 	}
 
+private:
+
+	Math::Vec3 TexFunc(const Math::Vec2& uv) const
+	{
+		const Math::Float Scale(10);
+		auto u = uv.x * Scale;
+		auto v = uv.y * Scale;
+		if ((static_cast<int>(u) + static_cast<int>(v)) % 2 == 0)
+		{
+			return R;
+		}
+		
+		return Math::Vec3(Math::Float(1));
+	}
+
+private:
+
+	Math::Vec3 R;
+
 };
 
-LM_COMPONENT_EXPORT_PLUGIN_IMPL(TestBSDF, BSDF);
+LM_COMPONENT_REGISTER_PLUGIN_IMPL(TestBSDF, BSDF);
 
 LM_NAMESPACE_END

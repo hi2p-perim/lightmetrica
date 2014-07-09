@@ -85,7 +85,7 @@ public:
 		const boost::regex pluginNameExp("^plugin\\.([a-z]+)\\.so$");
 #endif
 
-		// Enumerate plugins in #pluginDir
+		// Enumerate dynamic libraries in #pluginDir
 		fs::directory_iterator endIter;
 		for (fs::directory_iterator it(pluginDir); it != endIter; ++it)
 		{
@@ -106,7 +106,19 @@ public:
 						continue;
 					}
 
+					// Load symbol 'LM_Plugin_CreateInstance'
+					void* factoryFuncSym = library->GetSymbolAddress("LM_Plugin_CreateInstance");
+					if (factoryFuncSym == nullptr)
+					{
+						LM_LOG_ERROR("Failed to find symbol 'LM_Plugin_CreateInstance', skipping.");
+						continue;
+					}
+
 					libraries.push_back(std::move(library));
+
+					typedef Component* (*PluginCreateInstanceFunction)(const char*, const char*);
+					pluginCreateInstanceFuncs.emplace_back(static_cast<PluginCreateInstanceFunction>(factoryFuncSym));
+
 					LM_LOG_INFO("Successfully loaded");
 				}
 			}
@@ -134,10 +146,23 @@ private:
 
 	Component* CreateInstanceFromPlugin(const std::string& interfaceType, const std::string& implType)
 	{
+#if 1
+		// TODO : Try other ways if it decreases in performance
+		for (auto& createFunc : pluginCreateInstanceFuncs)
+		{
+			auto instance = createFunc(implType.c_str(), interfaceType.c_str());
+			if (instance != nullptr)
+			{
+				return instance;
+			}
+		}
+
+		return nullptr;
+#else
 		// Check if required symbol is already loaded
 		bool requireLoad = false;
 		ComponentFactory::CreateComponentFunc createFunc;
-
+		
 		auto createFuncImplMapIter = pluginCreateFuncMap.find(interfaceType);
 		if (createFuncImplMapIter == pluginCreateFuncMap.end())
 		{
@@ -188,6 +213,7 @@ private:
 		}
 
 		return createFunc();
+#endif
 	}
 
 private:
@@ -195,9 +221,12 @@ private:
 	typedef std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> CreateComponentFuncImplMap;
 	typedef std::unordered_map<std::string, CreateComponentFuncImplMap> CreateComponentFuncInterfaceMap;
 	
-	CreateComponentFuncInterfaceMap createFuncMap;				// For internal classes
-	CreateComponentFuncInterfaceMap pluginCreateFuncMap;		// For plugins
-	std::vector<std::unique_ptr<DynamicLibrary>> libraries;		// Loaded dynamic libraries
+	CreateComponentFuncInterfaceMap createFuncMap;									// For internal classes
+	//CreateComponentFuncInterfaceMap pluginCreateFuncMap;							// For plugins
+	std::vector<std::unique_ptr<DynamicLibrary>> libraries;							// Loaded dynamic libraries
+	
+	typedef std::function<Component* (const char*, const char*)> PluginCreateComponentFunc;
+	std::vector<PluginCreateComponentFunc> pluginCreateInstanceFuncs;
 
 };
 
