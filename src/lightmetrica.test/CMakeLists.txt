@@ -67,6 +67,9 @@ pch_add_executable(lightmetrica.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
 target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES} ${FREEIMAGE_LIBRARIES})
 add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)
 
+# Solution directory
+set_target_properties(lightmetrica.test PROPERTIES FOLDER "test")
+
 # Add a target for coverage calculation
 #if(CMAKE_COMPILER_IS_GNUCXX)
 #	if(CMAKE_BUILD_TYPE STREQUAL Debug)

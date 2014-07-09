@@ -84,15 +84,7 @@ bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, cons
 	auto localWo = Math::CosineSampleHemisphere(query.sample);
 	result.wo = geom.shadingToWorld * localWo;
 	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-	result.pdf = Math::CosineSampleHemispherePDF(localWo);
-	if (Math::IsZero(result.pdf.v))
-	{
-		return false;
-	}
-
-	// Convert to projected solid angle measure
-	result.pdf.v /= Math::CosThetaZUp(localWo);
-	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+	result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
 
 	return true;
 }
@@ -108,14 +100,7 @@ Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQ
 	auto localWo = Math::CosineSampleHemisphere(query.sample);
 	result.wo = geom.shadingToWorld * localWo;
 	result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-	result.pdf = Math::CosineSampleHemispherePDF(localWo);
-	if (Math::IsZero(result.pdf.v))
-	{
-		return Math::Vec3();
-	}
-
-	result.pdf.v /= Math::CosThetaZUp(localWo);
-	result.pdf.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
+	result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
 
 	Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
 	if (Math::IsZero(sf))
@@ -189,11 +174,7 @@ Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQu
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
 
-	auto pdfD = Math::CosineSampleHemispherePDF(localWo);
-	pdfD.v /= Math::CosThetaZUp(localWo);
-	pdfD.measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
-
-	return pdfD;
+	return Math::CosineSampleHemispherePDFProjSA(localWo);
 }
 
 LM_COMPONENT_REGISTER_IMPL(DiffuseBSDF, BSDF);

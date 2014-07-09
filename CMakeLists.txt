@@ -290,6 +290,9 @@ endif()
 # Include directory for libraries
 include_directories("include")
 
+# Specify to use solution directories
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Add projects
 add_subdirectory("src/liblightmetrica")
 add_subdirectory("src/liblightmetrica.test")
@@ -299,3 +302,6 @@ add_subdirectory("src/lightmetrica")
 if (GLEW_FOUND AND GLFW_FOUND)
 	add_subdirectory("src/lightmetrica.gui")
 endif()
+
+# Plugins
+add_subdirectory("plugin/plugin.test")

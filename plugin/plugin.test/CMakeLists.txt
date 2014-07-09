@@ -26,14 +26,37 @@ include (PCHTargets)
 
 set(
 	_SOURCE_FILES
-	"main.cpp"
-	"base.perf.h"
-	"perf.scene.intersection.cpp"
+	"test.cpp"
 )
 
-pch_add_executable(lightmetrica.perf PCH_HEADER "pch.h" ${_SOURCE_FILES})
-target_link_libraries(lightmetrica.perf liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES})
-add_dependencies(lightmetrica.perf liblightmetrica liblightmetrica.test)
+# Create project
+#pch_add_library(plugin.test SHARED PCH_HEADER "pch.h" ${_SOURCE_FILES})
+add_library(plugin.test SHARED ${_SOURCE_FILES})
+target_link_libraries(plugin.test liblightmetrica ${COMMON_LIBRARY_FILES})
+add_dependencies(plugin.test liblightmetrica)
+
+# Output directory
+#set_target_properties(plugin.test PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/plugin")
+#set_target_properties(plugin.test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugin")
 
 # Solution directory
-set_target_properties(lightmetrica.perf PROPERTIES FOLDER "test")
+set_target_properties(plugin.test PROPERTIES FOLDER "plugin")
+
+# Remove automatic lib- prefix
+set_target_properties(plugin.test PROPERTIES PREFIX "")
+
+# Copy dynamic libaries as post-build events
+if(WIN32)
+	# Add an custom command to copy an DLL to the same directory as executables
+	function(add_custom_command_copy_dll BINARY_FILE_NAME)
+		add_custom_command(
+			TARGET plugin.test
+			POST_BUILD
+				# Execute "cmake -E copy_if_different ..."
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					${BINARY_FILE_NAME}
+					# Same directory as the target executable
+					# For details, see 'generator expressions' in the documentation
+					$<TARGET_FILE_DIR:plugin.test>)
+	endfunction()
+endif()

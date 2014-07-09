@@ -30,3 +30,6 @@ set(
 add_executable(lightmetrica ${_SOURCE_FILES})
 target_link_libraries(lightmetrica liblightmetrica ${COMMON_LIBRARY_FILES})
 add_dependencies(lightmetrica liblightmetrica)
+
+# Solution directory
+set_target_properties(lightmetrica PROPERTIES FOLDER "application")

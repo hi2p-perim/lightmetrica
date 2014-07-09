@@ -50,6 +50,7 @@ set(
 	"${_INCLUDE_DIR}/aabb.h"
 	"${_INCLUDE_DIR}/aabb.inl"
 	"${_INCLUDE_DIR}/fp.h"
+	"${_INCLUDE_DIR}/dynamiclibrary.h"
 )
 set(
 	_SOURCE_FILES
@@ -63,6 +64,7 @@ set(
 	"pathutils.cpp"
 	"component.cpp"
 	"fp.cpp"
+	"dynamiclibrary.cpp"
 	
 	# pugixml sources and headers
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"
@@ -504,6 +506,9 @@ set_target_properties(liblightmetrica PROPERTIES COMPILE_DEFINITIONS "LM_EXPORTS
 
 # Remove automatic lib- prefix
 set_target_properties(liblightmetrica PROPERTIES PREFIX "")
+
+# Solution directory
+set_target_properties(liblightmetrica PROPERTIES FOLDER "core")
 
 ################################################################################
 

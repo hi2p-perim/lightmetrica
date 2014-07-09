@@ -25,3 +25,6 @@
 add_executable(lightmetrica.gui main.cpp)
 target_link_libraries(lightmetrica.gui liblightmetrica ${COMMON_LIBRARY_FILES} ${GLEW_LIBRARIES} ${GLFW_LIBRARIES})
 add_dependencies(lightmetrica.gui liblightmetrica)
+
+# Solution directory
+set_target_properties(lightmetrica.gui PROPERTIES FOLDER "application")

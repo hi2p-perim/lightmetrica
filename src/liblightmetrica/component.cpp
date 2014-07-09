@@ -24,6 +24,8 @@
 
 #include "pch.h"
 #include <lightmetrica/component.h>
+#include <lightmetrica/dynamiclibrary.h>
+#include <boost/regex.hpp>
 
 LM_NAMESPACE_BEGIN
 
@@ -68,6 +70,53 @@ public:
 
 	Component* Create(const std::string& interfaceType, const std::string& implType)
 	{
+		auto* instance = CreateInstanceFromInternal(interfaceType, implType);
+		return instance ? instance : CreateInstanceFromPlugin(interfaceType, implType);
+	}
+
+	void LoadPlugins(const std::string& pluginDir)
+	{
+		namespace fs = boost::filesystem;
+
+		// File format : 'plugin.(name).{dll,so}'
+#if LM_PLATFORM_WINDOWS
+		const boost::regex pluginNameExp("^plugin\\.([a-z]+)\\.dll$");
+#elif LM_PLATFORM_LINUX
+		const boost::regex pluginNameExp("^plugin\\.([a-z]+)\\.so$");
+#endif
+
+		// Enumerate plugins in #pluginDir
+		fs::directory_iterator endIter;
+		for (fs::directory_iterator it(pluginDir); it != endIter; ++it)
+		{
+			if (fs::is_regular_file(it->status()))
+			{
+				boost::cmatch match;
+				auto filename = it->path().filename().string();
+				if (boost::regex_match(filename.c_str(), match, pluginNameExp))
+				{
+					LM_LOG_INFO("Loading '" + filename + "'");
+					LM_LOG_INDENTER();
+
+					// Load plugin
+					std::unique_ptr<DynamicLibrary> library(new DynamicLibrary);
+					if (!library->Load(it->path().string()))
+					{
+						LM_LOG_WARN("Failed to load library, skipping.");
+						continue;
+					}
+
+					libraries.push_back(std::move(library));
+					LM_LOG_INFO("Successfully loaded");
+				}
+			}
+		}
+	}
+
+private:
+
+	Component* CreateInstanceFromInternal(const std::string& interfaceType, const std::string& implType)
+	{
 		auto createFuncImplMap = createFuncMap.find(interfaceType);
 		if (createFuncImplMap == createFuncMap.end())
 		{
@@ -83,12 +132,72 @@ public:
 		return createFunc->second();
 	}
 
+	Component* CreateInstanceFromPlugin(const std::string& interfaceType, const std::string& implType)
+	{
+		// Check if required symbol is already loaded
+		bool requireLoad = false;
+		ComponentFactory::CreateComponentFunc createFunc;
+
+		auto createFuncImplMapIter = pluginCreateFuncMap.find(interfaceType);
+		if (createFuncImplMapIter == pluginCreateFuncMap.end())
+		{
+			requireLoad = true;
+		}
+
+		if (!requireLoad)
+		{
+			auto createFuncIter = createFuncImplMapIter->second.find(implType);
+			if (createFuncIter == createFuncImplMapIter->second.end())
+			{
+				requireLoad = true;
+			}
+			else
+			{
+				createFunc = createFuncIter->second;
+			}
+		}
+
+		// Load symbol if required
+		if (requireLoad)
+		{
+			// Retrieve factory function
+			// Format : 'LM_CreateInstance_(implementation)_(interface)'
+			bool found = false;
+			auto factoryFuncSymName = "LM_CreateInstance_" + implType + "_" + interfaceType;
+			for (auto& library : libraries)
+			{
+				void* factoryFuncSym = library->GetSymbolAddress(factoryFuncSymName);
+				if (factoryFuncSym == nullptr)
+				{
+					continue;
+				}
+
+				found = true;
+				typedef Component* (*CreateInstanceFunction)();
+				createFunc = static_cast<CreateInstanceFunction>(factoryFuncSym);
+				createFuncMap[interfaceType][implType] = createFunc;
+
+				break;
+			}
+
+			if (!found)
+			{
+				LM_LOG_ERROR("Failed to find symbol '" + factoryFuncSymName + "'");
+				return nullptr;
+			}
+		}
+
+		return createFunc();
+	}
+
 private:
 
 	typedef std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> CreateComponentFuncImplMap;
 	typedef std::unordered_map<std::string, CreateComponentFuncImplMap> CreateComponentFuncInterfaceMap;
-
-	CreateComponentFuncInterfaceMap createFuncMap;
+	
+	CreateComponentFuncInterfaceMap createFuncMap;				// For internal classes
+	CreateComponentFuncInterfaceMap pluginCreateFuncMap;		// For plugins
+	std::vector<std::unique_ptr<DynamicLibrary>> libraries;		// Loaded dynamic libraries
 
 };
 
@@ -110,6 +219,11 @@ bool ComponentFactory::Register( const std::string& interfaceType, const std::st
 Component* ComponentFactory::Create( const std::string& interfaceType, const std::string& implType )
 {
 	return ComponentFactoryImpl::Instance().Create(interfaceType, implType);
+}
+
+void ComponentFactory::LoadPlugins( const std::string& pluginDir )
+{
+	return ComponentFactoryImpl::Instance().LoadPlugins(pluginDir);
 }
 
 LM_NAMESPACE_END

@@ -134,6 +134,13 @@ public:
 	*/
 	static Component* Create(const std::string& interfaceType, const std::string& implType);
 
+	/*!
+		Load plugins.
+		This function must be called once in the initialization phase.
+		\param pluginDir Plugin directory.
+	*/
+	static void LoadPlugins(const std::string& pluginDir);
+
 public:
 
 	/*!

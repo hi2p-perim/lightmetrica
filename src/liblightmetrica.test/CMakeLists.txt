@@ -54,3 +54,6 @@ set(
 )
 
 pch_add_library(liblightmetrica.test STATIC PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
+
+# Solution directory
+set_target_properties(liblightmetrica.test PROPERTIES FOLDER "core")

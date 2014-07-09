@@ -220,6 +220,13 @@ bool LightmetricaApplication::Run()
 {
 	PrintStartMessage();
 
+	// Load plugins
+	{
+		LM_LOG_INFO("Entering : Loading plugins");
+		LM_LOG_INDENTER();
+		ComponentFactory::LoadPlugins(".");
+	}
+
 	// Load configuration
 	DefaultConfig config;
 	if (!LoadConfiguration(config))
