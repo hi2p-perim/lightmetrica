@@ -23,20 +23,21 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/logger.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Progress plot.
-	Experiment on tracing progress plot w.r.t. time.
+	PSSMLT acceptance ratio plot.
+	Traces accceptance ratio through PSSMLT updates.
 */
-class ProgressPlotExperiment : public Experiment
+class PSSMLTAcceptanceRatioExperiment : public Experiment
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("progressplot");
+	LM_COMPONENT_IMPL_DEF("pssmltacceptanceratio");
 
 public:
 
@@ -44,85 +45,79 @@ public:
 	virtual void Notify( const std::string& type );
 	virtual void UpdateParam( const std::string& name, const void* param );
 
-public:
+private:
 
 	void HandleNotify_RenderStarted();
-	void HandleNotify_ProgressUpdated();
+	void HandleNotify_SampleFinished();
 	void HandleNotify_RenderFinished();
 
-public:
+private:
 
 	long long frequency;
 	std::string outputPath;
 
-public:
+private:
 
-	long long block;
-	double progress;
+	long long sample;
+	Math::Float acceptanceRatio;
 
-public:
+private:
 
-	// Time - progress
-	std::vector<std::tuple<long long, double>> records;
-	std::chrono::high_resolution_clock::time_point start;
+	std::vector<long long> sampleIndices;
+	std::vector<Math::Float> records;
 
 };
 
-bool ProgressPlotExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTAcceptanceRatioExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_path", std::string("progress.txt"), outputPath);
+	node.ChildValueOrDefault("output_path", std::string("pssmlttraceplot.txt"), outputPath);
 	return true;
 }
 
-void ProgressPlotExperiment::Notify( const std::string& type )
+void PSSMLTAcceptanceRatioExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
-	else if (type == "ProgressUpdated") HandleNotify_ProgressUpdated();
+	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void ProgressPlotExperiment::UpdateParam( const std::string& name, const void* param )
+void PSSMLTAcceptanceRatioExperiment::UpdateParam( const std::string& name, const void* param )
 {
-	if (name == "block") block = *(int*)param;
-	else if (name == "progress") progress = *(double*)param;
+	if (name == "sample") sample = *(int*)param;
+	else if (name == "pssmlt_acceptance_ratio") acceptanceRatio = *(Math::Float*)param;
 }
 
-void ProgressPlotExperiment::HandleNotify_RenderStarted()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderStarted()
 {
+	sampleIndices.clear();
 	records.clear();
 }
 
-void ProgressPlotExperiment::HandleNotify_ProgressUpdated()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_SampleFinished()
 {
-	if (block == 0)
+	if (sample % frequency == 0)
 	{
-		start = std::chrono::high_resolution_clock::now();
-	}
-
-	if (block % frequency == 0)
-	{
-		auto now = std::chrono::high_resolution_clock::now();
-		long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
-		records.emplace_back(elapsed, progress);
+		sampleIndices.push_back(sample);
+		records.push_back(acceptanceRatio);
 	}
 }
 
-void ProgressPlotExperiment::HandleNotify_RenderFinished()
+void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderFinished()
 {
-	// Save progress plot
-	LM_LOG_INFO("Saving progress plot to " + outputPath);
+	// Save records
+	LM_LOG_INFO("Saving PSSMLT acceptance ratio to " + outputPath);
 	LM_LOG_INDENTER();
 
 	std::ofstream ofs(outputPath);
-	for (auto& v : records)
+	for (size_t i = 0; i < sampleIndices.size(); i++)
 	{
-		ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
+		ofs << sampleIndices[i] << " " << records[i] << std::endl;
 	}
 
-	LM_LOG_INFO("Successfully saved " + std::to_string(records.size()) + " entries");
+	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-LM_COMPONENT_REGISTER_IMPL(ProgressPlotExperiment, Experiment);
+LM_COMPONENT_REGISTER_IMPL(PSSMLTAcceptanceRatioExperiment, Experiment);
 
 LM_NAMESPACE_END

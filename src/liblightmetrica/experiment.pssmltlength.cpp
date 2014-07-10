@@ -23,27 +23,20 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/pssmlt.sampler.h>
-#include <lightmetrica/assert.h>
 
 LM_NAMESPACE_BEGIN
 
-#if 0
-
 /*!
-	PSSMLT running mean.
-	Traces running means of primary samples.
-	Running mean is a plot of the iteration against
-	the mean of the draws up to the iteration.
-	Running mean plot is used for the evaluation of the mixing.
+	PSSMLT length.
+	Traces the lengths of light paths.
 */
-class PSSMLTRunningMeanExperiment : public Experiment
+class PSSMLTLengthExperiment : public Experiment
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pssmltrunningmean");
+	LM_COMPONENT_IMPL_DEF("pssmltlength");
 
 public:
 
@@ -61,96 +54,70 @@ private:
 
 	long long frequency;
 	std::string outputPath;
-	int traceNumSamples;
 
 private:
 
 	long long sample;
-	PSSMLTPrimarySampler* primarySample;
+	int length;
 
 private:
 
-	std::vector<Math::Float> sampleValueSums;
 	std::vector<long long> sampleIndices;
-	std::vector<std::vector<Math::Float>> records;
+	std::vector<int> records;
 
 };
 
-bool PSSMLTRunningMeanExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTLengthExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_path", std::string("pssmltrunningmean.txt"), outputPath);
-	node.ChildValueOrDefault("trace_num_samples", 1, traceNumSamples);
+	node.ChildValueOrDefault("output_path", std::string("pssmltlength.txt"), outputPath);
 	return true;
 }
 
-void PSSMLTRunningMeanExperiment::Notify( const std::string& type )
+void PSSMLTLengthExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTRunningMeanExperiment::UpdateParam( const std::string& name, const void* param )
+void PSSMLTLengthExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
-	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySampler*)param;
+	else if (name == "pssmlt_path_length") length = *(int*)param;
 }
 
-void PSSMLTRunningMeanExperiment::HandleNotify_RenderStarted()
+void PSSMLTLengthExperiment::HandleNotify_RenderStarted()
 {
-	sampleValueSums.assign(traceNumSamples, Math::Float(0));
 	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTRunningMeanExperiment::HandleNotify_SampleFinished()
+void PSSMLTLengthExperiment::HandleNotify_SampleFinished()
 {
-	std::vector<Math::Float> currentSamples;
-	primarySample->GetCurrentSampleState(currentSamples, traceNumSamples);
-
-	LM_ASSERT(sampleValueSums.size() == currentSamples.size());
-	for (size_t i = 0; i < sampleValueSums.size(); i++)
+	if (sample % frequency == 0)
 	{
-		sampleValueSums[i] += currentSamples[i];
-	}
-
-	if (sample % frequency == 0 && sample > 0)
-	{
-		auto tmp = sampleValueSums;
-		for (auto& v : tmp)
-		{
-			v /= Math::Float(sample);
-		}
-
+		// Records sample
 		sampleIndices.push_back(sample);
-		records.emplace_back(std::move(tmp));
+		records.push_back(length);
 	}
 }
 
-void PSSMLTRunningMeanExperiment::HandleNotify_RenderFinished()
+void PSSMLTLengthExperiment::HandleNotify_RenderFinished()
 {
 	// Save records
-	LM_LOG_INFO("Saving PSSMLT running mean plot to " + outputPath);
+	LM_LOG_INFO("Saving PSSMLT path length to " + outputPath);
 	LM_LOG_INDENTER();
 
 	std::ofstream ofs(outputPath);
 	for (size_t i = 0; i < sampleIndices.size(); i++)
 	{
-		ofs << sampleIndices[i] << " ";
-		auto& row = records[i];
-		for (auto& v : row)
-		{
-			ofs << v << " ";
-		}
-		ofs << std::endl;
+		ofs << sampleIndices[i] << " " << records[i] << std::endl;
 	}
 
 	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-LM_COMPONENT_REGISTER_IMPL(PSSMLTRunningMeanExperiment, Experiment);
-
-#endif
+LM_COMPONENT_REGISTER_IMPL(PSSMLTLengthExperiment, Experiment);
 
 LM_NAMESPACE_END

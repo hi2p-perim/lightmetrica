@@ -23,21 +23,23 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 #include <lightmetrica/confignode.h>
-#include <lightmetrica/logger.h>
+#include <lightmetrica/pssmlt.sampler.h>
 
 LM_NAMESPACE_BEGIN
 
+#if 0
+
 /*!
-	PSSMLT acceptance ratio plot.
-	Traces accceptance ratio through PSSMLT updates.
+	PSSMLT traceplot.
+	Traces sample plots through PSSMLT updates.
 */
-class PSSMLTAcceptanceRatioExperiment : public Experiment
+class PSSMLTTraceplotExperiment : public Experiment
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pssmltacceptanceratio");
+	LM_COMPONENT_IMPL_DEF("pssmlttraceplot");
 
 public:
 
@@ -55,69 +57,84 @@ private:
 
 	long long frequency;
 	std::string outputPath;
+	int traceNumSamples;
 
 private:
 
 	long long sample;
-	Math::Float acceptanceRatio;
+	PSSMLTPrimarySampler* primarySample;
 
 private:
 
 	std::vector<long long> sampleIndices;
-	std::vector<Math::Float> records;
+	std::vector<std::vector<Math::Float>> records;
 
 };
 
-bool PSSMLTAcceptanceRatioExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool PSSMLTTraceplotExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
 	node.ChildValueOrDefault("output_path", std::string("pssmlttraceplot.txt"), outputPath);
+	node.ChildValueOrDefault("trace_num_samples", 1, traceNumSamples);
 	return true;
 }
 
-void PSSMLTAcceptanceRatioExperiment::Notify( const std::string& type )
+void PSSMLTTraceplotExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTAcceptanceRatioExperiment::UpdateParam( const std::string& name, const void* param )
+void PSSMLTTraceplotExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "sample") sample = *(int*)param;
-	else if (name == "pssmlt_acceptance_ratio") acceptanceRatio = *(Math::Float*)param;
+	else if (name == "pssmlt_primary_sample") primarySample = (PSSMLTPrimarySampler*)param;
 }
 
-void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderStarted()
+void PSSMLTTraceplotExperiment::HandleNotify_RenderStarted()
 {
 	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTAcceptanceRatioExperiment::HandleNotify_SampleFinished()
+void PSSMLTTraceplotExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
+		// Get current state
+		std::vector<Math::Float> currentSamples;
+		primarySample->GetCurrentSampleState(currentSamples, traceNumSamples);
+
+		// Records sample
 		sampleIndices.push_back(sample);
-		records.push_back(acceptanceRatio);
+		records.emplace_back(std::move(currentSamples));
 	}
 }
 
-void PSSMLTAcceptanceRatioExperiment::HandleNotify_RenderFinished()
+void PSSMLTTraceplotExperiment::HandleNotify_RenderFinished()
 {
 	// Save records
-	LM_LOG_INFO("Saving PSSMLT acceptance ratio to " + outputPath);
+	LM_LOG_INFO("Saving PSSMLT traceplot to " + outputPath);
 	LM_LOG_INDENTER();
 
 	std::ofstream ofs(outputPath);
 	for (size_t i = 0; i < sampleIndices.size(); i++)
 	{
-		ofs << sampleIndices[i] << " " << records[i] << std::endl;
+		ofs << sampleIndices[i] << " ";
+		auto& row = records[i];
+		for (auto& v : row)
+		{
+			ofs << v << " ";
+		}
+		ofs << std::endl;
 	}
 
 	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
 }
 
-LM_COMPONENT_REGISTER_IMPL(PSSMLTAcceptanceRatioExperiment, Experiment);
+LM_COMPONENT_REGISTER_IMPL(PSSMLTTraceplotExperiment, Experiment);
+
+#endif
 
 LM_NAMESPACE_END

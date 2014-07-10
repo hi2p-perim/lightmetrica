@@ -23,8 +23,8 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_EXPT_H
-#define LIB_LIGHTMETRICA_EXPT_H
+#ifndef LIB_LIGHTMETRICA_EXPERIMENT_H
+#define LIB_LIGHTMETRICA_EXPERIMENT_H
 
 #include "component.h"
 #include <string>
@@ -80,4 +80,4 @@ public:
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_EXPT_H
+#endif // LIB_LIGHTMETRICA_EXPERIMENT_H

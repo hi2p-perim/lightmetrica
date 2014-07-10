@@ -23,7 +23,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/defaultexperiments.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/expt.h>

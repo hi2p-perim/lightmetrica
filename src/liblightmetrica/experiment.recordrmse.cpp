@@ -23,20 +23,25 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/bitmaptexture.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/bitmapfilm.h>
+#include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	PSSMLT length.
-	Traces the lengths of light paths.
+	Experiment for recording RMSE.
+	Records root mean square error (RMSE) per samples / mutations.
 */
-class PSSMLTLengthExperiment : public Experiment
+class RecordRMSEExperiment : public Experiment
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pssmltlength");
+	LM_COMPONENT_IMPL_DEF("recordrmse");
 
 public:
 
@@ -54,70 +59,91 @@ private:
 
 	long long frequency;
 	std::string outputPath;
+	BitmapTexture* referenceTexture;
 
 private:
 
+	BitmapFilm* film;
 	long long sample;
-	int length;
+	Math::Float rmse;
 
 private:
 
-	std::vector<long long> sampleIndices;
-	std::vector<int> records;
+	std::vector<std::tuple<long long, Math::Float>> records;
 
 };
 
-bool PSSMLTLengthExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_path", std::string("pssmltlength.txt"), outputPath);
+	node.ChildValueOrDefault("output_path", std::string("rmse.txt"), outputPath);
+
+	// Reference image
+	auto referenceImageNode = node.Child("reference_image");
+	if (referenceImageNode.Empty())
+	{
+		LM_LOG_ERROR("'reference_image' is required");
+		return false;
+	}
+
+	// Resolve reference
+	referenceTexture = assets.ResolveReferenceToAsset<BitmapTexture>(referenceImageNode);
+	if (referenceTexture == nullptr)
+	{
+		return false;
+	}
+
 	return true;
 }
 
-void PSSMLTLengthExperiment::Notify( const std::string& type )
+void RecordRMSEExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
 	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void PSSMLTLengthExperiment::UpdateParam( const std::string& name, const void* param )
+void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
 {
-	if (name == "sample") sample = *(int*)param;
-	else if (name == "pssmlt_path_length") length = *(int*)param;
+	if (name == "film") film = (BitmapFilm*)param;
+	else if (name == "sample") sample = *(int*)param;
+	else if (name == "rmse") rmse = *(Math::Float*)param;
 }
 
-void PSSMLTLengthExperiment::HandleNotify_RenderStarted()
+void RecordRMSEExperiment::HandleNotify_RenderStarted()
 {
-	sampleIndices.clear();
 	records.clear();
 }
 
-void PSSMLTLengthExperiment::HandleNotify_SampleFinished()
+void RecordRMSEExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
-		// Records sample
-		sampleIndices.push_back(sample);
-		records.push_back(length);
+		// Compute RMSE of current sample
+		auto rmse = referenceTexture->Bitmap().EvaluateRMSE(
+			film->Bitmap(),
+			sample > 0
+				? Math::Float(film->Width() * film->Height()) / Math::Float(sample)
+				: Math::Float(1));
+		records.emplace_back(sample, rmse);
 	}
 }
 
-void PSSMLTLengthExperiment::HandleNotify_RenderFinished()
-{
-	// Save records
-	LM_LOG_INFO("Saving PSSMLT path length to " + outputPath);
+void RecordRMSEExperiment::HandleNotify_RenderFinished()
+{	
+	// Save RMSE plot
+	LM_LOG_INFO("Saving RMSE plot to " + outputPath);
 	LM_LOG_INDENTER();
 
 	std::ofstream ofs(outputPath);
-	for (size_t i = 0; i < sampleIndices.size(); i++)
+	for (auto& v : records)
 	{
-		ofs << sampleIndices[i] << " " << records[i] << std::endl;
+		ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
 	}
 
-	LM_LOG_INFO("Successfully saved " + std::to_string(sampleIndices.size()) + " entries");
+	LM_LOG_INFO("Successfully saved " + std::to_string(records.size()) + " entries");
 }
 
-LM_COMPONENT_REGISTER_IMPL(PSSMLTLengthExperiment, Experiment);
+LM_COMPONENT_REGISTER_IMPL(RecordRMSEExperiment, Experiment);
 
 LM_NAMESPACE_END

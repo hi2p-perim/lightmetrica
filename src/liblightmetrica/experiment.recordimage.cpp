@@ -23,25 +23,22 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/bitmaptexture.h>
-#include <lightmetrica/assets.h>
 #include <lightmetrica/bitmapfilm.h>
-#include <lightmetrica/bitmap.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Experiment for recording RMSE.
-	Records root mean square error (RMSE) per samples / mutations.
+	Record per sample images.
+	An experiment for recording images per samples / mutations.
 */
-class RecordRMSEExperiment : public Experiment
+class RecordImageExperiment : public Experiment
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("recordrmse");
+	LM_COMPONENT_IMPL_DEF("recordimage");
 
 public:
 
@@ -53,97 +50,67 @@ private:
 
 	void HandleNotify_RenderStarted();
 	void HandleNotify_SampleFinished();
-	void HandleNotify_RenderFinished();
 
 private:
 
 	long long frequency;
-	std::string outputPath;
-	BitmapTexture* referenceTexture;
+	std::string outputDir;
 
 private:
 
 	BitmapFilm* film;
 	long long sample;
-	Math::Float rmse;
-
-private:
-
-	std::vector<std::tuple<long long, Math::Float>> records;
 
 };
 
-bool RecordRMSEExperiment::Configure( const ConfigNode& node, const Assets& assets )
+bool RecordImageExperiment::Configure( const ConfigNode& node, const Assets& assets )
 {
 	node.ChildValueOrDefault("frequency", 100LL, frequency);
-	node.ChildValueOrDefault("output_path", std::string("rmse.txt"), outputPath);
-
-	// Reference image
-	auto referenceImageNode = node.Child("reference_image");
-	if (referenceImageNode.Empty())
-	{
-		LM_LOG_ERROR("'reference_image' is required");
-		return false;
-	}
-
-	// Resolve reference
-	referenceTexture = assets.ResolveReferenceToAsset<BitmapTexture>(referenceImageNode);
-	if (referenceTexture == nullptr)
-	{
-		return false;
-	}
-
+	node.ChildValueOrDefault("output_dir", std::string("images"), outputDir);
 	return true;
 }
 
-void RecordRMSEExperiment::Notify( const std::string& type )
+void RecordImageExperiment::Notify( const std::string& type )
 {
 	if (type == "RenderStarted") HandleNotify_RenderStarted();
 	else if (type == "SampleFinished") HandleNotify_SampleFinished();
-	else if (type == "RenderFinished") HandleNotify_RenderFinished();
 }
 
-void RecordRMSEExperiment::UpdateParam( const std::string& name, const void* param )
+void RecordImageExperiment::UpdateParam( const std::string& name, const void* param )
 {
 	if (name == "film") film = (BitmapFilm*)param;
 	else if (name == "sample") sample = *(int*)param;
-	else if (name == "rmse") rmse = *(Math::Float*)param;
 }
 
-void RecordRMSEExperiment::HandleNotify_RenderStarted()
+void RecordImageExperiment::HandleNotify_RenderStarted()
 {
-	records.clear();
+	// Create output directory if it does not exists
+	if (!boost::filesystem::exists(outputDir))
+	{
+		LM_LOG_INFO("Creating directory : " + outputDir);
+		if (!boost::filesystem::create_directory(outputDir))
+		{
+			LM_LOG_WARN("Failed to create output directory : " + outputDir);
+		}
+	}
 }
 
-void RecordRMSEExperiment::HandleNotify_SampleFinished()
+void RecordImageExperiment::HandleNotify_SampleFinished()
 {
 	if (sample % frequency == 0)
 	{
-		// Compute RMSE of current sample
-		auto rmse = referenceTexture->Bitmap().EvaluateRMSE(
-			film->Bitmap(),
+		// Save intermediate image
+		auto path = boost::filesystem::path(outputDir) / boost::str(boost::format("%010d.hdr") % sample);
+		LM_LOG_INFO("Saving " + path.string());
+		LM_LOG_INDENTER();
+		film->RescaleAndSave(
+			path.string(),
 			sample > 0
 				? Math::Float(film->Width() * film->Height()) / Math::Float(sample)
 				: Math::Float(1));
-		records.emplace_back(sample, rmse);
 	}
 }
 
-void RecordRMSEExperiment::HandleNotify_RenderFinished()
-{	
-	// Save RMSE plot
-	LM_LOG_INFO("Saving RMSE plot to " + outputPath);
-	LM_LOG_INDENTER();
-
-	std::ofstream ofs(outputPath);
-	for (auto& v : records)
-	{
-		ofs << std::get<0>(v) << " " << std::get<1>(v) << std::endl;
-	}
-
-	LM_LOG_INFO("Successfully saved " + std::to_string(records.size()) + " entries");
-}
-
-LM_COMPONENT_REGISTER_IMPL(RecordRMSEExperiment, Experiment);
+LM_COMPONENT_REGISTER_IMPL(RecordImageExperiment, Experiment);
 
 LM_NAMESPACE_END

@@ -411,20 +411,20 @@ list(APPEND _SOURCE_FILES ${_RANDOM_SOURCES})
 
 set(
 	_EXPERIMENTS_HEADERS
-	"${_INCLUDE_DIR}/expts.h"
-	"${_INCLUDE_DIR}/defaultexpts.h"
-	"${_INCLUDE_DIR}/expt.h"
+	"${_INCLUDE_DIR}/experiments.h"
+	"${_INCLUDE_DIR}/defaultexperiments.h"
+	"${_INCLUDE_DIR}/experiment.h"
 )
 set(
 	_EXPERIMENTS_SOURCES
-	"defaultexpts.cpp"
-	"expt.recordimage.cpp"
-	"expt.recordrmse.cpp"
-	"expt.pssmlttraceplot.cpp"
-	"expt.pssmltrunningmean.cpp"
-	"expt.pssmltlength.cpp"
-	"expt.pssmltacceptanceratio.cpp"
-	"expt.progressplot.cpp"
+	"defaultexperiments.cpp"
+	"experiment.recordimage.cpp"
+	"experiment.recordrmse.cpp"
+	"experiment.pssmlttraceplot.cpp"
+	"experiment.pssmltrunningmean.cpp"
+	"experiment.pssmltlength.cpp"
+	"experiment.pssmltacceptanceratio.cpp"
+	"experiment.progressplot.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})
