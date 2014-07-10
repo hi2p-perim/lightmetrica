@@ -12,24 +12,43 @@ Introduction
 Features
 --------------------
 
-- Implements various types of global illumination techniques (PT, LT, BPT, ~~MLT~~, PM, ~~SPPM~~, ~~UPS/VCM~~, etc.)
-- Unit tested
+- Implements various types of global illumination techniques
+- Moderately unit tested
 - Includes fast SIMD-based math library
-- Various precision for floating-point (single, double, multi-precision)
+- Various options for floating-point precisions (single, double, multi-precision)
 - Clean and generalized design according Veach's formulation
-- Experiments support
-- Easily extendable via plugins
 - Clean and easy-to-read log output
-- Blender plugin
+- Experiments support
+- Plugin support
+<!--- Blender plugin-->
+
+<!--
+How to build
+--------------------
+
+### Windows
+
+### Linux
+-->
 
 Implementation detail
 --------------------
 
-The application contains three projects:
+The application contains the following projects:
 
-- **liblightmetrica** : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
-- **lightmetrica** : The command line renderer interface.
-- **lightmetrica.gui** : The GUI renderer interface.
-- **lightmetrica.test** : Unit test project for **liblightmetrica**.
+- Core libraries
+  - **liblightmetrica** : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
+  - **liblightmetrica.test** : Static library for unit testing.
+- Applications
+  - **lightmetrica** : The command line renderer interface.
+  - **lightmetrica.gui** : The GUI renderer interface. Yet to be implemented.
+- Tests
+  - **lightmetrica.test** : Unit test project for **liblightmetrica**.
+  - **lightmetrica.perf** : Performance test project for **liblightmetrica**. Yet to be implemented.
+- Plugins
+  - **plugin.test** : An example plugin 
 
-We *highly* recommend to read the Veach's thesis to understand the implementation.
+Licence
+--------------------
+
+This application is distributed under GPLv3. For details, see LICENCE file.
