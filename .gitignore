@@ -10,4 +10,6 @@
 [Bb]uild/
 [Rr]esults/
 misc/
-
+resources/
+external/
+experimental/
