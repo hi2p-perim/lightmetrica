@@ -26,7 +26,7 @@
 #include <lightmetrica/defaultexperiments.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/expt.h>
+#include <lightmetrica/experiment.h>
 
 LM_NAMESPACE_BEGIN
 

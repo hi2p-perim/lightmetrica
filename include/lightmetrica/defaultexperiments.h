@@ -26,7 +26,7 @@
 #ifndef LIB_LIGHTMETRICA_DEFAULT_EXPTS_H
 #define LIB_LIGHTMETRICA_DEFAULT_EXPTS_H
 
-#include "expts.h"
+#include "experiments.h"
 #include <vector>
 
 LM_NAMESPACE_BEGIN

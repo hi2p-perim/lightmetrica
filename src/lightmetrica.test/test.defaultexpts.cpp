@@ -26,8 +26,8 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/stub.config.h>
 #include <lightmetrica.test/stub.assets.h>
-#include <lightmetrica/defaultexpts.h>
-#include <lightmetrica/expt.h>
+#include <lightmetrica/defaultexperiments.h>
+#include <lightmetrica/experiment.h>
 
 namespace
 {

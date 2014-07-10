@@ -37,7 +37,7 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/assert.h>
-#include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/defaultexperiments.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>

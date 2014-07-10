@@ -44,7 +44,7 @@
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
-#include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/defaultexperiments.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>

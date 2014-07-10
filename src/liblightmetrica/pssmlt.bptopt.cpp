@@ -38,7 +38,7 @@
 #include <lightmetrica/assert.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/assets.h>
-#include <lightmetrica/defaultexpts.h>
+#include <lightmetrica/defaultexperiments.h>
 #include <lightmetrica/rewindablesampler.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/scene.h>
