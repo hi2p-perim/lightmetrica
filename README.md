@@ -20,7 +20,6 @@ Features
 - Clean and easy-to-read log output
 - Experiments support
 - Plugin support
-<!--- Blender plugin-->
 
 <!--
 How to build
