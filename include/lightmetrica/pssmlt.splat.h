@@ -71,8 +71,8 @@ struct PSSMLTSplats
 
 	std::vector<PSSMLTSplat, aligned_allocator<PSSMLTSplat, std::alignment_of<PSSMLTSplat>::value>> splats;
 
-	Math::Float SumI() const;
-	void AccumulateContributionToFilm(Film& film, const Math::Float& weight) const;
+	LM_PUBLIC_API Math::Float SumI() const;
+	LM_PUBLIC_API void AccumulateContributionToFilm(Film& film, const Math::Float& weight) const;
 
 };
 

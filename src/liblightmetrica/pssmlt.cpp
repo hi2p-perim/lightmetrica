@@ -59,26 +59,12 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 	PSSMLTSplats records[2];							//!< Path sample records (current or proposed)
 	int current;										//!< Index of current record
 
-#if 0
-	// Experimental variables
-	Math::Float kernelSizeScale;
-	long long mutated;
-	long long accepted;
-	//long long kernelUpdateCount;
-	//Math::Float expectedAcceptanceRatio;
-#endif
-
 	PSSMLTThreadContext(Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film)
 		: randomSampler(randomSampler)
 		, pathSampler(pathSampler)
 		, film(film)
 		, sampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
 		, current(0)
-#if 0
-		, kernelSizeScale(1)
-		, mutated(0)
-		, accepted(0)
-#endif
 	{
 
 	}
@@ -89,11 +75,6 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 		, film(std::move(context.film))
 		, sampler(std::move(context.sampler))
 		, current(0)
-#if 0
-		, kernelSizeScale(1)
-		, mutated(0)
-		, accepted(0)
-#endif
 	{
 
 	}
@@ -153,12 +134,6 @@ private:
 	Math::Float largeStepProb;								//!< Large step mutation probability
 	Math::Float kernelSizeS1;								//!< Minimum kernel size
 	Math::Float kernelSizeS2;								//!< Maximum kernel size
-
-#if 0
-	bool adaptiveKernel;
-	//long long kernelUpdateCount;
-	//Math::Float kernelScaleDelta;
-#endif
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;								//!< Experiments manager
@@ -254,17 +229,6 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 	node.ChildValueOrDefault("large_step_prob", Math::Float(0.1), largeStepProb);
 	node.ChildValueOrDefault("kernel_size_s1", Math::Float(1.0 / 1024.0), kernelSizeS1);
 	node.ChildValueOrDefault("kernel_size_s2", Math::Float(1.0 / 64.0), kernelSizeS2);
-
-#if 0
-	// Experimental params
-	auto experimentalNode = node.Child("experimental");
-	if (!experimentalNode.Empty())
-	{
-		experimentalNode.ChildValueOrDefault("adaptive_kernel", false, adaptiveKernel);
-		//experimentalNode.ChildValueOrDefault("kernel_scale_delta", Math::Float(0.01), kernelScaleDelta);
-		//experimentalNode.ChildValueOrDefault("kernel_update_count", 1000LL, kernelUpdateCount);
-	}
-#endif
 
 #if LM_EXPERIMENTAL_MODE
 	// Experiments
