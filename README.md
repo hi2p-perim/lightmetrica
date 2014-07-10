@@ -34,7 +34,7 @@ How to build
 Implementation detail
 --------------------
 
-The application contains the following projects:
+This software contains the following projects:
 
 - Core libraries
   - **liblightmetrica** : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
@@ -51,4 +51,4 @@ The application contains the following projects:
 Licence
 --------------------
 
-This application is distributed under GPLv3. For details, see LICENCE file.
+This software is distributed under GPLv3. For details, see LICENCE file.

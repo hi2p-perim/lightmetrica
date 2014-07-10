@@ -412,13 +412,6 @@ set(
 set(
 	_EXPERIMENTS_SOURCES
 	"defaultexperiments.cpp"
-	"experiment.recordimage.cpp"
-	"experiment.recordrmse.cpp"
-	"experiment.pssmlttraceplot.cpp"
-	"experiment.pssmltrunningmean.cpp"
-	"experiment.pssmltlength.cpp"
-	"experiment.pssmltacceptanceratio.cpp"
-	"experiment.progressplot.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\experiments" FILES ${_EXPERIMENTS_SOURCES})
