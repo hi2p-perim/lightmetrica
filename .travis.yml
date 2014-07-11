@@ -16,5 +16,6 @@ install:
   - mkdir /tmp/assimp_build && cd /tmp/assimp_build && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && sudo make install
 
 script:
+  - cd hi2p-perim/lightmetrica
   - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
   - ./build/bin/lightmetrica.test
