@@ -4,6 +4,8 @@ Lightmetrica
 
 Lightmetrica : A research-oriented renderer
 
+[![Build Status](https://travis-ci.org/hi2p-perim/lightmetrica.svg?branch=master)](https://travis-ci.org/hi2p-perim/lightmetrica)
+
 Introduction
 --------------------
 
