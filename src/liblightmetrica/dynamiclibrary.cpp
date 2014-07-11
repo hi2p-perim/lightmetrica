@@ -41,7 +41,9 @@ public:
 public:
 
 	bool loaded;
+#if LM_PLATFORM_WINDOWS
 	HMODULE handle;
+#endif
 	std::string path;
 
 };
