@@ -23,6 +23,23 @@ Features
 - Experiments support
 - Plugin support
 
+Dependencies
+--------------------
+
+Dependencies which requires additional installation step.  
+Specially for VS2012 environement in Windows, we offer x64 binaries in the external submodule.
+
+- **Boost** (1.53.0 or higher)
+- **Assimp** (3.1.1 or higher)
+- **FreeImage** (3.15.4 or higher)
+
+The following dependencies are contained in the source or the external submodule,
+so you don't need special setup for them.
+
+- **Google test** (1.7.0 or higher)
+- **Pugixml** (1.2 or higher)
+- **SIMD-oriented Fast Mersenne Twister (SFMT)** (1.4.1 or higher)
+
 <!--
 How to build
 --------------------
