@@ -13,7 +13,7 @@ install:
   - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev 
   - export CXX="g++-4.8"
   - git clone https://github.com/assimp/assimp.git /tmp/assimp
-  - mkdir /tmp/assimp_build && cd /tmp/assimp_build && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && make install
+  - mkdir /tmp/assimp_build && cd /tmp/assimp_build && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && sudo make install
 
 script:
   - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
