@@ -112,7 +112,7 @@ public:
 					libraries.push_back(std::move(library));
 
 					typedef Component* (*PluginCreateInstanceFunction)(const char*, const char*);
-					pluginCreateInstanceFuncs.emplace_back(static_cast<PluginCreateInstanceFunction>(factoryFuncSym));
+					pluginCreateInstanceFuncs.emplace_back(reinterpret_cast<PluginCreateInstanceFunction>(factoryFuncSym));
 
 					LM_LOG_INFO("Successfully loaded");
 				}
