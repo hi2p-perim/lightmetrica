@@ -1001,7 +1001,7 @@ template <>
 LM_FORCE_INLINE float LInfinityNorm(const Vec3f& v)
 {
 	// Abs. Note: v_abs.z = 0
-	static const int LM_ALIGN_16 Mask[] = {0x80000000, 0x80000000, 0x80000000, 0xffffffff}; 
+	static const unsigned int LM_ALIGN_16 Mask[] = {0x80000000, 0x80000000, 0x80000000, 0xffffffff}; 
 	__m128 v_abs = _mm_andnot_ps(*(const __m128*)Mask, v.v);
 
 	// Horizontal max
@@ -1458,7 +1458,7 @@ template <>
 LM_FORCE_INLINE double LInfinityNorm(const Vec3d& v)
 {
 	// Abs. Note: v_abs.z = 0
-	static const long long LM_ALIGN_32 Mask[] = {0x800000000000ffff, 0x800000000000ffff, 0x800000000000ffff, 0xffffffffffffffff}; 
+	static const unsigned long long LM_ALIGN_32 Mask[] = {0x800000000000ffff, 0x800000000000ffff, 0x800000000000ffff, 0xffffffffffffffff}; 
 	__m256d v_abs = _mm256_andnot_pd(*(const __m256d*)Mask, v.v);
 
 	// Horizontal max

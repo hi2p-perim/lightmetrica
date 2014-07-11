@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get install -y g++-4.8 libfreeimage-dev libassimp-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev 
+  - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libassimp-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev 
   - export CXX="g++-4.8"
 
 script: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
