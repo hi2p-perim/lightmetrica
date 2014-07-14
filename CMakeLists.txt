@@ -282,8 +282,9 @@ endif()
 
 ################################################################################
 
-# Include directory for libraries
+# Include directory for libraries and PCH
 include_directories("include")
+include_directories("pch")
 
 # Specify to use solution directories
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

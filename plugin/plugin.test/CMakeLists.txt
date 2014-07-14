@@ -29,8 +29,7 @@ set(
 )
 
 # Create project
-#pch_add_library(plugin.test SHARED PCH_HEADER "pch.h" ${_SOURCE_FILES})
-add_library(plugin.test SHARED ${_SOURCE_FILES})
+pch_add_library(plugin.test SHARED PCH_HEADER "${PROJECT_SOURCE_DIR}/pch/pch.plugin.h" ${_SOURCE_FILES})
 target_link_libraries(plugin.test liblightmetrica ${COMMON_LIBRARY_FILES})
 add_dependencies(plugin.test liblightmetrica)
 
