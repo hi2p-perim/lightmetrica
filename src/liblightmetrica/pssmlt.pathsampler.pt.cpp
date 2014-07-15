@@ -49,8 +49,8 @@ public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
-	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats );
+	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
 
 private:
 
@@ -71,7 +71,7 @@ PSSMLTPathSampler* PSSMLTPTPathSampler::Clone()
 	return sampler;
 }
 
-void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats )
+void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
 {
 	// Clear result
 	splats.splats.clear();
@@ -101,10 +101,15 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 
 	Math::Vec3 throughput = We_Estimated;
 	Math::Vec3 L;
-	int depth = 0;
+	int depth = 1;
 
 	while (true)
 	{
+		if (maxDepth != -1 && depth > maxDepth)
+		{
+			break;
+		}
+
 		// Check intersection
 		Intersection isect;
 		if (!scene.Intersect(ray, isect))
@@ -169,7 +174,7 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 	splats.splats.emplace_back(rasterPos, L);
 }
 
-void PSSMLTPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats )
+void PSSMLTPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
 {
 	LM_LOG_ERROR("Invalid operation for PSSMLTPTPathSampler");
 }

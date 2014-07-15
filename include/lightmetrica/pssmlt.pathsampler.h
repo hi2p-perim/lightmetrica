@@ -71,8 +71,10 @@ public:
 		\param scene Scene.
 		\param sampler Abstract sampler.
 		\param splats Evaluated pixel contributions and their raster positions.
+		\param rrDepth Depth to begin RR, -1 skips RR.
+		\param maxDepth Maximum number of vertex, -1 specifies no limits.
 	*/
-	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats) = 0;
+	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth) = 0;
 
 	/*!
 		Sample and evaluate light paths (separated PSS version for BPT).
