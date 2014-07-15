@@ -191,20 +191,12 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 	bsdfSQE.transportDir = transportDir;
 	bsdfSQE.type = GeneralizedBSDFType::AllEmitter;
 
-#if 1
 	GeneralizedBSDFSampleBidirResult bsdfSRE;
 	v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQE, v->geom, bsdfSRE);
 	v->wo = bsdfSRE.wo;
 	v->weight = bsdfSRE.weight[transportDir];
 	v->pdfD[transportDir] = bsdfSRE.pdf[transportDir];
 	v->pdfD[1-transportDir] = bsdfSRE.pdf[1-transportDir];
-#else
-	GeneralizedBSDFSampleResult bsdfSRE;
-	v->bsdf->SampleDirection(bsdfSQE, v->geom, bsdfSRE);
-	v->pdfD[transportDir] = bsdfSRE.pdf;
-	v->pdfD[1-transportDir] = Math::PDFEval();
-	v->wo = bsdfSRE.wo;
-#endif
 
 	// # of vertices is always greater than 1
 	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
@@ -298,7 +290,6 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = -pv->wo;
 
-#if 1
 		GeneralizedBSDFSampleBidirResult bsdfSR;
 		if (!v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQ, v->geom, bsdfSR))
 		{
@@ -310,55 +301,6 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		v->weight = bsdfSR.weight[transportDir];
 		v->pdfD[transportDir] = bsdfSR.pdf[transportDir];
 		v->pdfD[1-transportDir] = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
-#else
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!v->bsdf->SampleDirection(bsdfSQ, v->geom, bsdfSR))
-		{
-			vertices.push_back(v);
-			break;
-		}
-
-		v->wo = bsdfSR.wo;
-		v->pdfD[transportDir] = bsdfSR.pdf;
-
-		// Evaluate PDF in the opposite transport direction
-		if (!pv->geom.degenerated)
-		{
-			if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) != 0)
-			{
-				// For specular BSDF opposite PDF is evaluated directly because of numerical reason
-				if ((bsdfSR.sampledType & GeneralizedBSDFType::SpecularReflection) != 0)
-				{
-					v->pdfD[1-transportDir] = v->pdfD[transportDir];
-				}
-				else if ((bsdfSR.sampledType & GeneralizedBSDFType::SpecularTransmission) != 0)
-				{
-					auto localWi = v->geom.worldToShading * v->wi;
-					auto localWo = v->geom.worldToShading * v->wo;
-					v->pdfD[1-transportDir].measure = Math::ProbabilityMeasure::ProjectedSolidAngle;
-					v->pdfD[1-transportDir].v = v->pdfD[transportDir].v * (Math::AbsCosThetaZUp(localWi) / Math::AbsCosThetaZUp(localWo));
-				}
-				else
-				{
-					LM_LOG_ERROR("Invalid type");
-					break;
-				}
-			}
-			else
-			{
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.type = bsdfSR.sampledType;
-				bsdfEQ.transportDir = TransportDirection(1 - transportDir);
-				bsdfEQ.wi = bsdfSR.wo;
-				bsdfEQ.wo = bsdfSQ.wi;
-				v->pdfD[1-transportDir] = v->bsdf->EvaluateDirectionPDF(bsdfEQ, v->geom);
-			}
-		}
-		else
-		{
-			v->pdfD[1-transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
-		}
-#endif
 
 		numPathVertices++;
 		vertices.push_back(v);
@@ -410,15 +352,8 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 				bsdfEQ.transportDir = transportDir;
 				bsdfEQ.wi = v->wi;
 				bsdfEQ.wo = v->wo;
-#if 1
-				alpha *= v->weight;
-#else
-				auto fs = v->bsdf->EvaluateDirection(bsdfEQ, v->geom);
 
-				// Update #alphaL or #alphaE
-				LM_ASSERT(v->pdfD[transportDir].measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-				alpha *= fs / v->pdfD[transportDir].v;
-#endif
+				alpha *= v->weight;
 
 				// RR probability
 				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);

@@ -341,7 +341,6 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi[subpath];
 
-#if 1
 		GeneralizedBSDFSampleResult bsdfSR;
 		auto fs_Estimated = currBsdfs[subpath]->SampleAndEstimateDirection(bsdfSQ, currGeom[subpath], bsdfSR);
 		if (Math::IsZero(fs_Estimated))
@@ -351,24 +350,6 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 
 		// Update throughput
 		throughput[subpath] *= fs_Estimated;
-#else
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!currBsdfs[subpath]->SampleDirection(bsdfSQ, currGeom[subpath], bsdfSR))
-		{
-			break;
-		}
-
-		// Evaluate generalized BSDF
-		auto fs = currBsdfs[subpath]->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom[subpath]);
-		if (Math::IsZero(fs))
-		{
-			break;
-		}
-
-		// Update throughput
-		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-		throughput[subpath] *= fs / bsdfSR.pdf.v;
-#endif
 
 		// --------------------------------------------------------------------------------
 

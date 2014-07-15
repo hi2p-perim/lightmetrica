@@ -307,7 +307,6 @@ void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler&
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;
 
-#if 1
 		GeneralizedBSDFSampleResult bsdfSR;
 		auto fs_Estimated = currBsdf->SampleAndEstimateDirection(bsdfSQ, currGeom, bsdfSR);
 		if (Math::IsZero(fs_Estimated))
@@ -317,24 +316,6 @@ void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler&
 
 		// Update throughput
 		throughput *= fs_Estimated;
-#else
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
-		{
-			break;
-		}
-
-		// Evaluate generalized BSDF
-		auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
-		if (Math::IsZero(fs))
-		{
-			break;
-		}
-
-		// Update throughput
-		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-		throughput *= fs / bsdfSR.pdf.v;
-#endif
 
 		// --------------------------------------------------------------------------------
 

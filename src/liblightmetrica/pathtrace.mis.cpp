@@ -322,7 +322,6 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;
 
-#if 1
 		GeneralizedBSDFSampleResult bsdfSR;
 		auto fs_Estimated = currBsdf->SampleAndEstimateDirection(bsdfSQ, currGeom, bsdfSR);
 		if (Math::IsZero(fs_Estimated))
@@ -332,24 +331,6 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 
 		// Update throughput
 		throughput *= fs_Estimated;
-#else
-		GeneralizedBSDFSampleResult bsdfSR;
-		if (!currBsdf->SampleDirection(bsdfSQ, currGeom, bsdfSR))
-		{
-			break;
-		}
-
-		// Evaluate generalized BSDF
-		auto fs = currBsdf->EvaluateDirection(GeneralizedBSDFEvaluateQuery(bsdfSQ, bsdfSR), currGeom);
-		if (Math::IsZero(fs))
-		{
-			break;
-		}
-
-		// Update throughput
-		LM_ASSERT(bsdfSR.pdf.measure == Math::ProbabilityMeasure::ProjectedSolidAngle);
-		throughput *= fs / bsdfSR.pdf.v;
-#endif
 
 		// Calculate raster position if the depth is one
 		if (numPathVertices == 1)
