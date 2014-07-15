@@ -69,9 +69,10 @@ private:
 
 	long long numSamples;									// Number of samples
 	int rrDepth;											// Depth of beginning RR
+	int maxPathVertices;									// Maximum number of light path vertices
 	int numThreads;											// Number of threads
 	long long samplesPerBlock;								// Samples to be processed per block
-	std::unique_ptr<ConfigurableSampler> initialSampler;		// Sampler
+	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -84,6 +85,7 @@ bool MISPathtraceRenderer::Configure( const ConfigNode& node, const Assets& asse
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("max_path_vertices", -1, maxPathVertices);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -221,7 +223,7 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 	auto currGeom = geomE;
 	Math::Vec3 currWi;
 	const GeneralizedBSDF* currBsdf = scene.MainCamera();
-	int depth = 0;
+	int numPathVertices = 1;
 	Math::Vec2 rasterPos;
 
 	while (true)
@@ -242,9 +244,9 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 			auto ppL = Math::Normalize(geomL.p - currGeom.p);
 			if (RenderUtils::Visible(scene, currGeom.p, geomL.p))
 			{
-				// Calculate raster position if the depth is zero
+				// Calculate raster position if required
 				bool visible = true;
-				if (depth == 0)
+				if (numPathVertices == 1)
 				{
 					visible = scene.MainCamera()->RayToRasterPosition(currGeom.p, ppL, rasterPos);
 				}
@@ -298,7 +300,7 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 
 		// --------------------------------------------------------------------------------
 
-		if (++depth >= rrDepth)
+		if (rrDepth != -1 && numPathVertices >= rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
@@ -350,7 +352,7 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 #endif
 
 		// Calculate raster position if the depth is one
-		if (depth == 1)
+		if (numPathVertices == 1)
 		{
 			if (!scene.MainCamera()->RayToRasterPosition(currGeom.p, bsdfSR.wo, rasterPos))
 			{
@@ -418,7 +420,12 @@ void MISPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sample
 		currGeom = isect.geom;
 		currWi = -ray.d;
 		currBsdf = isect.primitive->bsdf;
-		depth++;
+		numPathVertices++;
+
+		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
+		{
+			break;
+		}
 	}
 }
 

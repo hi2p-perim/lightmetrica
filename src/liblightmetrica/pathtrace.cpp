@@ -70,6 +70,7 @@ private:
 
 	long long numSamples;									// Number of samples
 	int rrDepth;											// Depth of beginning RR
+	int maxPathVertices;									// Maximum number of light path vertices
 	int numThreads;											// Number of threads
 	long long samplesPerBlock;								// Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
@@ -85,6 +86,7 @@ bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets 
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("max_path_vertices", -1, maxPathVertices);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -271,7 +273,7 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 #endif
 			
 	Math::Vec3 L;
-	int depth = 0;
+	int numPathVertices = 1;
 
 	while (true)
 	{
@@ -341,7 +343,7 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 
 		// --------------------------------------------------------------------------------
 
-		if (++depth >= rrDepth)
+		if (rrDepth != -1 && numPathVertices >= rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
@@ -351,6 +353,13 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 			}
 
 			throughput /= p;
+		}
+
+		numPathVertices++;
+
+		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
+		{
+			break;
 		}
 	}
 

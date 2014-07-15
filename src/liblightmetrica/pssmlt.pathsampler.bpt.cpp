@@ -56,8 +56,8 @@ public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
-	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
+	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 
 private:
 
@@ -116,12 +116,12 @@ PSSMLTPathSampler* PSSMLTBPTPathSampler::Clone()
 	return sampler;
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
+void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices )
 {
-	SampleAndEvaluateBidir(scene, sampler, sampler, splats, rrDepth, maxDepth);
+	SampleAndEvaluateBidir(scene, sampler, sampler, splats, rrDepth, maxPathVertices);
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices )
 {
 	// Clear result
 	splats.splats.clear();
@@ -132,14 +132,19 @@ void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& 
 	eyeSubpath.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxDepth);
-	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxDepth);
+	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxPathVertices);
+	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxPathVertices);
 
 	// Evaluate combination of sub-paths
 	const int nL = static_cast<int>(lightSubpath.vertices.size());
 	const int nE = static_cast<int>(eyeSubpath.vertices.size());
 	for (int n = 2; n <= nE + nL; n++)
 	{
+		if (maxPathVertices != -1 && n > maxPathVertices)
+		{
+			continue;
+		}
+
 		const int minS = Math::Max(0, n-nE);
 		const int maxS = Math::Min(nL, n);
 		for (int s = minS; s <= maxS; s++)

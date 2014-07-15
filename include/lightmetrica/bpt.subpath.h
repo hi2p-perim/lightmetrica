@@ -144,9 +144,9 @@ public:
 		\param sampler Sampler.
 		\param pool Memory pool for path vertex.
 		\param rrDepth Depth to begin Russian roulette.
-		\param maxDepth Maximum number of vertex of subpath.
+		\param maxPathVertices Maximum number of vertex of subpath.
 	*/
-	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxDepth);
+	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxPathVertices);
 
 	/*!
 		Evaluate alpha of sub-paths.

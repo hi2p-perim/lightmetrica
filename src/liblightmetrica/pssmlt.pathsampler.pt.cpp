@@ -49,8 +49,8 @@ public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
-	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
+	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 
 };
 
@@ -65,7 +65,7 @@ PSSMLTPathSampler* PSSMLTPTPathSampler::Clone()
 	return sampler;
 }
 
-void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
+void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices )
 {
 	// Clear result
 	splats.splats.clear();
@@ -95,11 +95,11 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 
 	Math::Vec3 throughput = We_Estimated;
 	Math::Vec3 L;
-	int depth = 1;
+	int numPathVertices = 1;
 
 	while (true)
 	{
-		if (maxDepth != -1 && depth > maxDepth)
+		if (maxPathVertices != -1 && numPathVertices > maxPathVertices)
 		{
 			break;
 		}
@@ -152,7 +152,7 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 
 		// --------------------------------------------------------------------------------
 
-		if (++depth >= rrDepth)
+		if (numPathVertices >= rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
@@ -162,6 +162,13 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 			}
 
 			throughput /= p;
+		}
+
+		numPathVertices++;
+
+		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
+		{
+			break;
 		}
 	}
 

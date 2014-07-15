@@ -147,7 +147,7 @@ BPTPathVertex* BPTSubpath::GetVertex( int i ) const
 	return vertices[i];
 }
 
-void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxDepth )
+void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxPathVertices )
 {
 	LM_ASSERT(vertices.empty());
 
@@ -213,7 +213,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 	// --------------------------------------------------------------------------------
 
-	int depth = 1;
+	int numPathVertices = 1;
 	while (true)
 	{
 		// Previous vertex
@@ -270,7 +270,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		// --------------------------------------------------------------------------------
 
 		// Apply RR
-		if (rrDepth != -1 && depth >= rrDepth)
+		if (rrDepth != -1 && numPathVertices >= rrDepth)
 		{
 			// TODO : Replace with the more efficient one
 			auto p = Math::Float(0.5);
@@ -360,10 +360,10 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		}
 #endif
 
-		depth++;
+		numPathVertices++;
 		vertices.push_back(v);
 
-		if (maxDepth != -1 && depth >= maxDepth)
+		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
 		{
 			break;
 		}

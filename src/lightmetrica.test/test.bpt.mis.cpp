@@ -34,7 +34,6 @@
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
-#include <lightmetrica/bpt.config.h>
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/random.h>
 #include <lightmetrica/renderutils.h>

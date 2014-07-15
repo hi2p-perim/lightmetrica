@@ -305,7 +305,6 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PSSMLT_SOURCES})
 set(
 	_RENDERER_BPT_HEADERS
 	"${_INCLUDE_DIR}/bpt.common.h"
-	"${_INCLUDE_DIR}/bpt.config.h"
 	"${_INCLUDE_DIR}/bpt.subpath.h"
 	"${_INCLUDE_DIR}/bpt.fullpath.h"
 	"${_INCLUDE_DIR}/bpt.pool.h"
@@ -314,7 +313,6 @@ set(
 set(
 	_RENDERER_BPT_SOURCES
 	"bpt.cpp"
-	"bpt.config.cpp"
 	"bpt.subpath.cpp"
 	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"

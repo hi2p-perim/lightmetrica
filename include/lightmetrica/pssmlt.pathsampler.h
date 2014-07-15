@@ -72,9 +72,9 @@ public:
 		\param sampler Abstract sampler.
 		\param splats Evaluated pixel contributions and their raster positions.
 		\param rrDepth Depth to begin RR, -1 skips RR.
-		\param maxDepth Maximum number of vertex, -1 specifies no limits.
+		\param maxPathVertices Maximum number of vertex, -1 specifies no limits.
 	*/
-	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth) = 0;
+	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) = 0;
 
 	/*!
 		Sample and evaluate light paths (separated PSS version for BPT).
@@ -86,9 +86,9 @@ public:
 		\param eyeSubpathSampler Abstract sampler for eye subpath.
 		\param splats Evaluated pixel contributions and their raster positions.
 		\param rrDepth Depth to begin RR, -1 skips RR.
-		\param maxDepth Maximum number of vertex of each subpath, -1 specifies no limits.
+		\param maxPathVertices Maximum number of vertex of each subpath, -1 specifies no limits.
 	*/
-	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth) = 0;
+	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) = 0;
 
 };
 

@@ -20,7 +20,6 @@
 #include "pch.h"
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/bpt.subpath.h>
-#include <lightmetrica/bpt.config.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/bpt.mis.h>
@@ -120,7 +119,20 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	BPTConfig config;
+
+	long long numSamples;									//!< Number of samples
+	int rrDepth;											//!< Depth of beginning RR
+	int maxPathVertices;									//!< Maximum number of light path vertices
+	int numThreads;											//!< Number of threads
+	long long samplesPerBlock;								//!< Samples to be processed per block
+	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
+	std::unique_ptr<BPTMISWeight> misWeight;				//!< MIS weighting function
+
+#if LM_ENABLE_BPT_EXPERIMENTAL
+	bool enableExperimentalMode;		//!< Enables experimental mode if true
+	int maxSubpathNumVertices;			//!< Maximum number of vertices of sub-paths
+	std::string subpathImageDir;		//!< Output directory of sub-path images
+#endif
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	std::vector<std::unique_ptr<BitmapFilm>> subpathFilms;					// Films for sub-path images
@@ -135,10 +147,78 @@ private:
 
 bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
-	if (!config.Load(node, assets))
+	// Load parameters
+	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
+	node.ChildValueOrDefault("max_path_vertices", -1, maxPathVertices);
+	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
+	if (numThreads <= 0)
+	{
+		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
+	}
+	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
+	if (samplesPerBlock <= 0)
+	{
+		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
+		return false;
+	}
+
+	// Sampler
+	auto samplerNode = node.Child("sampler");
+	auto samplerNodeType = samplerNode.AttributeValue("type");
+	if (samplerNodeType != "random")
+	{
+		LM_LOG_ERROR("Invalid sampler type. This renderer requires 'random' sampler");
+		return false;
+	}
+	initialSampler.reset(ComponentFactory::Create<ConfigurableSampler>(samplerNodeType));
+	if (initialSampler == nullptr || !initialSampler->Configure(samplerNode, assets))
+	{
+		LM_LOG_ERROR("Invalid sampler");
+		return false;
+	}
+
+	// MIS weight function
+	auto misWeightModeNode = node.Child("mis_weight");
+	if (misWeightModeNode.Empty())
+	{
+		LM_LOG_ERROR("Missing 'mis_weight' element");
+		return false;
+	}
+	auto misWeightType = misWeightModeNode.AttributeValue("type");
+	if (!ComponentFactory::CheckRegistered<BPTMISWeight>(misWeightType))
+	{
+		LM_LOG_ERROR("Unsupported MIS weighting function '" + misWeightType + "'");
+		return false;
+	}
+	auto* p = ComponentFactory::Create<BPTMISWeight>(misWeightType);
+	if (p == nullptr)
 	{
 		return false;
 	}
+	misWeight.reset(p);
+	if (!p->Configure(misWeightModeNode, assets))
+	{
+		return false;
+	}
+
+#if LM_ENABLE_BPT_EXPERIMENTAL
+	// Experimental parameters
+	auto experimentalNode = node.Child("experimental");
+	if (!experimentalNode.Empty())
+	{
+		enableExperimentalMode = true;
+		experimentalNode.ChildValueOrDefault("max_subpath_num_vertices", 3, maxSubpathNumVertices);
+		experimentalNode.ChildValueOrDefault<std::string>("subpath_image_dir", "bpt", subpathImageDir);
+
+		// At least #maxSubpathNumVertices vertices are sampled in the experimental mode
+		rrDepth = Math::Max(rrDepth, maxSubpathNumVertices);
+	}
+	else
+	{
+		enableExperimentalMode = false;
+	}
+#endif
 
 #if LM_EXPERIMENTAL_MODE
 	auto experimentsNode = node.Child("experiments");
@@ -153,10 +233,10 @@ bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const As
 			return false;
 		}
 
-		if (config.numThreads != 1)
+		if (numThreads != 1)
 		{
 			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			config.numThreads = 1;
+			numThreads = 1;
 		}
 	}
 #endif
@@ -176,26 +256,26 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	// --------------------------------------------------------------------------------
 
 	// Set number of threads
-	omp_set_num_threads(config.numThreads);
+	omp_set_num_threads(numThreads);
 
 	// Random number generators and films
 	std::vector<BPTThreadContext> contexts;
-	for (int i = 0; i < config.numThreads; i++)
+	for (int i = 0; i < numThreads; i++)
 	{
-		contexts.emplace_back(config.initialSampler->Clone(), masterFilm->Clone());
-		contexts.back().sampler->SetSeed(config.initialSampler->NextUInt());
+		contexts.emplace_back(initialSampler->Clone(), masterFilm->Clone());
+		contexts.back().sampler->SetSeed(initialSampler->NextUInt());
 	}
 
 	// Number of blocks to be separated
-	long long blocks = (config.numSamples + config.samplesPerBlock) / config.samplesPerBlock;
+	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	// Initialize films for sub-path combinations
-	if (config.enableExperimentalMode)
+	if (enableExperimentalMode)
 	{
-		for (int s = 0; s <= config.maxSubpathNumVertices; s++)
+		for (int s = 0; s <= maxSubpathNumVertices; s++)
 		{
-			for (int t = 0; t <= config.maxSubpathNumVertices; t++)
+			for (int t = 0; t <= maxSubpathNumVertices; t++)
 			{
 				std::unique_ptr<BitmapFilm> film(dynamic_cast<BitmapFilm*>(ComponentFactory::Create<Film>("hdr")));
 				film->SetImageType(BitmapImageType::RadianceHDR);
@@ -220,8 +300,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		auto& eyeSubpath   = contexts[threadId].eyeSubpath;
 
 		// Sample range
-		long long sampleBegin = config.samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + config.samplesPerBlock, config.numSamples);
+		long long sampleBegin = samplesPerBlock * block;
+		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
 
 		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
 
@@ -233,8 +313,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			lightSubpath.Sample(scene, *sampler, *pool, config.rrDepth, -1);
-			eyeSubpath.Sample(scene, *sampler, *pool, config.rrDepth, -1);
+			lightSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
+			eyeSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
 
 			// Debug print
 #if 0
@@ -279,18 +359,18 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(config.numSamples));
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
-	if (config.enableExperimentalMode)
+	if (enableExperimentalMode)
 	{
 		// Create output directory if it does not exists
-		if (!boost::filesystem::exists(config.subpathImageDir))
+		if (!boost::filesystem::exists(subpathImageDir))
 		{
-			LM_LOG_INFO("Creating directory " + config.subpathImageDir);
-			if (!boost::filesystem::create_directory(config.subpathImageDir))
+			LM_LOG_INFO("Creating directory " + subpathImageDir);
+			if (!boost::filesystem::create_directory(subpathImageDir))
 			{
 				return false;
 			}
@@ -300,16 +380,16 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 		{
 			LM_LOG_INFO("Saving sub-path images");
 			LM_LOG_INDENTER();
-			for (int s = 0; s <= config.maxSubpathNumVertices; s++)
+			for (int s = 0; s <= maxSubpathNumVertices; s++)
 			{
-				for (int t = 0; t <= config.maxSubpathNumVertices; t++)
+				for (int t = 0; t <= maxSubpathNumVertices; t++)
 				{
-					auto path = boost::filesystem::path(config.subpathImageDir) / boost::str(boost::format("s%02dt%02d.hdr") % s % t);
+					auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("s%02dt%02d.hdr") % s % t);
 					{
 						LM_LOG_INFO("Saving " + path.string());
 						LM_LOG_INDENTER();
-						auto& film = subpathFilms[s*(config.maxSubpathNumVertices+1)+t];
-						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(config.numSamples)))
+						auto& film = subpathFilms[s*(maxSubpathNumVertices+1)+t];
+						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
 						{
 							return false;
 						}
@@ -324,12 +404,12 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			LM_LOG_INDENTER();
 			for (const auto& kv : perLengthFilms)
 			{
-				auto path = boost::filesystem::path(config.subpathImageDir) / boost::str(boost::format("l%03d.hdr") % kv.first);
+				auto path = boost::filesystem::path(subpathImageDir) / boost::str(boost::format("l%03d.hdr") % kv.first);
 				{
 					LM_LOG_INFO("Saving " + path.string());
 					LM_LOG_INDENTER();
 					auto& film = kv.second;
-					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(config.numSamples)))
+					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
 					{
 						return false;
 					}
@@ -354,6 +434,11 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 	// If n = 0 or 1 no valid path is generated
 	for (int n = 2; n <= nE + nL; n++)
 	{
+		if (maxPathVertices != -1 && n > maxPathVertices)
+		{
+			continue;
+		}
+
 		// Process full-path with length n+1 (subpath edges + connecting edge)
 		const int minS = Math::Max(0, n-nE);
 		const int maxS = Math::Min(nL, n);
@@ -377,15 +462,15 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 			}
 
 			// Evaluate weighting function w_{s,t}
-			auto w = config.misWeight->Evaluate(fullPath);
+			auto w = misWeight->Evaluate(fullPath);
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulation contribution to sub-path films
-			if (config.enableExperimentalMode && s <= config.maxSubpathNumVertices && t <= config.maxSubpathNumVertices)
+			if (enableExperimentalMode && s <= maxSubpathNumVertices && t <= maxSubpathNumVertices)
 			{
 				#pragma omp critical
 				{
-					subpathFilms[s*(config.maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, Cstar);
+					subpathFilms[s*(maxSubpathNumVertices+1)+t]->AccumulateContribution(rasterPosition, Cstar);
 				}
 			}
 #endif
@@ -396,7 +481,7 @@ void BidirectionalPathtraceRenderer::EvaluateSubpathCombinations( const Scene& s
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulate contribution to per length image
-			if (config.enableExperimentalMode)
+			if (enableExperimentalMode)
 			{
 				#pragma omp critical
 				{
