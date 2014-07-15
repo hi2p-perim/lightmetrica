@@ -124,6 +124,7 @@ private:
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;									//!< Number of sample mutations
+	int rrDepth;											//!< Depth of beginning RR
 	int numThreads;											//!< Number of threads
 	long long samplesPerBlock;								//!< Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
@@ -151,6 +152,7 @@ bool PSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -277,7 +279,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 
 		// Sample light paths
 		// We note that path sampler might generate multiple light paths
-		pathSampler->SampleAndEvaluate(scene, *rewindableSampler, splats);
+		pathSampler->SampleAndEvaluate(scene, *rewindableSampler, splats, rrDepth, -1);
 
 		// Calculate sum of luminance
 		auto I = splats.SumI();
@@ -351,7 +353,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 		// Restore state of the seed path
 		rewindableSampler->Rewind(seeds[i].index);
 		context->sampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurentRecord());
+		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurentRecord(), rrDepth, -1);
 		context->sampler->EndRestore();
 		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
@@ -425,7 +427,7 @@ void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThread
 	context.sampler->EnableLargeStepMutation(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	context.pathSampler->SampleAndEvaluate(scene, *context.sampler, proposed);
+	context.pathSampler->SampleAndEvaluate(scene, *context.sampler, proposed, rrDepth, -1);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();

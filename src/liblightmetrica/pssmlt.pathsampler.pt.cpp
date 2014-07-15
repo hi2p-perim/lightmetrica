@@ -52,22 +52,16 @@ public:
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
 	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
 
-private:
-
-	int rrDepth;	// Depth of beginning RR
-
 };
 
 bool PSSMLTPTPathSampler::Configure( const ConfigNode& node, const Assets& assets )
 {
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	return true;
 }
 
 PSSMLTPathSampler* PSSMLTPTPathSampler::Clone()
 {
 	auto* sampler = new PSSMLTPTPathSampler;
-	sampler->rrDepth = rrDepth;
 	return sampler;
 }
 

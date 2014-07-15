@@ -117,6 +117,7 @@ private:
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	long long numSamples;									//!< Number of sample mutations
+	int rrDepth;											//!< Depth of beginning RR
 	int numThreads;											//!< Number of threads
 	long long samplesPerBlock;								//!< Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
@@ -139,6 +140,7 @@ bool BPTOptimizedPSSMLTRenderer::Configure( const ConfigNode& node, const Assets
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
+	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
 	{
@@ -218,7 +220,7 @@ bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
 
 		// Sample light paths
 		// We note that path sampler might generate multiple light paths
-		pathSampler->SampleAndEvaluateBidir(scene, *rewindableSampler, *rewindableSampler, splats);
+		pathSampler->SampleAndEvaluateBidir(scene, *rewindableSampler, *rewindableSampler, splats, rrDepth, -1);
 
 		// Calculate sum of luminance
 		auto I = splats.SumI();
@@ -291,7 +293,7 @@ bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
 		rewindableSampler->Rewind(seeds[i].index);
 		context->lightSubpathSampler->BeginRestore(*rewindableSampler);
 		context->eyeSubpathSampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->CurentRecord());
+		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->CurentRecord(), rrDepth, -1);
 		context->eyeSubpathSampler->EndRestore();
 		context->lightSubpathSampler->EndRestore();
 
@@ -352,7 +354,7 @@ void BPTOptimizedPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, 
 	context.eyeSubpathSampler->EnableLargeStepMutation(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	context.pathSampler->SampleAndEvaluateBidir(scene, *context.lightSubpathSampler, *context.eyeSubpathSampler, proposed);
+	context.pathSampler->SampleAndEvaluateBidir(scene, *context.lightSubpathSampler, *context.eyeSubpathSampler, proposed, rrDepth, -1);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();

@@ -138,14 +138,15 @@ public:
 	LM_PUBLIC_API void DebugPrint(size_t n) const;
 
 	/*!
-		Sample a sub-path.
-		Sample eye sub-path or light sub-path according to #transportDir.
+		Sample a subpath.
+		Sample eye subpath or light subpath according to #transportDir.
 		\param scene Scene.
 		\param sampler Sampler.
 		\param pool Memory pool for path vertex.
 		\param rrDepth Depth to begin Russian roulette.
+		\param maxDepth Maximum number of vertex of subpath.
 	*/
-	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth);
+	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxDepth);
 
 	/*!
 		Evaluate alpha of sub-paths.

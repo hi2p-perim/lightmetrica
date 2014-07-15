@@ -56,12 +56,11 @@ public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
-	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats );
+	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth );
 
 private:
 
-	int rrDepth;										//!< Depth of beginning RR
 	std::unique_ptr<BPTMISWeight> misWeight;			//!< MIS weighting function
 
 private:
@@ -81,8 +80,6 @@ PSSMLTBPTPathSampler::PSSMLTBPTPathSampler()
 
 bool PSSMLTBPTPathSampler::Configure( const ConfigNode& node, const Assets& assets )
 {
-	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
-
 	auto misWeightModeNode = node.Child("mis_weight");
 	if (misWeightModeNode.Empty())
 	{
@@ -114,18 +111,17 @@ bool PSSMLTBPTPathSampler::Configure( const ConfigNode& node, const Assets& asse
 PSSMLTPathSampler* PSSMLTBPTPathSampler::Clone()
 {
 	auto* sampler = new PSSMLTBPTPathSampler;
-	sampler->rrDepth = rrDepth;
 	sampler->misWeight.reset(misWeight->Clone());
 	sampler->pool.reset(new BPTPathVertexPool);
 	return sampler;
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats )
+void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
 {
-	SampleAndEvaluateBidir(scene, sampler, sampler, splats);
+	SampleAndEvaluateBidir(scene, sampler, sampler, splats, rrDepth, maxDepth);
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats )
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
 {
 	// Clear result
 	splats.splats.clear();
@@ -136,8 +132,8 @@ void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& 
 	eyeSubpath.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth);
-	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth);
+	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxDepth);
+	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxDepth);
 
 	// Evaluate combination of sub-paths
 	const int nL = static_cast<int>(lightSubpath.vertices.size());

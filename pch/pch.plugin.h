@@ -18,10 +18,11 @@
 */
 
 #pragma once
-#ifndef PLUGIN_ADAPTIVE_PSSMLT_PCH_H
-#define PLUGIN_ADAPTIVE_PSSMLT_PCH_H
+#ifndef PCH_PLUGIN_H
+#define PCH_PLUGIN_H
 
 #include <lightmetrica/common.h>
+#include <lightmetrica/plugin.common.h>
 
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
@@ -50,4 +51,4 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#endif // PLUGIN_ADAPTIVE_PSSMLT_PCH_H
+#endif // PCH_PLUGIN_H

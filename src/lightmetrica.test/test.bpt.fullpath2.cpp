@@ -173,8 +173,8 @@ TEST_F(BPTFullpathTest2, Consistency)
 		pool.Release();
 		lightSubpath.Clear();
 		eyeSubpath.Clear();
-		lightSubpath.Sample(*scene, *sampler, pool, 3);
-		eyeSubpath.Sample(*scene, *sampler, pool, 3);
+		lightSubpath.Sample(*scene, *sampler, pool, 3, -1);
+		eyeSubpath.Sample(*scene, *sampler, pool, 3, -1);
 
 		const int nL = lightSubpath.NumVertices();
 		const int nE = eyeSubpath.NumVertices();

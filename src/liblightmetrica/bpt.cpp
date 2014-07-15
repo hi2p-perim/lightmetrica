@@ -233,8 +233,8 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			eyeSubpath.Clear();
 
 			// Sample sub-paths
-			lightSubpath.Sample(scene, *sampler, *pool, config.rrDepth);
-			eyeSubpath.Sample(scene, *sampler, *pool, config.rrDepth);
+			lightSubpath.Sample(scene, *sampler, *pool, config.rrDepth, -1);
+			eyeSubpath.Sample(scene, *sampler, *pool, config.rrDepth, -1);
 
 			// Debug print
 #if 0
