@@ -548,7 +548,7 @@ void LightmetricaApplication::PrintStartMessage()
 	LM_LOG_INFO(appDescription);
 	LM_LOG_INFO("");
 	LM_LOG_INFO("Copyright (c) 2014 Hisanari Otsu (hi2p.perim@gmail.com)");
-	LM_LOG_INFO("The software is distributed under the MIT license.");
+	LM_LOG_INFO("The software is distributed under GPLv3.");
 	LM_LOG_INFO("For detail see the LICENSE file along with the software.");
 	LM_LOG_INFO("");
 	LM_LOG_INFO("BUILD DATE   | " + Version::BuildDate());
