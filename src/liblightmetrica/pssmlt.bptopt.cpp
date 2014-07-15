@@ -71,17 +71,6 @@ struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
 
 	}
 
-	BPTOptimizedPSSMLTThreadContext(BPTOptimizedPSSMLTThreadContext&& context)
-		: randomSampler(std::move(context.randomSampler))
-		, pathSampler(std::move(context.pathSampler))
-		, film(std::move(context.film))
-		, lightSubpathSampler(std::move(context.lightSubpathSampler))
-		, eyeSubpathSampler(std::move(context.eyeSubpathSampler))
-		, current(0)
-	{
-
-	}
-
 	PSSMLTSplats& CurrentRecord() { return records[current]; }
 	PSSMLTSplats& ProposedRecord() { return records[1-current]; }
 

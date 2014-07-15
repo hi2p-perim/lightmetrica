@@ -69,17 +69,7 @@ struct PSSMLTThreadContext : public SIMDAlignedType
 
 	}
 
-	PSSMLTThreadContext(PSSMLTThreadContext&& context)
-		: randomSampler(std::move(context.randomSampler))
-		, pathSampler(std::move(context.pathSampler))
-		, film(std::move(context.film))
-		, sampler(std::move(context.sampler))
-		, current(0)
-	{
-
-	}
-
-	PSSMLTSplats& CurentRecord() { return records[current]; }
+	PSSMLTSplats& CurrentRecord() { return records[current]; }
 	PSSMLTSplats& ProposedRecord() { return records[1-current]; }
 
 };
@@ -353,7 +343,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 		// Restore state of the seed path
 		rewindableSampler->Rewind(seeds[i].index);
 		context->sampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurentRecord(), rrDepth, -1);
+		pathSampler->SampleAndEvaluate(scene, *context->sampler, context->CurrentRecord(), rrDepth, -1);
 		context->sampler->EndRestore();
 		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
@@ -419,7 +409,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 
 void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThreadContext& context ) const
 {
-	auto& current  = context.CurentRecord();
+	auto& current  = context.CurrentRecord();
 	auto& proposed = context.ProposedRecord();
 
 	// Enable large step mutation
@@ -469,7 +459,7 @@ void PSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, PSSMLTThread
 		}
 		case PSSMLTEstimatorMode::Normal:
 		{
-			auto& current = context.CurentRecord();
+			auto& current = context.CurrentRecord();
 			current.AccumulateContributionToFilm(*context.film, normFactor / current.SumI());
 			break;
 		}
