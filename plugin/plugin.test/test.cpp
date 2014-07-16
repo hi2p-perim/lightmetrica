@@ -17,7 +17,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <pch.plugin.h>
+#include "pch.plugin.h"
 #include <lightmetrica/plugin.common.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/math.stats.h>
