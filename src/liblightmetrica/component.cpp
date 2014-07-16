@@ -142,7 +142,7 @@ private:
 	Component* CreateInstanceFromPlugin(const std::string& interfaceType, const std::string& implType)
 	{
 #if 1
-		// TODO : Try other ways if it decreases in performance
+		// TODO : Try other ways if it degrades performance
 		for (auto& createFunc : pluginCreateInstanceFuncs)
 		{
 			auto instance = createFunc(implType.c_str(), interfaceType.c_str());
