@@ -51,6 +51,7 @@ public:
 	virtual PSSMLTPathSampler* Clone();
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
+	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t );
 
 };
 
@@ -176,6 +177,11 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 }
 
 void PSSMLTPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxDepth )
+{
+	LM_LOG_ERROR("Invalid operation for PSSMLTPTPathSampler");
+}
+
+void PSSMLTPTPathSampler::SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t )
 {
 	LM_LOG_ERROR("Invalid operation for PSSMLTPTPathSampler");
 }

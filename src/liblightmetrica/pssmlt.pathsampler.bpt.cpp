@@ -58,6 +58,7 @@ public:
 	virtual PSSMLTPathSampler* Clone();
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
+	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t );
 
 private:
 
@@ -166,6 +167,41 @@ void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& 
 			splats.splats.emplace_back(s, t, rasterPosition, C);
 		}
 	}
+}
+
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t )
+{
+	// Clear result
+	splats.splats.clear();
+
+	// Release and clear paths
+	pool->Release();
+	lightSubpath.Clear();
+	eyeSubpath.Clear();
+
+	// Sample subpaths
+	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxPathVertices);
+	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxPathVertices);
+
+	// Evaluate specified sub-paths
+	LM_ASSERT(s + t <= maxPathVertices);
+	LM_ASSERT(s <= static_cast<int>(lightSubpath.vertices.size()));
+	LM_ASSERT(t <= static_cast<int>(eyeSubpath.vertices.size()));
+
+	// Create fullpath
+	BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
+
+	// Evaluate unweighted contribution
+	Math::Vec2 rasterPosition;
+	auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
+	if (Math::IsZero(Cstar))
+	{
+		return;
+	}
+
+	// Evaluate contribution and record the splat
+	auto C = misWeight->Evaluate(fullPath) * Cstar;
+	splats.splats.emplace_back(s, t, rasterPosition, C);
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTBPTPathSampler, PSSMLTPathSampler);

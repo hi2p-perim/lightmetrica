@@ -90,6 +90,20 @@ public:
 	*/
 	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) = 0;
 
+	/*!
+		Sample and evaluate light paths (separated PSS version for BPT) for specified technique.
+		A variant of #SampleAndEvaluateBidir with specified technique with #s and #t.
+		\param scene Scene.
+		\param lightSubpathSampler Abstract sampler for light subpath.
+		\param eyeSubpathSampler Abstract sampler for eye subpath.
+		\param splats Evaluated pixel contributions and their raster positions.
+		\param rrDepth Depth to begin RR, -1 skips RR.
+		\param maxPathVertices Maximum number of vertex of each subpath, -1 specifies no limits.
+		\param s Number of light subpath vertices.
+		\param t Number of eye subpath vertices.
+	*/
+	virtual void SampleAndEvaluateBidirSpecified(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t) = 0;
+
 };
 
 LM_NAMESPACE_END
