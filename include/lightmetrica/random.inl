@@ -28,7 +28,11 @@ LM_FORCE_INLINE Math::Float Random::Next()
 
 LM_FORCE_INLINE Math::Vec2 Random::NextVec2()
 {
-	return Math::Vec2(Next(), Next());
+	// Note : according to C++ standard, evaluation order of the arguments are undefined
+	// so we avoid the implementation like Vec2(Next(), Next()).
+	auto u1 = Next();
+	auto u2 = Next();
+	return Math::Vec2(u1, u2);
 }
 
 LM_NAMESPACE_END

@@ -40,6 +40,11 @@ struct PSSMLTSplat
 	Math::Vec2 rasterPos;		//!< Raster position
 	Math::Vec3 L;				//!< Radiance
 
+	PSSMLTSplat()
+	{
+
+	}
+
 	PSSMLTSplat(int s, int t, const Math::Vec2& rasterPos, const Math::Vec3& L)
 		: s(s)
 		, t(t)

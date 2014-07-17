@@ -70,7 +70,9 @@ public:
 
 	virtual Math::Vec2 NextVec2()
 	{
-		return Math::Vec2(Next(), Next());
+		auto u1 = Next();
+		auto u2 = Next();
+		return Math::Vec2(u1, u2);
 	}
 
 	virtual Random* Rng()

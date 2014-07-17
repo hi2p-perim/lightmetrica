@@ -29,6 +29,7 @@ class ConfigNode;
 class Assets;
 class Scene;
 class Sampler;
+struct PSSMLTSplat;
 struct PSSMLTSplats;
 
 /*!
@@ -82,27 +83,27 @@ public:
 		for sampling light subpath and eye subpath,
 		which increase coherency between mutations.
 		\param scene Scene.
-		\param lightSubpathSampler Abstract sampler for light subpath.
-		\param eyeSubpathSampler Abstract sampler for eye subpath.
+		\param subpathSamplerL Abstract sampler for light subpath.
+		\param subpathSamplerE Abstract sampler for eye subpath.
 		\param splats Evaluated pixel contributions and their raster positions.
 		\param rrDepth Depth to begin RR, -1 skips RR.
 		\param maxPathVertices Maximum number of vertex of each subpath, -1 specifies no limits.
 	*/
-	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) = 0;
+	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) = 0;
 
 	/*!
 		Sample and evaluate light paths (separated PSS version for BPT) for specified technique.
 		A variant of #SampleAndEvaluateBidir with specified technique with #s and #t.
 		\param scene Scene.
-		\param lightSubpathSampler Abstract sampler for light subpath.
-		\param eyeSubpathSampler Abstract sampler for eye subpath.
-		\param splats Evaluated pixel contributions and their raster positions.
+		\param subpathSamplerL Abstract sampler for light subpath.
+		\param subpathSamplerE Abstract sampler for eye subpath.
+		\param splat Evaluated pixel contribution and its raster position.
 		\param rrDepth Depth to begin RR, -1 skips RR.
 		\param maxPathVertices Maximum number of vertex of each subpath, -1 specifies no limits.
 		\param s Number of light subpath vertices.
 		\param t Number of eye subpath vertices.
 	*/
-	virtual void SampleAndEvaluateBidirSpecified(const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t) = 0;
+	virtual void SampleAndEvaluateBidirSpecified(const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t) = 0;
 
 };
 

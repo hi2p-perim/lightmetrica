@@ -285,6 +285,7 @@ set(
 	"${_INCLUDE_DIR}/pssmlt.splat.h"
 	"${_INCLUDE_DIR}/pssmlt.sampler.h"
 	"${_INCLUDE_DIR}/pssmlt.pathsampler.h"
+	"${_INCLUDE_DIR}/pssmlt.pathseed.h"
 )
 set(
 	_RENDERER_PSSMLT_SOURCES

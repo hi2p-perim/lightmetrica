@@ -71,8 +71,8 @@ struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
 
 	}
 
-	PSSMLTSplats& CurrentRecord() { return records[current]; }
-	PSSMLTSplats& ProposedRecord() { return records[1-current]; }
+	PSSMLTSplats& Current() { return records[current]; }
+	PSSMLTSplats& Proposed() { return records[1-current]; }
 
 };
 
@@ -282,11 +282,11 @@ bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
 		rewindableSampler->Rewind(seeds[i].index);
 		context->lightSubpathSampler->BeginRestore(*rewindableSampler);
 		context->eyeSubpathSampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->CurrentRecord(), rrDepth, -1);
+		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->Current(), rrDepth, -1);
 		context->eyeSubpathSampler->EndRestore();
 		context->lightSubpathSampler->EndRestore();
 
-		LM_ASSERT(Math::Abs(context->CurentRecord().SumI() - seeds[i].I) < Math::Constants::Eps());
+		LM_ASSERT(Math::Abs(context->Current().SumI() - seeds[i].I) < Math::Constants::Eps());
 	}
 
 	// --------------------------------------------------------------------------------
@@ -334,8 +334,8 @@ bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
 
 void BPTOptimizedPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, BPTOptimizedPSSMLTThreadContext& context ) const
 {
-	auto& current  = context.CurrentRecord();
-	auto& proposed = context.ProposedRecord();
+	auto& current  = context.Current();
+	auto& proposed = context.Proposed();
 
 	// Enable large step mutation
 	bool enableLargeStep = context.randomSampler->Next() < largeStepProb;

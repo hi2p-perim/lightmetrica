@@ -57,24 +57,24 @@ public:
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
 	virtual PSSMLTPathSampler* Clone();
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
-	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t );
+	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
+	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t );
 
 private:
 
-	std::unique_ptr<BPTMISWeight> misWeight;			//!< MIS weighting function
+	std::unique_ptr<BPTMISWeight> misWeight;	//!< MIS weighting function
 
 private:
 
-	std::unique_ptr<BPTPathVertexPool> pool;			//!< Memory pool for path vertices
-	BPTSubpath lightSubpath;							//!< Light subpath
-	BPTSubpath eyeSubpath;								//!< Eye subpath
+	std::unique_ptr<BPTPathVertexPool> pool;	//!< Memory pool for path vertices
+	BPTSubpath subpathL;						//!< Light subpath
+	BPTSubpath subpathE;						//!< Eye subpath
 
 };
 
 PSSMLTBPTPathSampler::PSSMLTBPTPathSampler()
-	: lightSubpath(TransportDirection::LE)
-	, eyeSubpath(TransportDirection::EL)
+	: subpathL(TransportDirection::LE)
+	, subpathE(TransportDirection::EL)
 {
 
 }
@@ -122,23 +122,23 @@ void PSSMLTBPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sampl
 	SampleAndEvaluateBidir(scene, sampler, sampler, splats, rrDepth, maxPathVertices);
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices )
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices )
 {
 	// Clear result
 	splats.splats.clear();
 
 	// Release and clear paths
 	pool->Release();
-	lightSubpath.Clear();
-	eyeSubpath.Clear();
+	subpathL.Clear();
+	subpathE.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxPathVertices);
-	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxPathVertices);
+	subpathL.Sample(scene, subpathSamplerL, *pool, rrDepth, maxPathVertices);
+	subpathE.Sample(scene, subpathSamplerE, *pool, rrDepth, maxPathVertices);
 
 	// Evaluate combination of sub-paths
-	const int nL = static_cast<int>(lightSubpath.vertices.size());
-	const int nE = static_cast<int>(eyeSubpath.vertices.size());
+	const int nL = static_cast<int>(subpathL.vertices.size());
+	const int nE = static_cast<int>(subpathE.vertices.size());
 	for (int n = 2; n <= nE + nL; n++)
 	{
 		if (maxPathVertices != -1 && n > maxPathVertices)
@@ -152,56 +152,58 @@ void PSSMLTBPTPathSampler::SampleAndEvaluateBidir( const Scene& scene, Sampler& 
 		{
 			// Create fullpath
 			const int t = n - s;
-			BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
+			BPTFullPath fullpath(s, t, subpathL, subpathE);
 
 			// Evaluate unweighted contribution
 			Math::Vec2 rasterPosition;
-			auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
+			auto Cstar = fullpath.EvaluateUnweightContribution(scene, rasterPosition);
 			if (Math::IsZero(Cstar))
 			{
 				continue;
 			}
 
 			// Evaluate contribution and record the splat
-			auto C = misWeight->Evaluate(fullPath) * Cstar;
+			auto C = misWeight->Evaluate(fullpath) * Cstar;
 			splats.splats.emplace_back(s, t, rasterPosition, C);
 		}
 	}
 }
 
-void PSSMLTBPTPathSampler::SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& lightSubpathSampler, Sampler& eyeSubpathSampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices, int s, int t )
+void PSSMLTBPTPathSampler::SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t )
 {
-	// Clear result
-	splats.splats.clear();
-
 	// Release and clear paths
 	pool->Release();
-	lightSubpath.Clear();
-	eyeSubpath.Clear();
+	subpathL.Clear();
+	subpathE.Clear();
 
 	// Sample subpaths
-	lightSubpath.Sample(scene, lightSubpathSampler, *pool, rrDepth, maxPathVertices);
-	eyeSubpath.Sample(scene, eyeSubpathSampler, *pool, rrDepth, maxPathVertices);
+	subpathL.Sample(scene, subpathSamplerL, *pool, rrDepth, maxPathVertices);
+	subpathE.Sample(scene, subpathSamplerE, *pool, rrDepth, maxPathVertices);
 
 	// Evaluate specified sub-paths
-	LM_ASSERT(s + t <= maxPathVertices);
-	LM_ASSERT(s <= static_cast<int>(lightSubpath.vertices.size()));
-	LM_ASSERT(t <= static_cast<int>(eyeSubpath.vertices.size()));
+	if (s + t > maxPathVertices ||
+		s > static_cast<int>(subpathL.vertices.size()) ||
+		t > static_cast<int>(subpathE.vertices.size()))
+	{
+		splat.L = Math::Vec3();
+		return;
+	}
 
 	// Create fullpath
-	BPTFullPath fullPath(s, t, lightSubpath, eyeSubpath);
+	BPTFullPath fullpath(s, t, subpathL, subpathE);
 
 	// Evaluate unweighted contribution
-	Math::Vec2 rasterPosition;
-	auto Cstar = fullPath.EvaluateUnweightContribution(scene, rasterPosition);
+	auto Cstar = fullpath.EvaluateUnweightContribution(scene, splat.rasterPos);
 	if (Math::IsZero(Cstar))
 	{
+		splat.L = Math::Vec3();
 		return;
 	}
 
 	// Evaluate contribution and record the splat
-	auto C = misWeight->Evaluate(fullPath) * Cstar;
-	splats.splats.emplace_back(s, t, rasterPosition, C);
+	splat.s = s;
+	splat.t = t;
+	splat.L = misWeight->Evaluate(fullpath) * Cstar;
 }
 
 LM_COMPONENT_REGISTER_IMPL(PSSMLTBPTPathSampler, PSSMLTPathSampler);
