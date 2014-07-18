@@ -22,7 +22,6 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/assert.h>
-#define SFMT_MEXP 19937
 #include <SFMT.h>
 
 LM_NAMESPACE_BEGIN

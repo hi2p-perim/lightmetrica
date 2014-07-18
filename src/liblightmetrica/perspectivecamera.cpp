@@ -95,11 +95,11 @@ private:
 bool PerspectiveCamera::Load( const ConfigNode& node, const Assets& assets )
 {
 	// 'fovy'
-	Math::Float fovy;
+	Math::Float fovy(0);
 	if (!node.ChildValue("fovy", fovy)) return false;
 
 	// Aspect ratio
-	Math::Float aspect;
+	Math::Float aspect(0);
 
 	// For testing configuration
 	// TODO : This is ugly
@@ -282,10 +282,6 @@ Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
 	auto refCam3 = Math::Vec3(refCam4);
 
-	// Reference point in NDC
-	auto refNdc4 = projectionMatrix * refCam4;
-	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
-
 	// Importance
 	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
 }
@@ -294,7 +290,6 @@ bool PerspectiveCamera::RayToRasterPosition( const Math::Vec3& p, const Math::Ve
 {
 	// Reference point in camera coordinates
 	auto refCam4 = viewMatrix * Math::Vec4(p + d, Math::Float(1));
-	auto refCam3 = Math::Vec3(refCam4);
 
 	// Reference point in NDC
 	auto refNdc4 = projectionMatrix * refCam4;

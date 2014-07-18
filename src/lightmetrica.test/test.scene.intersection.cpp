@@ -228,7 +228,7 @@ TEST_F(SceneIntersectionTest, Consistency)
 				ASSERT_EQ(isectsI.size(), isectsJ.size());
 
 				// For each intersections, check values if two of them are same
-				for (int k = 0; k < isectsI.size(); k++)
+				for (size_t k = 0; k < isectsI.size(); k++)
 				{
 					auto& isectIK = isectsI[k];
 					auto& isectJK = isectsJ[k];

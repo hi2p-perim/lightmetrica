@@ -114,10 +114,10 @@ public:
 
 public:
 
-	const BPTSubpath& lightSubpath;		//!< Light sub-path
-	const BPTSubpath& eyeSubpath;		//!< Eye sub-path
 	int s;								//!< # of vertices in light sub-path
 	int t;								//!< # of vertices in eye sub-path
+	const BPTSubpath& lightSubpath;		//!< Light sub-path
+	const BPTSubpath& eyeSubpath;		//!< Eye sub-path
 	Math::PDFEval pdfDL[2];				//!< PDF evaluation for y_{s-1} (light sub-path)
 	Math::PDFEval pdfDE[2];				//!< PDF evaluation for z_{t-1} (eye sub-path)
 

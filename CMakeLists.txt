@@ -118,6 +118,7 @@ include_directories("${PROJECT_SOURCE_DIR}/external/src/pugixml-1.2/src")
 
 # SFMT
 include_directories("${PROJECT_SOURCE_DIR}/external/src/SFMT-src-1.4.1")
+add_definitions(-DSFMT_MEXP=19937)
 
 # Add the binary directory to the include directories for generated headers
 include_directories(${PROJECT_BINARY_DIR})
@@ -187,16 +188,15 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	# Enabling C++11 for gcc
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	add_definitions(-std=c++11)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 	# If the build type is Debug, define macro
 	if (CMAKE_BUILD_TYPE STREQUAL Debug)
 		add_definitions(-D_DEBUG)
 	endif()
 
-	# Enable all warnings
-	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	# Enable all warnings, treat warning as errors
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 	# Enable -fPIC
 	# TODO : Find why with the static version of boost the linker generates an error

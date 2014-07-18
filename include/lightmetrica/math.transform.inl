@@ -131,10 +131,6 @@ LM_FORCE_INLINE Mat4f Rotate(float angle, const Vec3f& axis)
 	Vec3f a = Normalize(axis);
 	Vec3f t = (1.0f - c) * a;
 
-	Vec3f t1 = a * t[0];
-	Vec3f t2 = a * t[1];
-	Vec3f t3 = a * t[2];
-
 	Mat3f rot(
 		Vec3f(c, 0, 0) + a * t[0] + Vec3f( 0       ,  s * a[2], -s * a[1]),
 		Vec3f(0, c, 0) + a * t[1] + Vec3f(-s * a[2],  0       ,  s * a[0]),
@@ -163,10 +159,6 @@ LM_FORCE_INLINE Mat4d Rotate(double angle, const Vec3d& axis)
 
 	Vec3d a = Normalize(axis);
 	Vec3d t = (1.0f - c) * a;
-
-	Vec3d t1 = a * t[0];
-	Vec3d t2 = a * t[1];
-	Vec3d t3 = a * t[2];
 
 	Mat3d rot(
 		Vec3d(c, 0, 0) + a * t[0] + Vec3d( 0       ,  s * a[2], -s * a[1]),

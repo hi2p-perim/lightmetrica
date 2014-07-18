@@ -59,15 +59,15 @@ struct BVHNode : public Object
 	}
 
 	NodeType type;
-	AABB bound;
 
 	// Leaf node data
 	// Primitives index in [begin, end)
 	int begin, end;
+	AABB bound;
 
 	// Internal node data
-	std::shared_ptr<BVHNode> left, right;
 	int splitAxis;
+	std::shared_ptr<BVHNode> left, right;
 
 };
 
@@ -95,7 +95,7 @@ public:
 
 	bool operator()(int i) const
 	{
-		int bucketIdx = 
+		int bucketIdx =
 			Math::Cast<int>(Math::Float(
 				Math::Float(numBuckets) * ((data.triBoundCentroids[i][splitAxis] - centroidBound.min[splitAxis])
 					/ (centroidBound.max[splitAxis] - centroidBound.min[splitAxis]))));
@@ -164,7 +164,7 @@ private:
 	bool Intersect(const AABB& bound, BVHTraversalData& data) const;
 	std::shared_ptr<BVHNode> Build(const BVHBuildData& data, int begin, int end);
 	void LoadPrimitives(const std::string& scenePath);
-	
+
 private:
 
 	// The function is called when a leaf node is created
@@ -260,7 +260,7 @@ bool BVHScene::Impl::Build()
 
 std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int begin, int end )
 {
-	std::shared_ptr<BVHNode> node;	
+	std::shared_ptr<BVHNode> node;
 
 	// Bound of the primitive [begin, end)
 	AABB bound;
@@ -303,7 +303,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 			// Considering all possible partitions is rather heavy in the computation cost,
 			// so in the application the primitives is separated to some buckets according to the split axis
 			// and reduce the combination of the partitions.
-			
+
 			// Create buckets
 			const int numBuckets = 12;
 			AABB bucketTriBound[numBuckets];
@@ -447,7 +447,7 @@ bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) cons
 
 	Math::Float tmin  = (bound[    rayDirNegative[0]].x - ray.o.x) * invRayDirMinT.x;
 	Math::Float tmax  = (bound[1 - rayDirNegative[0]].x - ray.o.x) * invRayDirMaxT.x;
-	
+
 	Math::Float tymin = (bound[    rayDirNegative[1]].y - ray.o.y) * invRayDirMinT.y;
 	Math::Float tymax = (bound[1 - rayDirNegative[1]].y - ray.o.y) * invRayDirMaxT.y;
 	if ((tmin > tymax) || (tymin > tmax)) return false;
@@ -466,7 +466,7 @@ bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) cons
 void BVHScene::Impl::ReportProgress( int begin, int end )
 {
 	numProcessedTris += end - begin;
-	signal_ReportBuildProgress(static_cast<double>(numProcessedTris) / triAccels.size(), numProcessedTris == triAccels.size());
+	signal_ReportBuildProgress(static_cast<double>(numProcessedTris) / triAccels.size(), numProcessedTris == static_cast<int>(triAccels.size()));
 }
 
 void BVHScene::Impl::ResetProgress()

@@ -100,7 +100,7 @@ int main()
 	// Get the number of valid extended IDs
 	__cpuid(cpuinfo, 0x80000000);
 	int numExtendedIds = cpuinfo[0];
-	if (numExtendedIds >= 0x80000001)
+	if (numExtendedIds >= static_cast<int>(0x80000001))
 	{
 		__cpuid(cpuinfo, 0x80000001);
 		sse4aSupportted = cpuinfo[2] & (1 << 6) || false;

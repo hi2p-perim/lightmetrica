@@ -43,7 +43,7 @@ public:
 	~Impl();
 
 public:
-	
+
 	void Reset();
 	bool Load(const ConfigNode& node, const Assets& assets);
 	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
@@ -153,7 +153,7 @@ bool Scene::Impl::Load( const ConfigNode& node, const Assets& assets )
 		}
 		mainCamera->RegisterPrimitives(referencedPrimitives);
 	}
-	
+
 	// Light
 	referencedPrimitives.clear();
 	for (auto* light : lights)
@@ -173,7 +173,7 @@ bool Scene::Impl::Load( const ConfigNode& node, const Assets& assets )
 	}
 
 	LM_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
-	
+
 	loaded = true;
 	return true;
 }
@@ -262,7 +262,7 @@ bool Scene::Impl::Traverse( const ConfigNode& node, const Assets& assets, const 
 
 		// Register the light to the scene
 		lights.push_back(primitive->light);
-	}	
+	}
 
 	// Process camera
 	// If the camera is already found, ignore the seconds one
@@ -402,7 +402,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const ConfigNode& transformNode )
 			auto rotateMat = Math::Mat4::Identity();
 			auto scaleMat = Math::Mat4::Identity();
 
-			// 'translate' node 
+			// 'translate' node
 			auto translateNode = transformNode.Child("translate");
 			if (!translateNode.Empty())
 			{
@@ -455,7 +455,7 @@ Math::Mat4 Scene::Impl::ParseTransform( const ConfigNode& transformNode )
 
 const Primitive* Scene::Impl::PrimitiveByIndex( int index ) const
 {
-	return index < primitives.size() ? primitives[index].get() : nullptr;
+	return index < static_cast<int>(primitives.size()) ? primitives[index].get() : nullptr;
 }
 
 const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
@@ -467,7 +467,7 @@ const Primitive* Scene::Impl::PrimitiveByID( const std::string& id ) const
 
 const Light* Scene::Impl::LightByIndex( int index ) const
 {
-	return index < lights.size() ? lights[index] : nullptr;
+	return index < static_cast<int>(lights.size()) ? lights[index] : nullptr;
 }
 
 void Scene::Impl::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect )
