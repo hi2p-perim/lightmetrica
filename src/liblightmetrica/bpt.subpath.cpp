@@ -171,6 +171,17 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 	}
 	else
 	{
+#if 1
+		// LightPosition
+		Math::PDFEval lightSelectionPdf;
+		v->emitter = scene.SampleLightSelection(sampler.Next(), lightSelectionPdf);
+		v->emitter->SamplePosition(sampler.NextVec2(), v->geom, v->pdfP);
+		v->pdfP.v *= lightSelectionPdf.v;
+		if (!v->geom.degenerated)
+		{
+			v->areaLight = dynamic_cast<const Light*>(v->emitter);
+		}
+#else
 		// LightPosition
 		auto lightSampleP = sampler.NextVec2();
 		Math::PDFEval lightSelectionPdf;
@@ -181,6 +192,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		{
 			v->areaLight = dynamic_cast<const Light*>(v->emitter);
 		}
+#endif
 	}
 
 	// Directional component
