@@ -17,10 +17,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#ifndef LM_TEST_PCH_H
-#define LM_TEST_PCH_H
-
 #include <lightmetrica/common.h>
 
 #include <boost/format.hpp>
@@ -50,5 +46,3 @@
 #include <type_traits>
 
 #include <gtest/gtest.h>
-
-#endif // LM_TEST_PCH_H

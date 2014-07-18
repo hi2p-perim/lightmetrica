@@ -22,13 +22,14 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/align.h>
 #include <lightmetrica/assert.h>
+#define SFMT_MEXP 19937
 #include <SFMT.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
 	SFMT random number generator.
-	An random number generator using SIMD-oriented Fast Mersenne Twister (SFMT)  
+	An random number generator using SIMD-oriented Fast Mersenne Twister (SFMT)
 	using an implementation by Mutsuo Saito and Makoto Matsumoto:
 	http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/
 */

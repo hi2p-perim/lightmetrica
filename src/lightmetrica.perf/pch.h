@@ -17,10 +17,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#ifndef __LM_PERF_PCH_H__
-#define __LM_PERF_PCH_H__
-
 #include <boost/format.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>
@@ -46,4 +42,3 @@
 #include <limits>
 #include <type_traits>
 
-#endif // __LM_PERF_PCH_H__

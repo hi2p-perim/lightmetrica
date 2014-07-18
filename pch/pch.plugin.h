@@ -17,10 +17,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#ifndef PCH_PLUGIN_H
-#define PCH_PLUGIN_H
-
 #include <lightmetrica/common.h>
 #include <lightmetrica/plugin.common.h>
 
@@ -51,4 +47,3 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#endif // PCH_PLUGIN_H

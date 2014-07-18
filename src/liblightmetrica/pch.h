@@ -17,10 +17,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_PCH_H
-#define LIB_LIGHTMETRICA_PCH_H
-
 #include <lightmetrica/common.h>
 
 #include <boost/format.hpp>
@@ -49,5 +45,3 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-
-#endif // LIB_LIGHTMETRICA_PCH_H
