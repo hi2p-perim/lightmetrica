@@ -51,7 +51,7 @@ LM_NAMESPACE_BEGIN
 */
 struct PSSMLTThreadContext : public SIMDAlignedType
 {
-	
+
 	std::unique_ptr<Sampler> randomSampler;				//!< Ordinary random sampler
 	std::unique_ptr<PSSMLTPathSampler> pathSampler;		//!< Path sampler
 	std::unique_ptr<Film> film;							//!< Film
@@ -261,7 +261,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 	PSSMLTSplats splats;
 	Math::Float sumI(0);
 	std::vector<PSSMLTPathSeed> candidates;
-	
+
 	for (long long sample = 0; sample < numSeedSamples; sample++)
 	{
 		// Current sample index
@@ -302,7 +302,7 @@ bool PSSMLTRenderer::Preprocess( const Scene& scene )
 
 	// Sample seeds for each thread
 	seeds.clear();
-	LM_ASSERT(candidates.size() >= numThreads);
+	LM_ASSERT(candidates.size() >= static_cast<size_t>(numThreads));
 	for (int i = 0; i < numThreads; i++)
 	{
 		double u = rewindableSampler->Next();
@@ -333,7 +333,7 @@ bool PSSMLTRenderer::Render( const Scene& scene )
 	{
 		// Add an entry
 		contexts.emplace_back(new PSSMLTThreadContext(initialSampler->Clone(), pathSampler->Clone(), masterFilm->Clone()));
-		
+
 		// Configure and set seeds
 		auto& context = contexts.back();
 		context->sampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);

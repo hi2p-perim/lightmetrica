@@ -51,7 +51,7 @@ LM_NAMESPACE_BEGIN
 */
 struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
 {
-	
+
 	std::unique_ptr<Sampler> randomSampler;							//!< Ordinary random sampler
 	std::unique_ptr<PSSMLTPathSampler> pathSampler;					//!< Path sampler
 	std::unique_ptr<Film> film;										//!< Film
@@ -242,7 +242,7 @@ bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
 
 	// Sample seeds for each thread
 	seeds.clear();
-	LM_ASSERT(candidates.size() >= numThreads);
+	LM_ASSERT(candidates.size() >= static_cast<size_t>(numThreads));
 	for (int i = 0; i < numThreads; i++)
 	{
 		double u = rewindableSampler->Next();

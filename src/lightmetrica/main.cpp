@@ -129,7 +129,7 @@ void LightmetricaApplication::SetAppInfo()
 {
 	appName = "Lightmetrica";
 	appDescription = boost::str(boost::format("%s Version %s (%s)") % appName % Version::Formatted() % Version::Codename());
-	
+
 	// Enumerate flags
 	appFlags = "";
 	appFlags += LM_SINGLE_PRECISION	? "single_precision " : "";
@@ -459,11 +459,12 @@ void LightmetricaApplication::StartLogging()
 			consoleWidth = screenBufferInfo.dwSize.X-1;
 #elif LM_PLATFORM_LINUX
 			struct winsize w;
-			ioctl(0, TIOCGWINSZ, &w);
+			ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 			consoleWidth = w.ws_col;
 #endif
 
 			std::string spaces(consoleWidth, ' ');
+			LM_LOG_DEBUG(std::to_string(consoleWidth));
 
 			// Event loop for logger process
 			while (!logThreadDone || !Logger::Empty())
@@ -476,7 +477,7 @@ void LightmetricaApplication::StartLogging()
 					Logger::ProcessOutput();
 					requiresProgressUpdate = true;
 				}
-				
+
 				// Process progress bar
 				if (enableProgressBar && requiresProgressUpdate && !progressPrintDone)
 				{
@@ -514,7 +515,7 @@ void LightmetricaApplication::StartLogging()
 					std::cout << "\033[0m";
 #endif
 					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
-					
+
 					// If the progress is done, the line is not removed
 					if (currentProgressDone)
 					{
@@ -655,7 +656,7 @@ void SETransFunc(unsigned int code, PEXCEPTION_POINTERS data)
 	{
 		LM_LOG_ERROR("Description       : " + desc);
 	}
-	
+
 #if LM_DEBUG_MODE
 	__debugbreak();
 #endif
