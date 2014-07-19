@@ -27,7 +27,7 @@ project(lightmetrica)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Include modules
-include(LightmetricaUtils)
+#include(LightmetricaUtils)
 
 # For windows environment, set search path for find_package
 if (MSVC)
