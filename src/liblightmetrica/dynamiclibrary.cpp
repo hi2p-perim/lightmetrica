@@ -22,6 +22,8 @@
 #include <lightmetrica/logger.h>
 #if LM_PLATFORM_WINDOWS
 #include <windows.h>
+#elif LM_PLATFORM_LINUX
+#include <dlfcn.h>
 #endif
 
 LM_NAMESPACE_BEGIN
@@ -43,6 +45,8 @@ public:
 	bool loaded;
 #if LM_PLATFORM_WINDOWS
 	HMODULE handle;
+#elif LM_PLATFORM_LINUX
+    void* handle;
 #endif
 	std::string path;
 
@@ -63,25 +67,27 @@ bool DynamicLibrary::Impl::Load( const std::string& path )
 	}
 
 #if LM_PLATFORM_WINDOWS
-
 	handle = LoadLibraryA(path.c_str());
 	if (!handle)
 	{
-		LM_LOG_ERROR("LoadLibrary : " + path + " : " + std::to_string(GetLastError()));
+		auto filename = boost::filesystem::path(path).filename().string();
+		LM_LOG_ERROR("Failed to load library " + filename + " : " + std::to_string(GetLastError()));
 		return false;
 	}
+#elif LM_PLATFORM_LINUX
+	handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_LOCAL);
+	if (!handle)
+	{
+		auto filename = boost::filesystem::path(path).filename().string();
+		LM_LOG_ERROR("Failed to load library '" + filename + "' : " + std::string(dlerror()));
+		return false;
+	}
+#endif
 
 	this->path = path;
 	loaded = true;
 
 	return true;
-
-#else
-
-	LM_LOG_WARN("TODO : Unsupported platform");
-	return false;
-
-#endif
 }
 
 bool DynamicLibrary::Impl::Unload()
@@ -93,25 +99,25 @@ bool DynamicLibrary::Impl::Unload()
 	}
 
 #if LM_PLATFORM_WINDOWS
-
 	if (!FreeLibrary(handle))
 	{
-		auto name = boost::filesystem::path(path).filename().string();
-		LM_LOG_ERROR("FreeLibrary : " + name + " : " + std::to_string(GetLastError()));
+		auto filename = boost::filesystem::path(path).filename().string();
+		LM_LOG_ERROR("Failed to free library : '" + filename + "' : " + std::to_string(GetLastError()));
 		return false;
 	}
+#elif LM_PLATFORM_LINUX
+	if (dlclose(handle) != 0)
+	{
+		auto filename = boost::filesystem::path(path).filename().string();
+		LM_LOG_ERROR("Failed to free library : '" + filename + "' : " + std::string(dlerror()));
+		return false;
+	}
+#endif
 
 	path = "";
 	loaded = false;
 
 	return true;
-
-#else
-
-	LM_LOG_WARN("TODO : Unsupported platform");
-	return false;
-
-#endif
 }
 
 void* DynamicLibrary::Impl::GetSymbolAddress( const std::string& symbol ) const
@@ -123,22 +129,22 @@ void* DynamicLibrary::Impl::GetSymbolAddress( const std::string& symbol ) const
 	}
 
 #if LM_PLATFORM_WINDOWS
-
 	void* address = GetProcAddress(handle, symbol.c_str());
 	if (address == nullptr)
 	{
-		LM_LOG_ERROR("GetProcAddress : " + std::to_string(GetLastError()));
+		LM_LOG_ERROR("Failed to get address of '" + symbol + "' : " + std::to_string(GetLastError()));
 		return nullptr;
 	}
+#elif LM_PLATFORM_LINUX
+	void* address = dlsym(handle, symbol.c_str());
+	if (address == nullptr)
+	{
+		LM_LOG_ERROR("Failed to get address of '" + symbol + "' : " + std::string(dlerror()));
+		return nullptr;
+	}
+#endif
 
 	return address;
-
-#else
-
-	LM_LOG_WARN("TODO : Unsupported platform");
-	return nullptr;
-
-#endif
 }
 
 // --------------------------------------------------------------------------------
