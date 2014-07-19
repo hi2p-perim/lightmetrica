@@ -25,7 +25,18 @@
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class PluginTest : public TestBase {};
+class PluginTest : public TestBase
+{
+public:
+
+	virtual void SetUp()
+	{
+		TestBase::SetUp();
+		ComponentFactory::UnloadPlugins();
+		ComponentFactory::LoadPlugins(".");
+	}
+
+};
 
 TEST_F(PluginTest, Load)
 {

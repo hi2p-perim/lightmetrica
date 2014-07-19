@@ -120,6 +120,17 @@ public:
 		}
 	}
 
+	void UnloadPlugins()
+	{
+		for (auto& library : libraries)
+		{
+			library->Unload();
+		}
+
+		libraries.clear();
+		pluginCreateInstanceFuncs.clear();
+	}
+
 private:
 
 	Component* CreateInstanceFromInternal(const std::string& interfaceType, const std::string& implType)
@@ -248,6 +259,11 @@ Component* ComponentFactory::Create( const std::string& interfaceType, const std
 void ComponentFactory::LoadPlugins( const std::string& pluginDir )
 {
 	return ComponentFactoryImpl::Instance().LoadPlugins(pluginDir);
+}
+
+void ComponentFactory::UnloadPlugins()
+{
+	return ComponentFactoryImpl::Instance().UnloadPlugins();
 }
 
 LM_NAMESPACE_END

@@ -136,6 +136,13 @@ public:
 	*/
 	static void LoadPlugins(const std::string& pluginDir);
 
+	/*!
+		Unload plugins.
+		Unloads loaded plugins.
+	*/
+	static void UnloadPlugins();
+
+
 public:
 
 	/*!
