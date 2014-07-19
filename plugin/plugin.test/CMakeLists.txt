@@ -34,27 +34,11 @@ target_link_libraries(plugin.test liblightmetrica ${COMMON_LIBRARY_FILES})
 add_dependencies(plugin.test liblightmetrica)
 
 # Output directory
-#set_target_properties(plugin.test PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/plugin")
-#set_target_properties(plugin.test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugin")
+set_target_properties(plugin.test PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set_target_properties(plugin.test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Solution directory
 set_target_properties(plugin.test PROPERTIES FOLDER "plugin")
 
 # Remove automatic lib- prefix
 set_target_properties(plugin.test PROPERTIES PREFIX "")
-
-# Copy dynamic libaries as post-build events
-if(WIN32)
-	# Add an custom command to copy an DLL to the same directory as executables
-	function(add_custom_command_copy_dll BINARY_FILE_NAME)
-		add_custom_command(
-			TARGET plugin.test
-			POST_BUILD
-				# Execute "cmake -E copy_if_different ..."
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-					${BINARY_FILE_NAME}
-					# Same directory as the target executable
-					# For details, see 'generator expressions' in the documentation
-					$<TARGET_FILE_DIR:plugin.test>)
-	endfunction()
-endif()

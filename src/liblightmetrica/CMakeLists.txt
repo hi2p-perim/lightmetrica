@@ -459,7 +459,8 @@ set_target_properties(liblightmetrica PROPERTIES FOLDER "core")
 
 # Copy dynamic libaries as post-build events
 if(WIN32)
-	# Add an custom command to copy an DLL to the same directory as executables
+
+	# Add a custom command to copy a dynamic library to the same directory as executables
 	function(add_custom_command_copy_dll BINARY_FILE_NAME)
 		add_custom_command(
 			TARGET liblightmetrica
