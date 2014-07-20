@@ -21,7 +21,7 @@
 #ifndef LIB_LIGHTMETRICA_CONFIG_H
 #define LIB_LIGHTMETRICA_CONFIG_H
 
-#include "object.h"
+#include "component.h"
 #include <string>
 
 LM_NAMESPACE_BEGIN
@@ -33,8 +33,12 @@ class ConfigNode;
 	The renderer is configured by a XML document.
 	All configuration needed for rendering is contained the document.
 */
-class LM_PUBLIC_API Config : public Object
+class Config : public Component
 {
+public:
+
+	LM_COMPONENT_INTERFACE_DEF("config");
+
 public:
 
 	Config() {}
@@ -77,7 +81,7 @@ public:
 		Get the root node.
 		\return Root node.
 	*/
-	virtual ConfigNode Root() const = 0;
+	virtual const ConfigNode Root() const = 0;
 
 	/*!
 		Get base path.

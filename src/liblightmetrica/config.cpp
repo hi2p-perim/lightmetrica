@@ -18,7 +18,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/defaultconfig.h>
+#include <lightmetrica/config.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <pugixml.hpp>
@@ -30,28 +30,33 @@ namespace
 
 LM_NAMESPACE_BEGIN
 
-class DefaultConfig::Impl : public Object
+/*!
+	Default config.
+	Default implementation of the config class.
+*/
+class ConfigImpl : public Config
 {
 public:
 
-	Impl(DefaultConfig* self);
-	~Impl();
+	LM_COMPONENT_IMPL_DEF("default");
 
 public:
 
-	bool Load(const std::string& path);
-	bool Load(const std::string& path, const std::string& basePath);
-	bool LoadFromString(const std::string& data, const std::string& basePath);
-	const ConfigNode Root() const;
-	std::string BasePath() const { return basePath; }
+	ConfigImpl() : loaded(false) {}
+
+public:
+
+	virtual bool Load(const std::string& path);
+	virtual bool Load(const std::string& path, const std::string& basePath);
+	virtual bool LoadFromString(const std::string& data, const std::string& basePath);
+	virtual const ConfigNode Root() const;
+	virtual std::string BasePath() const { return basePath; }
 
 private:
 
 	bool HandleLoadResult(const pugi::xml_parse_result& result);
 
 public:
-
-	DefaultConfig* self;
 
 	bool loaded;
 	std::string path;
@@ -64,24 +69,12 @@ public:
 
 };
 
-DefaultConfig::Impl::Impl(DefaultConfig* self)
-	: self(self)
-	, loaded(false)
-{
-
-}
-
-DefaultConfig::Impl::~Impl()
-{
-
-}
-
-bool DefaultConfig::Impl::Load( const std::string& path )
+bool ConfigImpl::Load( const std::string& path )
 {
 	return Load(path, "");
 }
 
-bool DefaultConfig::Impl::Load( const std::string& path, const std::string& basePath )
+bool ConfigImpl::Load( const std::string& path, const std::string& basePath )
 {
 	if (loaded)
 	{
@@ -101,7 +94,7 @@ bool DefaultConfig::Impl::Load( const std::string& path, const std::string& base
 	return HandleLoadResult(result);
 }
 
-bool DefaultConfig::Impl::LoadFromString( const std::string& data, const std::string& basePath )
+bool ConfigImpl::LoadFromString( const std::string& data, const std::string& basePath )
 {
 	if (loaded)
 	{
@@ -117,7 +110,7 @@ bool DefaultConfig::Impl::LoadFromString( const std::string& data, const std::st
 	return HandleLoadResult(result);
 }
 
-bool DefaultConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result )
+bool ConfigImpl::HandleLoadResult( const pugi::xml_parse_result& result )
 {
 	loaded = false;
 
@@ -170,47 +163,11 @@ bool DefaultConfig::Impl::HandleLoadResult( const pugi::xml_parse_result& result
 	return true;
 }
 
-const ConfigNode DefaultConfig::Impl::Root() const
+const ConfigNode ConfigImpl::Root() const
 {
-	return ConfigNode(rootNode.internal_object(), self);
+	return ConfigNode(rootNode.internal_object(), this);
 }
 
-// --------------------------------------------------------------------------------
-
-DefaultConfig::DefaultConfig()
-	: p(new Impl(this))
-{
-
-}
-
-DefaultConfig::~DefaultConfig()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool DefaultConfig::Load( const std::string& path )
-{
-	return p->Load(path);
-}
-
-bool DefaultConfig::Load( const std::string& path, const std::string& basePath )
-{
-	return p->Load(path, basePath);
-}
-
-bool DefaultConfig::LoadFromString( const std::string& data, const std::string& basePath )
-{
-	return p->LoadFromString(data, basePath);
-}
-
-ConfigNode DefaultConfig::Root() const
-{
-	return p->Root();
-}
-
-std::string DefaultConfig::BasePath() const
-{
-	return p->BasePath();
-}
+LM_COMPONENT_REGISTER_IMPL(ConfigImpl, Config);
 
 LM_NAMESPACE_END

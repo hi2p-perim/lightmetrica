@@ -200,12 +200,7 @@ TEST_F(SceneIntersectionTest, Consistency)
 			const Math::Float Delta = Math::Float(1) / Math::Float(Steps);
 
 			// Create scene
-			std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneTypes[typeIdx]));
-
-			// Load & configure & build
-			scene->Load(new StubPrimitives(mesh.get(), bsdf.get()));
-			EXPECT_TRUE(scene->Configure(ConfigNode()));
-			EXPECT_TRUE(scene->Build());
+			auto scene = CreateAndSetupScene(sceneTypes[typeIdx], mesh.get());
 
 			for (int i = 1; i < Steps; i++)
 			{
@@ -246,7 +241,6 @@ TEST_F(SceneIntersectionTest, Consistency)
 				{
 					auto& isectIK = isectsI[k];
 					auto& isectJK = isectsJ[k];
-					EXPECT_EQ(isectIK.primitive, isectJK.primitive);
 					EXPECT_EQ(isectIK.primitiveIndex, isectJK.primitiveIndex);
 					EXPECT_EQ(isectIK.triangleIndex, isectJK.triangleIndex);
 					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.p, isectJK.geom.p));

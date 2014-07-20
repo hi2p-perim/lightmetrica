@@ -17,7 +17,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <lightmetrica/defaultconfig.h>
+#include <lightmetrica/config.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/defaultassets.h>
@@ -222,41 +222,41 @@ bool LightmetricaApplication::Run()
 	}
 
 	// Load configuration
-	DefaultConfig config;
-	if (!LoadConfiguration(config))
+	std::unique_ptr<Config> config(ComponentFactory::Create<Config>());
+	if (!LoadConfiguration(*config))
 	{
 		return false;
 	}
 
 	// Load assets
 	DefaultAssets assets;
-	if (!LoadAssets(config, assets))
+	if (!LoadAssets(*config, assets))
 	{
 		return false;
 	}
 
 	// Create and setup scene
-	auto sceneType = config.Root().Child("scene").AttributeValue("type");
+	auto sceneType = config->Root().Child("scene").AttributeValue("type");
 	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneType));
 	if (scene == nullptr)
 	{
 		LM_LOG_ERROR("Invalid scene type ''" + sceneType + "'");
 		return false;
 	}
-	if (!LoadAndBuildScene(config, assets, *scene))
+	if (!LoadAndBuildScene(*config, assets, *scene))
 	{
 		return false;
 	}
 
 	// Create and configure renderer
-	auto rendererType = config.Root().Child("renderer").AttributeValue("type");
+	auto rendererType = config->Root().Child("renderer").AttributeValue("type");
 	std::unique_ptr<Renderer> renderer(ComponentFactory::Create<Renderer>(rendererType));
 	if (renderer == nullptr)
 	{
 		LM_LOG_ERROR("Invalid renderer type ''" + rendererType + "'");
 		return false;
 	}
-	if (!ConfigureAndDispatchRenderer(config, assets, *scene, *renderer))
+	if (!ConfigureAndDispatchRenderer(*config, assets, *scene, *renderer))
 	{
 		return false;
 	}

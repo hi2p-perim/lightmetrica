@@ -25,7 +25,6 @@ set(
 	"test.logger.cpp"
 	"test.component.cpp"
 	"test.confignode.cpp"
-	"test.defaultconfig.cpp"
 	"test.defaultassets.cpp"
 	"test.defaultexpts.cpp"
 	"test.asset.cpp"

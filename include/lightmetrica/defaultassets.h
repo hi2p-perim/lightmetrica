@@ -28,7 +28,6 @@
 LM_NAMESPACE_BEGIN
 
 class AssetFactory;
-class DefaultConfig;
 class ConfigNode;
 
 /*!
