@@ -20,7 +20,7 @@
 #include <lightmetrica/config.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
-#include <lightmetrica/defaultassets.h>
+#include <lightmetrica/assets.h>
 #include <lightmetrica/version.h>
 #include <lightmetrica/primitives.h>
 #include <lightmetrica/scene.h>
@@ -71,7 +71,7 @@ public:
 private:
 
 	bool LoadConfiguration(Config& config);
-	bool LoadAssets(const Config& config, DefaultAssets& assets);
+	bool LoadAssets(const Config& config, Assets& assets);
 	bool LoadAndBuildScene(const Config& config, const Assets& assets, Scene& scene);
 	bool ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer);
 
@@ -229,8 +229,8 @@ bool LightmetricaApplication::Run()
 	}
 
 	// Load assets
-	DefaultAssets assets;
-	if (!LoadAssets(*config, assets))
+	std::unique_ptr<Assets> assets(ComponentFactory::Create<Assets>());
+	if (!LoadAssets(*config, *assets))
 	{
 		return false;
 	}
@@ -243,7 +243,7 @@ bool LightmetricaApplication::Run()
 		LM_LOG_ERROR("Invalid scene type ''" + sceneType + "'");
 		return false;
 	}
-	if (!LoadAndBuildScene(*config, assets, *scene))
+	if (!LoadAndBuildScene(*config, *assets, *scene))
 	{
 		return false;
 	}
@@ -256,7 +256,7 @@ bool LightmetricaApplication::Run()
 		LM_LOG_ERROR("Invalid renderer type ''" + rendererType + "'");
 		return false;
 	}
-	if (!ConfigureAndDispatchRenderer(*config, assets, *scene, *renderer))
+	if (!ConfigureAndDispatchRenderer(*config, *assets, *scene, *renderer))
 	{
 		return false;
 	}
@@ -300,7 +300,7 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 	return true;
 }
 
-bool LightmetricaApplication::LoadAssets( const Config& config, DefaultAssets& assets )
+bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 {
 	// Register component interfaces
 	assets.RegisterInterface<Texture>();

@@ -21,7 +21,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/defaultassets.h>
+#include <lightmetrica/assets.h>
 #include <lightmetrica/texture.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/trianglemesh.h>
@@ -143,17 +143,17 @@ TEST_F(BPTFullpathTest2, Consistency)
 	StubConfig config;
 	ASSERT_TRUE(config.LoadFromString(SceneFile, ""));
 
-	DefaultAssets assets;
-	assets.RegisterInterface<Texture>();
-	assets.RegisterInterface<BSDF>();
-	assets.RegisterInterface<TriangleMesh>();
-	assets.RegisterInterface<Film>();
-	assets.RegisterInterface<Camera>();
-	assets.RegisterInterface<Light>();
-	ASSERT_TRUE(assets.Load(config.Root().Child("assets")));
+	std::unique_ptr<Assets> assets(ComponentFactory::Create<Assets>());
+	assets->RegisterInterface<Texture>();
+	assets->RegisterInterface<BSDF>();
+	assets->RegisterInterface<TriangleMesh>();
+	assets->RegisterInterface<Film>();
+	assets->RegisterInterface<Camera>();
+	assets->RegisterInterface<Light>();
+	ASSERT_TRUE(assets->Load(config.Root().Child("assets")));
 	
 	std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
-	ASSERT_TRUE(primitives->Load(config.Root().Child("scene"), assets));
+	ASSERT_TRUE(primitives->Load(config.Root().Child("scene"), *assets));
 	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(config.Root().Child("scene").AttributeValue("type")));
 	ASSERT_NE(scene, nullptr);
 	scene->Load(primitives.release());
@@ -165,7 +165,7 @@ TEST_F(BPTFullpathTest2, Consistency)
 	BPTSubpath eyeSubpath(TransportDirection::EL);
 
 	std::unique_ptr<ConfigurableSampler> sampler(ComponentFactory::Create<ConfigurableSampler>("random"));
-	ASSERT_TRUE(sampler->Configure(ConfigNode(), assets));
+	ASSERT_TRUE(sampler->Configure(ConfigNode(), *assets));
 	sampler->SetSeed(1);
 
 	const int Samples = 1<<10;

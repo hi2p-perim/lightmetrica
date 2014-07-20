@@ -21,21 +21,27 @@
 #ifndef LIB_LIGHTMETRICA_ASSETS_H
 #define LIB_LIGHTMETRICA_ASSETS_H
 
-#include "common.h"
+#include "component.h"
 #include "asset.h"
 #include <functional>
+#include <vector>
 #include <boost/signals2.hpp>
 
 LM_NAMESPACE_BEGIN
 
+class Asset;
 class ConfigNode;
 
 /*!
 	Collection of assets.
 	The asset collection class for the asset management.
 */
-class LM_PUBLIC_API Assets
+class Assets : public Component
 {
+public:
+
+	LM_COMPONENT_INTERFACE_DEF("assets");
+
 public:
 
 	Assets() {}
@@ -48,12 +54,57 @@ private:
 public:
 
 	/*!
+		Load assets from XML element.
+		Parse the element #node and register assets.
+		\param node A XML element which consists of the \a assets element.
+		\retval true Succeeded to load assets.
+		\retval false Failed to load assets.
+	*/
+	virtual bool Load(const ConfigNode& node) = 0;
+
+	/*!
 		Get an asset by name. 
 		Returns nullptr if not found.
 		\param name Name of the asset.
 		\return Asset instance. 
 	*/
 	virtual Asset* GetAssetByName(const std::string& name) const = 0;
+
+	/*!
+		Connect to ReportProgress signal.
+		The signal is emitted when the progress of asset loading is changed.
+		\param func Slot function.
+	*/
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
+
+	/*!
+		Register an interface for assets.
+		Register an component interface class for assets creation.
+		The class must inherit #Assets and specify dependencies
+		to the other asset types with LM_ASSET_DEPENDENCIES macro.
+		Fails if the factory with same name is already registered.
+		\param interfaceName Name of component interface class which is inherited from Asset.
+		\param interfaceGroupName Name of interface group. e.g. \a triangle_meshes for \a triangle_mesh type.
+		\param dependencies Dependent asset interface names.
+		\retval true Succeeded to register.
+		\retval false Failed to register.
+		\sa LM_ASSET_DEPENDENCIES
+	*/
+	virtual bool RegisterInterface(const std::string& interfaceName, const std::string& interfaceGroupName, const std::vector<std::string>& dependencies) = 0;
+
+	/*!
+		Register an interface for assets.
+		Register an component interface class for assets creation.
+		This template version statically checks the requirement for types.
+		\tparam AssetInterfaceType Type of component interface class which is inherited from Asset.
+		\retval true Succeeded to register.
+		\retval false Failed to register.
+		\sa LM_ASSET_DEPENDENCIES
+	*/
+	template <typename AssetInterfaceType>
+	bool RegisterInterface();
+
+public:
 
 	/*!
 		Resolve reference to the asset.
@@ -63,7 +114,7 @@ public:
 		\param type Target asset type, e.g. triangle_mesh.
 		\return Resolved asset.
 	*/
-	virtual Asset* ResolveReferenceToAsset(const ConfigNode& node, const std::string& type) const;
+	LM_PUBLIC_API Asset* ResolveReferenceToAsset(const ConfigNode& node, const std::string& type) const;
 
 	/*!
 		Resolve reference to the asset.
@@ -73,23 +124,12 @@ public:
 		\return Resolved asset.
 	*/
 	template <typename AssetInterfaceType>
-	AssetInterfaceType* ResolveReferenceToAsset(const ConfigNode& node) const
-	{
-		LM_ASSET_CHECK_IS_VALID_INTERFACE(AssetInterfaceType);
-		return dynamic_cast<AssetInterfaceType*>(ResolveReferenceToAsset(node, AssetInterfaceType::InterfaceTypeName()));
-	}
-
-public:
-
-	/*!
-		Connect to ReportProgress signal.
-		The signal is emitted when the progress of asset loading is changed.
-		\param func Slot function.
-	*/
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
+	AssetInterfaceType* ResolveReferenceToAsset(const ConfigNode& node) const;
 
 };
 
 LM_NAMESPACE_END
+
+#include "assets.inl"
 
 #endif // LIB_LIGHTMETRICA_ASSETS_H

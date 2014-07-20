@@ -35,9 +35,18 @@ class StubAssets : public Assets
 {
 public:
 
+	LM_COMPONENT_IMPL_DEF("stub");
+
+public:
+
+	virtual bool Load( const ConfigNode& node ) { return true; }
 	virtual Asset* GetAssetByName(const std::string& name) const { return assetInstanceMap.at(name).get(); }
-	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
+	virtual bool RegisterInterface( const std::string& interfaceName, const std::string& interfaceGroupName, const std::vector<std::string>& dependencies ) { return true; }
+
+public:
+
+	void Add(const std::string& id, Asset* asset) { assetInstanceMap[id] = std::unique_ptr<Asset>(asset); }
 
 protected:
 

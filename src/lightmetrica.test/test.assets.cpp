@@ -21,7 +21,7 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/stub.asset.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/defaultassets.h>
+#include <lightmetrica/assets.h>
 
 namespace
 {
@@ -112,36 +112,44 @@ LM_COMPONENT_REGISTER_IMPL(StubAsset_F_Impl, StubAsset_F);
 
 class AssetsTest : public TestBase
 {
+public:
+
+	AssetsTest()
+		: assets(ComponentFactory::Create<Assets>())
+	{
+
+	}
+
 protected:
 
-	DefaultAssets assets;
+	std::unique_ptr<Assets> assets;
 	StubConfig config;
 
 };
 
 TEST_F(AssetsTest, RegisterInterface)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset>());
 }
 
 TEST_F(AssetsTest, RegisterInterface_Failed)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset>());
-	EXPECT_FALSE(assets.RegisterInterface<StubAsset>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset>());
+	EXPECT_FALSE(assets->RegisterInterface<StubAsset>());
 }
 
 TEST_F(AssetsTest, Load)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset>());
-	EXPECT_TRUE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset>());
+	EXPECT_TRUE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
 
-	auto* id1 = assets.GetAssetByName("id1");
+	auto* id1 = assets->GetAssetByName("id1");
 	ASSERT_NE(nullptr, id1);
 	EXPECT_EQ("id1", id1->ID());
 	EXPECT_EQ("stub_asset", id1->ComponentInterfaceTypeName());
 	EXPECT_EQ("success", id1->ComponentImplTypeName());
 
-	auto* id2 = assets.GetAssetByName("id2");
+	auto* id2 = assets->GetAssetByName("id2");
 	ASSERT_NE(nullptr, id2);
 	EXPECT_EQ("id2", id2->ID());
 	EXPECT_EQ("stub_asset", id2->ComponentInterfaceTypeName());
@@ -150,32 +158,32 @@ TEST_F(AssetsTest, Load)
 
 TEST_F(AssetsTest, Load_Failed)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset>());
-	EXPECT_FALSE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_InvalidElementName)));
-	EXPECT_FALSE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_SameID)));
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset>());
+	EXPECT_FALSE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_InvalidElementName)));
+	EXPECT_FALSE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Fail_SameID)));
 }
 
 TEST_F(AssetsTest, Load_Dependency)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_A>());
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_B>());
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_C>());
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_D>());
-	EXPECT_TRUE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetNode_Dependency_Success)));
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_A>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_B>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_C>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_D>());
+	EXPECT_TRUE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetNode_Dependency_Success)));
 }
 
 TEST_F(AssetsTest, Load_Dependency_Failed)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_E>());
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset_F>());
-	EXPECT_FALSE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetNode_Dependency_Failed)));
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_E>());
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset_F>());
+	EXPECT_FALSE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetNode_Dependency_Failed)));
 }
 
 TEST_F(AssetsTest, GetAssetByName_Failed)
 {
-	EXPECT_TRUE(assets.RegisterInterface<StubAsset>());
-	EXPECT_TRUE(assets.Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
-	EXPECT_FALSE(assets.GetAssetByName("id3"));
+	EXPECT_TRUE(assets->RegisterInterface<StubAsset>());
+	EXPECT_TRUE(assets->Load(config.LoadFromStringAndGetFirstChild(AssetsNode_Success)));
+	EXPECT_FALSE(assets->GetAssetByName("id3"));
 }
 
 LM_TEST_NAMESPACE_END

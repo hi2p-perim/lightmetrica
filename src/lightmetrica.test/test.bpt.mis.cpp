@@ -21,7 +21,6 @@
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/defaultassets.h>
 #include <lightmetrica/texture.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/trianglemesh.h>

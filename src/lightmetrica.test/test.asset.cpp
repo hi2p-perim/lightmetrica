@@ -22,7 +22,6 @@
 #include <lightmetrica.test/stub.asset.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/defaultassets.h>
 
 namespace
 {

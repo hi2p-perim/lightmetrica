@@ -72,7 +72,7 @@ set(
 	_ASSETS_HEADERS
 	"${_INCLUDE_DIR}/asset.h"
 	"${_INCLUDE_DIR}/assets.h"
-	"${_INCLUDE_DIR}/defaultassets.h"
+	"${_INCLUDE_DIR}/assets.inl"
 	"${_INCLUDE_DIR}/emitter.h"
 	"${_INCLUDE_DIR}/generalizedbsdf.h"
 	"${_INCLUDE_DIR}/bitmap.h"
@@ -81,7 +81,6 @@ set(
 	_ASSETS_SOURCES
 	"asset.cpp"
 	"assets.cpp"
-	"defaultassets.cpp"
 	"bitmap.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_HEADERS})
