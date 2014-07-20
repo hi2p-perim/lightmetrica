@@ -18,49 +18,47 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/naivescene.h>
+#include <lightmetrica/scene.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/primitives.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/triaccel.h>
 
 LM_NAMESPACE_BEGIN
 
-class NaiveScene::Impl : public Object
+class NaiveScene : public Scene
 {
 public:
 
-	Impl(NaiveScene* self);
-	bool Build();
-	bool Intersect(Ray& ray, Intersection& isect) const;
-	boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
+	LM_COMPONENT_IMPL_DEF("naive");
+
+public:
+
+	virtual bool Build();
+	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Configure( const ConfigNode& node ) { return true; }
 
 private:
 
-	NaiveScene* self;
 	std::vector<TriAccel> triAccels;
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 
 };
 
-NaiveScene::Impl::Impl( NaiveScene* self )
-	: self(self)
-{
-
-}
-
-bool NaiveScene::Impl::Build()
+bool NaiveScene::Build()
 {
 	// Almost do nothing; simply creates a list of triangles from the primitives
 	// as data structure, we used Wald's TriAccel.
 	
 	signal_ReportBuildProgress(0, false);
 
-	int numPrimitives = self->NumPrimitives();
+	int numPrimitives = primitives->NumPrimitives();
 	for (int i = 0; i < numPrimitives; i++)
 	{
-		const auto* primitive = self->PrimitiveByIndex(i);
+		const auto* primitive = primitives->PrimitiveByIndex(i);
 		const auto* mesh = primitive->mesh;
 		if (mesh)
 		{
@@ -88,7 +86,7 @@ bool NaiveScene::Impl::Build()
 	return true;
 }
 
-bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
+bool NaiveScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
 	size_t minTriAccelIdx = 0;
@@ -111,38 +109,12 @@ bool NaiveScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	{
 		// Store required data for the intersection structure
 		auto& triAccel = triAccels[minTriAccelIdx];
-		self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, minB, isect);
+		StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, minB, isect);
 	}
 
 	return intersected;
 }
 
-// --------------------------------------------------------------------------------
-
-NaiveScene::NaiveScene()
-	: p(new Impl(this))
-{
-
-}
-
-NaiveScene::~NaiveScene()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool NaiveScene::Build()
-{
-	return p->Build();
-}
-
-bool NaiveScene::Intersect( Ray& ray, Intersection& isect ) const
-{
-	return p->Intersect(ray, isect);
-}
-
-boost::signals2::connection NaiveScene::Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportBuildProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(NaiveScene, Scene);
 
 LM_NAMESPACE_END

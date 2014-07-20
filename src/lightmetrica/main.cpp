@@ -22,8 +22,8 @@
 #include <lightmetrica/logger.h>
 #include <lightmetrica/defaultassets.h>
 #include <lightmetrica/version.h>
+#include <lightmetrica/primitives.h>
 #include <lightmetrica/scene.h>
-#include <lightmetrica/scenefactory.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
@@ -236,10 +236,11 @@ bool LightmetricaApplication::Run()
 	}
 
 	// Create and setup scene
-	SceneFactory sceneFactory;
-	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
+	auto sceneType = config.Root().Child("scene").AttributeValue("type");
+	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneType));
 	if (scene == nullptr)
 	{
+		LM_LOG_ERROR("Invalid scene type ''" + sceneType + "'");
 		return false;
 	}
 	if (!LoadAndBuildScene(config, assets, *scene))
@@ -331,21 +332,31 @@ bool LightmetricaApplication::LoadAssets( const Config& config, DefaultAssets& a
 
 bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Assets& assets, Scene& scene )
 {
-	// Load scene
+	// Load primitives
 	{
-		LM_LOG_INFO("Entering : Scene loading");
-		LM_LOG_INDENTER();
-		if (!scene.Load(config.Root().Child("scene"), assets))
+		std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
+		if (primitives == nullptr)
 		{
 			return false;
 		}
+
+		LM_LOG_INFO("Entering : Primitive loading");
+		LM_LOG_INDENTER();
+		
+		if (!primitives->Load(config.Root().Child("scene"), assets))
+		{
+			return false;
+		}
+
+		// Load #primitives to #scene. #primitives are managed by #scene
+		scene.Load(primitives.release());
 	}
 
 	// Configure scene
 	{
 		LM_LOG_INFO("Entering : Scene configuration");
 		LM_LOG_INDENTER();
-		LM_LOG_INFO("Scene type : '" + scene.Type() + "'");
+		LM_LOG_INFO("Scene type : '" + scene.ComponentImplTypeName() + "'");
 		if (!scene.Configure(config.Root().Child("scene")))
 		{
 			return false;

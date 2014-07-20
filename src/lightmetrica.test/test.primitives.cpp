@@ -24,7 +24,7 @@
 #include <lightmetrica.test/stub.trianglemesh.h>
 #include <lightmetrica.test/stub.assets.h>
 #include <lightmetrica.test/stub.config.h>
-#include <lightmetrica/scene.h>
+#include <lightmetrica/primitives.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/bsdf.h>
@@ -100,26 +100,11 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
-class StubScene : public Scene
+class PrimitivesTest : public TestBase
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("stub");
-
-public:
-
-	virtual bool Build() { return true; }
-	virtual bool Intersect( Ray& ray, Intersection& isect ) const { return false; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return boost::signals2::connection(); }
-	virtual bool Configure( const ConfigNode& node ) { return true; }
-
-};
-
-class SceneTest : public TestBase
-{
-public:
-
-	SceneTest()
+	PrimitivesTest()
 	{
 		assets.Add("mesh1", new StubTriangleMesh);
 		assets.Add("mesh2", new StubTriangleMesh);
@@ -127,36 +112,42 @@ public:
 		assets.Add("bsdf2", new StubBSDF);
 	}
 
+	virtual void SetUp()
+	{
+		TestBase::SetUp();
+		primitives.reset(ComponentFactory::Create<Primitives>());
+	}
+
 protected:
 
 	StubAssets assets;
-	StubScene scene;
 	StubConfig config;
+	std::unique_ptr<Primitives> primitives;
 
 };
 
-TEST_F(SceneTest, Load)
+TEST_F(PrimitivesTest, Load)
 {
-	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success), assets));
+	EXPECT_TRUE(primitives->Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success), assets));
 
-	const auto* node1 = scene.PrimitiveByID("node1");
+	const auto* node1 = primitives->PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
 	EXPECT_EQ("stub", node1->mesh->ComponentImplTypeName());
 	EXPECT_EQ("stub", node1->bsdf->ComponentImplTypeName());
 	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node1->transform));
-	
-	const auto* node2 = scene.PrimitiveByID("node2");
+
+	const auto* node2 = primitives->PrimitiveByID("node2");
 	ASSERT_NE(nullptr, node2);
 	EXPECT_EQ("stub", node2->mesh->ComponentImplTypeName());
 	EXPECT_EQ("stub", node2->bsdf->ComponentImplTypeName());
 	EXPECT_TRUE(ExpectMat4Near(Math::Mat4::Identity(), node2->transform));
 }
 
-TEST_F(SceneTest, Load_WithTransformByMatrix)
+TEST_F(PrimitivesTest, Load_WithTransformByMatrix)
 {
-	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransformByMatrix), assets));
-	
-	const auto* node1 = scene.PrimitiveByID("node1");
+	EXPECT_TRUE(primitives->Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransformByMatrix), assets));
+
+	const auto* node1 = primitives->PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
 
 	auto transform = node1->transform;
@@ -169,11 +160,11 @@ TEST_F(SceneTest, Load_WithTransformByMatrix)
 	ASSERT_TRUE(ExpectMat4Near(expected, transform));
 }
 
-TEST_F(SceneTest, Load_WithTransform)
+TEST_F(PrimitivesTest, Load_WithTransform)
 {
-	EXPECT_TRUE(scene.Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransform), assets));
+	EXPECT_TRUE(primitives->Load(config.LoadFromStringAndGetFirstChild(SceneNode_Success_WithTransform), assets));
 
-	const auto* node1 = scene.PrimitiveByID("node1");
+	const auto* node1 = primitives->PrimitiveByID("node1");
 	ASSERT_NE(nullptr, node1);
 
 	Math::Vec4 t = node1->transform * Math::Vec4(Math::Float(1));

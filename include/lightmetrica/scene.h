@@ -21,17 +21,12 @@
 #ifndef LIB_LIGHTMETRICA_SCENE_H
 #define LIB_LIGHTMETRICA_SCENE_H
 
-#include "object.h"
+#include "component.h"
 #include "math.types.h"
 #include <string>
-#include <vector>
 #include <functional>
+#include <memory>
 #include <boost/signals2.hpp>
-
-namespace pugi
-{
-	class xml_node;
-};
 
 LM_NAMESPACE_BEGIN
 
@@ -39,6 +34,7 @@ class Assets;
 class ConfigNode;
 class Camera;
 class Light;
+class Primitives;
 struct Primitive;
 struct Ray;
 struct Intersection;
@@ -47,12 +43,16 @@ struct Intersection;
 	Scene class.
 	A base class of the scene.
 */
-class LM_PUBLIC_API Scene : public Object
+class Scene : public Component
 {
 public:
 
-	Scene();
-	virtual ~Scene();
+	LM_COMPONENT_INTERFACE_DEF("scene");
+
+public:
+
+	LM_PUBLIC_API Scene();
+	LM_PUBLIC_API virtual ~Scene();
 
 private:
 
@@ -61,15 +61,43 @@ private:
 public:
 
 	/*!
-		Load scene from XML element.
-		Parse the element #node and load the scene.
-		Any reference to the assets are resolved with #assets.
-		The function is not reentrant. If the function fails, the state of #assets may be in the unstable state.
-		\param node A XML element which consists of \a scene element.
-		\retval true Succeeded to load the scene.
-		\retval false Failed to load the scene.
+		Load primitives.
+		Ownership of #primitives is delegated to this class.
+		\param primitives Primitives.
 	*/
-	bool Load(const ConfigNode& node, const Assets& assets);
+	LM_PUBLIC_API void Load(Primitives* primitives);
+
+	/*!
+		Get a main camera.
+		\return Main camera.
+	*/
+	LM_PUBLIC_API const Camera* MainCamera() const;
+
+	/*!
+		Choose a light included in the scene (reusable version).
+		Note that only the x component of #lightSampleP is used
+		and reusable in the following procedure, e.g. positional sampling on the light.
+		\param lightSampleP Light sample.
+		\param selectionPdf PDF evaluation of the selection (discrete measure).
+		\return Selected light.
+	*/
+	LM_PUBLIC_API const Light* SampleLightSelection(Math::Vec2& lightSampleP, Math::PDFEval& selectionPdf) const;
+
+	/*!
+		Choose a light included in the scene.
+		\param lightSample Light sample.
+		\param selectionPdf PDF evaluation of the selection (discrete measure).
+		\return Selected light.
+	*/
+	LM_PUBLIC_API const Light* SampleLightSelection(const Math::Float& lightSample, Math::PDFEval& selectionPdf) const;
+
+	/*!
+		PDF evaluation for light selection sampling.
+		\return Evaluated PDF.
+	*/
+	LM_PUBLIC_API Math::PDFEval LightSelectionPdf() const;
+
+public:
 
 	/*!
 		Configure the scene.
@@ -77,7 +105,7 @@ public:
 		\retval true Succeeded to configure the scene.
 		\retval false Failed to configure the scene.
 	*/
-	virtual bool Configure(const ConfigNode& node) = 0;
+	virtual bool Configure( const ConfigNode& node) = 0;
 
 	/*!
 		Build acceleration structure.
@@ -100,75 +128,6 @@ public:
 	*/
 	virtual bool Intersect(Ray& ray, Intersection& isect) const = 0;
 
-	/*!
-		Reset the scene.
-		Get the scene back to the initial state.
-	*/
-	void Reset();
-
-	/*!
-		Get the number of primitives.
-		\return Number of primitives.
-	*/
-	int NumPrimitives() const;
-
-	/*!
-		Get a primitive by index.
-		\param index Index of a primitive.
-		\return Primitive.
-	*/
-	const Primitive* PrimitiveByIndex(int index) const;
-
-	/*!
-		Get a primitive by ID.
-		Note that ID for a primitive is optional.
-		\param id ID of a primitive.
-		\return Primitive.
-	*/
-	const Primitive* PrimitiveByID(const std::string& id) const;
-
-	/*!
-		Get a main camera.
-		\return Main camera.
-	*/
-	const Camera* MainCamera() const;
-
-	/*!
-		Get the scene type.
-		\return Scene type.
-	*/
-	virtual std::string Type() const = 0;
-
-	/*!
-		Get the number of lights.
-		\return Number of lights.
-	*/
-	int NumLights() const;
-
-	/*!
-		Get a light by index.
-		\param index Index of a light.
-		\return Light.
-	*/
-	const Light* LightByIndex(int index) const;
-
-	/*!
-		Choose a light included in the scene.
-		Note that only the x component of #lightSampleP is used
-		and reusable in the following procedure, e.g. positional sampling on the light.
-		\param lightSampleP Light sample.
-		\param selectionPdf PDF evaluation of the selection (discrete measure).
-		\return Selected light.
-	*/
-	const Light* SampleLightSelection(Math::Vec2& lightSampleP, Math::PDFEval& selectionPdf) const;
-	const Light* SampleLightSelection(const Math::Float& lightSample, Math::PDFEval& selectionPdf) const;
-
-	/*!
-		PDF evaluation for light selection sampling.
-		\return Evaluated PDF.
-	*/
-	Math::PDFEval LightSelectionPdf() const;
-
 public:
 
 	/*!
@@ -178,24 +137,7 @@ public:
 	*/
 	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) = 0;
 
-public:
-
-	/*!
-		Load primitives.
-		This function is used internally for testing.
-		\param primitives List of primitives.
-		\retval true Succeeded to load the scene.
-		\retval false Failed to load the scene.
-	*/
-	bool LoadPrimitives(const std::vector<Primitive*>& primitives);
-
 protected:
-
-	/*!
-		Implementation specific reset function.
-		Get the scene back to the initial state.
-	*/
-	virtual void ResetScene() = 0;
 
 	/*!
 		Store intersection data using barycentric coordinates.
@@ -207,14 +149,11 @@ protected:
 		\param b Barycentric coordinates of the intersection point.
 		\param isect Intersection structure to store data.
 	*/
-	void StoreIntersectionFromBarycentricCoords(
-		unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray,
-		const Math::Vec2& b, Intersection& isect);
+	void StoreIntersectionFromBarycentricCoords(unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect) const;
 
-private:
+protected:
 
-	class Impl;
-	Impl* p;
+	std::unique_ptr<Primitives> primitives;
 
 };
 

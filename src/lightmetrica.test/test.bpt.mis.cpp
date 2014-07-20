@@ -30,7 +30,6 @@
 #include <lightmetrica/light.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
-#include <lightmetrica/scenefactory.h>
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>

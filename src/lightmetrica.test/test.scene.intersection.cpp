@@ -22,9 +22,9 @@
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.bsdf.h>
 #include <lightmetrica.test/stub.trianglemesh.h>
-#include <lightmetrica/scenefactory.h>
-#include <lightmetrica/naivescene.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/primitives.h>
+#include <lightmetrica/scene.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/math.functions.h>
@@ -33,11 +33,44 @@
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
+class StubPrimitives : public Primitives
+{
+public:
+
+	LM_COMPONENT_IMPL_DEF("stub");
+
+public:
+
+	StubPrimitives(TriangleMesh* mesh, BSDF* bsdf)
+	{
+		primitives.emplace_back(new Primitive(Math::Mat4::Identity()));
+		primitives.back()->mesh = mesh;
+		primitives.back()->bsdf = bsdf;
+	}
+
+public:
+
+	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
+	virtual void Reset() {}
+	virtual int NumPrimitives() const { return static_cast<int>(primitives.size()); }
+	virtual const Primitive* PrimitiveByIndex( int index ) const { return primitives.at(index).get(); }
+	virtual const Primitive* PrimitiveByID( const std::string& id ) const { return nullptr; }
+	virtual const Camera* MainCamera() const { return nullptr; }
+	virtual int NumLights() const { return 0; }
+	virtual const Light* LightByIndex( int index ) const { return nullptr; }
+
+private:
+
+	std::vector<std::unique_ptr<Primitive>> primitives;
+
+};
+
 class SceneIntersectionTest : public TestBase
 {
 public:
 
 	SceneIntersectionTest()
+		: bsdf(new StubBSDF)
 	{
 		// List of scene types to be tested
 		sceneTypes.push_back("naive");
@@ -45,14 +78,6 @@ public:
 #if LM_SSE2 && LM_SINGLE_PRECISION
 		sceneTypes.push_back("qbvh");
 #endif
-
-		// BSDF
-		bsdf = new StubBSDF;
-	}
-
-	~SceneIntersectionTest()
-	{
-		LM_SAFE_DELETE(bsdf);
 	}
 
 protected:
@@ -60,27 +85,22 @@ protected:
 	std::shared_ptr<Scene> CreateAndSetupScene(const std::string& type, TriangleMesh* mesh)
 	{
 		// Create scene
-		auto scene = factory.Create(type);
+		std::shared_ptr<Scene> scene(ComponentFactory::Create<Scene>(type));
 
 		// Primitives for this test
-		std::vector<Primitive*> primitives;
-		primitives.push_back(new Primitive(Math::Mat4::Identity()));
-		primitives.back()->mesh = mesh;
-		primitives.back()->bsdf = bsdf;
+		scene->Load(new StubPrimitives(mesh, bsdf.get()));
 
 		// Load & build
-		EXPECT_TRUE(scene->LoadPrimitives(primitives));
 		EXPECT_TRUE(scene->Configure(ConfigNode()));
 		EXPECT_TRUE(scene->Build());
 
-		return std::shared_ptr<Scene>(scene);
+		return scene;
 	}
 
 protected:
 
 	std::vector<std::string> sceneTypes;
-	StubBSDF* bsdf;
-	SceneFactory factory;
+	std::unique_ptr<StubBSDF> bsdf;
 
 };
 
@@ -165,12 +185,6 @@ TEST_F(SceneIntersectionTest, Consistency)
 		// Triangle mesh
 		std::unique_ptr<TriangleMesh> mesh(new StubTriangleMesh_Random());
 
-		// Primitives for this test
-		std::vector<Primitive*> primitives;
-		primitives.push_back(new Primitive(Math::Mat4::Identity()));
-		primitives.back()->mesh = mesh.get();
-		primitives.back()->bsdf = bsdf;
-
 		// Result for each type (primitive ID)
 		std::vector<std::vector<
 			Intersection,
@@ -186,10 +200,10 @@ TEST_F(SceneIntersectionTest, Consistency)
 			const Math::Float Delta = Math::Float(1) / Math::Float(Steps);
 
 			// Create scene
-			auto scene = factory.Create(sceneTypes[typeIdx]);
+			std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneTypes[typeIdx]));
 
 			// Load & configure & build
-			EXPECT_TRUE(scene->LoadPrimitives(primitives));
+			scene->Load(new StubPrimitives(mesh.get(), bsdf.get()));
 			EXPECT_TRUE(scene->Configure(ConfigNode()));
 			EXPECT_TRUE(scene->Build());
 

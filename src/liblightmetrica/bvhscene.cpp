@@ -18,8 +18,9 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/bvhscene.h>
+#include <lightmetrica/scene.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/primitives.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/triaccel.h>
 #include <lightmetrica/ray.h>
@@ -31,7 +32,7 @@
 
 LM_NAMESPACE_BEGIN
 
-struct BVHNode : public Object
+struct BVHNode : public SIMDAlignedType
 {
 
 	enum class NodeType
@@ -149,14 +150,27 @@ struct BVHTraversalData
 
 // --------------------------------------------------------------------------------
 
-class BVHScene::Impl : public Object
+/*!
+	BVH scene.
+	Naive bounding volume hierarchy implementation.
+	Based on pbrt's BVH implementation.
+*/
+class BVHScene : public Scene
 {
 public:
 
-	Impl(BVHScene* self);
-	bool Build();
-	bool Intersect(Ray& ray, Intersection& isect) const;
-	boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
+	LM_COMPONENT_IMPL_DEF("bvh");
+
+public:
+
+	BVHScene() : maxTriInNode(255) {}
+
+public:
+
+	virtual bool Build();
+	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Configure( const ConfigNode& node ) { return true; }
 
 private:
 
@@ -174,7 +188,6 @@ private:
 
 private:
 
-	BVHScene* self;
 	const int maxTriInNode;
 	std::vector<int> bvhTriIndices;
 	std::shared_ptr<BVHNode> root;
@@ -184,14 +197,7 @@ private:
 
 };
 
-BVHScene::Impl::Impl( BVHScene* self )
-	: self(self)
-	, maxTriInNode(255)
-{
-
-}
-
-bool BVHScene::Impl::Build()
+bool BVHScene::Build()
 {
 	BVHBuildData data;
 
@@ -199,9 +205,9 @@ bool BVHScene::Impl::Build()
 		LM_LOG_INFO("Creating triaccels");
 		LM_LOG_INDENTER();
 
-		for (int i = 0; i < self->NumPrimitives(); i++)
+		for (int i = 0; i < primitives->NumPrimitives(); i++)
 		{
-			const auto* primitive = self->PrimitiveByIndex(i);
+			const auto* primitive = primitives->PrimitiveByIndex(i);
 			const auto* mesh = primitive->mesh;
 			if (mesh)
 			{
@@ -258,7 +264,7 @@ bool BVHScene::Impl::Build()
 	return true;
 }
 
-std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int begin, int end )
+std::shared_ptr<BVHNode> BVHScene::Build( const BVHBuildData& data, int begin, int end )
 {
 	std::shared_ptr<BVHNode> node;
 
@@ -378,7 +384,7 @@ std::shared_ptr<BVHNode> BVHScene::Impl::Build( const BVHBuildData& data, int be
 	return node;
 }
 
-bool BVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
+bool BVHScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	BVHTraversalData data(ray);
 
@@ -386,14 +392,14 @@ bool BVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	{
 		// Store required data for the intersection structure
 		auto& triAccel = triAccels[data.intersectedTriIdx];
-		self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, data.intersectedTriB, isect);
+		StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, data.intersectedTriB, isect);
 		return true;
 	}
 
 	return false;
 }
 
-bool BVHScene::Impl::Intersect( const std::shared_ptr<BVHNode>& node, BVHTraversalData& data ) const
+bool BVHScene::Intersect( const std::shared_ptr<BVHNode>& node, BVHTraversalData& data ) const
 {
 	bool intersected = false;
 
@@ -438,7 +444,7 @@ bool BVHScene::Impl::Intersect( const std::shared_ptr<BVHNode>& node, BVHTravers
 	return intersected;
 }
 
-bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) const
+bool BVHScene::Intersect( const AABB& bound, BVHTraversalData& data ) const
 {
 	auto& rayDirNegative = data.rayDirNegative;
 	auto& invRayDirMinT = data.invRayDirMinT;
@@ -463,44 +469,18 @@ bool BVHScene::Impl::Intersect( const AABB& bound, BVHTraversalData& data ) cons
 	return (tmin < ray.maxT) && (tmax > ray.minT);
 }
 
-void BVHScene::Impl::ReportProgress( int begin, int end )
+void BVHScene::ReportProgress( int begin, int end )
 {
 	numProcessedTris += end - begin;
 	signal_ReportBuildProgress(static_cast<double>(numProcessedTris) / triAccels.size(), numProcessedTris == static_cast<int>(triAccels.size()));
 }
 
-void BVHScene::Impl::ResetProgress()
+void BVHScene::ResetProgress()
 {
 	numProcessedTris = 0;
 	signal_ReportBuildProgress(0, false);
 }
 
-// --------------------------------------------------------------------------------
-
-BVHScene::BVHScene()
-	: p(new Impl(this))
-{
-
-}
-
-BVHScene::~BVHScene()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool BVHScene::Build()
-{
-	return p->Build();
-}
-
-bool BVHScene::Intersect( Ray& ray, Intersection& isect ) const
-{
-	return p->Intersect(ray, isect);
-}
-
-boost::signals2::connection BVHScene::Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportBuildProgress(func);
-}
+LM_COMPONENT_REGISTER_IMPL(BVHScene, Scene);
 
 LM_NAMESPACE_END

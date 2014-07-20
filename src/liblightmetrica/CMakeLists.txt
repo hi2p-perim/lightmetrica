@@ -353,18 +353,15 @@ list(APPEND _SOURCE_FILES ${_RENDERER_PM_SOURCES})
 set(
 	_SCENE_HEADERS
 	"${_INCLUDE_DIR}/scene.h"
-	"${_INCLUDE_DIR}/scenefactory.h"
-	"${_INCLUDE_DIR}/naivescene.h"
-	"${_INCLUDE_DIR}/bvhscene.h"
-	"${_INCLUDE_DIR}/qbvhscene.h"
 	"${_INCLUDE_DIR}/primitive.h"
+	"${_INCLUDE_DIR}/primitives.h"
 	"${_INCLUDE_DIR}/triaccel.h"
 	"${_INCLUDE_DIR}/triangleref.h"
 )
 set(
 	_SCENE_SOURCES
 	"scene.cpp"
-	"scenefactory.cpp"
+	"primitives.cpp"
 	"naivescene.cpp"
 	"bvhscene.cpp"
 	"qbvhscene.cpp"

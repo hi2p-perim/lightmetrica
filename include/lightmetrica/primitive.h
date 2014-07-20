@@ -21,7 +21,7 @@
 #ifndef LIB_LIGHTMETRICA_PRIMITIVE_H
 #define LIB_LIGHTMETRICA_PRIMITIVE_H
 
-#include "object.h"
+#include "align.h"
 #include "math.types.h"
 
 LM_NAMESPACE_BEGIN
@@ -36,7 +36,7 @@ class Light;
 	Primitive is an element of the scene used for managing transformable objects.
 	A primitive corresponds to a node in the scene.
 */
-struct Primitive : public Object
+struct Primitive : public SIMDAlignedType
 {
 
 	Primitive(const Math::Mat4& transform)

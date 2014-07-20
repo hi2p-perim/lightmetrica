@@ -30,13 +30,13 @@
 #include <lightmetrica/light.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
-#include <lightmetrica/scenefactory.h>
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
 #include <lightmetrica/bpt.mis.h>
 #include <lightmetrica/configurablesampler.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/primitives.h>
 
 namespace
 {
@@ -152,10 +152,11 @@ TEST_F(BPTPowerHeuristicsMISWeightTest, Consistency)
 	assets.RegisterInterface<Light>();
 	ASSERT_TRUE(assets.Load(config.Root().Child("assets")));
 
-	SceneFactory sceneFactory;
-	std::unique_ptr<Scene> scene(sceneFactory.Create(config.Root().Child("scene").AttributeValue("type")));
+	std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
+	ASSERT_TRUE(primitives->Load(config.Root().Child("scene"), assets));
+	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(config.Root().Child("scene").AttributeValue("type")));
 	ASSERT_NE(scene, nullptr);
-	ASSERT_TRUE(scene->Load(config.Root().Child("scene"), assets));
+	scene->Load(primitives.release());
 	ASSERT_TRUE(scene->Configure(config.Root().Child("scene")));
 	ASSERT_TRUE(scene->Build());
 

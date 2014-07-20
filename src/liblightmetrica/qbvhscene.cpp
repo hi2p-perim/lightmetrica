@@ -19,10 +19,11 @@
 
 #include "pch.h"
 #include "simdsupport.h"
-#include <lightmetrica/qbvhscene.h>
+#include <lightmetrica/scene.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/triaccel.h>
 #include <lightmetrica/primitive.h>
+#include <lightmetrica/primitives.h>
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/aabb.h>
 #include <lightmetrica/align.h>
@@ -328,20 +329,32 @@ enum class QBVHIntersectionMode
 
 // --------------------------------------------------------------------------------
 
-class QBVHScene::Impl : public Object
+/*!
+	QBVH scene.
+	An implementation of Quad-BVH (QBVH).
+	Reference:
+		Dammertz, H., Shallow Bounding Volume Hierarchies for Fast SIMD Ray Tracing of Incoherent Rays,
+		EGSR'08 Proceedings, 2008.
+	Partially based on the implementation of
+	- LuxRender's QBVHAccel
+	- http://d.hatena.ne.jp/ototoi/20090925/p1
+*/
+class QBVHScene : public Scene
 {
 public:
 
-	Impl(QBVHScene* self);
-	~Impl();
+	LM_COMPONENT_IMPL_DEF("qbvh");
 
 public:
 
-	bool Build();
-	bool Intersect( Ray& ray, Intersection& isect ) const;
-	boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
-	bool Configure( const ConfigNode& node );
-	void ResetScene();
+	~QBVHScene();
+
+public:
+
+	virtual bool Build();
+	virtual bool Intersect( Ray& ray, Intersection& isect ) const;
+	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Configure( const ConfigNode& node );
 
 private:
 
@@ -372,7 +385,6 @@ private:
 
 private:
 
-	QBVHScene* self;
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 	int numProcessedTris;
 
@@ -387,24 +399,10 @@ private:
 
 };
 
-QBVHScene::Impl::Impl( QBVHScene* self )
-	: self(self)
+QBVHScene::~QBVHScene()
 {
-
-}
-
-QBVHScene::Impl::~Impl()
-{
-	ResetScene();
-}
-
-void QBVHScene::Impl::ResetScene()
-{
-	for (auto* node : nodes)
-		LM_SAFE_DELETE(node);
-	for (auto* quad : quadTris)
-		LM_SAFE_DELETE(quad);
-
+	for (auto* node : nodes)	LM_SAFE_DELETE(node);
+	for (auto* quad : quadTris)	LM_SAFE_DELETE(quad);
 	triRefs.clear();
 	triAccels.clear();
 	quadTris.clear();
@@ -412,7 +410,7 @@ void QBVHScene::Impl::ResetScene()
 	nodes.clear();
 }
 
-bool QBVHScene::Impl::Configure( const ConfigNode& node )
+bool QBVHScene::Configure( const ConfigNode& node )
 {
 	auto intersectionModeNode = node.Child("intersection_mode");
 	if (intersectionModeNode.Empty())
@@ -450,7 +448,7 @@ bool QBVHScene::Impl::Configure( const ConfigNode& node )
 	return true;
 }
 
-bool QBVHScene::Impl::Build()
+bool QBVHScene::Build()
 {
 	QBVHBuildData data;
 
@@ -461,9 +459,9 @@ bool QBVHScene::Impl::Build()
 		LM_LOG_INFO(boost::str(boost::format("Creating triangle elements (mode : '%s')") % (mode == QBVHIntersectionMode::SSE ? "sse" : "triaccel")));
 		LM_LOG_INDENTER();
 
-		for (int i = 0; i < self->NumPrimitives(); i++)
+		for (int i = 0; i < primitives->NumPrimitives(); i++)
 		{
-			const auto* primitive = self->PrimitiveByIndex(i);
+			const auto* primitive = primitives->PrimitiveByIndex(i);
 			const auto* mesh = primitive->mesh;
 			if (mesh)
 			{
@@ -519,7 +517,7 @@ bool QBVHScene::Impl::Build()
 	return true;
 }
 
-void QBVHScene::Impl::Build( const QBVHBuildData& data, unsigned int begin, unsigned int end, int parent, int child, int depth )
+void QBVHScene::Build( const QBVHBuildData& data, unsigned int begin, unsigned int end, int parent, int child, int depth )
 {
 	// Bound of the primitives [begin, end)
 	AABB bound;
@@ -589,7 +587,7 @@ void QBVHScene::Impl::Build( const QBVHBuildData& data, unsigned int begin, unsi
 	Build(data, splitTriIndex, end, current, right, depth + 1);
 }
 
-void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeIndex )
+void QBVHScene::PostBuild( const QBVHBuildData& data, unsigned int nodeIndex )
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -628,7 +626,7 @@ void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeInd
 							unsigned int triRefIndex = triIndices[triIndex];
 							quad->triRefIndex[k] = triRefIndex;
 							const auto& triRef = triRefs[triRefIndex];
-							const auto* primitive = self->PrimitiveByIndex(triRef.primitiveIndex);
+							const auto* primitive = primitives->PrimitiveByIndex(triRef.primitiveIndex);
 							const auto* mesh = primitive->mesh;
 							const auto* ps = mesh->Positions();
 							const auto* fs = mesh->Faces();
@@ -664,7 +662,7 @@ void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeInd
 				for (unsigned int j = 0; j < size; j++)
 				{
 					const auto& triRef = triRefs[triIndices[offset+j]];
-					const auto* primitive = self->PrimitiveByIndex(triRef.primitiveIndex);
+					const auto* primitive = primitives->PrimitiveByIndex(triRef.primitiveIndex);
 					const auto* mesh = primitive->mesh;
 					const auto* ps = mesh->Positions();
 					const auto* fs = mesh->Faces();
@@ -693,7 +691,7 @@ void QBVHScene::Impl::PostBuild( const QBVHBuildData& data, unsigned int nodeInd
 	}
 }
 
-bool QBVHScene::Impl::SplitAxisAndPosition( const QBVHBuildData& data, unsigned int begin, unsigned int end, int& axis, Math::Float& splitPosition )
+bool QBVHScene::SplitAxisAndPosition( const QBVHBuildData& data, unsigned int begin, unsigned int end, int& axis, Math::Float& splitPosition )
 {
 	// Choose the axis to split
 	AABB centroidBound;
@@ -772,7 +770,7 @@ bool QBVHScene::Impl::SplitAxisAndPosition( const QBVHBuildData& data, unsigned 
 	return true;
 }
 
-void QBVHScene::Impl::PartitionPrimitives( const QBVHBuildData& data, unsigned int begin, unsigned int end, int axis, Math::Float splitPosition, unsigned int& splitTriIndex )
+void QBVHScene::PartitionPrimitives( const QBVHBuildData& data, unsigned int begin, unsigned int end, int axis, Math::Float splitPosition, unsigned int& splitTriIndex )
 {
 	splitTriIndex = begin;
 	for (unsigned int i = begin; i < end; i++)
@@ -788,7 +786,7 @@ void QBVHScene::Impl::PartitionPrimitives( const QBVHBuildData& data, unsigned i
 	}
 }
 
-void QBVHScene::Impl::CreateLeafNode( unsigned int begin, unsigned int end, int parent, int child, const AABB& bound )
+void QBVHScene::CreateLeafNode( unsigned int begin, unsigned int end, int parent, int child, const AABB& bound )
 {
 	// If the #parent is -1 the root is a leaf node
 	// Note that in the case the root node is yet to be created
@@ -818,7 +816,7 @@ void QBVHScene::Impl::CreateLeafNode( unsigned int begin, unsigned int end, int 
 	}
 }
 
-void QBVHScene::Impl::CreateIntermediateNode( int parent, int child, const AABB& bound, unsigned int& createdNodeIndex )
+void QBVHScene::CreateIntermediateNode( int parent, int child, const AABB& bound, unsigned int& createdNodeIndex )
 {
 	// Create a new node
 	createdNodeIndex = static_cast<unsigned int>(nodes.size());
@@ -833,7 +831,7 @@ void QBVHScene::Impl::CreateIntermediateNode( int parent, int child, const AABB&
 	}
 }
 
-bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
+bool QBVHScene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
 	unsigned int intersectedTriIndex = 0;
@@ -944,12 +942,12 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 		{
 			auto* quad = quadTris[intersectedTriIndex];
 			auto& triRef = triRefs[quad->triRefIndex[intersectedQuadOffset]];
-			self->StoreIntersectionFromBarycentricCoords(triRef.primitiveIndex, triRef.faceIndex, ray, intersectedTriB, isect);
+			StoreIntersectionFromBarycentricCoords(triRef.primitiveIndex, triRef.faceIndex, ray, intersectedTriB, isect);
 		}
 		else if (mode == QBVHIntersectionMode::Triaccel)
 		{
 			auto& triAccel = triAccels[intersectedTriIndex];
-			self->StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, intersectedTriB, isect);
+			StoreIntersectionFromBarycentricCoords(triAccel.primIndex, triAccel.shapeIndex, ray, intersectedTriB, isect);
 		}
 
 		return true;
@@ -958,43 +956,7 @@ bool QBVHScene::Impl::Intersect( Ray& ray, Intersection& isect ) const
 	return false;
 }
 
-// --------------------------------------------------------------------------------
-
-QBVHScene::QBVHScene()
-	: p(new Impl(this))
-{
-
-}
-
-QBVHScene::~QBVHScene()
-{
-	LM_SAFE_DELETE(p);
-}
-
-bool QBVHScene::Build()
-{
-	return p->Build();
-}
-
-bool QBVHScene::Intersect( Ray& ray, Intersection& isect ) const
-{
-	return p->Intersect(ray, isect);
-}
-
-boost::signals2::connection QBVHScene::Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func )
-{
-	return p->Connect_ReportBuildProgress(func);
-}
-
-bool QBVHScene::Configure( const ConfigNode& node )
-{
-	return p->Configure(node);
-}
-
-void QBVHScene::ResetScene()
-{
-	p->ResetScene();
-}
+LM_COMPONENT_REGISTER_IMPL(QBVHScene, Scene);
 
 #endif
 
