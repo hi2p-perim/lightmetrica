@@ -362,9 +362,9 @@ set(
 	_SCENE_SOURCES
 	"scene.cpp"
 	"primitives.cpp"
-	"naivescene.cpp"
-	"bvhscene.cpp"
-	"qbvhscene.cpp"
+	"scene.naive.cpp"
+	"scene.bvh.cpp"
+	"scene.qbvh.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\scene" FILES ${_SCENE_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\scene" FILES ${_SCENE_SOURCES})
