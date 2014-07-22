@@ -81,7 +81,9 @@ public:
 		sceneTypes.push_back("bvh");
 #if LM_SSE2 && LM_SINGLE_PRECISION
 		sceneTypes.push_back("qbvh");
+#if LM_PLATFORM_WINDOWS
 		sceneTypes.push_back("plugin.embree");
+#endif
 #endif
 	}
 
