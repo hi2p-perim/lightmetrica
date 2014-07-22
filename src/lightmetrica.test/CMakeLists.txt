@@ -43,6 +43,7 @@ set(
 	"test.math.basic.cpp"
 	"test.math.transform.cpp"
 	"test.math.stats.cpp"
+	"test.math.distribution.cpp"
 	"test.bpt.mis.cpp"
 	"test.bpt.mis.power.cpp"
 	"test.bpt.fullpath.cpp"

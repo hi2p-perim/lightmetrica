@@ -191,6 +191,7 @@ set(
 	"${_INCLUDE_DIR}/math.h"
 	"${_INCLUDE_DIR}/math.common.h"
 	"${_INCLUDE_DIR}/math.simd.h"
+	"${_INCLUDE_DIR}/math.distribution.h"
 )
 source_group("${_HEADER_FILES_ROOT}\\math" FILES ${_MATH_HEADERS})
 list(APPEND _HEADER_FILES ${_MATH_HEADERS})

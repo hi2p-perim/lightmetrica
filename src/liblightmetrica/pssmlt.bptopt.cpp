@@ -320,6 +320,8 @@ bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
 
 	// --------------------------------------------------------------------------------
 
+	// # Gathering results
+
 	// Accumulate rendered results for all threads to one film
 	for (auto& context : contexts)
 	{
