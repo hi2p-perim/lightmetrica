@@ -82,6 +82,7 @@
 	#pragma warning(disable:4610)	// Level 4. User-defined constructor required
 	#pragma warning(disable:4100)	// Level 4. Unreferenced formal parameter
 	#pragma warning(disable:4505)	// Level 4. Unreferenced local function has been removed
+	#pragma warning(disable:4324)	// Level 4. Structure was padded due to __declspec(align())
 #endif
 
 // --------------------------------------------------------------------------------

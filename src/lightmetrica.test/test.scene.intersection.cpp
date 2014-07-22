@@ -72,11 +72,16 @@ public:
 	SceneIntersectionTest()
 		: bsdf(new StubBSDF)
 	{
+		// Load plugins
+		ComponentFactory::UnloadPlugins();
+		ComponentFactory::LoadPlugins(".");
+
 		// List of scene types to be tested
 		sceneTypes.push_back("naive");
 		sceneTypes.push_back("bvh");
 #if LM_SSE2 && LM_SINGLE_PRECISION
 		sceneTypes.push_back("qbvh");
+		sceneTypes.push_back("plugin.embree");
 #endif
 	}
 
