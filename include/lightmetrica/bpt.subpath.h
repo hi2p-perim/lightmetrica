@@ -90,11 +90,11 @@ public:
 	Math::PDFEval pdfD[2];					//!< PDF evaluation for directional component for each transport direction
 	Math::PDFEval pdfRR;					//!< PDF evaluation for Russian roulette
 	TransportDirection transportDir;		//!< Transport direction
-	const GeneralizedBSDF* bsdf;			//!< Generalized BSDF
+	const GeneralizedBSDF* bsdf;			//!< Generalized BSDF (note that BSDF and light or camera can point to different instances).
 	const Light* areaLight;					//!< Light associated with surface
 	const Camera* areaCamera;				//!< Camera associated with surface
-	Math::Vec3 wi;							//!< Incoming ray
-	Math::Vec3 wo;							//!< Outgoing ray in #dir
+	Math::Vec3 wi;							//!< Incoming ray direction
+	Math::Vec3 wo;							//!< Outgoing ray direction
 
 };
 

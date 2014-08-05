@@ -33,6 +33,8 @@ set(
 	"${_INCLUDE_DIR}/stub.bsdf.h"
 	"${_INCLUDE_DIR}/stub.config.h"
 	"${_INCLUDE_DIR}/stub.film.h"
+	"${_INCLUDE_DIR}/proxylistener.h"
+	"${_INCLUDE_DIR}/testscenes.h"
 )
 set(
 	_SOURCE_FILES

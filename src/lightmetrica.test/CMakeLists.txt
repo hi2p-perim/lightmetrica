@@ -58,7 +58,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 			endif()
 endif()
 
-pch_add_executable(lightmetrica.test PCH_HEADER "pch.h" ${_SOURCE_FILES})
+pch_add_executable(lightmetrica.test PCH_HEADER "${PROJECT_SOURCE_DIR}/pch/pch.test.h" ${_SOURCE_FILES})
 target_link_libraries(lightmetrica.test liblightmetrica liblightmetrica.test ${COMMON_LIBRARY_FILES} ${FREEIMAGE_LIBRARIES})
 add_dependencies(lightmetrica.test liblightmetrica liblightmetrica.test)
 

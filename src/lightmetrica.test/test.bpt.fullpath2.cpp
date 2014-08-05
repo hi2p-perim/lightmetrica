@@ -17,10 +17,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pch.h"
+#include "pch.test.h"
 #include <lightmetrica.test/base.h>
 #include <lightmetrica.test/base.math.h>
 #include <lightmetrica.test/stub.config.h>
+#include <lightmetrica.test/testscenes.h>
 #include <lightmetrica/assets.h>
 #include <lightmetrica/texture.h>
 #include <lightmetrica/bsdf.h>
@@ -38,101 +39,6 @@
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/primitives.h>
 
-namespace
-{
-
-	const std::string SceneFile = LM_TEST_MULTILINE_LITERAL(
-		<assets>
-			<triangle_meshes>
-				<triangle_mesh id="quad" type="raw">
-					<positions>
-						-0.1 0 -0.1
-						-0.1 0 0.1
-						0.1 0 0.1
-						0.1 0 -0.1
-					</positions>
-					<normals>
-						0 -1 0
-						0 -1 0
-						0 -1 0
-						0 -1 0
-					</normals>
-					<faces>
-						0 2 1
-						0 3 2
-					</faces>
-				</triangle_mesh>
-			</triangle_meshes>
-			<bsdfs>
-				<bsdf id="diffuse_white" type="diffuse">
-					<diffuse_reflectance>0.9 0.9 0.9</diffuse_reflectance>
-				</bsdf>
-				<bsdf id="diffuse_black" type="diffuse">
-					<diffuse_reflectance>0 0 0</diffuse_reflectance>
-				</bsdf>
-				<bsdf id="diffuse_red" type="diffuse">
-					<diffuse_reflectance>0.9 0.1 0.1</diffuse_reflectance>
-				</bsdf>
-				<bsdf id="diffuse_green" type="diffuse">
-					<diffuse_reflectance>0.1 0.9 0.1</diffuse_reflectance>
-				</bsdf>
-			</bsdfs>
-			<films>
-				<film id="film_1" type="hdr">
-					<width>500</width>
-					<height>500</height>
-					<imagetype>radiancehdr</imagetype>
-				</film>
-			</films>
-			<cameras>
-				<camera id="camera_1" type="perspective">
-					<film ref="film_1" />
-					<fovy>45</fovy>
-				</camera>
-			</cameras>
-			<lights>
-				<light id="light_1" type="area">
-					<luminance>2 2 2</luminance>
-				</light>
-			</lights>
-		</assets>
-		<scene type="naive">
-			<root>
-				<node>
-					<transform>
-						<lookat>
-							<position>0 0.1 0.3</position>
-							<center>0 0.1 0</center>
-							<up>0 1 0</up>
-						</lookat>
-					</transform>
-					<camera ref="camera_1" />
-				</node>
-				<node>
-					<transform>
-						<rotate>
-							<angle>-90</angle>
-							<axis>1 0 0</axis>
-						</rotate>
-						<translate>0 0.1 -0.1</translate>
-					</transform>
-					<triangle_mesh ref="quad" />
-					<bsdf ref="diffuse_white" />
-				</node>
-				<node>
-					<transform>
-						<translate>0 0.2 0</translate>
-					</transform>
-					<triangle_mesh ref="quad" />
-					<light ref="light_1" />
-					<bsdf ref="diffuse_black" />
-				</node>
-			</root>
-		</scene>
-	);
-
-}
-
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
@@ -141,15 +47,15 @@ class BPTFullpathTest2 : public TestBase {};
 TEST_F(BPTFullpathTest2, Consistency)
 {
 	StubConfig config;
-	ASSERT_TRUE(config.LoadFromString(SceneFile, ""));
+	ASSERT_TRUE(config.LoadFromString(TestScenes::Simple03(), ""));
 
 	std::unique_ptr<Assets> assets(ComponentFactory::Create<Assets>());
-	assets->RegisterInterface<Texture>();
-	assets->RegisterInterface<BSDF>();
-	assets->RegisterInterface<TriangleMesh>();
-	assets->RegisterInterface<Film>();
-	assets->RegisterInterface<Camera>();
-	assets->RegisterInterface<Light>();
+	ASSERT_TRUE(assets->RegisterInterface<Texture>());
+	ASSERT_TRUE(assets->RegisterInterface<BSDF>());
+	ASSERT_TRUE(assets->RegisterInterface<TriangleMesh>());
+	ASSERT_TRUE(assets->RegisterInterface<Film>());
+	ASSERT_TRUE(assets->RegisterInterface<Camera>());
+	ASSERT_TRUE(assets->RegisterInterface<Light>());
 	ASSERT_TRUE(assets->Load(config.Root().Child("assets")));
 	
 	std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
@@ -161,8 +67,8 @@ TEST_F(BPTFullpathTest2, Consistency)
 	ASSERT_TRUE(scene->Build());
 
 	BPTPathVertexPool pool;
-	BPTSubpath lightSubpath(TransportDirection::LE);
-	BPTSubpath eyeSubpath(TransportDirection::EL);
+	BPTSubpath subpathL(TransportDirection::LE);
+	BPTSubpath subpathE(TransportDirection::EL);
 
 	std::unique_ptr<ConfigurableSampler> sampler(ComponentFactory::Create<ConfigurableSampler>("random"));
 	ASSERT_TRUE(sampler->Configure(ConfigNode(), *assets));
@@ -172,13 +78,13 @@ TEST_F(BPTFullpathTest2, Consistency)
 	for (int sample = 0; sample < Samples; sample++)
 	{
 		pool.Release();
-		lightSubpath.Clear();
-		eyeSubpath.Clear();
-		lightSubpath.Sample(*scene, *sampler, pool, 3, -1);
-		eyeSubpath.Sample(*scene, *sampler, pool, 3, -1);
+		subpathL.Clear();
+		subpathE.Clear();
+		subpathL.Sample(*scene, *sampler, pool, 3, -1);
+		subpathE.Sample(*scene, *sampler, pool, 3, -1);
 
-		const int nL = lightSubpath.NumVertices();
-		const int nE = eyeSubpath.NumVertices();
+		const int nL = subpathL.NumVertices();
+		const int nE = subpathE.NumVertices();
 		for (int s = 0; s <= nL; s++)
 		{
 			for (int t = 0; t <= nE; t++)
@@ -202,7 +108,7 @@ TEST_F(BPTFullpathTest2, Consistency)
 					}
 				}
 
-				BPTFullPath fullpath(s, t, lightSubpath, eyeSubpath);
+				BPTFullPath fullpath(s, t, subpathL, subpathE);
 				auto ps = fullpath.EvaluateFullpathPDF(s);
 				if (Math::Abs(ps) < Math::Constants::Eps())
 				{
