@@ -71,21 +71,26 @@ public:
 
 public:
 
-	// General information
+											// --------------------------------------------------
+
+											// General information
+
 	BPTPathVertexType type;					//!< Vertex type
 	SurfaceGeometry geom;					//!< Surface geometry information
 
-	/*
-		Variables associated with Emitter.
-		#type is EndPoint
-	*/
-	Math::PDFEval pdfP;						//!< PDF evaluation for positional component
-	const Emitter* emitter;
+											// --------------------------------------------------
 
-	/*
-		Variables associated with generalized BSDF.
-		#type is either EndPoint or IntermediatePoint
-	*/
+											// Variables associated with Emitter.
+											// #type is EndPoint
+
+	Math::PDFEval pdfP;						//!< PDF evaluation for positional component
+	const Emitter* emitter;					//!< Emitter
+
+											// --------------------------------------------------
+
+											// Variables associated with generalized BSDF.
+											// #type is either EndPoint or IntermediatePoint
+
 	Math::Vec3 weight;						//!< Value of f_s / p_{\omega^\bot}
 	Math::PDFEval pdfD[2];					//!< PDF evaluation for directional component for each transport direction
 	Math::PDFEval pdfRR;					//!< PDF evaluation for Russian roulette
@@ -95,6 +100,8 @@ public:
 	const Camera* areaCamera;				//!< Camera associated with surface
 	Math::Vec3 wi;							//!< Incoming ray direction
 	Math::Vec3 wo;							//!< Outgoing ray direction
+
+											// --------------------------------------------------
 
 };
 
@@ -169,7 +176,7 @@ public:
 		\param i Index.
 		\return Vertex.
 	*/
-	LM_PUBLIC_API BPTPathVertex* GetVertex(int i) const;
+	LM_PUBLIC_API BPTPathVertex* Vertex(int i) const;
 
 public:
 

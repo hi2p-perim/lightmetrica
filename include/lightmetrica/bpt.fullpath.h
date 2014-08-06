@@ -102,7 +102,7 @@ public:
 		\param i Index of PDF.
 		\return Vertex.
 	*/
-	const BPTPathVertex* FullPathVertex(int i) const;
+	LM_PUBLIC_API const BPTPathVertex* FullPathVertex(int i) const;
 
 	/*!
 		Get i-th directional PDF evaluation of the full-path.

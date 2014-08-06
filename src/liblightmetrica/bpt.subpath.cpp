@@ -142,7 +142,7 @@ int BPTSubpath::NumVertices() const
 	return static_cast<int>(vertices.size());
 }
 
-BPTPathVertex* BPTSubpath::GetVertex( int i ) const
+BPTPathVertex* BPTSubpath::Vertex( int i ) const
 {
 	return vertices[i];
 }

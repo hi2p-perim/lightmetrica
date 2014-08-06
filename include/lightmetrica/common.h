@@ -161,6 +161,26 @@
 	#define LM_HIDDEN_API
 #endif
 
+#if LM_COMPILER_MSVC
+	#ifdef LM_PLUGIN_EXPORTS
+		#define LM_PLUGIN_PUBLIC_API __declspec(dllexport)
+	#else
+		#define LM_PLUGIN_PUBLIC_API __declspec(dllimport)
+	#endif
+	#define LM_PLUGIN_HIDDEN_API
+#elif LM_COMPILER_GCC
+	#ifdef LM_PLUGIN_EXPORTS
+		#define LM_PLUGIN_PUBLIC_API __attribute__ ((visibility("default")))
+		#define LM_PLUGIN_HIDDEN_API __attribute__ ((visibility("hidden")))
+	#else
+		#define LM_PLUGIN_PUBLIC_API
+		#define LM_PLUGIN_HIDDEN_API
+	#endif
+#else
+	#define LM_PLUGIN_PUBLIC_API
+	#define LM_PLUGIN_HIDDEN_API
+#endif
+
 // In the debug mode, the hidden API is exposed
 #if LM_DEBUG_MODE
 	#undef LM_HIDDEN_API

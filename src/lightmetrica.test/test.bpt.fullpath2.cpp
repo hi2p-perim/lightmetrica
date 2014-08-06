@@ -101,7 +101,7 @@ TEST_F(BPTFullpathTest2, Consistency)
 				Math::Float connGeom(-1);
 				if (s > 0 && t > 0)
 				{
-					connGeom = RenderUtils::GeneralizedGeometryTermWithVisibility(*scene, lightSubpath.GetVertex(s-1)->geom, eyeSubpath.GetVertex(t-1)->geom);
+					connGeom = RenderUtils::GeneralizedGeometryTermWithVisibility(*scene, subpathL.Vertex(s-1)->geom, subpathE.Vertex(t-1)->geom);
 					if (Math::Abs(connGeom) < Math::Constants::Eps())
 					{
 						continue;
