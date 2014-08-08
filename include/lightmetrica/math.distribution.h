@@ -38,8 +38,12 @@ public:
 
 	DiscreteDistribution1D()
 	{
-		cdf.push_back(Math::Float(0));
+		Clear();
 	}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(DiscreteDistribution1D);
 
 public:
 
@@ -75,6 +79,12 @@ public:
 	Math::Float EvaluatePDF(size_t i) const
 	{
 		return cdf[i+1] - cdf[i];
+	}
+
+	void Clear()
+	{
+		cdf.clear();
+		cdf.push_back(Math::Float(0));
 	}
 
 private:

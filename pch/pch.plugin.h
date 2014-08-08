@@ -27,6 +27,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 #include <iostream>
 #include <sstream>
