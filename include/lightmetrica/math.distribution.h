@@ -87,6 +87,11 @@ public:
 		cdf.push_back(Math::Float(0));
 	}
 
+	bool Empty() const
+	{
+		return cdf.size() == 1;
+	}
+
 private:
 
 	std::vector<Math::Float> cdf;
