@@ -206,9 +206,10 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 	GeneralizedBSDFSampleBidirResult bsdfSRE;
 	v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQE, v->geom, bsdfSRE);
 	v->wo = bsdfSRE.wo;
-	v->weight = bsdfSRE.weight[transportDir];
-	v->pdfD[transportDir] = bsdfSRE.pdf[transportDir];
-	v->pdfD[1-transportDir] = bsdfSRE.pdf[1-transportDir];
+	v->weight[transportDir]   = bsdfSRE.weight[transportDir];
+	v->weight[1-transportDir] = bsdfSRE.weight[1-transportDir];
+	v->pdfD[transportDir]     = bsdfSRE.pdf[transportDir];
+	v->pdfD[1-transportDir]   = bsdfSRE.pdf[1-transportDir];
 
 	// # of vertices is always greater than 1
 	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
@@ -310,9 +311,10 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		}
 
 		v->wo = bsdfSR.wo;
-		v->weight = bsdfSR.weight[transportDir];
-		v->pdfD[transportDir] = bsdfSR.pdf[transportDir];
-		v->pdfD[1-transportDir] = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
+		v->weight[transportDir]   = bsdfSR.weight[transportDir];
+		v->weight[1-transportDir] = bsdfSR.weight[1-transportDir];
+		v->pdfD[transportDir]     = bsdfSR.pdf[transportDir];
+		v->pdfD[1-transportDir]   = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
 
 		numPathVertices++;
 		vertices.push_back(v);
@@ -365,7 +367,7 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 				bsdfEQ.wi = v->wi;
 				bsdfEQ.wo = v->wo;
 
-				alpha *= v->weight;
+				alpha *= v->weight[transportDir];
 
 				// RR probability
 				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);

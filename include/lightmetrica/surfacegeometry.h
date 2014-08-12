@@ -31,6 +31,7 @@ LM_NAMESPACE_BEGIN
 	Surface geometry.
 	Contains geometry information of a point on the scene surfaces.
 	Normals and tangents are defined only if the surface geometry at #p is not degenerated.
+	TODO : Use unrestricted unions in the future implementation.
 */
 struct SurfaceGeometry
 {

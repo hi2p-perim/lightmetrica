@@ -85,7 +85,7 @@ public:
 											// # Variables associated with generalized BSDF.
 											// \a type is either EndPoint or IntermediatePoint
 											// --------------------------------------------------
-	Math::Vec3 weight;						//!< Value of f_s / p_{\omega^\bot}
+	Math::Vec3 weight[2];					//!< Value of f_s / p_{\omega^\bot} for each transport direction
 	Math::PDFEval pdfD[2];					//!< PDF evaluation for directional component for each transport direction
 	Math::PDFEval pdfRR;					//!< PDF evaluation for Russian roulette
 	TransportDirection transportDir;		//!< Transport direction
