@@ -80,7 +80,7 @@ public:
 											// \a type is EndPoint
 											// --------------------------------------------------
 	Math::PDFEval pdfP;						//!< PDF evaluation for positional component
-	const Emitter* emitter;					//!< Emitter
+	const Emitter* emitter;					//!< Emitter. The entry is required because of area light or camera.
 
 											// # Variables associated with generalized BSDF.
 											// \a type is either EndPoint or IntermediatePoint
