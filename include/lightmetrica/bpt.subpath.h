@@ -55,7 +55,7 @@ class BPTPathVertex : public SIMDAlignedType
 {
 public:
 
-	BPTPathVertex();
+	LM_PUBLIC_API BPTPathVertex();
 
 private:
 
