@@ -110,7 +110,7 @@ public:
 		\param transportDir Transport direction.
 		\return Evaluated PDF.
 	*/
-	Math::PDFEval FullPathVertexDirectionPDF(int i, TransportDirection transportDir) const;
+	LM_PUBLIC_API Math::PDFEval FullPathVertexDirectionPDF(int i, TransportDirection transportDir) const;
 
 public:
 
