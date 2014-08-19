@@ -266,6 +266,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		{
 			// Calculate #pdfP for intersected emitter
 			v->pdfP = v->emitter->EvaluatePositionPDF(v->geom);
+			v->pdfP.v *= scene.LightSelectionPdf().v;
 		}
 		else
 		{
