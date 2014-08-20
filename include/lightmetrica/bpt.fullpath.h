@@ -90,6 +90,13 @@ public:
 	LM_PUBLIC_API bool FullpathPDFIsZero(int i) const;
 
 	/*!
+		Evaluate path selection probability.
+		Evaluates path selection probability due to Russian roulette.
+		\return Evaluated probability.
+	*/
+	LM_PUBLIC_API Math::PDFEval PathSelectionProbability() const;
+
+	/*!
 		Debug print.
 		Prints contents of the full-path.
 	*/

@@ -362,12 +362,6 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 				v = vertices[i];
 
 				// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.type = GeneralizedBSDFType::All;
-				bsdfEQ.transportDir = transportDir;
-				bsdfEQ.wi = v->wi;
-				bsdfEQ.wo = v->wo;
-
 				alpha *= v->weight[transportDir];
 
 				// RR probability
@@ -378,6 +372,12 @@ Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition 
 	}
 
 	return alpha;
+}
+
+Math::PDFEval BPTSubpath::SubpathSelectionProbability( int vs ) const
+{
+	// TODO
+	
 }
 
 LM_NAMESPACE_END

@@ -205,7 +205,7 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 	if (s == 0 && t > 0)
 	{
 		// z_{t-1} is area light
-		auto* v = eyeSubpath.vertices[t-1];
+		const auto* v = eyeSubpath.vertices[t-1];
 		if (v->areaLight)
 		{
 			// Camera emitter cannot be an light
@@ -225,7 +225,7 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 	else if (s > 0 && t == 0)
 	{
 		// y_{s-1} is area camera
-		auto* v = lightSubpath.vertices[s-1];
+		const auto* v = lightSubpath.vertices[s-1];
 		if (v->areaCamera)
 		{
 			// Light emitter cannot be an camera
@@ -248,8 +248,8 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 	}
 	else if (s > 0 && t > 0)
 	{
-		auto* vL = lightSubpath.vertices[s-1];
-		auto* vE = eyeSubpath.vertices[t-1];
+		const auto* vL = lightSubpath.vertices[s-1];
+		const auto* vE = eyeSubpath.vertices[t-1];
 
 		// Both #vL and #vE must not be directionally degenerated
 		// which avoids unnecessary intersection query and BSDF evaluation
@@ -485,6 +485,11 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 	}
 
 	return false;
+}
+
+Math::PDFEval BPTFullPath::PathSelectionProbability() const
+{
+	
 }
 
 const BPTPathVertex* BPTFullPath::FullPathVertex( int i ) const

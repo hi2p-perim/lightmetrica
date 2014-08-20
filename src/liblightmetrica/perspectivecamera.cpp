@@ -282,6 +282,19 @@ Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
 	auto refCam3 = Math::Vec3(refCam4);
 
+	// Reference point in NDC
+	auto refNdc4 = projectionMatrix * refCam4;
+	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
+
+	// Raster position in [0, 1]^2
+	auto rasterPos = (Math::Vec2(refNdc3.x, refNdc3.y) + Math::Vec2(Math::Float(1))) / Math::Float(2);
+
+	// Check visibility
+	if (rasterPos.x < 0 || rasterPos.x > 1 || rasterPos.y < 0 || rasterPos.y > 1)
+	{
+		return Math::Vec3();
+	}
+
 	// Importance
 	return Math::Vec3(EvaluateImportance(-Math::CosThetaZUp(Math::Normalize(refCam3))));
 }
@@ -347,6 +360,19 @@ Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEval
 	// Reference point in camera coordinates
 	auto refCam4 = viewMatrix * Math::Vec4(geom.p + query.wo, Math::Float(1));
 	auto refCam3 = Math::Vec3(refCam4);
+
+	// Reference point in NDC
+	auto refNdc4 = projectionMatrix * refCam4;
+	auto refNdc3 = Math::Vec3(refNdc4) / refNdc4.w;
+
+	// Raster position in [0, 1]^2
+	auto rasterPos = (Math::Vec2(refNdc3.x, refNdc3.y) + Math::Vec2(Math::Float(1))) / Math::Float(2);
+
+	// Check visibility
+	if (rasterPos.x < 0 || rasterPos.x > 1 || rasterPos.y < 0 || rasterPos.y > 1)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
 
 	// NOTE : This PDF evaluation is vulnerable with FP precision
 	return Math::PDFEval(

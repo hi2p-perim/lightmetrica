@@ -148,12 +148,20 @@ public:
 	LM_PUBLIC_API void Sample(const Scene& scene, Sampler& sampler, BPTPathVertexPool& pool, int rrDepth, int maxPathVertices);
 
 	/*!
-		Evaluate alpha of sub-paths.
+		Evaluate alpha of subpaths.
 		The function is called from #EvaluateUnweightContribution.
-		\param vs Number of vertices in sub-path (#s or #t).
+		\param vs Number of vertices in subpath (#s or #t).
 		\param rasterPosition Raster position.
+		\return Evaluated value.
 	*/
 	Math::Vec3 EvaluateSubpathAlpha(int vs, Math::Vec2& rasterPosition) const;
+
+	/*!
+		Evalaute subpath selection pribability.
+		\param vs Number of vertices in subpath (#s or #t).
+		\return Evaluated probability.
+	*/
+	Math::PDFEval SubpathSelectionProbability(int vs) const;
 
 	/*!
 		Get number of vertices.
