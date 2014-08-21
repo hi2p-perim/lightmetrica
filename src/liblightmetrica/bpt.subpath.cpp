@@ -329,55 +329,67 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 Math::Vec3 BPTSubpath::EvaluateSubpathAlpha( int vs, Math::Vec2& rasterPosition ) const
 {
-	Math::Vec3 alpha;
-
 	if (vs == 0)
 	{
 		// \alpha_0 = 1
-		alpha = Math::Vec3(Math::Float(1));
+		return Math::Vec3(Math::Float(1));
 	}
-	else
+
+	// --------------------------------------------------------------------------------
+
+	BPTPathVertex* v = vertices[0];
+
+	LM_ASSERT(v->type == BPTPathVertexType::EndPoint);
+	LM_ASSERT(v->emitter != nullptr);
+	LM_ASSERT(v->pdfP.measure == Math::ProbabilityMeasure::Area);
+
+	// # Calculate raster position if transport direction is EL
+	bool visible = true;
+	if (transportDir == TransportDirection::EL)
 	{
-		BPTPathVertex* v = vertices[0];
+		visible = dynamic_cast<const Camera*>(v->emitter)->RayToRasterPosition(v->geom.p, v->wo, rasterPosition);
+	}
 
-		LM_ASSERT(v->type == BPTPathVertexType::EndPoint);
-		LM_ASSERT(v->emitter != nullptr);
-		LM_ASSERT(v->pdfP.measure == Math::ProbabilityMeasure::Area);
+	if (!visible)
+	{
+		return Math::Vec3();
+	}
 
-		// Calculate raster position if transport direction is EL
-		bool visible = true;
-		if (transportDir == TransportDirection::EL)
-		{
-			visible = dynamic_cast<const Camera*>(v->emitter)->RayToRasterPosition(v->geom.p, v->wo, rasterPosition);
-		}
-		
-		if (visible)
-		{
-			// Emitter
-			// \alpha^L_1 = Le^0(y0) / p_A(y0) or \alpha^E_1 = We^0(z0) / p_A(z0)
-			alpha = v->emitter->EvaluatePosition(v->geom) / v->pdfP.v;
+	// --------------------------------------------------------------------------------
 
-			for (int i = 0; i < vs - 1; i++)
-			{
-				v = vertices[i];
+	// Emitter
+	// \alpha^L_1 = Le^0(y0) / p_A(y0) or \alpha^E_1 = We^0(z0) / p_A(z0)
+	auto alpha = v->emitter->EvaluatePosition(v->geom) / v->pdfP.v;
 
-				// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
-				alpha *= v->weight[transportDir];
+	for (int i = 0; i < vs - 1; i++)
+	{
+		v = vertices[i];
 
-				// RR probability
-				LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);
-				alpha /= v->pdfRR.v;
-			}
-		}
+		// f_s(y_{i-1}\to y_i\to y_{i+1}) or f_s(z_{i-1}\to z_i\to z_{i+1})
+		alpha *= v->weight[transportDir];
+
+		// RR probability
+		LM_ASSERT(v->pdfRR.measure == Math::ProbabilityMeasure::Discrete);
+		alpha /= v->pdfRR.v;
 	}
 
 	return alpha;
 }
 
-Math::PDFEval BPTSubpath::SubpathSelectionProbability( int vs ) const
+Math::Float BPTSubpath::SubpathSelectionProbability( int vs ) const
 {
-	// TODO
-	
+	if (vs == 0)
+	{
+		return Math::Float(1);
+	}
+
+	Math::Float p(1);
+	for (int i = 0; i < vs - 1; i++)
+	{
+		p *= vertices[i]->pdfRR.v;
+	}
+
+	return p;
 }
 
 LM_NAMESPACE_END

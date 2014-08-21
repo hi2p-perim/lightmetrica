@@ -487,9 +487,9 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 	return false;
 }
 
-Math::PDFEval BPTFullPath::PathSelectionProbability() const
+Math::Float BPTFullPath::PathSelectionProbability() const
 {
-	
+	return lightSubpath.SubpathSelectionProbability(s) * eyeSubpath.SubpathSelectionProbability(t);
 }
 
 const BPTPathVertex* BPTFullPath::FullPathVertex( int i ) const

@@ -94,7 +94,7 @@ public:
 		Evaluates path selection probability due to Russian roulette.
 		\return Evaluated probability.
 	*/
-	LM_PUBLIC_API Math::PDFEval PathSelectionProbability() const;
+	LM_PUBLIC_API Math::Float PathSelectionProbability() const;
 
 	/*!
 		Debug print.

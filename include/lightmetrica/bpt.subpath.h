@@ -161,7 +161,7 @@ public:
 		\param vs Number of vertices in subpath (#s or #t).
 		\return Evaluated probability.
 	*/
-	Math::PDFEval SubpathSelectionProbability(int vs) const;
+	Math::Float SubpathSelectionProbability(int vs) const;
 
 	/*!
 		Get number of vertices.
