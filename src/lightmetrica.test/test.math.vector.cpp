@@ -154,6 +154,15 @@ TYPED_TEST(MathVector2Test, Dot)
 	EXPECT_TRUE(ExpectNear(T(10), Math::Dot(this->v1, this->v2)));
 }
 
+TYPED_TEST(MathVector2Test, LInfinityNorm)
+{
+	typedef TypeParam T;
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec2<T>(T(3), T(2)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec2<T>(T(-3), T(2)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec2<T>(T(-3), T(-2)))));
+	EXPECT_TRUE(ExpectNear(T(3), Math::LInfinityNorm(Math::TVec2<T>(T(2), T(3)))));
+}
+
 TYPED_TEST(MathVector2Test, MinMax)
 {
 	EXPECT_TRUE(ExpectVec2Near(this->v1, Math::Min(this->v1, this->v2)));

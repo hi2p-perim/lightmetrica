@@ -75,6 +75,7 @@ template <typename T> LM_FORCE_INLINE T Length(const TVec2<T>& v);
 template <typename T> LM_FORCE_INLINE T Length2(const TVec2<T>& v);
 template <typename T> LM_FORCE_INLINE TVec2<T> Normalize(const TVec2<T>& v);
 template <typename T> LM_FORCE_INLINE T Dot(const TVec2<T>& v1, const TVec2<T>& v2);
+template <typename T> LM_FORCE_INLINE T LInfinityNorm(const TVec2<T>& v);
 
 template <typename T> LM_FORCE_INLINE TVec2<T> Min(const TVec2<T>& v1, const TVec2<T>& v2);
 template <typename T> LM_FORCE_INLINE TVec2<T> Max(const TVec2<T>& v1, const TVec2<T>& v2);

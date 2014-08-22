@@ -224,6 +224,12 @@ LM_FORCE_INLINE T Dot(const TVec2<T>& v1, const TVec2<T>& v2)
 }
 
 template <typename T>
+LM_FORCE_INLINE T LInfinityNorm(const TVec2<T>& v)
+{
+	return Math::Max(Math::Abs(v.x), Math::Abs(v.y));
+}
+
+template <typename T>
 LM_FORCE_INLINE TVec2<T> Min(const TVec2<T>& v1, const TVec2<T>& v2)
 {
 	return TVec2<T>(Min(v1.x, v2.x), Min(v1.y, v2.y));
