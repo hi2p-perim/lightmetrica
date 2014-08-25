@@ -67,6 +67,17 @@ public:
 		return createFuncIter->second();
 	}
 
+	bool CheckRegistered(const std::string& implType, const std::string& interfaceType)
+	{
+		auto createFuncImplMapIter = createFuncMap.find(interfaceType);
+		if (createFuncImplMapIter == createFuncMap.end())
+		{
+			return false;
+		}
+
+		return createFuncImplMapIter->second.find(implType) != createFuncImplMapIter->second.end();
+	}
+
 private:
 
 	typedef std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> CreateComponentFuncImplMap;
@@ -89,6 +100,11 @@ extern "C"
 	LM_PLUGIN_API lightmetrica::Component* LM_Plugin_CreateInstance(const char* implType, const char* interfaceType)
 	{
 		return lightmetrica::PluginManagerImpl::Instance().CreateInstance(implType, interfaceType);
+	}
+
+	LM_PLUGIN_API bool LM_Plugin_CheckRegistered(const char* implType, const char* interfaceType)
+	{
+		return lightmetrica::PluginManagerImpl::Instance().CheckRegistered(implType, interfaceType);
 	}
 
 }

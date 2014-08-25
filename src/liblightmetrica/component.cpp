@@ -38,18 +38,7 @@ public:
 
 	bool CheckRegistered(const std::string& interfaceType, const std::string& implType)
 	{
-		auto createFuncImplMap = createFuncMap.find(interfaceType);
-		if (createFuncImplMap == createFuncMap.end())
-		{
-			return false;
-		}
-
-		return createFuncImplMap->second.find(implType) != createFuncImplMap->second.end();
-	}
-
-	bool CheckInterfaceRegistered(const std::string& interfaceType)
-	{
-		return createFuncMap.find(interfaceType) != createFuncMap.end();
+		return CheckRegisteredFromInternal(interfaceType, implType) || CheckRegisteredFromPlugin(interfaceType, implType);
 	}
 
 	bool Register(const std::string& interfaceType, const std::string& implType, const ComponentFactory::CreateComponentFunc& func)
@@ -109,10 +98,20 @@ public:
 						continue;
 					}
 
+					// Load symbol 'LM_Plugin_CreateInstance'
+					void* checkFuncSym = library->GetSymbolAddress("LM_Plugin_CheckRegistered");
+					if (checkFuncSym == nullptr)
+					{
+						LM_LOG_ERROR("Failed to find symbol 'LM_Plugin_CheckRegistered', skipping.");
+						continue;
+					}
+
 					libraries.push_back(std::move(library));
 
 					typedef Component* (*PluginCreateInstanceFunction)(const char*, const char*);
+					typedef bool (*PluginCheckRegisteredFunction)(const char*, const char*);
 					pluginCreateInstanceFuncs.emplace_back(reinterpret_cast<PluginCreateInstanceFunction>(factoryFuncSym));
+					pluginCheckRegisteredFuncs.emplace_back(reinterpret_cast<PluginCheckRegisteredFunction>(checkFuncSym));
 
 					LM_LOG_INFO("Successfully loaded");
 				}
@@ -222,6 +221,31 @@ private:
 #endif
 	}
 
+	bool CheckRegisteredFromInternal(const std::string& interfaceType, const std::string& implType)
+	{
+		auto createFuncImplMap = createFuncMap.find(interfaceType);
+		if (createFuncImplMap == createFuncMap.end())
+		{
+			return false;
+		}
+
+		return createFuncImplMap->second.find(implType) != createFuncImplMap->second.end();
+	}
+
+	bool CheckRegisteredFromPlugin(const std::string& interfaceType, const std::string& implType)
+	{
+		for (auto& checkRegisteredFunc : pluginCheckRegisteredFuncs)
+		{
+			bool ret = checkRegisteredFunc(implType.c_str(), interfaceType.c_str());
+			if (ret)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 private:
 
 	typedef std::unordered_map<std::string, ComponentFactory::CreateComponentFunc> CreateComponentFuncImplMap;
@@ -232,18 +256,15 @@ private:
 	std::vector<std::unique_ptr<DynamicLibrary>> libraries;							// Loaded dynamic libraries
 	
 	typedef std::function<Component* (const char*, const char*)> PluginCreateComponentFunc;
+	typedef std::function<bool (const char*, const char*)> PluginCheckRegisteredFunc;
 	std::vector<PluginCreateComponentFunc> pluginCreateInstanceFuncs;
+	std::vector<PluginCheckRegisteredFunc> pluginCheckRegisteredFuncs;
 
 };
 
 bool ComponentFactory::CheckRegistered( const std::string& interfaceType, const std::string& implType )
 {
 	return ComponentFactoryImpl::Instance().CheckRegistered(interfaceType, implType);
-}
-
-bool ComponentFactory::CheckInterfaceRegistered( const std::string& interfaceType )
-{
-	return ComponentFactoryImpl::Instance().CheckInterfaceRegistered(interfaceType);
 }
 
 bool ComponentFactory::Register( const std::string& interfaceType, const std::string& implType, const CreateComponentFunc& func )

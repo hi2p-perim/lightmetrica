@@ -318,10 +318,21 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	{
 		// Reflection
 		// Reflected wi and wo must be same
+#if 1
+		auto localWoTemp = Math::ReflectZUp(localWi);
+		auto localWiTemp = Math::ReflectZUp(localWo);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (woTemp != query.wo && wiTemp != query.wi)
+		{
+			return Math::Vec3();
+		}
+#else
 		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 		{
 			return Math::Vec3();
 		}
+#endif
 
 		// Correction factor for shading normal
 		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
@@ -338,6 +349,17 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	// Refraction
 	// Refracted wi and wo must be same
 #if 1
+	Math::Float cosThetaT2Rev;
+	EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
+	auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
+	auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
+	auto woTemp = geom.shadingToWorld * localWoTemp;
+	auto wiTemp = geom.shadingToWorld * localWiTemp;
+	if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+	{
+		return Math::Vec3();
+	}
+#elif 1
 	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
 	{
 		return Math::Vec3();
@@ -399,16 +421,40 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	if (cosThetaI * cosThetaT >= Math::Float(0))
 	{
 		// Reflection
+		// Reflected wi and wo must be same
+#if 1
+		auto localWoTemp = Math::ReflectZUp(localWi);
+		auto localWiTemp = Math::ReflectZUp(localWo);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (woTemp != query.wo && wiTemp != query.wi)
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+#else
 		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 		{
 			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
+#endif
 
 		return Math::PDFEval(Fr / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
 
 	// Refraction
+	// Refracted wi and wo must be same
 #if 1
+	Math::Float cosThetaT2Rev;
+	EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
+	auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
+	auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
+	auto woTemp = geom.shadingToWorld * localWoTemp;
+	auto wiTemp = geom.shadingToWorld * localWiTemp;
+	if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+#elif 1
 	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);

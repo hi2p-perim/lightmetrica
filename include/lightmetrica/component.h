@@ -102,14 +102,6 @@ public:
 	static bool CheckRegistered(const std::string& interfaceType, const std::string& implType);
 
 	/*!
-		Check if the component interface is registered.
-		\param interfaceType Component interface type.
-		\retval true Component interface of the given type is registered.
-		\retval false Component interface of the given type is not registered.
-	*/
-	static bool CheckInterfaceRegistered(const std::string& interfaceType);
-
-	/*!
 		Register a component.
 		Registers a component to the factory.
 		Registered components can be instantiated with #Create function.
@@ -171,11 +163,6 @@ public:
 	static InterfaceType* Create(const std::string& implType)
 	{
 		std::string interfaceType = InterfaceType::InterfaceTypeName();
-		if (!CheckInterfaceRegistered(interfaceType))
-		{
-			LM_LOG_ERROR("Invalid interface type '" + interfaceType + "'");
-			return nullptr;
-		}
 
 		auto* p1 = Create(interfaceType, implType);
 		if (p1 == nullptr)

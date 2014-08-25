@@ -135,6 +135,118 @@ public:
 		);
 	}
 
+	static std::string Simple05()
+	{
+		return LM_TEST_MULTILINE_LITERAL(
+			<assets>
+				<triangle_meshes>
+					<triangle_mesh id="quad" type="raw">
+						<positions>
+							-0.1 0 -0.1
+							-0.1 0 0.1
+							0.1 0 0.1
+							0.1 0 -0.1
+						</positions>
+						<normals>
+							0 -1 0
+							0 -1 0
+							0 -1 0
+							0 -1 0
+						</normals>
+						<faces>
+							0 2 1
+							0 3 2
+						</faces>
+					</triangle_mesh>
+				</triangle_meshes>
+				<bsdfs>
+					<bsdf id="diffuse_white" type="diffuse">
+						<diffuse_reflectance>0.9 0.9 0.9</diffuse_reflectance>
+					</bsdf>
+					<bsdf id="glass" type="dielectric">
+						<specular_reflectance>1 0.5 0.5</specular_reflectance>
+						<specular_transmittance>1 0.5 0.5</specular_transmittance>
+						<external_ior>1</external_ior>
+						<internal_ior>1.458</internal_ior>
+					</bsdf>
+				</bsdfs>
+				<films>
+					<film id="film_1" type="hdr">
+						<width>500</width>
+						<height>500</height>
+						<imagetype>radiancehdr</imagetype>
+					</film>
+				</films>
+				<cameras>
+					<camera id="camera_1" type="perspective">
+						<film ref="film_1" />
+						<fovy>45</fovy>
+					</camera>
+				</cameras>
+				<lights>
+					<light id="light_1" type="area">
+						<luminance>2 2 2</luminance>
+					</light>
+				</lights>
+			</assets>
+			<scene type="naive">
+				<root>
+					<node>
+						<transform>
+							<lookat>
+								<position>0 0.1 0.3</position>
+								<center>0 0.1 0</center>
+								<up>0 1 0</up>
+							</lookat>
+						</transform>
+						<camera ref="camera_1" />
+					</node>
+					<node>
+						<transform>
+							<translate>0 0.2 0</translate>
+						</transform>
+						<triangle_mesh ref="quad" />
+						<light ref="light_1" />
+						<bsdf ref="diffuse_white" />
+					</node>
+					<node>
+						<transform>
+							<rotate>
+								<angle>-90</angle>
+								<axis>1 0 0</axis>
+							</rotate>
+							<translate>0 0.1 -0.1</translate>
+						</transform>
+						<triangle_mesh ref="quad" />
+						<bsdf ref="diffuse_white" />
+					</node>
+					<node>
+						<transform>
+							<rotate>
+								<angle>180</angle>
+								<axis>1 0 0</axis>
+							</rotate>
+							<translate>0 0.02 0</translate>
+							<scale>0.5 0.5 0.5</scale>
+						</transform>
+						<triangle_mesh ref="quad" />
+						<bsdf ref="glass" />
+					</node>
+					<node>
+						<transform>
+							<rotate>
+								<angle>180</angle>
+								<axis>1 0 0</axis>
+							</rotate>
+						</transform>
+						<triangle_mesh ref="quad" />
+						<bsdf ref="diffuse_white" />
+					</node>
+				</root>
+			</scene>
+		);
+	}
+
 };
 
 LM_TEST_NAMESPACE_END

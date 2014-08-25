@@ -50,6 +50,7 @@ set(
 	"test.bpt.fullpath2.cpp"
 	"test.pm.photonmap.cpp"
 	"test.generalizedbsdf.cpp"
+	"test.specularbsdf.cpp"
 	"test.plugin.cpp"
 )
 

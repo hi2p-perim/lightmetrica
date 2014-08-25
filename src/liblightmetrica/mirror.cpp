@@ -148,10 +148,24 @@ Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 		return Math::Vec3();
 	}
 
+#if 1
+	// Comparison with #query.wo must be done with the same computation steps as SampleDirection
+	// Handle two possible combination of computation steps.
+	// TODO : This smells.
+	auto localWoTemp = Math::ReflectZUp(localWi);
+	auto localWiTemp = Math::ReflectZUp(localWo);
+	auto woTemp = geom.shadingToWorld * localWoTemp;
+	auto wiTemp = geom.shadingToWorld * localWiTemp;
+	if (woTemp != query.wo && wiTemp != query.wi)
+	{
+		return Math::Vec3();
+	}
+#else
 	if (Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::Vec3();
 	}
+#endif
 
 	auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 	if (Math::IsZero(sf))
@@ -172,10 +186,25 @@ Math::PDFEval PerfectMirrorBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEval
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
 
+#if 1
+	// Comparison with #query.wo must be done with the same computation steps as SampleDirection
+	// Handle two possible combination of computation steps.
+	// TODO : This smells.
+	auto localWoTemp = Math::ReflectZUp(localWi);
+	auto localWiTemp = Math::ReflectZUp(localWo);
+	auto woTemp = geom.shadingToWorld * localWoTemp;
+	auto wiTemp = geom.shadingToWorld * localWiTemp;
+	if (woTemp != query.wo && wiTemp != query.wi)
+	{
+		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	}
+
+#else
 	if (Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}
+#endif
 
 	return Math::PDFEval(Math::Float(1) / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
