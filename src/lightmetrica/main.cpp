@@ -164,6 +164,7 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path")
 		("interactive,i", po::bool_switch(&interactiveMode), "Interactive mode")
 		("base-path,b", po::value<std::string>(&basePath)->default_value(""), "Base path for asset loading");
+		//("termination-mode", );
 
 	// positional arguments
 	po::positional_options_description p;
@@ -214,28 +215,36 @@ bool LightmetricaApplication::Run()
 {
 	PrintStartMessage();
 
-	// Load plugins
+	// --------------------------------------------------------------------------------
+
+	// # Load plugins
 	{
 		LM_LOG_INFO("Entering : Loading plugins");
 		LM_LOG_INDENTER();
 		ComponentFactory::LoadPlugins(".");
 	}
 
-	// Load configuration
+	// --------------------------------------------------------------------------------
+
+	// # Load configuration
 	std::unique_ptr<Config> config(ComponentFactory::Create<Config>());
 	if (!LoadConfiguration(*config))
 	{
 		return false;
 	}
 
-	// Load assets
+	// --------------------------------------------------------------------------------
+
+	// # Load assets
 	std::unique_ptr<Assets> assets(ComponentFactory::Create<Assets>());
 	if (!LoadAssets(*config, *assets))
 	{
 		return false;
 	}
 
-	// Create and setup scene
+	// --------------------------------------------------------------------------------
+
+	// # Create and setup scene
 	auto sceneType = config->Root().Child("scene").AttributeValue("type");
 	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneType));
 	if (scene == nullptr)
@@ -248,7 +257,9 @@ bool LightmetricaApplication::Run()
 		return false;
 	}
 
-	// Create and configure renderer
+	// --------------------------------------------------------------------------------
+
+	// # Create and configure renderer
 	auto rendererType = config->Root().Child("renderer").AttributeValue("type");
 	std::unique_ptr<Renderer> renderer(ComponentFactory::Create<Renderer>(rendererType));
 	if (renderer == nullptr)
@@ -260,6 +271,8 @@ bool LightmetricaApplication::Run()
 	{
 		return false;
 	}
+
+	// --------------------------------------------------------------------------------
 
 	PrintFinishMessage();
 
@@ -302,7 +315,7 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 
 bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 {
-	// Register component interfaces
+	// # Register component interfaces
 	assets.RegisterInterface<Texture>();
 	assets.RegisterInterface<BSDF>();
 	assets.RegisterInterface<TriangleMesh>();
@@ -310,7 +323,9 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 	assets.RegisterInterface<Camera>();
 	assets.RegisterInterface<Light>();
 
-	// Load assets
+	// --------------------------------------------------------------------------------
+
+	// # Load assets
 	{
 		LM_LOG_INFO("Entering : Asset loading");
 		LM_LOG_INDENTER();
@@ -327,12 +342,14 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 		EndProgress();
 	}
 
+	// --------------------------------------------------------------------------------
+
 	return true;
 }
 
 bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Assets& assets, Scene& scene )
 {
-	// Load primitives
+	// # Load primitives
 	{
 		std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
 		if (primitives == nullptr)
@@ -352,7 +369,9 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		scene.Load(primitives.release());
 	}
 
-	// Configure scene
+	// --------------------------------------------------------------------------------
+
+	// # Configure scene
 	{
 		LM_LOG_INFO("Entering : Scene configuration");
 		LM_LOG_INDENTER();
@@ -363,7 +382,9 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		}
 	}
 
-	// Build scene
+	// --------------------------------------------------------------------------------
+
+	// # Build scene
 	{
 		LM_LOG_INFO("Entering : Scene building");
 		LM_LOG_INDENTER();
@@ -380,12 +401,14 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		EndProgress();
 	}
 
+	// --------------------------------------------------------------------------------
+
 	return true;
 }
 
 bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer )
 {
-	// Configure renderer
+	// # Configure renderer
 	{
 		LM_LOG_INFO("Entering : Renderer configuration");
 		LM_LOG_INDENTER();
@@ -396,7 +419,9 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		}
 	}
 
-	// Preprocess renderer
+	// --------------------------------------------------------------------------------
+
+	// # Preprocess renderer
 	{
 		LM_LOG_INFO("Entering : Preprocess");
 		LM_LOG_INDENTER();
@@ -413,7 +438,9 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		EndProgress();
 	}
 
-	// Begin rendering
+	// --------------------------------------------------------------------------------
+
+	// # Begin rendering
 	{
 		LM_LOG_INFO("Entering : Render");
 		LM_LOG_INDENTER();
@@ -430,7 +457,9 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		EndProgress();
 	}
 
-	// Save rendered image
+	// --------------------------------------------------------------------------------
+
+	// # Save rendered image
 	{
 		LM_LOG_INFO("Entering : Save rendered image");
 		LM_LOG_INDENTER();
@@ -447,6 +476,8 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 			}
 		}
 	}
+
+	// --------------------------------------------------------------------------------
 
 	return true;
 }
