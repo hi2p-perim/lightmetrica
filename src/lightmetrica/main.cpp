@@ -102,6 +102,7 @@ private:
 	std::string outputImagePath;
 	bool interactiveMode;
 	std::string basePath;
+	double terminationTime;
 
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
@@ -163,8 +164,8 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 		("config,f", po::value<std::string>(&inputFile), "Configuration file")
 		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path")
 		("interactive,i", po::bool_switch(&interactiveMode), "Interactive mode")
-		("base-path,b", po::value<std::string>(&basePath)->default_value(""), "Base path for asset loading");
-		//("termination-mode", );
+		("base-path,b", po::value<std::string>(&basePath)->default_value(""), "Base path for asset loading")
+		("termination-time,t", po::value<double>(&terminationTime)->default_value(0), "Termination time for rendering");
 
 	// positional arguments
 	po::positional_options_description p;
@@ -412,11 +413,17 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 	{
 		LM_LOG_INFO("Entering : Renderer configuration");
 		LM_LOG_INDENTER();
+	
+		// Configure
 		LM_LOG_INFO("Renderer type : '" + renderer.Type() + "'");
 		if (!renderer.Configure(config.Root().Child("renderer"), assets))
 		{
 			return false;
 		}
+
+		// Termination mode
+		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Time" : "Samples"));
+		renderer.SetTerminationMode(terminationTime == 0 ? RendererTerminationMode::Samples : RendererTerminationMode::Time, terminationTime);
 	}
 
 	// --------------------------------------------------------------------------------

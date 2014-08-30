@@ -51,12 +51,13 @@ class DirectPathtraceRenderer : public Renderer
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pathtrace.direct");
+	LM_COMPONENT_IMPL_DEF("pt.direct");
 
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& scene ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }

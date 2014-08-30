@@ -31,6 +31,16 @@ class Scene;
 class ConfigNode;
 
 /*!
+	Termination mode.
+	Describes the termination mode of rendering.
+*/
+enum class RendererTerminationMode
+{
+	Samples,			//!< Terminate after specified number of samples.
+	Time,				//!< Terminate after specified time.
+};
+
+/*!
 	Renderer class.
 	A base class of the renderer.
 */
@@ -68,6 +78,14 @@ public:
 	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
 
 	/*!
+		Set termination mode.
+		Configures termination mode of the renderer and its parameters.
+		\param terminationMode Termination mode.
+		\param time Termination time for Time mode (in seconds).
+	*/
+	virtual void SetTerminationMode(RendererTerminationMode mode, double time) = 0;
+
+	/*!
 		Preprocess the renderer.
 		Preprocess required by some renderers are dispatched in this function.
 		\param scene Scene.
@@ -80,6 +98,7 @@ public:
 		Start rendering.
 		The function starts to render the #scene according to the current configuration.
 		\param scene Scene.
+		\param terminationMode Termination mode of the rendering.
 		\retval true Succeeded to render the scene.
 		\retval true Failed to render the scene.
 	*/

@@ -42,9 +42,10 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Render(const Scene& scene);
-	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets);
+	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) {}
+	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
+	virtual bool Render(const Scene& scene);
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:

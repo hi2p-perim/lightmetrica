@@ -50,12 +50,13 @@ class PathtraceRenderer : public Renderer
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("pathtrace");
+	LM_COMPONENT_IMPL_DEF("pt");
 
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
@@ -67,6 +68,10 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
+	RendererTerminationMode terminationMode;
+	double terminationTime;
+
+private:
 
 	long long numSamples;									// Number of samples
 	int rrDepth;											// Depth of beginning RR
@@ -158,22 +163,27 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
+	long long blocks =
+		terminationMode == RendererTerminationMode::Samples
+			? (numSamples + samplesPerBlock) / samplesPerBlock
+			: LLONG_MAX;
 
 	// --------------------------------------------------------------------------------
 
 	bool cancel = false;
+	bool done = false;
+	auto startTime = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel for
 	for (long long block = 0; block < blocks; block++)
 	{
-		try
+		if (cancel || done)
 		{
-			if (cancel)
-			{
-				continue;
-			}
-			
+			continue;
+		}
+
+		try
+		{	
 			// Thread ID
 			int threadId = omp_get_thread_num();
 			auto& sampler = samplers[threadId];
@@ -199,12 +209,22 @@ bool PathtraceRenderer::Render( const Scene& scene )
 
 			LM_EXPT_UPDATE_PARAM(expts, "block", &block);
 			LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-			LM_EXPT_NOTIFY(expts, "ProgressUpdated");
+			LM_EXPT_NOTIFY(expts, "ProgressUpdated");	
 		}
 		catch (const std::exception& e)
 		{
 			LM_LOG_ERROR(boost::str(boost::format("EXCEPTION (thread #%d) | %s") % omp_get_thread_num() % e.what()));
 			cancel = true;
+		}
+
+		if (terminationMode == RendererTerminationMode::Time)
+		{
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
+			if (elapsed > terminationTime)
+			{
+				done = true;
+			}
 		}
 	}
 
@@ -226,6 +246,12 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
+
+	// --------------------------------------------------------------------------------
+
+	auto finishTime = std::chrono::high_resolution_clock::now();
+	double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count()) / 1000.0;
+	LM_LOG_INFO("Rendering completed in " + std::to_string(elapsed) + " seconds");
 
 	return true;
 }
