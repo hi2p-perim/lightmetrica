@@ -178,6 +178,7 @@ set(
 set(
 	_ASSETS_TEXTURES_SOURCES
 	"defaultbitmaptexture.cpp"
+	"constanttexture.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_TEXTURES_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\textures" FILES ${_ASSETS_TEXTURES_SOURCES})

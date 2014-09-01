@@ -94,7 +94,9 @@ public:
 			EXPECT_TRUE(diffuseBSDF_White->Load(config.LoadFromStringAndGetFirstChild(
 				LM_TEST_MULTILINE_LITERAL(
 					<bsdf id="diffuse_white" type="diffuse">
-						<diffuse_reflectance>1 1 1</diffuse_reflectance>
+						<diffuse_reflectance>
+							<color>1 1 1</color>
+						</diffuse_reflectance>
 					</bsdf>
 				)
 			), assets));

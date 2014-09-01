@@ -65,16 +65,24 @@ namespace
 			</triangle_meshes>
 			<bsdfs>
 				<bsdf id="diffuse_white" type="diffuse">
-					<diffuse_reflectance>0.9 0.9 0.9</diffuse_reflectance>
+					<diffuse_reflectance>
+						<color>0.9 0.9 0.9</color>
+					</diffuse_reflectance>
 				</bsdf>
 				<bsdf id="diffuse_black" type="diffuse">
-					<diffuse_reflectance>0 0 0</diffuse_reflectance>
+					<diffuse_reflectance>
+						<color>0 0 0</color>
+					</diffuse_reflectance>
 				</bsdf>
 				<bsdf id="diffuse_red" type="diffuse">
-					<diffuse_reflectance>0.9 0.1 0.1</diffuse_reflectance>
+					<diffuse_reflectance>
+						<color>0.9 0.1 0.1</color>
+					</diffuse_reflectance>
 				</bsdf>
 				<bsdf id="diffuse_green" type="diffuse">
-					<diffuse_reflectance>0.1 0.9 0.1</diffuse_reflectance>
+					<diffuse_reflectance>
+						<color>0.1 0.9 0.1</color>
+					</diffuse_reflectance>
 				</bsdf>
 			</bsdfs>
 			<films>
