@@ -53,6 +53,10 @@ public:
 
 public:
 
+	virtual Math::Vec3 Evaluate( const Math::Vec2& uv ) const;
+
+public:
+
 	static void FreeImageErrorCallback(FREE_IMAGE_FORMAT fif, const char* message);
 
 private:
@@ -177,6 +181,16 @@ bool DefaultBitmapTexture::Load( const std::string& path, bool verticalFlip )
 	FreeImage_Unload(fibitmap);
 
 	return true;
+}
+
+Math::Vec3 DefaultBitmapTexture::Evaluate( const Math::Vec2& uv ) const
+{
+	// 'repeat' texture coordinates
+	const auto& data = bitmap.InternalData();
+	int x = Math::Clamp((int)(Math::Fract(uv.x) * width), 0, width - 1);
+	int y = Math::Clamp((int)(Math::Fract(uv.y) * height), 0, height - 1);
+	int i = width * y + x;
+	return Math::Vec3(data[3*i], data[3*i+1], data[3*i+2]);
 }
 
 LM_COMPONENT_REGISTER_IMPL(DefaultBitmapTexture, Texture);

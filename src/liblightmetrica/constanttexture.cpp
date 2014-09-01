@@ -17,37 +17,43 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#ifndef LIB_LIGHTMETRICA_TEXTURE_H
-#define LIB_LIGHTMETRICA_TEXTURE_H
-
-#include "asset.h"
-#include "math.types.h"
+#include "pch.h"
+#include <lightmetrica/texture.h>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Texture.
-	A base class of the textures.
+	Constant color textures.
+	The texture which is evaluated to constant color value.
 */
-class Texture : public Asset
+class ConstantTexture : public Texture
 {
 public:
 
-	LM_ASSET_INTERFACE_DEF("texture", "textures");
-	LM_ASSET_NO_DEPENDENCIES();
+	LM_COMPONENT_IMPL_DEF("constant");
 
 public:
 
-	Texture() {}
-	virtual ~Texture() {}
+	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	{
+		node.ChildValueOrDefault("color", Math::Vec3(Math::Float(1)), C);
+		return true;
+	}
 
 public:
 
-	virtual Math::Vec3 Evaluate(const Math::Vec2& uv) const = 0;
+	virtual Math::Vec3 Evaluate( const Math::Vec2& uv ) const
+	{
+		return C;
+	}
+
+private:
+
+	Math::Vec3 C;
 
 };
 
-LM_NAMESPACE_END
+LM_COMPONENT_REGISTER_IMPL(ConstantTexture, Texture);
 
-#endif // LIB_LIGHTMETRICA_TEXTURE_H
+LM_NAMESPACE_END

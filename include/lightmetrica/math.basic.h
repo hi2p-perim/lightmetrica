@@ -39,6 +39,7 @@ template <typename T> LM_FORCE_INLINE T Pow(const T& base, const T& exp);
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
 template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max);
+template <typename T> LM_FORCE_INLINE T Fract(const T& v);
 template <typename T> LM_FORCE_INLINE bool IsZero(const T& v);
 
 LM_MATH_NAMESPACE_END

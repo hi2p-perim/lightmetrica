@@ -60,9 +60,8 @@ public:
 
 private:
 
-	const Texture* texture;
+	const Texture* R;
 	std::unique_ptr<Texture> constantColorTexture;
-	Math::Vec3 diffuseReflectance;
 
 };
 
@@ -86,15 +85,14 @@ bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
 	}
 	else if (!colorNode.Empty())
 	{
-		Math::Vec3 color;
-		diffuseReflectanceNode.ChildValueOrDefault("color", Math::Vec3(Math::Float(1)), diffuseReflectance);
 		constantColorTexture.reset(ComponentFactory::Create<Texture>("constant"));
-		texture = constantColorTexture.get();
+		constantColorTexture->Load(diffuseReflectanceNode, assets);
+		R = constantColorTexture.get();
 	}
 	else if (!textureNode.Empty())
 	{
-		texture = assets.ResolveReferenceToAsset<Texture>(textureNode);
-		if (!texture)
+		R = assets.ResolveReferenceToAsset<Texture>(textureNode);
+		if (!R)
 		{
 			return false;
 		}
@@ -147,7 +145,7 @@ Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQ
 	// R * \pi^-1 / (p_\sigma / \cos(w_o))
 	// R * \pi^-1 / (\pi^-1 * \cos(w_o) / \cos(w_o))
 	// R
-	return diffuseReflectance * sf;
+	return R->Evaluate(geom.uv) * sf;
 }
 
 bool DiffuseBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
@@ -176,8 +174,9 @@ bool DiffuseBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQu
 		return false;
 	}
 
-	result.weight[query.transportDir] = diffuseReflectance * sf;
-	result.weight[1-query.transportDir] = diffuseReflectance * sfInv;
+	auto diffuseR = R->Evaluate(geom.uv);
+	result.weight[query.transportDir] = diffuseR * sf;
+	result.weight[1-query.transportDir] = diffuseR * sfInv;
 
 	return true;
 }
@@ -197,7 +196,7 @@ Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& q
 		return Math::Vec3();
 	}
 
-	return diffuseReflectance * Math::Constants::InvPi() * sf;
+	return R->Evaluate(geom.uv) * Math::Constants::InvPi() * sf;
 }
 
 Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

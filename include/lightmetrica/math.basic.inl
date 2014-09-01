@@ -36,6 +36,7 @@ template <typename T> LM_FORCE_INLINE T Pow(const T& base, const T& exp) { retur
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
 template <typename T> LM_FORCE_INLINE T Clamp(const T& v, const T& min, const T& max) { return Min(Max(v, min), max); }
+template <typename T> LM_FORCE_INLINE T Fract(const T& v) { return v - std::floor(v); }
 template <typename T> LM_FORCE_INLINE bool IsZero(const T& v) { return v == T(0); }
 
 #ifdef LM_ENABLE_MULTI_PRECISION
@@ -50,6 +51,7 @@ template <> LM_FORCE_INLINE BigFloat Exp(const BigFloat& v) { return boost::mult
 template <> LM_FORCE_INLINE BigFloat Pow(const BigFloat& base, const BigFloat& exp) { return boost::multiprecision::pow(base, exp); };
 template <> LM_FORCE_INLINE BigFloat Min(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v2 : v1; }
 template <> LM_FORCE_INLINE BigFloat Max(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v1 : v2; }
+template <> LM_FORCE_INLINE BigFloat Fract(const BigFloat& v) { return v - boost::multiprecision::floor(v); }
 
 #endif
 
