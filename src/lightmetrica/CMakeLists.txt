@@ -18,11 +18,17 @@
 #
 
 set(
-	_SOURCE_FILES
-	main.cpp
+	_HEADER_FILES
+	progressbar.h
 )
 
-add_executable(lightmetrica ${_SOURCE_FILES})
+set(
+	_SOURCE_FILES
+	main.cpp
+	progressbar.cpp
+)
+
+add_executable(lightmetrica ${_HEADER_FILES} ${_SOURCE_FILES})
 target_link_libraries(lightmetrica liblightmetrica ${COMMON_LIBRARY_FILES})
 add_dependencies(lightmetrica liblightmetrica)
 

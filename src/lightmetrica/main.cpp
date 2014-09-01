@@ -17,6 +17,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "progressbar.h"
 #include <lightmetrica/config.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
@@ -38,7 +39,6 @@
 #include <string>
 #include <exception>
 #include <thread>
-#include <condition_variable>
 #include <future>
 #include <atomic>
 #include <chrono>
@@ -85,13 +85,6 @@ private:
 
 private:
 
-	void BeginProgress(const std::string& taskName);
-	void EndProgress();
-	void AbortProgress();
-	void OnReportProgress(double progress, bool done);
-
-private:
-
 	// Application info
 	std::string appName;
 	std::string appDescription;
@@ -109,14 +102,7 @@ private:
 	std::future<void> logResult;
 
 	// Progress bar
-	std::atomic<bool> enableProgressBar;
-	std::atomic<bool> requiresProgressUpdate;
-	bool progressPrintDone;
-	bool progressDone;
-	double progress;
-	std::mutex progressMutex;
-	std::string progressTaskName;
-	std::condition_variable progressDoneCond;
+	ProgressBar progressBar;
 
 };
 
@@ -331,16 +317,16 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 		LM_LOG_INFO("Entering : Asset loading");
 		LM_LOG_INDENTER();
 
-		BeginProgress("LOADING ASSETS");
-		auto conn = assets.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		progressBar.Begin("LOADING ASSETS");
+		auto conn = assets.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 
 		if (!assets.Load(config.Root().Child("assets")))
 		{
-			AbortProgress();
+			progressBar.Abort();
 			return false;
 		}
 
-		EndProgress();
+		progressBar.End();
 	}
 
 	// --------------------------------------------------------------------------------
@@ -390,16 +376,16 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		LM_LOG_INFO("Entering : Scene building");
 		LM_LOG_INDENTER();
 
-		BeginProgress("BUILDING SCENE");
-		auto conn = scene.Connect_ReportBuildProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		progressBar.Begin("BUILDING SCENE");
+		auto conn = scene.Connect_ReportBuildProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 
 		if (!scene.Build())
 		{
-			AbortProgress();
+			progressBar.Abort();
 			return false;
 		}
 
-		EndProgress();
+		progressBar.End();
 	}
 
 	// --------------------------------------------------------------------------------
@@ -433,16 +419,16 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		LM_LOG_INFO("Entering : Preprocess");
 		LM_LOG_INDENTER();
 
-		BeginProgress("PREPROCESS");
-		auto conn = renderer.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		progressBar.Begin("PREPROCESS");
+		auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 
 		if (!renderer.Preprocess(scene))
 		{
-			AbortProgress();
+			progressBar.Abort();
 			return false;
 		}
 
-		EndProgress();
+		progressBar.End();
 	}
 
 	// --------------------------------------------------------------------------------
@@ -452,16 +438,16 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		LM_LOG_INFO("Entering : Render");
 		LM_LOG_INDENTER();
 
-		BeginProgress("RENDERING");
-		auto conn = renderer.Connect_ReportProgress(std::bind(&LightmetricaApplication::OnReportProgress, this, std::placeholders::_1, std::placeholders::_2));
+		progressBar.Begin("RENDERING");
+		auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 
 		if (!renderer.Render(scene))
 		{
-			AbortProgress();
+			progressBar.Abort();
 			return false;
 		}
 
-		EndProgress();
+		progressBar.End();
 	}
 
 	// --------------------------------------------------------------------------------
@@ -513,7 +499,6 @@ void LightmetricaApplication::StartLogging()
 #endif
 
 			std::string spaces(consoleWidth, ' ');
-			LM_LOG_DEBUG(std::to_string(consoleWidth));
 
 			// Event loop for logger process
 			while (!logThreadDone || !Logger::Empty())
@@ -524,61 +509,11 @@ void LightmetricaApplication::StartLogging()
 				{
 					std::cout << spaces << "\r";
 					Logger::ProcessOutput();
-					requiresProgressUpdate = true;
+					progressBar.RequestUpdateProgress();
 				}
 
 				// Process progress bar
-				if (enableProgressBar && requiresProgressUpdate && !progressPrintDone)
-				{
-					double currentProgress;
-					bool currentProgressDone;
-
-					{
-						std::unique_lock<std::mutex> lock(progressMutex);
-						currentProgress = progress;
-						currentProgressDone = progressDone;
-						requiresProgressUpdate = false;
-					}
-
-					std::string line = boost::str(boost::format("| %s [] %.1f%%") % progressTaskName % (static_cast<double>(currentProgress) * 100.0));
-					std::string bar;
-
-					// Bar width
-					int barWidth = consoleWidth - static_cast<int>(line.size());
-					int p =  static_cast<int>(currentProgress * barWidth);
-					for (int j = 0; j < barWidth; j++)
-					{
-						bar += j <= p ? "=" : " ";
-					}
-
-					std::cout << boost::format("| %s [") % progressTaskName;
-#if LM_PLATFORM_WINDOWS
-					SetConsoleTextAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-#elif LM_PLATFORM_LINUX
-					std::cout << "\033[32m";
-#endif
-					std::cout << bar;
-#if LM_PLATFORM_WINDOWS
-					SetConsoleTextAttribute(consoleHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-#elif LM_PLATFORM_LINUX
-					std::cout << "\033[0m";
-#endif
-					std::cout << boost::format("] %.1f%%") % (static_cast<double>(currentProgress) * 100.0);
-
-					// If the progress is done, the line is not removed
-					if (currentProgressDone)
-					{
-						std::cout << std::endl;
-						progressPrintDone = true;
-						progressDoneCond.notify_all();
-					}
-					else
-					{
-						std::cout << "\r";
-						std::cout.flush();
-						progressPrintDone = false;
-					}
-				}
+				progressBar.ProcessProgressOutput();
 
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
@@ -629,44 +564,6 @@ std::string LightmetricaApplication::CurrentTime()
 	ss << timeStr;
 #endif
 	return ss.str();
-}
-
-void LightmetricaApplication::OnReportProgress( double progress, bool done )
-{
-	if (!progressDone)
-	{
-		std::unique_lock<std::mutex> lock(progressMutex);
-		this->progress = progress;
-		requiresProgressUpdate = true;
-		progressDone = done;
-	}
-}
-
-void LightmetricaApplication::BeginProgress(const std::string& taskName)
-{
-	std::unique_lock<std::mutex> lock(progressMutex);
-	progress = 0;
-	progressTaskName = taskName;
-	progressDone = false;
-	requiresProgressUpdate = true;
-	progressPrintDone = false;
-	enableProgressBar = true;
-}
-
-void LightmetricaApplication::EndProgress()
-{
-	std::unique_lock<std::mutex> lock(progressMutex);
-	progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
-	enableProgressBar = false;
-}
-
-void LightmetricaApplication::AbortProgress()
-{
-	std::unique_lock<std::mutex> lock(progressMutex);
-	requiresProgressUpdate = true;
-	progressDone = true;
-	progressDoneCond.wait(lock, [this](){ return progressPrintDone; });
-	enableProgressBar = false;
 }
 
 #if LM_PLATFORM_WINDOWS

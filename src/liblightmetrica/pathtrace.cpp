@@ -135,6 +135,9 @@ bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets 
 	}
 #endif
 
+	// Set number of threads
+	omp_set_num_threads(numThreads);
+
 	return true;
 }
 
@@ -142,15 +145,13 @@ bool PathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
+	std::atomic<long long> processedSamples(0);
 
 	signal_ReportProgress(0, false);
 
 	LM_EXPT_NOTIFY(expts, "RenderStarted");
 
 	// --------------------------------------------------------------------------------
-
-	// Set number of threads
-	omp_set_num_threads(numThreads);
 
 	// Random number generators and films
 	std::vector<std::unique_ptr<Sampler>> samplers;
@@ -163,10 +164,7 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Number of blocks to be separated
-	long long blocks =
-		terminationMode == RendererTerminationMode::Samples
-			? (numSamples + samplesPerBlock) / samplesPerBlock
-			: LLONG_MAX;
+	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
 	// --------------------------------------------------------------------------------
 
@@ -174,59 +172,86 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	bool done = false;
 	auto startTime = std::chrono::high_resolution_clock::now();
 
-	#pragma omp parallel for
-	for (long long block = 0; block < blocks; block++)
+	while (true)
 	{
-		if (cancel || done)
+		#pragma omp parallel for
+		for (long long block = 0; block < blocks; block++)
 		{
-			continue;
-		}
-
-		try
-		{	
-			// Thread ID
-			int threadId = omp_get_thread_num();
-			auto& sampler = samplers[threadId];
-			auto& film = films[threadId];
-
-			// Sample range
-			long long sampleBegin = samplesPerBlock * block;
-			long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-
-			LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
-
-			for (long long sample = sampleBegin; sample < sampleEnd; sample++)
+			#pragma omp flush (done)
+			if (done)
 			{
-				ProcessRenderSingleSample(scene, *sampler, *film);
-
-				LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-				LM_EXPT_NOTIFY(expts, "SampleFinished");
+				continue;
 			}
 
+			// --------------------------------------------------------------------------------
+
+			try
+			{	
+				// Thread ID
+				int threadId = omp_get_thread_num();
+				auto& sampler = samplers[threadId];
+				auto& film = films[threadId];
+
+				// Sample range
+				long long sampleBegin = samplesPerBlock * block;
+				long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+				
+				processedSamples += sampleEnd - sampleBegin;
+				LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
+
+				for (long long sample = sampleBegin; sample < sampleEnd; sample++)
+				{
+					ProcessRenderSingleSample(scene, *sampler, *film);
+
+					LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+					LM_EXPT_NOTIFY(expts, "SampleFinished");
+				}
+			}
+			catch (const std::exception& e)
+			{
+				LM_LOG_ERROR(boost::str(boost::format("EXCEPTION (thread #%d) | %s") % omp_get_thread_num() % e.what()));
+				cancel = done = true;
+				#pragma omp flush (done)
+			}
+
+			// --------------------------------------------------------------------------------
+
+			// Progress report
 			processedBlocks++;
-			auto progress = static_cast<double>(processedBlocks) / blocks;
-			signal_ReportProgress(progress, processedBlocks == blocks);
+			if (terminationMode == RendererTerminationMode::Samples)
+			{
+				auto progress = static_cast<double>(processedBlocks) / blocks;
+				signal_ReportProgress(progress, false);
+				LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+			}
+			else if (terminationMode == RendererTerminationMode::Time)
+			{
+				auto currentTime = std::chrono::high_resolution_clock::now();
+				double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
+				if (elapsed > terminationTime)
+				{
+					done = true;
+					#pragma omp flush (done)
+				}
+				else
+				{
+					signal_ReportProgress(elapsed / terminationTime, false);
+				}
+			}
+			
+			// --------------------------------------------------------------------------------
 
 			LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-			LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
 			LM_EXPT_NOTIFY(expts, "ProgressUpdated");	
 		}
-		catch (const std::exception& e)
-		{
-			LM_LOG_ERROR(boost::str(boost::format("EXCEPTION (thread #%d) | %s") % omp_get_thread_num() % e.what()));
-			cancel = true;
-		}
 
-		if (terminationMode == RendererTerminationMode::Time)
+		if (done || terminationMode == RendererTerminationMode::Samples)
 		{
-			auto currentTime = std::chrono::high_resolution_clock::now();
-			double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
-			if (elapsed > terminationTime)
-			{
-				done = true;
-			}
+			break;
 		}
 	}
+
+	signal_ReportProgress(1, true);
 
 	if (cancel)
 	{
@@ -243,7 +268,7 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
 
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
 
@@ -252,6 +277,7 @@ bool PathtraceRenderer::Render( const Scene& scene )
 	auto finishTime = std::chrono::high_resolution_clock::now();
 	double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count()) / 1000.0;
 	LM_LOG_INFO("Rendering completed in " + std::to_string(elapsed) + " seconds");
+	LM_LOG_INFO("Processed number of samples : " + std::to_string(processedSamples));
 
 	return true;
 }
