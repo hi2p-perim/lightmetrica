@@ -24,6 +24,8 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/surfacegeometry.h>
 #include <lightmetrica/align.h>
+#include <lightmetrica/texture.h>
+#include <lightmetrica/assets.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -58,13 +60,51 @@ public:
 
 private:
 
+	const Texture* texture;
+	std::unique_ptr<Texture> constantColorTexture;
 	Math::Vec3 diffuseReflectance;
 
 };
 
 bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
 {
-	node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), diffuseReflectance);
+	// Find 'diffuse_reflectance' node
+	auto diffuseReflectanceNode = node.Child("diffuse_reflectance");
+	if (diffuseReflectanceNode.Empty())
+	{
+		LM_LOG_WARN("Missing 'diffuse_reflectance' element");
+		return false;
+	}
+
+	// 'color' & 'texture' element
+	auto colorNode   = diffuseReflectanceNode.Child("color");
+	auto textureNode = diffuseReflectanceNode.Child("texture");
+	if (!colorNode.Empty() && !textureNode.Empty())
+	{
+		LM_LOG_INFO("'color' and 'texture' element cannot be used simultaneously");
+		return false;
+	}
+	else if (!colorNode.Empty())
+	{
+		Math::Vec3 color;
+		diffuseReflectanceNode.ChildValueOrDefault("color", Math::Vec3(Math::Float(1)), diffuseReflectance);
+		constantColorTexture.reset(ComponentFactory::Create<Texture>("constant"));
+		texture = constantColorTexture.get();
+	}
+	else if (!textureNode.Empty())
+	{
+		texture = assets.ResolveReferenceToAsset<Texture>(textureNode);
+		if (!texture)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		LM_LOG_INFO("Missing 'color' or 'texture' element");
+		return false;
+	}
+
 	return true;
 }
 
