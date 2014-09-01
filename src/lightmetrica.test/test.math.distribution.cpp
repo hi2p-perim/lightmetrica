@@ -53,10 +53,10 @@ TEST_F(DiscreteDistribution1DTest, Sample)
 	dist.Add(Math::Float(1));
 	dist.Add(Math::Float(1));
 	dist.Normalize();
-	EXPECT_EQ(0, dist.Sample(Math::Float(0.1)));
-	EXPECT_EQ(1, dist.Sample(Math::Float(0.26)));
-	EXPECT_EQ(2, dist.Sample(Math::Float(0.51)));
-	EXPECT_EQ(3, dist.Sample(Math::Float(0.76)));
+	EXPECT_EQ(0U, dist.Sample(Math::Float(0.1)));
+	EXPECT_EQ(1U, dist.Sample(Math::Float(0.26)));
+	EXPECT_EQ(2U, dist.Sample(Math::Float(0.51)));
+	EXPECT_EQ(3U, dist.Sample(Math::Float(0.76)));
 }
 
 LM_TEST_NAMESPACE_END

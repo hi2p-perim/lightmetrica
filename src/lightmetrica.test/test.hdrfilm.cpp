@@ -291,7 +291,7 @@ TEST_F(HDRBitmapFilmTest, Allocate)
 	EXPECT_EQ(BitmapImageType::RadianceHDR, film->ImageType());
 
 	const auto& data = film->Bitmap().InternalData();
-	EXPECT_EQ(40 * 30 * 3, data.size());
+	EXPECT_EQ(40 * 30 * 3, static_cast<int>(data.size()));
 }
 
 TEST_F(HDRBitmapFilmTest, Rescale)
