@@ -18,40 +18,20 @@
 */
 
 #pragma once
-#ifndef LIB_LIGHTMETRICA_LIGHT_H
-#define LIB_LIGHTMETRICA_LIGHT_H
+#ifndef LIB_LIGHTMETRICA_BOUNDING_SPHERE_H
+#define LIB_LIGHTMETRICA_BOUNDING_SPHERE_H
 
-#include "emitter.h"
+#include "math.types.h"
 
 LM_NAMESPACE_BEGIN
 
-/*!
-	Light.
-	A base class of the lights.
-*/
-class Light : public Emitter
+struct BoundingSphere
 {
-public:
 
-	LM_ASSET_INTERFACE_DEF("light", "lights");
-	LM_ASSET_NO_DEPENDENCIES();
-
-public:
-
-	Light() {}
-	virtual ~Light() {}
-
-public:
-
-	/*!
-		Check if the light is environment light.
-		\retval true The light is environment light.
-		\retval false The light is not environment light.
-	*/
-	virtual bool EnvironmentLight() const = 0;
+	
 
 };
 
 LM_NAMESPACE_END
 
-#endif // LIB_LIGHTMETRICA_LIGHT_H
+#endif // LIB_LIGHTMETRICA_BOUNDING_SPHERE_H

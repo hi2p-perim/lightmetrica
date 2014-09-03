@@ -43,6 +43,8 @@ set(
 	"${_INCLUDE_DIR}/component.h"
 	"${_INCLUDE_DIR}/aabb.h"
 	"${_INCLUDE_DIR}/aabb.inl"
+	"${_INCLUDE_DIR}/boundingsphere.h"
+	"${_INCLUDE_DIR}/boundingsphere.inl"
 	"${_INCLUDE_DIR}/fp.h"
 	"${_INCLUDE_DIR}/dynamiclibrary.h"
 )
@@ -112,7 +114,9 @@ set(
 )
 set(
 	_ASSETS_LIGHTS_SOURCES
-	"arealight.cpp"
+	"light.area.cpp"
+	"light.env.const.cpp"
+	"light.env.envmap.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_LIGHTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_SOURCES})

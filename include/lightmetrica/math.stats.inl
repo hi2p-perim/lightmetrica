@@ -105,14 +105,14 @@ LM_FORCE_INLINE TPDFEval<T> UniformSampleHemispherePDF()
 template <typename T>
 LM_FORCE_INLINE TVec3<T> UniformSampleSphere(const TVec2<T>& u)
 {
-	T z = 1.0 - 2.0 * u[0];
+	T z = T(1) - T(2) * u[0];
 	T r = Sqrt(Max(T(0), T(1) - z*z));
 	T phi = T(2) * TConstants<T>::Pi() * u[1];
 	return TVec3<T>(r * Cos(phi), r * Sin(phi), z);
 }
 
 template <typename T>
-LM_FORCE_INLINE TPDFEval<T> UniformSampleSphere()
+LM_FORCE_INLINE TPDFEval<T> UniformSampleSpherePDF()
 {
 	return TPDFEval<T>(TConstants<T>::InvTwoPi() / T(2), ProbabilityMeasure::SolidAngle);
 }

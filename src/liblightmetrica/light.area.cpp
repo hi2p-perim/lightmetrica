@@ -67,6 +67,10 @@ public:
 	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
 
+public:
+
+	virtual bool EnvironmentLight() const { return false; }
+
 private:
 
 	Math::Vec3 Le;
@@ -232,14 +236,13 @@ Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) 
 
 Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::Dot(query.wo, geom.gn) <= 0)
+	auto localWo = geom.worldToShading * query.wo;
+	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
-	else
-	{
-		return Math::Vec3(Math::Constants::InvPi());
-	}
+
+	return Math::Vec3(Math::Constants::InvPi());
 }
 
 Math::PDFEval AreaLight::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

@@ -27,6 +27,7 @@ LM_NAMESPACE_BEGIN
 
 struct Primitive;
 struct SurfaceGeometry;
+class Scene;
 
 /*!
 	Emitter.
@@ -71,6 +72,18 @@ public:
 		\param primitives An list instances of the primitive.
 	*/
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) = 0;
+
+	/*!
+		Configuration after scene is built.
+		Some emitter needs to be configured after scene is built.
+		TODO : Replace RegisterPrimitive function with this function.
+		\param scene Scene.
+	*/
+	virtual void ConfigureAfterSceneBuild(const Scene& scene) = 0;
+
+	/*!
+		
+	*/
 
 };
 
