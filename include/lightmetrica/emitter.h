@@ -28,6 +28,7 @@ LM_NAMESPACE_BEGIN
 struct Primitive;
 struct SurfaceGeometry;
 class Scene;
+class EmitterShape;
 
 /*!
 	Emitter.
@@ -74,16 +75,22 @@ public:
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) = 0;
 
 	/*!
-		Configuration after scene is built.
+		Post configuration after scene is built.
 		Some emitter needs to be configured after scene is built.
 		TODO : Replace RegisterPrimitive function with this function.
 		\param scene Scene.
 	*/
-	virtual void ConfigureAfterSceneBuild(const Scene& scene) = 0;
+	virtual void PostConfigure(const Scene& scene) = 0;
 
 	/*!
-		
+		Get associated emitter shapes.
+		Some emitter is associated with intersectable shapes
+		(e.g., sphere for environment lights) in order to integrate emitters
+		with BPT based rendering techniques.
+		Ownership of the created instance is delegated to the caller.
+		\return Instance of emitter shape.
 	*/
+	virtual EmitterShape* CreateEmitterShape() const = 0;
 
 };
 

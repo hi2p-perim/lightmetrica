@@ -47,6 +47,7 @@ set(
 	"${_INCLUDE_DIR}/boundingsphere.inl"
 	"${_INCLUDE_DIR}/fp.h"
 	"${_INCLUDE_DIR}/dynamiclibrary.h"
+	"${_INCLUDE_DIR}/emittershape.h"
 )
 set(
 	_SOURCE_FILES
@@ -61,6 +62,7 @@ set(
 	"component.cpp"
 	"fp.cpp"
 	"dynamiclibrary.cpp"
+	"emittershape.sphere.cpp"
 	
 	# pugixml sources and headers
 	"${_PUGIXML_SOURCE_DIR}/src/pugixml.hpp"

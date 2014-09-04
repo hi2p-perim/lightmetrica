@@ -31,6 +31,7 @@ class ConfigNode;
 struct Primitive;
 class Camera;
 class Light;
+class Scene;
 
 /*!
 	Primitives.
@@ -63,6 +64,24 @@ public:
 		\retval false Failed to load the scene.
 	*/
 	virtual bool Load(const ConfigNode& node, const Assets& assets) = 0;
+
+	/*!
+		Post configuration of the primitive.
+		\param scene Scene.
+		\retval true Succeeded to configure the scene.
+		\retval false Failed to configure the scene.
+	*/
+	virtual bool PostConfigure(const Scene& scene) = 0;
+
+	/*!
+		Intersection query with emitter shapes.
+		When intersected, information on the hit point is stored in the intersection data.
+		\param ray Ray.
+		\param isect Intersection data.
+		\retval true Intersected with the scene.
+		\retval false Not intersected with the scene.
+	*/
+	virtual bool IntersectEmitterShapes(Ray& ray, Intersection& isect) const = 0;
 
 	/*!
 		Reset the scene.

@@ -390,6 +390,18 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 
 	// --------------------------------------------------------------------------------
 
+	// # Post configuration
+	{
+		LM_LOG_INFO("Entering : Scene post configuration");
+		LM_LOG_INDENTER();
+		if (!scene.PostConfigure())
+		{
+			return false;
+		}
+	}
+
+	// --------------------------------------------------------------------------------
+
 	return true;
 }
 

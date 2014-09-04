@@ -23,6 +23,7 @@
 
 #include "component.h"
 #include "math.types.h"
+#include "aabb.h"
 #include <string>
 #include <functional>
 #include <memory>
@@ -66,6 +67,25 @@ public:
 		\param primitives Primitives.
 	*/
 	LM_PUBLIC_API void Load(Primitives* primitives);
+
+	/*!
+		Post configuration of the scene.
+		This function must be called after #Build.
+		\retval true Succeeded to configure the scene.
+		\retval false Failed to configure the scene.
+	*/
+	LM_PUBLIC_API bool PostConfigure();
+
+	/*!
+		Intersection query.
+		The function checks if #ray hits with the scene.
+		When intersected, information on the hit point is stored in the intersection data.
+		\param ray Ray.
+		\param isect Intersection data.
+		\retval true Intersected with the scene.
+		\retval false Not intersected with the scene.
+	*/
+	LM_PUBLIC_API bool Intersect(Ray& ray, Intersection& isect) const;
 
 	/*!
 		Get a main camera.
@@ -118,15 +138,22 @@ public:
 	virtual bool Build() = 0;
 
 	/*!
-		Intersection query.
+		Intersection query with triangles.
 		The function checks if #ray hits with the scene.
+		This function is supposed to be accelerated by spatial acceleration structure.
 		When intersected, information on the hit point is stored in the intersection data.
 		\param ray Ray.
 		\param isect Intersection data.
 		\retval true Intersected with the scene.
 		\retval false Not intersected with the scene.
 	*/
-	virtual bool Intersect(Ray& ray, Intersection& isect) const = 0;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const = 0;
+
+	/*!
+		Get AABB of the scene.
+		\return AABB of the scene.
+	*/
+	virtual AABB GetAABB() const = 0;
 
 public:
 

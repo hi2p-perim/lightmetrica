@@ -43,6 +43,28 @@ void Scene::Load( Primitives* primitives )
 	this->primitives.reset(primitives);
 }
 
+bool Scene::PostConfigure()
+{
+	return primitives->PostConfigure(*this);
+}
+
+bool Scene::Intersect( Ray& ray, Intersection& isect ) const
+{
+	// # Intersection with triangles
+	if (!IntersectTriangles(ray, isect))
+	{
+		return false;
+	}
+
+	// # Intersection with emitter shapes
+	if (!primitives->IntersectEmitterShapes(ray, isect))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 const Camera* Scene::MainCamera() const
 {
 	return primitives->MainCamera();

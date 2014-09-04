@@ -28,6 +28,10 @@
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/math.h>
+#include <lightmetrica/scene.h>
+#include <lightmetrica/emittershape.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -44,6 +48,8 @@ public:
 public:
 
 	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool PostConfigure( const Scene& scene );
+	virtual bool IntersectEmitterShapes( Ray& ray, Intersection& isect ) const;
 	virtual void Reset();
 	virtual int NumPrimitives() const										{ return static_cast<int>(primitives.size()); }
 	virtual const Primitive* PrimitiveByIndex( int index ) const			{ return index < static_cast<int>(primitives.size()) ? primitives[index].get() : nullptr; }
@@ -63,10 +69,12 @@ private:
 private:
 
 	bool loaded;
-	Camera* mainCamera;
-	std::vector<Light*> lights;
-	std::vector<std::unique_ptr<Primitive>> primitives;
-	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;
+	Camera* mainCamera;																		//!< Main camera.
+	Light* environmentLight;																//!< Environment light.
+	std::vector<Light*> lights;																//!< Lights with other types.
+	std::vector<std::unique_ptr<Primitive>> primitives;										//!< Primitives
+	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;							//!< Primitive name and index of primitives
+	std::vector<std::pair<const Emitter*, std::unique_ptr<EmitterShape>>> emitterShapes;	//!< Emitter shapes.
 
 };
 
@@ -92,7 +100,9 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 
-	// Traverse 'root' element
+	// ----------------------------------------------------------------------
+
+	// # Traverse 'root' element
 	auto rootNode = node.Child("root");
 	if (rootNode.Empty())
 	{
@@ -105,12 +115,35 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 
-	// Register the primitive to light or camera
+	// ----------------------------------------------------------------------
+
+	// # Environment light
+	// 'environment_light' element
+	auto environmentLightNode = node.Child("environment_light");
+	if (!environmentLightNode.Empty())
+	{
+		// Resolve reference to the environment light
+		environmentLight = assets.ResolveReferenceToAsset<Light>(environmentLightNode);
+		if (!environmentLight)
+		{
+			Reset();
+			return false;
+		}
+		if (!environmentLight->EnvironmentLight())
+		{
+			LM_LOG_ERROR("The light referenced by 'environment_light' is not an environment light");
+			return false;
+		}
+	}
+
+	// ----------------------------------------------------------------------
+
+	// # Register the primitive to light or camera
 	// Note that the registration step must be called after creating triangle mesh,
 	// for some implementation of lights or cameras could need its reference.
 	std::vector<Primitive*> referencedPrimitives;
 
-	// Camera
+	// ## Camera
 	if (!mainCamera)
 	{
 		LM_LOG_WARN("Missing 'camera' in the scene");
@@ -128,7 +161,7 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 		mainCamera->RegisterPrimitives(referencedPrimitives);
 	}
 
-	// Light
+	// ## Light
 	referencedPrimitives.clear();
 	for (auto* light : lights)
 	{
@@ -141,22 +174,45 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 		}
 		light->RegisterPrimitives(referencedPrimitives);
 	}
-	if (referencedPrimitives.empty())
+	if (environmentLightNode.Empty() && referencedPrimitives.empty())
 	{
-		LM_LOG_WARN("Missing 'light' in the scene");
+		LM_LOG_WARN("Missing lights in the scene");
 	}
 
-	LM_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
+	// ----------------------------------------------------------------------
 
+	LM_LOG_INFO("Successfully loaded " + std::to_string(primitives.size()) + " primitives");
 	loaded = true;
+
 	return true;
+}
+
+bool PrimitivesImpl::PostConfigure( const Scene& scene )
+{
+	// # Post configure enviroment light
+	for (auto* light : lights)
+	{
+		light->PostConfigure(scene);
+	
+		// If emitter shape is associated with emitter
+		// record it to the special shape list.
+		std::unique_ptr<EmitterShape> shape(light->CreateEmitterShape());
+		if (shape != nullptr)
+		{
+			// Register to list
+			emitterShapes.emplace_back(light, std::move(shape));
+		}
+	}
+}
+
+bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) const
+{
+	// TODO
 }
 
 bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, const Math::Mat4& parentWorldTransform )
 {
-	//
-	// Process transform
-	//
+	// # Process transform
 
 	// Local transform
 	Math::Mat4 localTransform;
@@ -189,9 +245,7 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 
 	// --------------------------------------------------------------------------------
 
-	//
-	// Create primitive
-	//
+	// # Create primitive
 
 	// Transform must be specified beforehand
 	std::unique_ptr<Primitive> primitive(new Primitive(transform));
@@ -207,7 +261,7 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 		return false;
 	}
 
-	// Process light
+	// ## Process light
 	if (!lightNode.Empty())
 	{
 		// Resolve the reference to the light
@@ -221,7 +275,7 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 		lights.push_back(primitive->light);
 	}
 
-	// Process camera
+	// ## Process camera
 	// If the camera is already found, ignore the seconds one
 	if (!cameraNode.Empty() && !mainCamera)
 	{
@@ -236,7 +290,7 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 		mainCamera = primitive->camera;
 	}
 
-	// Process triangle mesh
+	// ## Process triangle mesh
 	auto triangleMeshNode = node.Child("triangle_mesh");
 	if (!triangleMeshNode.Empty())
 	{
@@ -302,11 +356,9 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 
 	// --------------------------------------------------------------------------------
 
-	//
-	// Process children
-	//
+	// # Process children
 
-	// Leaf node cannot have children
+	// ## Leaf node cannot have children
 	bool isLeaf = !lightNode.Empty() || !cameraNode.Empty() || !triangleMeshNode.Empty();
 	if (!node.Child("node").Empty() && isLeaf)
 	{
@@ -315,7 +367,7 @@ bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, con
 		return false;
 	}
 
-	// Process children
+	// ## Process children
 	for (auto child = node.Child("node"); !child.Empty(); child = child.NextChild("node"))
 	{
 		if (!Traverse(child, assets, transform))
