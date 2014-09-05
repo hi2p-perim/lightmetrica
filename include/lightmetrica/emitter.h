@@ -22,6 +22,7 @@
 #define LIB_LIGHTMETRICA_EMITTER_H
 
 #include "generalizedbsdf.h"
+#include "aabb.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -91,6 +92,10 @@ public:
 		\return Instance of emitter shape.
 	*/
 	virtual EmitterShape* CreateEmitterShape() const = 0;
+
+	/*!
+	*/
+	virtual AABB GetAABB() const = 0;
 
 };
 

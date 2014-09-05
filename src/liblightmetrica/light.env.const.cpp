@@ -65,6 +65,7 @@ public:
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) {}
 	virtual void PostConfigure( const Scene& scene );
 	virtual EmitterShape* CreateEmitterShape() const;
+	virtual AABB GetAABB() const;
 
 public:
 
@@ -72,14 +73,17 @@ public:
 
 private:
 
-	Math::Vec3 Le;				//!< Luminance
-	BoundingSphere bsphere;		//!< Bounding sphere containing the entire scene
+	Math::Vec3 Le;				//!< Luminance.
+	BoundingSphere bsphere;		//!< Bounding sphere containing the entire scene.
+	Math::Float area;			//!< Area of the bounding sphere.
+	Math::Float invArea;		//!< Inverse of #area.
 
 };
 
 bool ConstantEnvironmentLight::Load( const ConfigNode& node, const Assets& assets )
 {
-	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return true;
+	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
+	return true;
 }
 
 void ConstantEnvironmentLight::PostConfigure( const Scene& scene )
@@ -88,6 +92,10 @@ void ConstantEnvironmentLight::PostConfigure( const Scene& scene )
 	auto aabb = scene.GetAABB();
 	bsphere.center = (aabb.max + aabb.min) / Math::Float(2);
 	bsphere.radius = Math::Length(bsphere.center - aabb.max);
+
+	// Compute area
+	area = Math::Float(4) * Math::Constants::Pi() * bsphere.radius * bsphere.radius;
+	invArea = Math::Float(1) / area;
 }
 
 EmitterShape* ConstantEnvironmentLight::CreateEmitterShape() const
@@ -106,6 +114,14 @@ EmitterShape* ConstantEnvironmentLight::CreateEmitterShape() const
 	}
 
 	return shape.release();
+}
+
+AABB ConstantEnvironmentLight::GetAABB() const
+{
+	AABB aabb;
+	aabb.min = bsphere.center - Math::Vec3(bsphere.radius);
+	aabb.max = bsphere.center + Math::Vec3(bsphere.radius);
+	return aabb;
 }
 
 bool ConstantEnvironmentLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
@@ -180,17 +196,22 @@ Math::PDFEval ConstantEnvironmentLight::EvaluateDirectionPDF( const GeneralizedB
 
 void ConstantEnvironmentLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
 {
-	
+	auto d = Math::UniformSampleSphere(sample);
+	geom.degenerated = false;
+	geom.p = bsphere.center + d * bsphere.radius;
+	geom.gn = geom.sn = -d;
+	geom.ComputeTangentSpace();
+	pdf = Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
 Math::Vec3 ConstantEnvironmentLight::EvaluatePosition( const SurfaceGeometry& geom ) const
 {
-
+	return Le * Math::Constants::Pi();
 }
 
 Math::PDFEval ConstantEnvironmentLight::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
 {
-
+	return Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
 LM_COMPONENT_REGISTER_IMPL(ConstantEnvironmentLight, Light);

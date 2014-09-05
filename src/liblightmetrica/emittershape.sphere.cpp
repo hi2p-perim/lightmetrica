@@ -24,6 +24,7 @@
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/renderutils.h>
+#include <lightmetrica/light.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -112,7 +113,7 @@ bool SphereEmitterShape::Intersect( Ray& ray, Math::Float& t ) const
 	}
 
 	auto e = Math::Sqrt(det);
-	auto denom = 2.0 * a;
+	auto denom = Math::Float(2) * a;
 	auto t0 = (-b - e) / denom;
 	auto t1 = (-b + e) / denom;
 	if (t0 > ray.maxT || t1 < ray.minT)
@@ -138,19 +139,19 @@ bool SphereEmitterShape::Intersect( Ray& ray, Math::Float& t ) const
 
 void SphereEmitterShape::StoreIntersection( const Ray& ray, Intersection& isect ) const
 {
-	// Update geometry information
-
-	// # Intersection point
+	// Intersection point
 	isect.geom.p = ray.o + ray.d * ray.maxT;
 
-	// # Geometry & shading normal
+	// Geometry & shading normal
 	isect.geom.gn = isect.geom.sn = Math::Normalize(isect.geom.p - center);
 	isect.geom.ComputeTangentSpace();
 
-	// # Surface is not degenerated
+	// Surface is not degenerated
 	isect.geom.degenerated = false;
 
-
+	// Emitters
+	isect.camera = nullptr;
+	isect.light = dynamic_cast<const Light*>(emitter);
 }
 
 lightmetrica::AABB SphereEmitterShape::GetAABB() const

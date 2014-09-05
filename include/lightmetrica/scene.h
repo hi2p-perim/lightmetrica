@@ -121,7 +121,7 @@ public:
 		Get AABB of the scene.
 		\return AABB of the scene.
 	*/
-	AABB GetAABB() const { return aabb; }
+	LM_PUBLIC_API AABB GetAABB() const;
 
 public:
 
@@ -187,7 +187,6 @@ protected:
 protected:
 
 	std::unique_ptr<Primitives> primitives;
-	AABB aabb;
 
 };
 

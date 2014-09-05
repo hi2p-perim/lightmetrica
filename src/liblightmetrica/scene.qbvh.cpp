@@ -352,7 +352,8 @@ public:
 public:
 
 	virtual bool Build();
-	virtual bool Intersect( Ray& ray, Intersection& isect ) const;
+	virtual bool IntersectTriangles( Ray& ray, Intersection& isect ) const;
+	virtual AABB GetAABBTriangles() const { return aabbTris; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
 	virtual bool Configure( const ConfigNode& node );
 
@@ -387,6 +388,7 @@ private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 	int numProcessedTris;
+	AABB aabbTris;
 
 	QBVHIntersectionMode mode;				// Triangle intersection mode
 	unsigned int maxElementsInLeaf;			// Maximum # of triangle in a node
@@ -489,6 +491,7 @@ bool QBVHScene::Build()
 					Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
 					AABB triBound(p1, p2);
 					triBound = triBound.Union(p3);
+					aabbTris = aabbTris.Union(triBound);
 					data.triBounds.push_back(triBound);
 					data.triBoundCentroids.push_back((triBound.min + triBound.max) * Math::Float(0.5));
 				}
@@ -831,7 +834,7 @@ void QBVHScene::CreateIntermediateNode( int parent, int child, const AABB& bound
 	}
 }
 
-bool QBVHScene::Intersect( Ray& ray, Intersection& isect ) const
+bool QBVHScene::IntersectTriangles( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
 	unsigned int intersectedTriIndex = 0;

@@ -66,6 +66,9 @@ public:
 	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives( const std::vector<Primitive*>& primitives );
+	virtual void PostConfigure( const Scene& scene ) {}
+	virtual EmitterShape* CreateEmitterShape() const { return nullptr; }
+	virtual AABB GetAABB() const { return AABB(position); }
 
 public:
 

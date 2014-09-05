@@ -25,6 +25,7 @@
 #include <lightmetrica/trianglemesh.h>
 #include <lightmetrica/primitive.h>
 #include <lightmetrica/primitives.h>
+#include <lightmetrica/camera.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -51,12 +52,17 @@ bool Scene::PostConfigure()
 		return false;
 	}
 
-	// Calculate scene bound (bound for triangles and emitter shapes)
-	auto aabbTris = GetAABBTriangles();
-	auto aabbEmitterShape = primitives->GetAABBEmitterShapes();
-	aabb = aabbTris.Union(aabbEmitterShape);
-
 	return true;
+}
+
+AABB Scene::GetAABB() const
+{
+	// Calculate scene's AABB
+	AABB aabb;
+	aabb = GetAABBTriangles();									// Triangles
+	aabb = aabb.Union(primitives->GetAABBEmitterShapes());		// Emitter shapers
+	aabb = aabb.Union(primitives->MainCamera()->GetAABB());		// Main camera
+	return aabb;
 }
 
 bool Scene::Intersect( Ray& ray, Intersection& isect ) const

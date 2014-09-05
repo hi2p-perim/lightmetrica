@@ -37,13 +37,15 @@ public:
 public:
 
 	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const;
+	virtual AABB GetAABBTriangles() const { return aabbTris; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
 	virtual bool Configure( const ConfigNode& node ) { return true; }
 
 private:
 
 	std::vector<TriAccel> triAccels;
+	AABB aabbTris;
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 
 };
@@ -67,6 +69,7 @@ bool NaiveScene::Build()
 			const auto* faces = mesh->Faces();
 			for (int j = 0; j < mesh->NumFaces() / 3; j++)
 			{
+				// Create a triaccel
 				triAccels.push_back(TriAccel());
 				triAccels.back().shapeIndex = j;
 				triAccels.back().primIndex = i;
@@ -77,6 +80,11 @@ bool NaiveScene::Build()
 				Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
 				Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
 				triAccels.back().Load(p1, p2, p3);
+
+				// Entire bound
+				aabbTris = aabbTris.Union(p1);
+				aabbTris = aabbTris.Union(p2);
+				aabbTris = aabbTris.Union(p3);
 			}
 		}
 
@@ -86,7 +94,7 @@ bool NaiveScene::Build()
 	return true;
 }
 
-bool NaiveScene::Intersect( Ray& ray, Intersection& isect ) const
+bool NaiveScene::IntersectTriangles( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
 	size_t minTriAccelIdx = 0;

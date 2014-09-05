@@ -88,6 +88,7 @@ void PrimitivesImpl::Reset()
 {
 	loaded = false;
 	mainCamera = nullptr;
+	environmentLight = nullptr;
 	lights.clear();
 	primitives.clear();
 	idPrimitiveIndexMap.clear();
@@ -190,17 +191,22 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 
 bool PrimitivesImpl::PostConfigure( const Scene& scene )
 {
-	// Post configure environment light
-	environmentLight->PostConfigure(scene);
-	
-	// If emitter shape is associated with emitter
-	// record it to the special shape list.
-	std::unique_ptr<EmitterShape> shape(environmentLight->CreateEmitterShape());
-	if (shape != nullptr)
+	if (environmentLight != nullptr)
 	{
-		// Register to list
-		emitterShapes.push_back(std::move(shape));
+		// Post configure environment light
+		environmentLight->PostConfigure(scene);
+
+		// If emitter shape is associated with emitter
+		// record it to the special shape list.
+		std::unique_ptr<EmitterShape> shape(environmentLight->CreateEmitterShape());
+		if (shape != nullptr)
+		{
+			// Register to list
+			emitterShapes.push_back(std::move(shape));
+		}
 	}
+
+	return true;
 }
 
 bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) const
@@ -225,7 +231,7 @@ bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) con
 	if (intersected)
 	{
 		// Store additional information into #isect if intersected
-		emitterShapes[minIndex]->StoreIntersection(ray, minT, isect);
+		emitterShapes[minIndex]->StoreIntersection(ray, isect);
 	}
 
 	return intersected;

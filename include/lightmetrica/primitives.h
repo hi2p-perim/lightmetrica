@@ -30,6 +30,8 @@ LM_NAMESPACE_BEGIN
 class Assets;
 class ConfigNode;
 struct Primitive;
+struct Ray;
+struct Intersection;
 class Camera;
 class Light;
 class Scene;

@@ -66,6 +66,9 @@ public:
 	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
+	virtual void PostConfigure( const Scene& scene ) {}
+	virtual EmitterShape* CreateEmitterShape() const { return nullptr; }
+	virtual AABB GetAABB() const { return AABB(); }		// Not used (included in triangles)
 
 public:
 
@@ -77,14 +80,14 @@ private:
 	typedef std::tuple<Math::Vec3, Math::Vec3, Math::Vec3> TrianglePosition;
 	std::vector<TrianglePosition, aligned_allocator<TrianglePosition, std::alignment_of<TrianglePosition>::value>> triangles;
 	std::vector<Math::Float> triangleAreaCdf;
-	Math::Float area;
+	Math::Float area, invArea;
 	Math::Vec3 power;
 
 };
 
 bool AreaLight::Load( const ConfigNode& node, const Assets& /*assets*/ )
 {
-	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return true;
+	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
 
 	// For testing configuration
 	// TODO : This smells
@@ -96,6 +99,9 @@ bool AreaLight::Load( const ConfigNode& node, const Assets& /*assets*/ )
 		{
 			return false;
 		}
+
+		// Do not forget to compute inverse
+		invArea = Math::Float(1) / area;
 	}
 
 	return true;
@@ -129,9 +135,10 @@ void AreaLight::RegisterPrimitives( const std::vector<Primitive*>& primitives )
 
 	// Normalize
 	area = triangleAreaCdf.back();
+	invArea = Math::Float(1) / area;
 	for (auto& v : triangleAreaCdf)
 	{
-		v /= area;
+		v *= invArea;
 	}
 
 	power = Le * Math::Constants::Pi() * area;
@@ -169,7 +176,7 @@ void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom,
 	geom.degenerated = false;
 
 	// Evaluation of PDF
-	pdf = Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
+	pdf = Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
 bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
@@ -231,7 +238,7 @@ Math::Vec3 AreaLight::EvaluatePosition( const SurfaceGeometry& /*geom*/ ) const
 
 Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) const
 {
-	return Math::PDFEval(Math::Float(1) / area, Math::ProbabilityMeasure::Area);
+	return Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
 Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const

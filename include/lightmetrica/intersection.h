@@ -27,6 +27,8 @@
 LM_NAMESPACE_BEGIN
 
 struct Primitive;
+class Camera;
+class Light;
 
 /*!
 	Intersection.
@@ -41,6 +43,14 @@ struct Intersection
 	const Primitive* primitive;
 	unsigned int primitiveIndex;
 	unsigned int triangleIndex;
+
+	// Emitters associated with intersected surface
+	// Thought this is duplicated with #light and #camera variable in #primitive,
+	// these variables are introduced in order to support emitters which are
+	// not associated with the #primitive such as environment light.
+	// TODO : Use unrestricted unions
+	const Camera* camera;
+	const Light* light;
 
 	// Surface geometry information
 	SurfaceGeometry geom;

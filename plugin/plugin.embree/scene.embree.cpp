@@ -53,7 +53,8 @@ public:
 	virtual bool Configure( const ConfigNode& node ) { return true; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
 	virtual bool Build();
-	virtual bool Intersect( Ray& ray, Intersection& isect ) const;
+	virtual bool IntersectTriangles( Ray& ray, Intersection& isect ) const;
+	virtual AABB GetAABBTriangles() const { return aabbTris; }
 
 public:
 
@@ -66,6 +67,7 @@ private:
 private:
 
 	RTCScene rtcScene;													//!< Embree scene 
+	AABB aabbTris;														//!< AABB of the triangles in the scene.
 	std::unordered_map<unsigned int, int> rtcGeomIDToPrimitiveIDMap;	//!< Map between geometry IDs of Embree to primitive IDs
 
 };
@@ -131,6 +133,11 @@ bool EmbreeScene::Build()
 				Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*i2], positions[3*i2+1], positions[3*i2+2], Math::Float(1)));
 				Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*i3], positions[3*i3+1], positions[3*i3+2], Math::Float(1)));
 				
+				// Scene AABB
+				aabbTris = aabbTris.Union(p1);
+				aabbTris = aabbTris.Union(p2);
+				aabbTris = aabbTris.Union(p3);
+
 				// Store into mapped buffers
 				int mi1 = 3*j;
 				int mi2 = 3*j+1;
@@ -158,7 +165,7 @@ bool EmbreeScene::Build()
 	return true;
 }
 
-bool EmbreeScene::Intersect( Ray& ray, Intersection& isect ) const
+bool EmbreeScene::IntersectTriangles( Ray& ray, Intersection& isect ) const
 {
 	// Convert #ray to RTCRay
 	RTCRay rtcRay;

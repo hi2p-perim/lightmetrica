@@ -58,6 +58,9 @@ public:
 	virtual const Camera* MainCamera() const { return nullptr; }
 	virtual int NumLights() const { return 0; }
 	virtual const Light* LightByIndex( int index ) const { return nullptr; }
+	virtual bool PostConfigure( const Scene& scene ) { return true; }
+	virtual bool IntersectEmitterShapes( Ray& ray, Intersection& isect ) const { return false; }
+	virtual AABB GetAABBEmitterShapes() const { return AABB(); }
 
 private:
 

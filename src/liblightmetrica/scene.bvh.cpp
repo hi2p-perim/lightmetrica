@@ -168,7 +168,8 @@ public:
 public:
 
 	virtual bool Build();
-	virtual bool Intersect(Ray& ray, Intersection& isect) const;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const;
+	virtual AABB GetAABBTriangles() const { return aabbTris; }
 	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
 	virtual bool Configure( const ConfigNode& node ) { return true; }
 
@@ -194,6 +195,7 @@ private:
 	std::vector<TriAccel> triAccels;
 	boost::signals2::signal<void (double, bool)> signal_ReportBuildProgress;
 	int numProcessedTris;
+	AABB aabbTris;
 
 };
 
@@ -236,6 +238,7 @@ bool BVHScene::Build()
 					// Create primitive bound from points
 					AABB triBound(p1, p2);
 					triBound = triBound.Union(p3);
+					aabbTris = aabbTris.Union(triBound);
 
 					data.triBounds.push_back(triBound);
 					data.triBoundCentroids.push_back((triBound.min + triBound.max) * Math::Float(0.5));
@@ -384,7 +387,7 @@ std::shared_ptr<BVHNode> BVHScene::Build( const BVHBuildData& data, int begin, i
 	return node;
 }
 
-bool BVHScene::Intersect( Ray& ray, Intersection& isect ) const
+bool BVHScene::IntersectTriangles( Ray& ray, Intersection& isect ) const
 {
 	BVHTraversalData data(ray);
 
