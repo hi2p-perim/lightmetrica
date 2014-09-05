@@ -32,7 +32,8 @@ LM_NAMESPACE_BEGIN
 enum class BitmapImageType
 {
 	RadianceHDR,	//!< Radiance HDR
-	OpenEXR			//!< OpenEXR
+	OpenEXR,		//!< OpenEXR
+	PNG,
 };
 
 class BitmapImage;

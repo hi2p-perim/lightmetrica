@@ -93,6 +93,10 @@ public:
 	*/
 	virtual Film* Clone() const = 0;
 
+	/*!
+	*/
+	virtual void Clear() = 0;
+
 };
 
 LM_NAMESPACE_END

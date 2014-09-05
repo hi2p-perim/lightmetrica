@@ -45,6 +45,7 @@ public:
 	virtual void Rescale( const Math::Float& weight ) {}
 	virtual bool Load( const ConfigNode& node, const Assets& assets ) { return true; }
 	virtual Film* Clone() const { return nullptr; }
+	virtual void Clear() {}
 
 };
 

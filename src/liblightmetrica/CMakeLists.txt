@@ -135,6 +135,7 @@ set(
 set(
 	_ASSETS_FILMS_SOURCES
 	"hdrfilm.cpp"
+	"ldrfilm.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_FILMS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\films" FILES ${_ASSETS_FILMS_SOURCES})

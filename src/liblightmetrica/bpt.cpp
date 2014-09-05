@@ -39,6 +39,7 @@
 #include <lightmetrica/align.h>
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/defaultexperiments.h>
+#include <lightmetrica/bitmapfilm.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
@@ -100,7 +101,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) {}
+	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
@@ -120,12 +121,15 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
+	RendererTerminationMode terminationMode;
+	double terminationTime;
 
 	long long numSamples;									//!< Number of samples
 	int rrDepth;											//!< Depth of beginning RR
 	int maxPathVertices;									//!< Maximum number of light path vertices
 	int numThreads;											//!< Number of threads
 	long long samplesPerBlock;								//!< Samples to be processed per block
+	Math::Float intermediateDuration;						//!< Seconds between intermediate images are output (if -1, disabled)
 	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
 	std::unique_ptr<BPTMISWeight> misWeight;				//!< MIS weighting function
 
@@ -163,6 +167,7 @@ bool BidirectionalPathtraceRenderer::Configure( const ConfigNode& node, const As
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
+	node.ChildValueOrDefault("intermediate_duration", Math::Float(-1), intermediateDuration);
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
@@ -249,6 +254,7 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
+	std::atomic<long long> processedSamples(0);
 
 	signal_ReportProgress(0, false);
 
@@ -289,66 +295,153 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 	// --------------------------------------------------------------------------------
 
-	#pragma omp parallel for
-	for (long long block = 0; block < blocks; block++)
+	bool cancel = false;
+	bool done = false;
+	auto startTime = std::chrono::high_resolution_clock::now();
+	auto prevStartTime = startTime;
+	int intermediateImageOutputCount = 0;
+
+	while (true)
 	{
-		// Thread ID
-		int threadId = omp_get_thread_num();
-		auto& sampler = contexts[threadId].sampler;
-		auto& film    = contexts[threadId].film;
-		auto& pool    = contexts[threadId].pool;
-		auto& lightSubpath = contexts[threadId].lightSubpath;
-		auto& eyeSubpath   = contexts[threadId].eyeSubpath;
-
-		// Sample range
-		long long sampleBegin = samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-
-		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
-
-		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
+		#pragma omp parallel for
+		for (long long block = 0; block < blocks; block++)
 		{
-			// Release and clear paths
-			pool->Release();
-			lightSubpath.Clear();
-			eyeSubpath.Clear();
-
-			// Sample sub-paths
-			lightSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
-			eyeSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
-
-			// Debug print
-#if 0
+			#pragma omp flush (done)
+			if (done)
 			{
-				LM_LOG_DEBUG("Sample #" + std::to_string(sample));
+				continue;
+			}
+
+			// Thread ID
+			int threadId = omp_get_thread_num();
+			auto& sampler = contexts[threadId].sampler;
+			auto& film    = contexts[threadId].film;
+			auto& pool    = contexts[threadId].pool;
+			auto& lightSubpath = contexts[threadId].lightSubpath;
+			auto& eyeSubpath   = contexts[threadId].eyeSubpath;
+
+			// Sample range
+			long long sampleBegin = samplesPerBlock * block;
+			long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
+
+			processedSamples += sampleEnd - sampleBegin;
+			LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
+
+			for (long long sample = sampleBegin; sample < sampleEnd; sample++)
+			{
+				// Release and clear paths
+				pool->Release();
+				lightSubpath.Clear();
+				eyeSubpath.Clear();
+
+				// Sample sub-paths
+				lightSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
+				eyeSubpath.Sample(scene, *sampler, *pool, rrDepth, maxPathVertices);
+
+				// Debug print
+	#if 0
 				{
-					LM_LOG_DEBUG("light subpath");
+					LM_LOG_DEBUG("Sample #" + std::to_string(sample));
+					{
+						LM_LOG_DEBUG("light subpath");
+						LM_LOG_INDENTER();
+						lightSubpath.DebugPrint();
+					}
 					LM_LOG_INDENTER();
-					lightSubpath.DebugPrint();
+					{
+						LM_LOG_DEBUG("eye subpath");
+						LM_LOG_INDENTER();
+						eyeSubpath.DebugPrint();
+					}
 				}
-				LM_LOG_INDENTER();
+	#endif
+
+				// Evaluate combination of sub-paths
+				EvaluateSubpathCombinations(scene, *film, lightSubpath, eyeSubpath);
+
+				LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
+				LM_EXPT_NOTIFY(expts, "SampleFinished");
+			}
+
+			//processedBlocks++;
+			//auto progress = static_cast<double>(processedBlocks) / blocks;
+			//signal_ReportProgress(progress, processedBlocks == blocks);
+
+			// Progress report
+			processedBlocks++;
+			if (terminationMode == RendererTerminationMode::Samples)
+			{
+				auto progress = static_cast<double>(processedBlocks) / blocks;
+				signal_ReportProgress(progress, false);
+				LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+			}
+			else if (terminationMode == RendererTerminationMode::Time)
+			{
+				auto currentTime = std::chrono::high_resolution_clock::now();
+				double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
+				if (elapsed > terminationTime)
 				{
-					LM_LOG_DEBUG("eye subpath");
-					LM_LOG_INDENTER();
-					eyeSubpath.DebugPrint();
+					done = true;
+					#pragma omp flush (done)
+				}
+				else
+				{
+					signal_ReportProgress(elapsed / terminationTime, false);
 				}
 			}
-#endif
 
-			// Evaluate combination of sub-paths
-			EvaluateSubpathCombinations(scene, *film, lightSubpath, eyeSubpath);
-
-			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-			LM_EXPT_NOTIFY(expts, "SampleFinished");
+			LM_EXPT_UPDATE_PARAM(expts, "block", &block);
+			//LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
+			LM_EXPT_NOTIFY(expts, "ProgressUpdated");
 		}
 
-		processedBlocks++;
-		auto progress = static_cast<double>(processedBlocks) / blocks;
-		signal_ReportProgress(progress, processedBlocks == blocks);
+		if (intermediateDuration > Math::Float(0))
+		{
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - prevStartTime).count()) / 1000.0;
+			if (elapsed > static_cast<double>(intermediateDuration))
+			{
+				// Create output directory if it does not exists
+				const std::string outputDir = "images";
+				if (!boost::filesystem::exists(outputDir))
+				{
+					LM_LOG_INFO("Creating directory : " + outputDir);
+					if (!boost::filesystem::create_directory(outputDir))
+					{
+						LM_LOG_WARN("Failed to create output directory : " + outputDir);
+					}
+				}
 
-		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
+				// Same intermediate image
+				masterFilm->Clear();
+				for (auto& context : contexts)
+				{
+					masterFilm->AccumulateContribution(*context.film.get());
+				}
+
+				// Rescale & save
+				intermediateImageOutputCount++;
+				auto path = boost::filesystem::path(outputDir) / boost::str(boost::format("%010d.png") % intermediateImageOutputCount);
+				dynamic_cast<BitmapFilm*>(masterFilm)->RescaleAndSave(
+					path.string(), Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
+
+				LM_LOG_INFO("Saving : " + path.string());
+				prevStartTime = currentTime;
+			}
+		}
+
+		if (done || terminationMode == RendererTerminationMode::Samples)
+		{
+			break;
+		}
+	}
+
+	signal_ReportProgress(1, true);
+
+	if (cancel)
+	{
+		LM_LOG_ERROR("Render operation has been canceled");
+		return false;
 	}
 
 	// --------------------------------------------------------------------------------
@@ -360,7 +453,10 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 	}
 
 	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+	//masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
+
+	// Rescale master film
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
 
 	LM_EXPT_NOTIFY(expts, "RenderFinished");
 

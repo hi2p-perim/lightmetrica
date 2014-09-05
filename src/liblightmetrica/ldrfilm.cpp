@@ -19,33 +19,29 @@
 
 #include "pch.h"
 #include <lightmetrica/bitmapfilm.h>
+#include <lightmetrica/confignode.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/assert.h>
-#include <lightmetrica/confignode.h>
 #include <lightmetrica/bitmap.h>
 #include <FreeImage.h>
 
 LM_NAMESPACE_BEGIN
 
-/*!
-	High dynamic range bitmap film.
-	Implements HDR version of bitmap image recording.
-*/
-class HDRBitmapFilm : public BitmapFilm
+class LDRBitmapFilm : public BitmapFilm
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("hdr");
+	LM_COMPONENT_IMPL_DEF("ldr");
 
 public:
 
-	HDRBitmapFilm() {}
-	virtual ~HDRBitmapFilm() {}
+	LDRBitmapFilm() {}
+	virtual ~LDRBitmapFilm() {}
 
 public:
 
 	virtual bool Load( const ConfigNode& node, const Assets& assets );
-	
+
 public:
 
 	virtual int Width() const { return width; }
@@ -79,7 +75,7 @@ private:
 
 };
 
-bool HDRBitmapFilm::Load( const ConfigNode& node, const Assets& assets )
+bool LDRBitmapFilm::Load( const ConfigNode& node, const Assets& assets )
 {
 	if (!node.ChildValue("width",	width))		return false;
 	if (!node.ChildValue("height",	height))	return false;
@@ -88,26 +84,17 @@ bool HDRBitmapFilm::Load( const ConfigNode& node, const Assets& assets )
 	auto imageTypeNode = node.Child("imagetype");
 	if (imageTypeNode.Empty())
 	{
-		// Use .hdr as default type
-		SetImageType(BitmapImageType::RadianceHDR);
+		// Use .png as default type
+		SetImageType(BitmapImageType::PNG);
+	}
+	else if (imageTypeNode.Value() == "png")
+	{
+		SetImageType(BitmapImageType::PNG);
 	}
 	else
 	{
-		if (imageTypeNode.Value() == "radiancehdr")
-		{
-			// Image type is .hdr (Radiance HDR)
-			SetImageType(BitmapImageType::RadianceHDR);
-		}
-		else if (imageTypeNode.Value() == "openexr")
-		{
-			// Image type is .exr (OpenEXR)
-			SetImageType(BitmapImageType::OpenEXR);
-		}
-		else
-		{
-			LM_LOG_ERROR("Invalid image type '" + imageTypeNode.Value() + "'");
-			return false;
-		}
+		LM_LOG_ERROR("Invalid image type '" + imageTypeNode.Value() + "'");
+		return false;
 	}
 
 	// Allocate image data
@@ -116,7 +103,7 @@ bool HDRBitmapFilm::Load( const ConfigNode& node, const Assets& assets )
 	return true;
 }
 
-void HDRBitmapFilm::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const char* message )
+void LDRBitmapFilm::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const char* message )
 {
 	std::string format = fif != FIF_UNKNOWN
 		? FreeImage_GetFormatFromFIF(fif)
@@ -126,7 +113,8 @@ void HDRBitmapFilm::FreeImageErrorCallback( FREE_IMAGE_FORMAT fif, const char* m
 	LM_LOG_ERROR(message);
 }
 
-void HDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+// TODO : Same function as HDRFilm
+void LDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
 	// Check raster position
 	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
@@ -148,7 +136,7 @@ void HDRBitmapFilm::RecordContribution( const Math::Vec2& rasterPos, const Math:
 	data[3 * idx + 2] = contrb[2];
 }
 
-void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
+void LDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb )
 {
 	// Check raster position
 	if (rasterPos.x < 0 || 1 < rasterPos.x || rasterPos.y < 0 || 1 < rasterPos.y)
@@ -170,7 +158,7 @@ void HDRBitmapFilm::AccumulateContribution( const Math::Vec2& rasterPos, const M
 	data[3 * idx + 2] += contrb[2];
 }
 
-void HDRBitmapFilm::AccumulateContribution( const Film& film )
+void LDRBitmapFilm::AccumulateContribution( const Film& film )
 {
 	// Check type
 	if (film.ComponentImplTypeName() != ComponentImplTypeName())
@@ -187,7 +175,7 @@ void HDRBitmapFilm::AccumulateContribution( const Film& film )
 	}
 
 	// Accumulate data
-	const auto& otherData = dynamic_cast<const HDRBitmapFilm&>(film).bitmap.InternalData();
+	const auto& otherData = dynamic_cast<const LDRBitmapFilm&>(film).bitmap.InternalData();
 	auto& data = bitmap.InternalData();
 	LM_ASSERT(data.size() == otherData.size());
 	for (size_t i = 0; i < data.size(); i++)
@@ -196,7 +184,7 @@ void HDRBitmapFilm::AccumulateContribution( const Film& film )
 	}
 }
 
-bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
+bool LDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& weight ) const
 {
 	// Error handing of FreeImage
 	FreeImage_SetOutputMessage(FreeImageErrorCallback);
@@ -205,7 +193,7 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 	std::string imagePath = path;
 	if (imagePath.empty())
 	{
-		imagePath = "result.hdr";
+		imagePath = "result.png";
 		LM_LOG_WARN("Output image path is not specified. Using '" + imagePath + "' as default.");
 	}
 
@@ -233,34 +221,65 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 		}
 	}
 
-	BOOL result = false;
-	if (type == BitmapImageType::RadianceHDR)
+	// ----------------------------------------------------------------------
+
+	// Tone mapping
+	//auto* tonemappedBitmap = FreeImage_ToneMapping(fibitmap, FITMO_FATTAL02);
+	//auto* tonemappedBitmap = FreeImage_TmoDrago03(fibitmap);
+
+	FIBITMAP* tonemappedBitmap = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+	if (!tonemappedBitmap)
 	{
-		// Save image as Radiance HDR format
-		result = FreeImage_Save(FIF_HDR, fibitmap, imagePath.c_str(), HDR_DEFAULT);
+		LM_LOG_ERROR("Failed to allocate bitmap");
+		return false;
 	}
-	else if (type == BitmapImageType::OpenEXR)
+
+	// Multiplier for gamma correction
+	const double Exp = 1.0 / 2.2;
+
+	// Number of bytes per pixel
+	const int Bytespp = 3;
+	for (int y = 0; y < height; y++)
 	{
-		// Save image as OpenEXR format
-		result = FreeImage_Save(FIF_EXR, fibitmap, imagePath.c_str(), EXR_DEFAULT);
+		BYTE* bits = FreeImage_GetScanLine(tonemappedBitmap, y);
+		for (int x = 0; x < width; x++)
+		{
+			int idx = y * width + x;
+			bits[FI_RGBA_RED]   = static_cast<BYTE>(Math::Clamp(Math::Pow(Math::Cast<double>(data[3 * idx    ] * weight), Exp), 0.0, 1.0) * 255.0);
+			bits[FI_RGBA_GREEN] = static_cast<BYTE>(Math::Clamp(Math::Pow(Math::Cast<double>(data[3 * idx + 1] * weight), Exp), 0.0, 1.0) * 255.0);
+			bits[FI_RGBA_BLUE]  = static_cast<BYTE>(Math::Clamp(Math::Pow(Math::Cast<double>(data[3 * idx + 2] * weight), Exp), 0.0, 1.0) * 255.0);
+			bits += Bytespp;
+		}
+	}
+
+	// ----------------------------------------------------------------------
+
+	// Save image
+	BOOL result = false;
+	if (type == BitmapImageType::PNG)
+	{
+		result = FreeImage_Save(FIF_PNG, tonemappedBitmap, imagePath.c_str(), PNG_DEFAULT);;
 	}
 
 	if (!result)
 	{
 		LM_LOG_DEBUG("Failed to save image : " + imagePath);
 		FreeImage_Unload(fibitmap);
+		FreeImage_Unload(tonemappedBitmap);
 		return false;
 	}
 
 	LM_LOG_INFO("Successfully saved to " + imagePath);
 
 	FreeImage_Unload(fibitmap);
+	FreeImage_Unload(tonemappedBitmap);
+
 	return true;
 }
 
-Film* HDRBitmapFilm::Clone() const
+Film* LDRBitmapFilm::Clone() const
 {
-	auto* film = new HDRBitmapFilm;
+	auto* film = new LDRBitmapFilm;
 	film->width = width;
 	film->height = height;
 	film->type = type;
@@ -268,8 +287,7 @@ Film* HDRBitmapFilm::Clone() const
 	return film;
 }
 
-
-void HDRBitmapFilm::Clear()
+void LDRBitmapFilm::Clear()
 {
 	auto& data = bitmap.InternalData();
 	for (auto& v : data)
@@ -278,15 +296,14 @@ void HDRBitmapFilm::Clear()
 	}
 }
 
-
-void HDRBitmapFilm::Allocate( int width, int height )
+void LDRBitmapFilm::Allocate( int width, int height )
 {
 	this->width = width;
 	this->height = height;
 	bitmap.InternalData().assign(width * height * 3, Math::Float(0));
 }
 
-void HDRBitmapFilm::Rescale( const Math::Float& weight )
+void LDRBitmapFilm::Rescale( const Math::Float& weight )
 {
 	auto& data = bitmap.InternalData();
 	for (auto& v : data)
@@ -295,6 +312,6 @@ void HDRBitmapFilm::Rescale( const Math::Float& weight )
 	}
 }
 
-LM_COMPONENT_REGISTER_IMPL(HDRBitmapFilm, Film);
+LM_COMPONENT_REGISTER_IMPL(LDRBitmapFilm, Film);
 
 LM_NAMESPACE_END
