@@ -25,8 +25,6 @@
 
 LM_NAMESPACE_BEGIN
 
-/*!
-*/
 struct AABB
 {
 

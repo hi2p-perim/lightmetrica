@@ -45,24 +45,24 @@ void Scene::Load( Primitives* primitives )
 
 bool Scene::PostConfigure()
 {
-	return primitives->PostConfigure(*this);
+	// Post configure primitives
+	if (!primitives->PostConfigure(*this))
+	{
+		return false;
+	}
+
+	// Calculate scene bound (bound for triangles and emitter shapes)
+	auto aabbTris = GetAABBTriangles();
+	auto aabbEmitterShape = primitives->GetAABBEmitterShapes();
+	aabb = aabbTris.Union(aabbEmitterShape);
+
+	return true;
 }
 
 bool Scene::Intersect( Ray& ray, Intersection& isect ) const
 {
-	// # Intersection with triangles
-	if (!IntersectTriangles(ray, isect))
-	{
-		return false;
-	}
-
-	// # Intersection with emitter shapes
-	if (!primitives->IntersectEmitterShapes(ray, isect))
-	{
-		return false;
-	}
-
-	return true;
+	// TODO : Refreshing #minT and #maxT?
+	return IntersectTriangles(ray, isect) || primitives->IntersectEmitterShapes(ray, isect);
 }
 
 const Camera* Scene::MainCamera() const

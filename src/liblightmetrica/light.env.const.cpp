@@ -24,6 +24,7 @@
 #include <lightmetrica/surfacegeometry.h>
 #include <lightmetrica/boundingsphere.h>
 #include <lightmetrica/scene.h>
+#include <lightmetrica/emittershape.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -62,7 +63,8 @@ public:
 	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
 	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
 	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) {}
-	virtual void ConfigureAfterSceneBuild( const Scene& scene );
+	virtual void PostConfigure( const Scene& scene );
+	virtual EmitterShape* CreateEmitterShape() const;
 
 public:
 
@@ -80,10 +82,30 @@ bool ConstantEnvironmentLight::Load( const ConfigNode& node, const Assets& asset
 	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return true;
 }
 
-void ConstantEnvironmentLight::ConfigureAfterSceneBuild( const Scene& scene )
+void ConstantEnvironmentLight::PostConfigure( const Scene& scene )
 {
 	// Create bounding sphere
-	bsphere = scene.GetAABB().ConvertToBoundingSphere();
+	auto aabb = scene.GetAABB();
+	bsphere.center = (aabb.max + aabb.min) / Math::Float(2);
+	bsphere.radius = Math::Length(bsphere.center - aabb.max);
+}
+
+EmitterShape* ConstantEnvironmentLight::CreateEmitterShape() const
+{
+	// Create sphere
+	std::unique_ptr<EmitterShape> shape(ComponentFactory::Create<EmitterShape>("sphere"));
+	
+	// Configure parameters
+	std::map<std::string, boost::any> params;
+	params["center"] = bsphere.center;
+	params["radius"] = bsphere.radius;
+	params["emitter"] = this;
+	if (!shape->Configure(params))
+	{
+		return nullptr;
+	}
+
+	return shape.release();
 }
 
 bool ConstantEnvironmentLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const

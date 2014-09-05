@@ -50,6 +50,7 @@ public:
 	virtual bool Load( const ConfigNode& node, const Assets& assets );
 	virtual bool PostConfigure( const Scene& scene );
 	virtual bool IntersectEmitterShapes( Ray& ray, Intersection& isect ) const;
+	virtual AABB GetAABBEmitterShapes() const;
 	virtual void Reset();
 	virtual int NumPrimitives() const										{ return static_cast<int>(primitives.size()); }
 	virtual const Primitive* PrimitiveByIndex( int index ) const			{ return index < static_cast<int>(primitives.size()) ? primitives[index].get() : nullptr; }
@@ -69,12 +70,12 @@ private:
 private:
 
 	bool loaded;
-	Camera* mainCamera;																		//!< Main camera.
-	Light* environmentLight;																//!< Environment light.
-	std::vector<Light*> lights;																//!< Lights with other types.
-	std::vector<std::unique_ptr<Primitive>> primitives;										//!< Primitives
-	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;							//!< Primitive name and index of primitives
-	std::vector<std::pair<const Emitter*, std::unique_ptr<EmitterShape>>> emitterShapes;	//!< Emitter shapes.
+	Camera* mainCamera;													//!< Main camera.
+	Light* environmentLight;											//!< Environment light.
+	std::vector<Light*> lights;											//!< Lights with other types.
+	std::vector<std::unique_ptr<Primitive>> primitives;					//!< Primitives
+	boost::unordered_map<std::string, size_t> idPrimitiveIndexMap;		//!< Primitive name and index of primitives
+	std::vector<std::unique_ptr<EmitterShape>> emitterShapes;			//!< Emitter shapes.
 
 };
 
@@ -189,25 +190,55 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 
 bool PrimitivesImpl::PostConfigure( const Scene& scene )
 {
-	// # Post configure enviroment light
-	for (auto* light : lights)
-	{
-		light->PostConfigure(scene);
+	// Post configure environment light
+	environmentLight->PostConfigure(scene);
 	
-		// If emitter shape is associated with emitter
-		// record it to the special shape list.
-		std::unique_ptr<EmitterShape> shape(light->CreateEmitterShape());
-		if (shape != nullptr)
-		{
-			// Register to list
-			emitterShapes.emplace_back(light, std::move(shape));
-		}
+	// If emitter shape is associated with emitter
+	// record it to the special shape list.
+	std::unique_ptr<EmitterShape> shape(environmentLight->CreateEmitterShape());
+	if (shape != nullptr)
+	{
+		// Register to list
+		emitterShapes.push_back(std::move(shape));
 	}
 }
 
 bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) const
 {
-	// TODO
+	bool intersected = false;
+	Math::Float minT;
+	size_t minIndex = 0;
+
+	for (size_t i = 0; i < emitterShapes.size(); i++)
+	{
+		// Intersection query
+		Math::Float t;
+		if (emitterShapes[i]->Intersect(ray, t))
+		{
+			intersected = true;
+			minT = t;
+			minIndex = i;
+		}
+	}
+
+	if (intersected)
+	{
+		// Store additional information into #isect if intersected
+		emitterShapes[minIndex]->StoreIntersection(ray, minT, isect);
+	}
+
+	return intersected;
+}
+
+AABB PrimitivesImpl::GetAABBEmitterShapes() const
+{
+	AABB aabb;
+	for (auto& shape : emitterShapes)
+	{
+		aabb = aabb.Union(shape->GetAABB());
+	}
+
+	return aabb;
 }
 
 bool PrimitivesImpl::Traverse( const ConfigNode& node, const Assets& assets, const Math::Mat4& parentWorldTransform )

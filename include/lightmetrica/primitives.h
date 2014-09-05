@@ -23,6 +23,7 @@
 
 #include "component.h"
 #include "math.types.h"
+#include "aabb.h"
 
 LM_NAMESPACE_BEGIN
 
@@ -82,6 +83,10 @@ public:
 		\retval false Not intersected with the scene.
 	*/
 	virtual bool IntersectEmitterShapes(Ray& ray, Intersection& isect) const = 0;
+
+	/*!
+	*/
+	virtual AABB GetAABBEmitterShapes() const = 0;
 
 	/*!
 		Reset the scene.

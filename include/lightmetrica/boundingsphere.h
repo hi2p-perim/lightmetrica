@@ -28,7 +28,8 @@ LM_NAMESPACE_BEGIN
 struct BoundingSphere
 {
 
-	
+	Math::Vec3 center;
+	Math::Float radius;
 
 };
 

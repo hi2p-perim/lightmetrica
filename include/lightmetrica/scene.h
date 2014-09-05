@@ -117,6 +117,12 @@ public:
 	*/
 	LM_PUBLIC_API Math::PDFEval LightSelectionPdf() const;
 
+	/*!
+		Get AABB of the scene.
+		\return AABB of the scene.
+	*/
+	AABB GetAABB() const { return aabb; }
+
 public:
 
 	/*!
@@ -150,10 +156,10 @@ public:
 	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const = 0;
 
 	/*!
-		Get AABB of the scene.
-		\return AABB of the scene.
+		Get AABB of triangles in the scene.
+		\return AABB of triangles in the scene.
 	*/
-	virtual AABB GetAABB() const = 0;
+	virtual AABB GetAABBTriangles() const = 0;
 
 public:
 
@@ -181,6 +187,7 @@ protected:
 protected:
 
 	std::unique_ptr<Primitives> primitives;
+	AABB aabb;
 
 };
 

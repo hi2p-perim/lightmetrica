@@ -34,9 +34,37 @@ public:
 
 public:
 
-	
+	virtual bool Configure( std::map<std::string, boost::any>& params );
+	virtual bool Intersect( Ray& ray, Math::Float& t ) const;
+	virtual void StoreIntersection( const Ray& ray, const Math::Float& minT, Intersection& isect ) const;
+	virtual AABB GetAABB() const;
+
+private:
+
+	Math::Vec3 center;
+	Math::Float radius;
 
 };
+
+bool SphereEmitterShape::Configure( std::map<std::string, boost::any>& params )
+{
+
+}
+
+bool SphereEmitterShape::Intersect( Ray& ray, Math::Float& t ) const
+{
+	
+}
+
+void SphereEmitterShape::StoreIntersection( const Ray& ray, const Math::Float& minT, Intersection& isect ) const
+{
+	
+}
+
+lightmetrica::AABB SphereEmitterShape::GetAABB() const
+{
+
+}
 
 LM_COMPONENT_REGISTER_IMPL(SphereEmitterShape, EmitterShape);
 
