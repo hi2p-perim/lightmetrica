@@ -19,6 +19,11 @@
 
 #include "pch.h"
 #include <lightmetrica/emittershape.h>
+#include <lightmetrica/emitter.h>
+#include <lightmetrica/logger.h>
+#include <lightmetrica/ray.h>
+#include <lightmetrica/intersection.h>
+#include <lightmetrica/renderutils.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -36,34 +41,124 @@ public:
 
 	virtual bool Configure( std::map<std::string, boost::any>& params );
 	virtual bool Intersect( Ray& ray, Math::Float& t ) const;
-	virtual void StoreIntersection( const Ray& ray, const Math::Float& minT, Intersection& isect ) const;
+	virtual void StoreIntersection( const Ray& ray, Intersection& isect ) const;
 	virtual AABB GetAABB() const;
+
+public:
+
+	bool CheckParam(const std::string& key, std::map<std::string, boost::any>& params) const;
 
 private:
 
 	Math::Vec3 center;
 	Math::Float radius;
+	const Emitter* emitter;
 
 };
 
 bool SphereEmitterShape::Configure( std::map<std::string, boost::any>& params )
 {
+	// Check required parameters
+	if (!CheckParam("center", params) ||
+		!CheckParam("radius", params) ||
+		!CheckParam("emitter", params))
+	{
+		return false;
+	}
 
+	try
+	{
+		// Read parameters
+		center = boost::any_cast<Math::Vec3>(params["center"]);
+		radius = boost::any_cast<Math::Float>(params["radius"]);
+		emitter = boost::any_cast<const Emitter*>(params["emitter"]);
+	}
+	catch (const boost::bad_any_cast& e)
+	{
+		LM_LOG_ERROR("Invalid type : " + std::string(e.what()));
+		return false;
+	}
+
+	return true;
+}
+
+bool SphereEmitterShape::CheckParam( const std::string& key, std::map<std::string, boost::any>& params ) const
+{
+	if (params.find(key) == params.end())
+	{
+		LM_LOG_ERROR("Missing parameter : '" + key + "'");
+		return false;
+	}
+
+	return true;
 }
 
 bool SphereEmitterShape::Intersect( Ray& ray, Math::Float& t ) const
 {
-	
+	// # Temporary variables
+	auto o = ray.o - center;
+	auto d = ray.d;
+	auto a = Math::Length2(d);
+	auto b = Math::Float(2) * Math::Dot(o, d);
+	auto c = Math::Length2(o) - radius * radius;
+
+	// ----------------------------------------------------------------------
+
+	// # Solve quadratic
+	auto det = b * b - Math::Float(4) * a * c;
+	if (det < Math::Float(0))
+	{
+		return false;
+	}
+
+	auto e = Math::Sqrt(det);
+	auto denom = 2.0 * a;
+	auto t0 = (-b - e) / denom;
+	auto t1 = (-b + e) / denom;
+	if (t0 > ray.maxT || t1 < ray.minT)
+	{
+		return false;
+	}
+
+	// ----------------------------------------------------------------------
+
+	// # Check range
+	t = t0;
+	if (t < ray.minT)
+	{
+		t = t1;
+		if (t > ray.maxT)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
-void SphereEmitterShape::StoreIntersection( const Ray& ray, const Math::Float& minT, Intersection& isect ) const
+void SphereEmitterShape::StoreIntersection( const Ray& ray, Intersection& isect ) const
 {
-	
+	// Update geometry information
+
+	// # Intersection point
+	isect.geom.p = ray.o + ray.d * ray.maxT;
+
+	// # Geometry & shading normal
+	isect.geom.gn = isect.geom.sn = Math::Normalize(isect.geom.p - center);
+	isect.geom.ComputeTangentSpace();
+
+	// # Surface is not degenerated
+	isect.geom.degenerated = false;
+
+
 }
 
 lightmetrica::AABB SphereEmitterShape::GetAABB() const
 {
-
+	AABB aabb;
+	aabb.min = center - Math::Vec3(radius);
+	aabb.max = center + Math::Vec3(radius);
+	return aabb;
 }
 
 LM_COMPONENT_REGISTER_IMPL(SphereEmitterShape, EmitterShape);

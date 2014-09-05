@@ -215,9 +215,10 @@ bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) con
 		Math::Float t;
 		if (emitterShapes[i]->Intersect(ray, t))
 		{
-			intersected = true;
+			ray.maxT = t;
 			minT = t;
 			minIndex = i;
+			intersected = true;
 		}
 	}
 

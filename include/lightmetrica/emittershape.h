@@ -57,7 +57,7 @@ public:
 
 	virtual bool Configure(std::map<std::string, boost::any>& params) = 0;
 	virtual bool Intersect(Ray& ray, Math::Float& t) const = 0;
-	virtual void StoreIntersection(const Ray& ray, const Math::Float& minT, Intersection& isect) const = 0;
+	virtual void StoreIntersection(const Ray& ray, Intersection& isect) const = 0;
 	virtual AABB GetAABB() const = 0;
 
 };
