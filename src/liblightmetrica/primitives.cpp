@@ -212,7 +212,6 @@ bool PrimitivesImpl::PostConfigure( const Scene& scene )
 bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) const
 {
 	bool intersected = false;
-	Math::Float minT;
 	size_t minIndex = 0;
 
 	for (size_t i = 0; i < emitterShapes.size(); i++)
@@ -222,7 +221,6 @@ bool PrimitivesImpl::IntersectEmitterShapes( Ray& ray, Intersection& isect ) con
 		if (emitterShapes[i]->Intersect(ray, t))
 		{
 			ray.maxT = t;
-			minT = t;
 			minIndex = i;
 			intersected = true;
 		}
