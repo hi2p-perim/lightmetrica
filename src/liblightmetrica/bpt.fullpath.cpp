@@ -47,24 +47,16 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		// Compute #pdfDE[LE]
 		auto* z		= eyeSubpath.vertices[t-1];
 		auto* zPrev	= eyeSubpath.vertices[t-2];		// Always non-null because t >= 2
-		if (z->areaLight)
+		if (z->areaLight && !zPrev->geom.degenerated)
 		{
-			if (!zPrev->geom.degenerated)
-			{
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.transportDir = TransportDirection::LE;
-				bsdfEQ.type = GeneralizedBSDFType::LightDirection;
-				bsdfEQ.wo = z->wi;
-				pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
-			}
-			else
-			{
-				pdfDE[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
-			}
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.transportDir = TransportDirection::LE;
+			bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+			bsdfEQ.wo = z->wi;
+			pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
 		}
 		else
 		{
-			// This must be set
 			pdfDE[TransportDirection::LE] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
 	}
@@ -73,24 +65,16 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		// Compute #pdfDL[EL]
 		auto* y		= lightSubpath.vertices[s-1];
 		auto* yPrev	= lightSubpath.vertices[s-2];
-		if (y->areaCamera)
+		if (y->areaCamera && !yPrev->geom.degenerated)
 		{
-			if (!yPrev->geom.degenerated)
-			{
-				GeneralizedBSDFEvaluateQuery bsdfEQ;
-				bsdfEQ.transportDir = TransportDirection::EL;
-				bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
-				bsdfEQ.wo = y->wi;
-				pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
-			}
-			else
-			{
-				pdfDL[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
-			}
+			GeneralizedBSDFEvaluateQuery bsdfEQ;
+			bsdfEQ.transportDir = TransportDirection::EL;
+			bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
+			bsdfEQ.wo = y->wi;
+			pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
 		}
 		else
 		{
-			// This must be set
 			pdfDL[TransportDirection::EL] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
 	}
