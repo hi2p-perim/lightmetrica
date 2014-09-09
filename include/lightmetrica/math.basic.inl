@@ -32,6 +32,7 @@ template <typename T> LM_FORCE_INLINE T Abs(const T& v) { return std::abs(v); }
 template <typename T> LM_FORCE_INLINE T Sqrt(const T& v) { return std::sqrt(v); }
 template <typename T> LM_FORCE_INLINE T Log(const T& v) { return std::log(v); }
 template <typename T> LM_FORCE_INLINE T Exp(const T& v) { return std::exp(v); }
+template <typename T> LM_FORCE_INLINE T Ceil(const T& v) { return std::ceil(v); }
 template <typename T> LM_FORCE_INLINE T Pow(const T& base, const T& exp) { return std::pow(base, exp); }
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2) { return std::min(v1, v2); }
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2) { return std::max(v1, v2); }
@@ -48,6 +49,7 @@ template <> LM_FORCE_INLINE BigFloat Abs(const BigFloat& v) { return boost::mult
 template <> LM_FORCE_INLINE BigFloat Sqrt(const BigFloat& v) { return boost::multiprecision::sqrt(v); }
 template <> LM_FORCE_INLINE BigFloat Log(const BigFloat& v) { return boost::multiprecision::log(v); }
 template <> LM_FORCE_INLINE BigFloat Exp(const BigFloat& v) { return boost::multiprecision::exp(v); }
+template <> LM_FORCE_INLINE BigFloat Ceil(const BigFloat& v) { return boost::multiprecision::ceil(v); }
 template <> LM_FORCE_INLINE BigFloat Pow(const BigFloat& base, const BigFloat& exp) { return boost::multiprecision::pow(base, exp); };
 template <> LM_FORCE_INLINE BigFloat Min(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v2 : v1; }
 template <> LM_FORCE_INLINE BigFloat Max(const BigFloat& v1, const BigFloat& v2) { return v1 > v2 ? v1 : v2; }

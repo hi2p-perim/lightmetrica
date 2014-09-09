@@ -276,7 +276,7 @@ bool DielectricBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampl
 
 		// Correction factor for transmission
 		auto tf = query.transportDir == TransportDirection::EL ? eta : Math::Float(1);
-		auto tfInv = query.transportDir == TransportDirection::LE ? eta : Math::Float(1);
+		auto tfInv = query.transportDir == TransportDirection::LE ? Math::Float(1) / eta : Math::Float(1);
 
 		result.weight[query.transportDir] = T * (tf * tf * sf);
 		result.weight[1-query.transportDir] = T * (tfInv * tfInv * sfInv);

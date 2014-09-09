@@ -35,6 +35,7 @@ template <typename T> LM_FORCE_INLINE T Abs(const T& v);
 template <typename T> LM_FORCE_INLINE T Sqrt(const T& v);
 template <typename T> LM_FORCE_INLINE T Log(const T& v);
 template <typename T> LM_FORCE_INLINE T Exp(const T& v);
+template <typename T> LM_FORCE_INLINE T Ceil(const T& v);
 template <typename T> LM_FORCE_INLINE T Pow(const T& base, const T& exp);
 template <typename T> LM_FORCE_INLINE T Min(const T& v1, const T& v2);
 template <typename T> LM_FORCE_INLINE T Max(const T& v1, const T& v2);
