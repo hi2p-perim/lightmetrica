@@ -36,14 +36,7 @@ class DiscreteDistribution1D
 {
 public:
 
-	DiscreteDistribution1D()
-	{
-		Clear();
-	}
-
-private:
-
-	LM_DISABLE_COPY_AND_MOVE(DiscreteDistribution1D);
+	DiscreteDistribution1D() { Clear(); }
 
 public:
 
