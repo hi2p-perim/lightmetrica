@@ -55,6 +55,14 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 
+find_package(MPI)
+if (MPI_FOUND)
+	set(CMAKE_CXX_COMPILER_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+	set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+	include_directories(${MPI_INCLUDE_PATH})
+	add_definitions(-DLM_USE_MPI)
+endif()
+
 # Boost
 # Use dynamic libraries
 set(Boost_USE_STATIC_LIBS OFF)
@@ -304,10 +312,7 @@ if (GLEW_FOUND AND GLFW_FOUND)
 endif()
 
 # Plugins
-add_subdirectory("plugin/plugin.test")
-if (MSVC)
-	add_subdirectory("plugin/plugin.embree")
-endif()
+add_subdirectory("plugin")
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/experimental")
 	add_subdirectory("experimental/plugin")
 endif()

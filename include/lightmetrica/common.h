@@ -26,25 +26,32 @@
 	#error "C++ compiler is required"
 #endif
 
-// Debug mode?
+// Debug mode flag
 #ifndef NDEBUG
 	#define LM_DEBUG_MODE 1
 #else
 	#define LM_DEBUG_MODE 0
 #endif
 
-// Experimental mode?
+// Experimental mode flag
 #ifdef LM_ENABLE_EXPERIMENTAL_MODE
 	#define LM_EXPERIMENTAL_MODE 1
 #else
 	#define LM_EXPERIMENTAL_MODE 0
 #endif
 
-// Strict floating-point mode?
+// Strict floating-point mode flag
 #ifdef LM_ENABLE_STRICT_FP
 	#define LM_STRICT_FP 1
 #else
 	#define LM_STRICT_FP 0
+#endif
+
+// MPI flag
+#ifdef LM_USE_MPI
+	#define LM_MPI 1
+#else
+	#define LM_MPI 0
 #endif
 
 // --------------------------------------------------------------------------------

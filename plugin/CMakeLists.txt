@@ -17,20 +17,8 @@
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-set(
-	_HEADER_FILES
-	progressbar.h
-)
-
-set(
-	_SOURCE_FILES
-	main.cpp
-	progressbar.cpp
-)
-
-add_executable(lightmetrica ${_HEADER_FILES} ${_SOURCE_FILES})
-target_link_libraries(lightmetrica liblightmetrica ${COMMON_LIBRARY_FILES} ${MPI_LIBRARIES})
-add_dependencies(lightmetrica liblightmetrica)
-
-# Solution directory
-set_target_properties(lightmetrica PROPERTIES FOLDER "application")
+add_subdirectory("plugin.test")
+add_subdirectory("plugin.pathtrace.mpi")
+if (MSVC)
+	add_subdirectory("plugin.embree")
+endif()

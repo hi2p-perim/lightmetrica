@@ -19,38 +19,28 @@
 
 include (PCHTargets)
 
-# Embree
-find_package(Embree)
-if (EMBREE_FOUND)
-	include_directories(${EMBREE_INCLUDE_DIRS})
-
+if (MPI_FOUND)
 	set(
 		_SOURCE_FILES
-		"scene.embree.cpp"
+		"pathtrace.mpi.cpp"
 
 		# Common files
 		"${PROJECT_SOURCE_DIR}/include/lightmetrica/plugin.common.h"
 		"${PROJECT_SOURCE_DIR}/src/liblightmetrica/plugin.common.cpp"
 	)
 
-	# 
-	add_definitions(-DLM_USE_SINGLE_PRECISION)
-
-	# Proprocessor definition for exporting symbols
-	add_definitions(-DLM_USE_MPI)
-
 	# Create project
-	pch_add_library(plugin.embree SHARED PCH_HEADER "${PROJECT_SOURCE_DIR}/pch/pch.plugin.h" ${_SOURCE_FILES})
-	target_link_libraries(plugin.embree liblightmetrica ${COMMON_LIBRARY_FILES} ${EMBREE_LIBRARIES})
-	add_dependencies(plugin.embree liblightmetrica)
+	pch_add_library(plugin.pathtrace.mpi SHARED PCH_HEADER "${PROJECT_SOURCE_DIR}/pch/pch.plugin.h" ${_SOURCE_FILES})
+	target_link_libraries(plugin.pathtrace.mpi liblightmetrica ${COMMON_LIBRARY_FILES} ${MPI_LIBRARIES})
+	add_dependencies(plugin.pathtrace.mpi liblightmetrica)
 
 	# Output directory
-	set_target_properties(plugin.embree PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-	set_target_properties(plugin.embree PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+	set_target_properties(plugin.pathtrace.mpi PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+	set_target_properties(plugin.pathtrace.mpi PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 	# Solution directory
-	set_target_properties(plugin.embree PROPERTIES FOLDER "plugin")
+	set_target_properties(plugin.pathtrace.mpi PROPERTIES FOLDER "plugin")
 
 	# Remove automatic lib- prefix
-	set_target_properties(plugin.embree PROPERTIES PREFIX "")
+	set_target_properties(plugin.pathtrace.mpi PROPERTIES PREFIX "")
 endif()

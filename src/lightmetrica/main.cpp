@@ -51,6 +51,9 @@
 #elif LM_PLATFORM_LINUX
 #include <sys/ioctl.h>
 #endif
+#if LM_MPI
+#include <mpi.h>
+#endif
 
 using namespace lightmetrica;
 namespace po = boost::program_options;
@@ -64,6 +67,7 @@ public:
 public:
 
 	bool ParseArguments(int argc, char** argv);
+	bool Initialize(int argc, char** argv);
 	bool Run();
 	void StartLogging();
 	void FinishLogging();
@@ -83,6 +87,12 @@ private:
 	void PrintFinishMessage();
 	std::string CurrentTime();
 
+public:
+
+#if LM_PLATFORM_WINDOWS
+	static void SETransFunc(unsigned int code, PEXCEPTION_POINTERS data);
+#endif
+
 private:
 
 	// Application info
@@ -96,6 +106,7 @@ private:
 	bool interactiveMode;
 	std::string basePath;
 	double terminationTime;
+	bool mpiMode;
 
 	// Logging thread related variables
 	std::atomic<bool> logThreadDone;
@@ -151,7 +162,8 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 		("output-image,o", po::value<std::string>(&outputImagePath)->default_value(""), "Output image path")
 		("interactive,i", po::bool_switch(&interactiveMode), "Interactive mode")
 		("base-path,b", po::value<std::string>(&basePath)->default_value(""), "Base path for asset loading")
-		("termination-time,t", po::value<double>(&terminationTime)->default_value(0), "Termination time for rendering");
+		("termination-time,t", po::value<double>(&terminationTime)->default_value(0), "Termination time for rendering")
+		("mpi", po::bool_switch(&mpiMode), "MPI mode");
 
 	// positional arguments
 	po::positional_options_description p;
@@ -194,6 +206,29 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 		PrintHelpMessage(opt);
 		return false;
 	}
+
+	return true;
+}
+
+bool LightmetricaApplication::Initialize( int argc, char** argv )
+{
+#if LM_MPI
+	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+	{
+		LM_LOG_ERROR("Failed to initialize MPI");
+		return false;
+	}
+
+	// TODO : Configure error handling function
+#endif
+
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+	_set_se_translator(SETransFunc);
+	if (!FloatintPointUtils::EnableFPControl())
+	{
+		return false;
+	}
+#endif
 
 	return true;
 }
@@ -466,18 +501,37 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 
 	// # Save rendered image
 	{
-		LM_LOG_INFO("Entering : Save rendered image");
-		LM_LOG_INDENTER();
-		auto* film = dynamic_cast<BitmapFilm*>(scene.MainCamera()->GetFilm());
-		if (film == nullptr)
+		bool saveRequired;
+#if LM_MPI
+		if (mpiMode)
 		{
-			LM_LOG_WARN("Main camera is not associated with bitmap texture, skipping");
+			int rank;
+			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+			saveRequired = rank == 0;
 		}
 		else
 		{
-			if (!film->Save(outputImagePath))
+			saveRequired = true;
+		}
+#else
+		saveRequired = true;
+#endif
+
+		if (saveRequired)
+		{
+			LM_LOG_INFO("Entering : Save rendered image");
+			LM_LOG_INDENTER();
+			auto* film = dynamic_cast<BitmapFilm*>(scene.MainCamera()->GetFilm());
+			if (film == nullptr)
 			{
-				return false;
+				LM_LOG_WARN("Main camera is not associated with bitmap texture, skipping");
+			}
+			else
+			{
+				if (!film->Save(outputImagePath))
+				{
+					return false;
+				}
 			}
 		}
 	}
@@ -579,7 +633,7 @@ std::string LightmetricaApplication::CurrentTime()
 }
 
 #if LM_PLATFORM_WINDOWS
-void SETransFunc(unsigned int code, PEXCEPTION_POINTERS data)
+void LightmetricaApplication::SETransFunc(unsigned int code, PEXCEPTION_POINTERS data)
 {
 	std::string desc;
 	switch (code)
@@ -632,15 +686,11 @@ int main(int argc, char** argv)
 	{
 		app.StartLogging();
 
-#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
-		_set_se_translator(SETransFunc);
-		if (!FloatintPointUtils::EnableFPControl())
+		if (!app.Initialize(argc, argv))
 		{
 			result = EXIT_FAILURE;
 		}
-#endif
-
-		if (result != EXIT_FAILURE)
+		else
 		{
 			try
 			{

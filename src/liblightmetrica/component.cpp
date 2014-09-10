@@ -64,9 +64,9 @@ public:
 
 		// File format : 'plugin.(name).{dll,so}'
 #if LM_PLATFORM_WINDOWS
-		const boost::regex pluginNameExp("^plugin\\.([a-z]+)\\.dll$");
+		const boost::regex pluginNameExp("^plugin\\.([a-z\\.]+)\\.dll$");
 #elif LM_PLATFORM_LINUX
-		const boost::regex pluginNameExp("^plugin\\.([a-z]+)\\.so$");
+		const boost::regex pluginNameExp("^plugin\\.([a-z\\.]+)\\.so$");
 #endif
 
 		// Enumerate dynamic libraries in #pluginDir
