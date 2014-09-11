@@ -37,7 +37,7 @@ class ProgressBar
 {
 public:
 
-	ProgressBar();
+	ProgressBar() {}
 
 private:
 
@@ -45,6 +45,7 @@ private:
 
 public:
 
+	void SetConsoleWidth(int consoleWidth);
 	void Begin(const std::string& taskName);
 	void End();
 	void Abort();

@@ -94,7 +94,7 @@ public:
 		Get internal bitmap data.
 		\return A bitmap.
 	*/
-	virtual const BitmapImage& Bitmap() const = 0;
+	virtual BitmapImage& Bitmap() = 0;
 
 };
 

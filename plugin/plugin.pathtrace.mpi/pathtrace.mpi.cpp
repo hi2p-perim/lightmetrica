@@ -21,6 +21,8 @@
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
+#include <lightmetrica/bitmapfilm.h>
+#include <lightmetrica/bitmap.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/primitive.h>
@@ -66,7 +68,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
+	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(0, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
@@ -78,8 +80,6 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	RendererTerminationMode terminationMode;
-	double terminationTime;
 
 private:
 
@@ -128,25 +128,6 @@ bool MPIPathtraceRenderer::Configure( const ConfigNode& node, const Assets& asse
 bool MPIPathtraceRenderer::Render( const Scene& scene )
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::atomic<long long> processedBlocks(0);
-	std::atomic<long long> processedSamples(0);
-
-	signal_ReportProgress(0, false);
-
-	// --------------------------------------------------------------------------------
-
-	// Random number generators and films
-	std::vector<std::unique_ptr<Sampler>> samplers;
-	std::vector<std::unique_ptr<Film>> films;
-	for (int i = 0; i < numThreads; i++)
-	{
-		samplers.emplace_back(initialSampler->Clone());
-		samplers.back()->SetSeed(initialSampler->NextUInt());
-		films.emplace_back(masterFilm->Clone());
-	}
-
-	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
 
 	// --------------------------------------------------------------------------------
 
@@ -165,24 +146,38 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 
 	// --------------------------------------------------------------------------------
 
-	bool cancel = false;
-	bool done = false;
-	auto startTime = std::chrono::high_resolution_clock::now();
+	// Random number generators and films
+	std::vector<std::unique_ptr<Sampler>> samplers;
+	std::vector<std::unique_ptr<Film>> films;
+	if (rank > 0)
+	{
+		for (int i = 0; i < numThreads; i++)
+		{
+			samplers.emplace_back(initialSampler->Clone());
+			samplers.back()->SetSeed(initialSampler->NextUInt());
+			films.emplace_back(masterFilm->Clone());
+		}
+	}
+
+	// --------------------------------------------------------------------------------
 
 	// Number of samples queried
 	long long queriedSamples = 0;
 	long long processedSamples = 0;
 
+	MPI_Status status;
+
 	if (rank == 0)
 	{
 		// # Master process
+		signal_ReportProgress(0, false);
 
 		// ## Assign initial tasks to slave processes
 		for (int i = 1; i < numProcs; i++)
 		{
 			// Number of samples to be processed by this task
 			long long samples = Math::Min(samplesPerTask, numSamples - queriedSamples);
-			MPI_Send(&samples, 1, MPI_LONG_LONG, i, MPIPTTagType::TagType_AssignTask, MPI_COMM_WORLD);
+			MPI_Send(&samples, 1, MPI_LONG_LONG, i, TagType_AssignTask, MPI_COMM_WORLD);
 			queriedSamples += samples;
 		}
 
@@ -190,115 +185,74 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 		while (processedSamples < numSamples)
 		{
 			// Wait for result
-			MPI_Status status;
 			long long processedSamplesBySlave;
-			MPI_Recv(&processedSamplesBySlave, 1, MPI_LONG_LONG, MPI_ANY_SOURCE, TagType_Result, MPI_COMM_WORLD, &status);
+			MPI_Recv(&processedSamplesBySlave, 1, MPI_LONG_LONG, MPI_ANY_SOURCE, TagType_TaskFinished, MPI_COMM_WORLD, &status);
 			processedSamples += processedSamplesBySlave;
 
 			// Assign next task if necessary
 			if (queriedSamples < numSamples)
 			{
 				long long samples = Math::Min(samplesPerTask, numSamples - queriedSamples);
-				MPI_Send(&samples, 1, MPI_LONG_LONG, status.MPI_SOURCE, MPIPTTagType::TagType_TaskFinished, MPI_COMM_WORLD);
+				MPI_Send(&samples, 1, MPI_LONG_LONG, status.MPI_SOURCE, TagType_AssignTask, MPI_COMM_WORLD);
 				queriedSamples += samples;
 			}
+
+			auto progress = static_cast<double>(processedSamples) / numSamples;
+			signal_ReportProgress(progress, false);
 		}
 
-		// ## Gather rendered images (unscaled)
-		
-
-		if (queriedSamples != numSamples)
+		// ## Exit slaves
+		for (int i = 1; i < numProcs; i++)
 		{
-			
+			MPI_Send(NULL, 0, MPI_INT, i, TagType_Exit, MPI_COMM_WORLD);
 		}
 
+		signal_ReportProgress(1, true);
 	}
 	else
 	{
 		// # Worker process
-
-		
-
 		while (true)
 		{
+			// ## Receive a task
+			long long assignedSamples;
+			MPI_Recv(&assignedSamples, 1, MPI_LONG_LONG, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
+			if (status.MPI_TAG == TagType_Exit)
+			{
+				break;
+			}
+
+			// ## Rendering
+			std::atomic<long long> processedSamples(0);
+
+			// Number of blocks to be separated
+			long long blocks = (assignedSamples + samplesPerBlock) / samplesPerBlock;
 
 			#pragma omp parallel for
 			for (long long block = 0; block < blocks; block++)
 			{
-				#pragma omp flush (done)
-				if (done)
+				// Thread ID
+				int threadId = omp_get_thread_num();
+				auto& sampler = samplers[threadId];
+				auto& film = films[threadId];
+
+				// Sample range
+				long long sampleBegin = samplesPerBlock * block;
+				long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, assignedSamples);
+
+				processedSamples += sampleEnd - sampleBegin;
+
+				for (long long sample = sampleBegin; sample < sampleEnd; sample++)
 				{
-					continue;
-				}
-
-				// --------------------------------------------------------------------------------
-
-				try
-				{	
-					// Thread ID
-					int threadId = omp_get_thread_num();
-					auto& sampler = samplers[threadId];
-					auto& film = films[threadId];
-
-					// Sample range
-					long long sampleBegin = samplesPerBlock * block;
-					long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-				
-					processedSamples += sampleEnd - sampleBegin;
-
-					for (long long sample = sampleBegin; sample < sampleEnd; sample++)
-					{
-						ProcessRenderSingleSample(scene, *sampler, *film);
-					}
-				}
-				catch (const std::exception& e)
-				{
-					LM_LOG_ERROR(boost::str(boost::format("EXCEPTION (thread #%d) | %s") % omp_get_thread_num() % e.what()));
-					cancel = done = true;
-					#pragma omp flush (done)
-				}
-
-				// --------------------------------------------------------------------------------
-
-				// Progress report
-				processedBlocks++;
-				if (terminationMode == RendererTerminationMode::Samples)
-				{
-					auto progress = static_cast<double>(processedBlocks) / blocks;
-					signal_ReportProgress(progress, false);
-				}
-				else if (terminationMode == RendererTerminationMode::Time)
-				{
-					auto currentTime = std::chrono::high_resolution_clock::now();
-					double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
-					if (elapsed > terminationTime)
-					{
-						done = true;
-						#pragma omp flush (done)
-					}
-					else
-					{
-						signal_ReportProgress(elapsed / terminationTime, false);
-					}
+					ProcessRenderSingleSample(scene, *sampler, *film);
 				}
 			}
 
-			if (done || terminationMode == RendererTerminationMode::Samples)
-			{
-				break;
-			}
+			// ## Send a result
+			long long result = processedSamples;
+			MPI_Send(&result, 1, MPI_LONG_LONG, 0, TagType_TaskFinished, MPI_COMM_WORLD);
 		}
-
-
-	}
-
-	signal_ReportProgress(1, true);
-
-	if (cancel)
-	{
-		LM_LOG_ERROR("Render operation has been canceled");
-		return false;
 	}
 
 	// --------------------------------------------------------------------------------
@@ -309,15 +263,23 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 		masterFilm->AccumulateContribution(*f.get());
 	}
 
+	// Reduce rendered images
+	auto* bitmapFilm = dynamic_cast<BitmapFilm*>(masterFilm);
+	auto* data = bitmapFilm->Bitmap().InternalData().data();
+	int size = bitmapFilm->Width() * bitmapFilm->Height() * 3;
+	if (rank == 0)
+	{
+		MPI_Reduce(MPI_IN_PLACE, data, size, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+	}
+	else
+	{
+		MPI_Reduce(data, data, size, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+	}
+
 	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
+	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
 	// --------------------------------------------------------------------------------
-
-	auto finishTime = std::chrono::high_resolution_clock::now();
-	double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count()) / 1000.0;
-	LM_LOG_INFO("Rendering completed in " + std::to_string(elapsed) + " seconds");
-	LM_LOG_INFO("Processed number of samples : " + std::to_string(processedSamples));
 
 	return true;
 }

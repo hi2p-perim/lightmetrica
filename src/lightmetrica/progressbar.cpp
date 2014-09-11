@@ -28,18 +28,9 @@
 
 LM_NAMESPACE_BEGIN
 
-ProgressBar::ProgressBar()
+void ProgressBar::SetConsoleWidth( int consoleWidth )
 {
-#if LM_PLATFORM_WINDOWS
-	consoleHandle = (HANDLE)GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
-	GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
-	consoleWidth = screenBufferInfo.dwSize.X-1;
-#elif LM_PLATFORM_LINUX
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	consoleWidth = w.ws_col;
-#endif
+	this->consoleWidth = consoleWidth;
 }
 
 void ProgressBar::Begin( const std::string& taskName )

@@ -113,7 +113,11 @@ private:
 	std::future<void> logResult;
 
 	// Progress bar
+	bool useProgressBar;
 	ProgressBar progressBar;
+
+	// For MPI
+	int rank;
 
 };
 
@@ -207,20 +211,29 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 		return false;
 	}
 
+#ifndef LM_MPI
+	if (mpiMode)
+	{
+		LM_LOG_ERROR("Invalid 'mpi' argument. The application is not build for MPI.")
+	}
+#endif
+
 	return true;
 }
 
 bool LightmetricaApplication::Initialize( int argc, char** argv )
 {
-#if LM_MPI
-	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+	if (mpiMode)
 	{
-		LM_LOG_ERROR("Failed to initialize MPI");
-		return false;
-	}
-
-	// TODO : Configure error handling function
+#if LM_MPI
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
+		useProgressBar = rank == 0;
+	}
+	else
+	{
+		useProgressBar = true;
+	}
 
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 	_set_se_translator(SETransFunc);
@@ -352,8 +365,11 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 		LM_LOG_INFO("Entering : Asset loading");
 		LM_LOG_INDENTER();
 
-		progressBar.Begin("LOADING ASSETS");
-		auto conn = assets.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		if (useProgressBar)
+		{
+			progressBar.Begin("LOADING ASSETS");
+			auto conn = assets.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		if (!assets.Load(config.Root().Child("assets")))
 		{
@@ -361,7 +377,10 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 			return false;
 		}
 
-		progressBar.End();
+		if (useProgressBar)
+		{
+			progressBar.End();
+		}
 	}
 
 	// --------------------------------------------------------------------------------
@@ -411,8 +430,11 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		LM_LOG_INFO("Entering : Scene building");
 		LM_LOG_INDENTER();
 
-		progressBar.Begin("BUILDING SCENE");
-		auto conn = scene.Connect_ReportBuildProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		if (useProgressBar)
+		{
+			progressBar.Begin("BUILDING SCENE");
+			auto conn = scene.Connect_ReportBuildProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		if (!scene.Build())
 		{
@@ -420,7 +442,10 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 			return false;
 		}
 
-		progressBar.End();
+		if (useProgressBar)
+		{
+			progressBar.End();
+		}
 	}
 
 	// --------------------------------------------------------------------------------
@@ -466,8 +491,11 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		LM_LOG_INFO("Entering : Preprocess");
 		LM_LOG_INDENTER();
 
-		progressBar.Begin("PREPROCESS");
-		auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		if (useProgressBar)
+		{
+			progressBar.Begin("PREPROCESS");
+			auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		if (!renderer.Preprocess(scene))
 		{
@@ -475,7 +503,10 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 			return false;
 		}
 
-		progressBar.End();
+		if (useProgressBar)
+		{
+			progressBar.End();
+		}
 	}
 
 	// --------------------------------------------------------------------------------
@@ -485,8 +516,11 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		LM_LOG_INFO("Entering : Render");
 		LM_LOG_INDENTER();
 
-		progressBar.Begin("RENDERING");
-		auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		if (useProgressBar)
+		{
+			progressBar.Begin("RENDERING");
+			auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		if (!renderer.Render(scene))
 		{
@@ -494,30 +528,17 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 			return false;
 		}
 
-		progressBar.End();
+		if (useProgressBar)
+		{
+			progressBar.End();
+		}
 	}
 
 	// --------------------------------------------------------------------------------
 
 	// # Save rendered image
 	{
-		bool saveRequired;
-#if LM_MPI
-		if (mpiMode)
-		{
-			int rank;
-			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-			saveRequired = rank == 0;
-		}
-		else
-		{
-			saveRequired = true;
-		}
-#else
-		saveRequired = true;
-#endif
-
-		if (saveRequired)
+		if (!mpiMode || (mpiMode && rank == 0))
 		{
 			LM_LOG_INFO("Entering : Save rendered image");
 			LM_LOG_INDENTER();
@@ -544,7 +565,24 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 void LightmetricaApplication::StartLogging()
 {
 	// Configure the logger
-	Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
+	if (mpiMode)
+	{
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		Logger::SetOutputFileName(boost::str(boost::format("lightmetrica.%02d.log") % rank));
+		if (rank == 0)
+		{
+			Logger::SetOutputMode(Logger::LogOutputMode::File);
+		}
+		else
+		{
+			Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
+		}
+	}
+	else
+	{
+		Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
+	}
 
 	// Start the logger thread
 	logResult = std::async(
@@ -553,16 +591,28 @@ void LightmetricaApplication::StartLogging()
 		{
 			// Console info
 			int consoleWidth;
+			if (mpiMode)
+			{
+				consoleWidth = 72;
+			}
+			else
+			{
 #if LM_PLATFORM_WINDOWS
-			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-			CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
-			GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
-			consoleWidth = screenBufferInfo.dwSize.X-1;
+				HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+				CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
+				GetConsoleScreenBufferInfo(consoleHandle, &screenBufferInfo);
+				consoleWidth = screenBufferInfo.dwSize.X-1;
 #elif LM_PLATFORM_LINUX
-			struct winsize w;
-			ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-			consoleWidth = w.ws_col;
+				struct winsize w;
+				ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+				consoleWidth = w.ws_col;
 #endif
+			}
+
+			if (useProgressBar)
+			{
+				progressBar.SetConsoleWidth(consoleWidth);
+			}
 
 			std::string spaces(consoleWidth, ' ');
 
@@ -573,13 +623,23 @@ void LightmetricaApplication::StartLogging()
 				// Overwrite a line with spaces
 				if (!Logger::Empty())
 				{
-					std::cout << spaces << "\r";
-					Logger::ProcessOutput();
-					progressBar.RequestUpdateProgress();
+					if (useProgressBar)
+					{
+						std::cout << spaces << "\r";
+						Logger::ProcessOutput();
+						progressBar.RequestUpdateProgress();
+					}
+					else
+					{
+						Logger::ProcessOutput();
+					}
 				}
 
 				// Process progress bar
-				progressBar.ProcessProgressOutput();
+				if (useProgressBar)
+				{
+					progressBar.ProcessProgressOutput();
+				}
 
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
@@ -607,6 +667,22 @@ void LightmetricaApplication::PrintStartMessage()
 	LM_LOG_INFO("FLAGS        | " + appFlags);
 	LM_LOG_INFO("CURRENT TIME | " + CurrentTime());
 	LM_LOG_INFO("");
+
+	if (mpiMode)
+	{
+#if LM_MPI
+		int numProcs;
+		int procNameLen;
+		char procName[MPI_MAX_PROCESSOR_NAME];
+		MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+		MPI_Get_processor_name(procName, &procNameLen);
+#endif
+		LM_LOG_INFO("MPI mode");
+		LM_LOG_INFO("PROCESS NUM  | " + std::to_string(numProcs));
+		LM_LOG_INFO("PROCESS RANK | " + std::to_string(rank));
+		LM_LOG_INFO("PROCESS NAME | " + std::string(procName));
+		LM_LOG_INFO("");
+	}
 }
 
 void LightmetricaApplication::PrintFinishMessage()
@@ -679,6 +755,27 @@ void LightmetricaApplication::SETransFunc(unsigned int code, PEXCEPTION_POINTERS
 
 int main(int argc, char** argv)
 {
+#if LM_MPI
+	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+	{
+		std::cerr << "Failed to initialize MPI" << std::endl;
+		return EXIT_FAILURE;
+	}
+#endif
+
+#if LM_MPI && LM_DEBUG_MODE
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	if (rank == 0)
+	{
+		std::cerr << "Wait for attaching. If you are prepared, press any key.";
+		std::cin.get();
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// --------------------------------------------------------------------------------
+
 	int result = EXIT_SUCCESS;
 	LightmetricaApplication app;
 
@@ -709,9 +806,24 @@ int main(int argc, char** argv)
 		app.FinishLogging();
 	}
 
+	// --------------------------------------------------------------------------------
+
 #if LM_DEBUG_MODE
+#if LM_MPI
+	if (rank == 0)
+	{
+		std::cerr << "Press any key to exit ...";
+		std::cin.get();
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+#else
 	std::cerr << "Press any key to exit ...";
 	std::cin.get();
+#endif
+#endif
+
+#if LM_MPI
+	MPI_Finalize();
 #endif
 
 	return result;

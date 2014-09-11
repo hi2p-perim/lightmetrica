@@ -64,7 +64,7 @@ public:
 	virtual void Allocate(int width, int height);
 	virtual void SetImageType(BitmapImageType type) { this->type = type; }
 	virtual BitmapImageType ImageType() const { return type; }
-	virtual const BitmapImage& Bitmap() const { return bitmap; }
+	virtual BitmapImage& Bitmap() { return bitmap; }
 
 public:
 
