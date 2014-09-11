@@ -568,7 +568,9 @@ void LightmetricaApplication::StartLogging()
 	if (mpiMode)
 	{
 		int rank;
+#if LM_MPI
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 		Logger::SetOutputFileName(boost::str(boost::format("lightmetrica.%02d.log") % rank));
 		if (rank == 0)
 		{
