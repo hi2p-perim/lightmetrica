@@ -179,7 +179,7 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 		for (int i = 1; i < numProcs; i++)
 		{
 			// Number of samples to be processed by this task
-			long long samples = Math::Min(samplesPerTask, numSamples - queriedSamples);
+			long long samples = terminationMode == RendererTerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
 			MPI_Send(&samples, 1, MPI_LONG_LONG, i, TagType_AssignTask, MPI_COMM_WORLD);
 			queriedSamples += samples;
 		}
@@ -229,7 +229,7 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 			// Assign next task if necessary
 			if (terminationMode == RendererTerminationMode::Time || (terminationMode == RendererTerminationMode::Samples && queriedSamples < numSamples))
 			{
-				long long samples = Math::Min(samplesPerTask, numSamples - queriedSamples);
+				long long samples = terminationMode == RendererTerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
 				MPI_Send(&samples, 1, MPI_LONG_LONG, status.MPI_SOURCE, TagType_AssignTask, MPI_COMM_WORLD);
 				queriedSamples += samples;
 			}
