@@ -223,17 +223,22 @@ bool LightmetricaApplication::ParseArguments( int argc, char** argv )
 
 bool LightmetricaApplication::Initialize( int argc, char** argv )
 {
+#if LM_MPI
 	if (mpiMode)
 	{
-#if LM_MPI
+		if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+		{
+			std::cerr << "Failed to initialize MPI" << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		// TODO : Create own error handler?
+		//MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	}
 #endif
-		useProgressBar = rank == 0;
-	}
-	else
-	{
-		useProgressBar = true;
-	}
+
+	useProgressBar = !mpiMode || (mpiMode && rank == 0);
 
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 	_set_se_translator(SETransFunc);
@@ -480,7 +485,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		}
 
 		// Termination mode
-		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Time" : "Samples"));
+		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Samples" : "Time"));
 		renderer.SetTerminationMode(terminationTime == 0 ? RendererTerminationMode::Samples : RendererTerminationMode::Time, terminationTime);
 	}
 
@@ -574,11 +579,11 @@ void LightmetricaApplication::StartLogging()
 		Logger::SetOutputFileName(boost::str(boost::format("lightmetrica.%02d.log") % rank));
 		if (rank == 0)
 		{
-			Logger::SetOutputMode(Logger::LogOutputMode::File);
+			Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
 		}
 		else
 		{
-			Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
+			Logger::SetOutputMode(Logger::LogOutputMode::File);
 		}
 	}
 	else
@@ -757,52 +762,35 @@ void LightmetricaApplication::SETransFunc(unsigned int code, PEXCEPTION_POINTERS
 
 int main(int argc, char** argv)
 {
-#if LM_MPI
-	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
-	{
-		std::cerr << "Failed to initialize MPI" << std::endl;
-		return EXIT_FAILURE;
-	}
-#endif
-
-#if LM_MPI && LM_DEBUG_MODE
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	if (rank == 0)
-	{
-		std::cerr << "Wait for attaching. If you are prepared, press any key.";
-		std::cin.get();
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-	// --------------------------------------------------------------------------------
-
 	int result = EXIT_SUCCESS;
 	LightmetricaApplication app;
 
-	if (app.ParseArguments(argc, argv))
+	if (app.ParseArguments(argc, argv) && app.Initialize(argc, argv))
 	{
 		app.StartLogging();
 
-		if (!app.Initialize(argc, argv))
+#if LM_MPI && LM_DEBUG_MODE
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		if (rank == 0)
 		{
-			result = EXIT_FAILURE;
+			std::cerr << "Wait for attaching. If you are prepared, press any key.";
+			std::cin.get();
 		}
-		else
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+		try
 		{
-			try
+			if (!app.Run())
 			{
-				if (!app.Run())
-				{
-					result = EXIT_FAILURE;
-				}
-			}
-			catch (const std::exception& e)
-			{
-				LM_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
 				result = EXIT_FAILURE;
 			}
+		}
+		catch (const std::exception& e)
+		{
+			LM_LOG_ERROR(boost::str(boost::format("EXCEPTION | %s") % e.what()));
+			result = EXIT_FAILURE;
 		}
 
 		app.FinishLogging();
@@ -812,6 +800,8 @@ int main(int argc, char** argv)
 
 #if LM_DEBUG_MODE
 #if LM_MPI
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	if (rank == 0)
 	{
 		std::cerr << "Press any key to exit ...";
