@@ -486,7 +486,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 
 		// Termination mode
 		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Samples" : "Time"));
-		renderer.SetTerminationMode(terminationTime == 0 ? RendererTerminationMode::Samples : RendererTerminationMode::Time, terminationTime);
+		renderer.SetTerminationMode(terminationTime == 0 ? TerminationMode::Samples : TerminationMode::Time, terminationTime);
 	}
 
 	// --------------------------------------------------------------------------------

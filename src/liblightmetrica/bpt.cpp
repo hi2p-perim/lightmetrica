@@ -101,7 +101,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
+	virtual void SetTerminationMode( TerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
@@ -121,7 +121,7 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	RendererTerminationMode terminationMode;
+	TerminationMode terminationMode;
 	double terminationTime;
 
 	long long numSamples;									//!< Number of samples
@@ -369,13 +369,13 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 
 			// Progress report
 			processedBlocks++;
-			if (terminationMode == RendererTerminationMode::Samples)
+			if (terminationMode == TerminationMode::Samples)
 			{
 				auto progress = static_cast<double>(processedBlocks) / blocks;
 				signal_ReportProgress(progress, false);
 				LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
 			}
-			else if (terminationMode == RendererTerminationMode::Time)
+			else if (terminationMode == TerminationMode::Time)
 			{
 				auto currentTime = std::chrono::high_resolution_clock::now();
 				double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
@@ -430,7 +430,7 @@ bool BidirectionalPathtraceRenderer::Render( const Scene& scene )
 			}
 		}
 
-		if (done || terminationMode == RendererTerminationMode::Samples)
+		if (done || terminationMode == TerminationMode::Samples)
 		{
 			break;
 		}

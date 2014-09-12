@@ -68,7 +68,7 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual void SetTerminationMode( RendererTerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
+	virtual void SetTerminationMode( TerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
 	virtual bool Render( const Scene& scene );
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
@@ -80,7 +80,7 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	RendererTerminationMode terminationMode;
+	TerminationMode terminationMode;
 	double terminationTime;
 
 private:
@@ -137,27 +137,8 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 
 	int rank;
 	int numProcs;
-	int procNameLen;
-	char procName[MPI_MAX_PROCESSOR_NAME];
-
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Get_processor_name(procName, &procNameLen);
-
-	// --------------------------------------------------------------------------------
-
-	// Random number generators and films
-	std::vector<std::unique_ptr<Sampler>> samplers;
-	std::vector<std::unique_ptr<Film>> films;
-	if (rank > 0)
-	{
-		for (int i = 0; i < numThreads; i++)
-		{
-			samplers.emplace_back(initialSampler->Clone());
-			samplers.back()->SetSeed(initialSampler->NextUInt());
-			films.emplace_back(masterFilm->Clone());
-		}
-	}
 
 	// --------------------------------------------------------------------------------
 
@@ -179,7 +160,7 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 		for (int i = 1; i < numProcs; i++)
 		{
 			// Number of samples to be processed by this task
-			long long samples = terminationMode == RendererTerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
+			long long samples = terminationMode == TerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
 			MPI_Send(&samples, 1, MPI_LONG_LONG, i, TagType_AssignTask, MPI_COMM_WORLD);
 			queriedSamples += samples;
 		}
@@ -187,7 +168,8 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 		// --------------------------------------------------------------------------------
 
 		// ## Dispatch render tasks
-		while (terminationMode == RendererTerminationMode::Time || (terminationMode == RendererTerminationMode::Samples && processedSamples < numSamples))
+		while (terminationMode == TerminationMode::Time ||
+			  (terminationMode == TerminationMode::Samples && processedSamples < numSamples))
 		{
 			// Wait for result
 			long long processedSamplesBySlave;
@@ -197,12 +179,12 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 			// --------------------------------------------------------------------------------
 
 			// Progress report
-			if (terminationMode == RendererTerminationMode::Samples)
+			if (terminationMode == TerminationMode::Samples)
 			{
 				auto progress = static_cast<double>(processedSamples) / numSamples;
 				signal_ReportProgress(progress, false);
 			}
-			else if (terminationMode == RendererTerminationMode::Time)
+			else if (terminationMode == TerminationMode::Time)
 			{
 				auto currentTime = std::chrono::high_resolution_clock::now();
 				double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
@@ -227,9 +209,10 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 			// --------------------------------------------------------------------------------
 
 			// Assign next task if necessary
-			if (terminationMode == RendererTerminationMode::Time || (terminationMode == RendererTerminationMode::Samples && queriedSamples < numSamples))
+			if (terminationMode == TerminationMode::Time ||
+			   (terminationMode == TerminationMode::Samples && queriedSamples < numSamples))
 			{
-				long long samples = terminationMode == RendererTerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
+				long long samples = terminationMode == TerminationMode::Time ? samplesPerTask : Math::Min(samplesPerTask, numSamples - queriedSamples);
 				MPI_Send(&samples, 1, MPI_LONG_LONG, status.MPI_SOURCE, TagType_AssignTask, MPI_COMM_WORLD);
 				queriedSamples += samples;
 			}
@@ -256,9 +239,26 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 	else
 	{
 		// # Worker process
+
+		// ## Random number generators and films
+		std::vector<std::unique_ptr<Sampler>> samplers;
+		std::vector<std::unique_ptr<Film>> films;
+		if (rank > 0)
+		{
+			for (int i = 0; i < numThreads; i++)
+			{
+				samplers.emplace_back(initialSampler->Clone());
+				samplers.back()->SetSeed(initialSampler->NextUInt());
+				films.emplace_back(masterFilm->Clone());
+			}
+		}
+
+		// --------------------------------------------------------------------------------
+
+		// ## Render loop
 		while (true)
 		{
-			// ## Receive a task
+			// ### Receive a task
 			long long assignedSamples;
 			MPI_Recv(&assignedSamples, 1, MPI_LONG_LONG, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
@@ -269,7 +269,7 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 
 			// --------------------------------------------------------------------------------
 
-			// ## Rendering
+			// ### Rendering
 			std::atomic<long long> processedSamples(0);
 
 			// Number of blocks to be separated
@@ -295,18 +295,18 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 				}
 			}
 
-			// ## Send a result
+			// ### Send a result
 			long long result = processedSamples;
 			MPI_Send(&result, 1, MPI_LONG_LONG, 0, TagType_TaskFinished, MPI_COMM_WORLD);
 		}
-	}
 
-	// --------------------------------------------------------------------------------
+		// --------------------------------------------------------------------------------
 
-	// Accumulate rendered results for all threads to one film
-	for (auto& f : films)
-	{
-		masterFilm->AccumulateContribution(*f.get());
+		// ## Accumulate rendered results for all threads to one film
+		for (auto& f : films)
+		{
+			masterFilm->AccumulateContribution(*f.get());
+		}
 	}
 
 	// --------------------------------------------------------------------------------
@@ -318,18 +318,11 @@ bool MPIPathtraceRenderer::Render( const Scene& scene )
 	if (rank == 0)
 	{
 		MPI_Reduce(MPI_IN_PLACE, data, size, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+		masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
 	}
 	else
 	{
 		MPI_Reduce(data, data, size, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-	}
-
-	// --------------------------------------------------------------------------------
-
-	if (rank == 0)
-	{
-		// Rescale master film
-		masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
 	}
 
 	return true;

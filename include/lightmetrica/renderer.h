@@ -34,7 +34,7 @@ class ConfigNode;
 	Termination mode.
 	Describes the termination mode of rendering.
 */
-enum class RendererTerminationMode
+enum class TerminationMode
 {
 	Samples,			//!< Terminate after specified number of samples.
 	Time,				//!< Terminate after specified time.
@@ -83,7 +83,7 @@ public:
 		\param terminationMode Termination mode.
 		\param time Termination time for Time mode (in seconds).
 	*/
-	virtual void SetTerminationMode(RendererTerminationMode mode, double time) = 0;
+	virtual void SetTerminationMode(TerminationMode mode, double time) = 0;
 
 	/*!
 		Preprocess the renderer.
