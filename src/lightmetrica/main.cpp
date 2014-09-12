@@ -675,21 +675,21 @@ void LightmetricaApplication::PrintStartMessage()
 	LM_LOG_INFO("CURRENT TIME | " + CurrentTime());
 	LM_LOG_INFO("");
 
+#if LM_MPI
 	if (mpiMode)
 	{
-#if LM_MPI
 		int numProcs;
 		int procNameLen;
 		char procName[MPI_MAX_PROCESSOR_NAME];
 		MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 		MPI_Get_processor_name(procName, &procNameLen);
-#endif
 		LM_LOG_INFO("MPI mode");
 		LM_LOG_INFO("PROCESS NUM  | " + std::to_string(numProcs));
 		LM_LOG_INFO("PROCESS RANK | " + std::to_string(rank));
 		LM_LOG_INFO("PROCESS NAME | " + std::string(procName));
 		LM_LOG_INFO("");
 	}
+#endif
 }
 
 void LightmetricaApplication::PrintFinishMessage()
