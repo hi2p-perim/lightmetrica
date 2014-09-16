@@ -7,7 +7,7 @@
 *.pyc
 
 # Project files
-[Bb]uild/
+[Bb]uild*/
 [Rr]esults/
 misc/
 resources/
