@@ -478,7 +478,7 @@ if(WIN32)
 	endfunction()
 
 	# Libraries in external directory
-	file(GLOB BINARY_FILES "${CMAKE_SOURCE_DIR}/external/bin/${CMAKE_LIBRARY_ARCHITECTURE}/*.dll")
+	file(GLOB BINARY_FILES "${CMAKE_SOURCE_DIR}/external/${LM_GENERATOR_PREFIX}/bin/${CMAKE_LIBRARY_ARCHITECTURE}/*.dll")
 	foreach(BINARY_FILE_NAME ${BINARY_FILES})
 		add_custom_command_copy_dll(${BINARY_FILE_NAME})
 	endforeach()

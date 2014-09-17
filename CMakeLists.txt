@@ -31,7 +31,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # For windows environment, set search path for find_package
 if (MSVC)
+	# Set prefix path according to generator
+	# Currently only VC11 and VC12 are supported
+	if (CMAKE_GENERATOR STREQUAL "Visual Studio 11 Win64")
+		set(LM_GENERATOR_PREFIX "vc11")
+	elseif (CMAKE_GENERATOR STREQUAL "Visual Studio 12 Win64")
+		set(LM_GENERATOR_PREFIX "vc12")
+	else()
+		message(FATAL_ERROR "Invalid generator")
+	endif()
 	list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
+	list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/${LM_GENERATOR_PREFIX}")
+
+	# Set architecture
 	if (CMAKE_CL_64)
 		set(CMAKE_LIBRARY_ARCHITECTURE "x64")
 	else()
