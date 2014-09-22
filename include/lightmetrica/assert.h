@@ -26,7 +26,7 @@
 #include <string>
 
 #if LM_DEBUG_MODE
-	#define LM_ASSERT(cond) if (!(cond)) { LM_LOG_ERROR("Assertion failed : '" + std::string(#cond) + "'"); abort(); }
+	#define LM_ASSERT(cond) do { if (!(cond)) { LM_LOG_ERROR("Assertion failed : '" + std::string(#cond) + "'"); abort(); } } while (0);
 #else
 	#define LM_ASSERT(cond) ((void)0)
 #endif
