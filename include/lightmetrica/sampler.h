@@ -51,7 +51,7 @@ public:
 		Clone the sampler.
 		\return Duplicated sampler.
 	*/
-	virtual Sampler* Clone() = 0;
+	virtual Sampler* Clone() const = 0;
 
 	/*!
 		Set seed and initialize internal state.
