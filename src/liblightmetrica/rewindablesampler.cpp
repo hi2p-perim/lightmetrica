@@ -31,7 +31,7 @@ public:
 
 public:
 
-	virtual Sampler* Clone()
+	virtual Sampler* Clone() const
 	{
 		LM_LOG_ERROR("Invalid operator for RestorableSampler");
 		return nullptr;

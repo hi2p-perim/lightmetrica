@@ -55,7 +55,7 @@ public:
 public:
 
 	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual PSSMLTPathSampler* Clone();
+	virtual PSSMLTPathSampler* Clone() const;
 	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
 	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t );
@@ -109,7 +109,7 @@ bool PSSMLTBPTPathSampler::Configure( const ConfigNode& node, const Assets& asse
 	return true;
 }
 
-PSSMLTPathSampler* PSSMLTBPTPathSampler::Clone()
+PSSMLTPathSampler* PSSMLTBPTPathSampler::Clone() const
 {
 	auto* sampler = new PSSMLTBPTPathSampler;
 	sampler->misWeight.reset(misWeight->Clone());

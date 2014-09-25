@@ -44,7 +44,7 @@ public:
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual Sampler* Clone()
+	virtual Sampler* Clone() const
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}

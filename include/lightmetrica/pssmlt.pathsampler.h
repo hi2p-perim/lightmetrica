@@ -62,7 +62,7 @@ public:
 		Clone the sampler.
 		\return Duplicated instance.
 	*/
-	virtual PSSMLTPathSampler* Clone() = 0;
+	virtual PSSMLTPathSampler* Clone() const = 0;
 
 	/*!
 		Sample and evaluate light paths.

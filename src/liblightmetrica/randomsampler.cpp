@@ -64,7 +64,7 @@ public:
 		return true;
 	}
 
-	virtual Sampler* Clone()
+	virtual Sampler* Clone() const
 	{
 		auto* sampler = new RandomSampler;
 		sampler->rng.reset(ComponentFactory::Create<Random>(rng->ComponentImplTypeName()));
