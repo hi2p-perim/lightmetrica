@@ -479,7 +479,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 	
 		// Configure
 		LM_LOG_INFO("Renderer type : '" + renderer.Type() + "'");
-		if (!renderer.Configure(config.Root().Child("renderer"), assets))
+		if (!renderer.Configure(config.Root().Child("renderer"), assets, scene))
 		{
 			return false;
 		}

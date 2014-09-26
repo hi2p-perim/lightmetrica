@@ -72,10 +72,11 @@ public:
 		This function is used internally or testing.
 		\param node A XML element which consists of \a renderer element.
 		\param assets Assets manager.
+		\param scene Scene.
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) = 0;
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene) = 0;
 
 	/*!
 		Set termination mode.

@@ -55,7 +55,7 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual void SetTerminationMode( TerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
 	virtual bool Render( const Scene& scene );
@@ -86,7 +86,7 @@ private:
 
 };
 
-bool PathtraceRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);

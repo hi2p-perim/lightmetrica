@@ -42,7 +42,7 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets);
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
 	virtual bool Render(const Scene& scene);
@@ -116,7 +116,7 @@ bool RaycastRenderer::Render(const Scene& scene)
 	return true;
 }
 
-bool RaycastRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool RaycastRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);

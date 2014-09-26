@@ -92,7 +92,7 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& scene );
 	virtual bool Render( const Scene& scene );
@@ -126,7 +126,7 @@ private:
 
 };
 
-bool BPTOptimizedPSSMLTRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool BPTOptimizedPSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);

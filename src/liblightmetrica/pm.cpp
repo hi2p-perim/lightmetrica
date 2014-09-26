@@ -61,7 +61,7 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& scene );
 	virtual bool Render( const Scene& scene );
@@ -97,7 +97,7 @@ private:
 
 };
 
-bool PhotonMappingRenderer::Configure( const ConfigNode& node, const Assets& assets )
+bool PhotonMappingRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("num_photon_trace_samples", 1LL, numPhotonTraceSamples);
