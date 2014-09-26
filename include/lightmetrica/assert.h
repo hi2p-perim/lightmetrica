@@ -18,8 +18,8 @@
 */
 
 #pragma once
-#ifndef __LM_CORE_ASSERT_H__
-#define __LM_CORE_ASSERT_H__
+#ifndef LM_CORE_ASSERT_H
+#define LM_CORE_ASSERT_H
 
 #include "logger.h"
 #include <cassert>
@@ -31,4 +31,14 @@
 	#define LM_ASSERT(cond) ((void)0)
 #endif
 
-#endif // __LM_CORE_ASSERT_H__
+#if LM_DEBUG_MODE
+	#define LM_UNREACHABLE() LM_ASSERT(false)
+#else
+	#if LM_COMPILER_GCC
+		#define LM_UNREACHABLE() __builtin_unreachable()
+	#elif LM_COMPILER_MSVC
+		#define LM_UNREACHABLE() __assume(0)
+	#endif
+#endif
+
+#endif // LM_CORE_ASSERT_H
