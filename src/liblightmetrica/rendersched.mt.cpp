@@ -64,6 +64,7 @@ private:
 
 bool MultithreadedRenderProcessScheduler::Configure(const ConfigNode& node, const Assets& assets)
 {
+	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
 	if (numThreads <= 0)
@@ -89,11 +90,14 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 	std::atomic<long long> processedBlocks(0);
 	std::atomic<long long> processedSamples(0);
 
+	// Number of blocks to be separated
+	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
+
 	signal_ReportProgress(0, false);
 
 	// --------------------------------------------------------------------------------
 
-	// Create processes
+	// # Create processes
 	std::vector<std::unique_ptr<RenderProcess>> processes;
 	for (int i = 0; i < numThreads; i++)
 	{
@@ -102,10 +106,7 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 
 	// --------------------------------------------------------------------------------
 
-	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
-
-	// --------------------------------------------------------------------------------
+	// # Render loop
 
 	bool cancel = false;
 	bool done = false;
@@ -189,7 +190,7 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 
 	// --------------------------------------------------------------------------------
 
-	// Accumulate rendered results for all threads to one film
+	// # Accumulate rendered results for all threads to one film
 	for (int i = 0; i < numThreads; i++)
 	{
 		masterFilm->AccumulateContribution(*processes[i]->GetFilm());

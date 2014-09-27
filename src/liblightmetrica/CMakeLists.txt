@@ -290,7 +290,6 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 set(
 	_RENDERER_RENDERSCHED_SOURCES
 	"rendersched.mt.cpp"
-	"rendersched.st.cpp"
 	"rendersched.mpi.cpp"
 )
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\rendersched" FILES ${_RENDERER_RENDERSCHED_SOURCES})
@@ -460,7 +459,7 @@ list(APPEND _SOURCE_FILES ${_GENERATED_SIMD_SUPPORT})
 
 # Create project
 pch_add_library(liblightmetrica SHARED PCH_HEADER "pch.h" ${_HEADER_FILES} ${_SOURCE_FILES})
-target_link_libraries(liblightmetrica ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES})
+target_link_libraries(liblightmetrica ${COMMON_LIBRARY_FILES} ${ASSIMP_LIBRARIES} ${FREEIMAGE_LIBRARIES} ${MPI_LIBRARIES})
 
 # Proprocessor definition for exporting symbols
 set_target_properties(liblightmetrica PROPERTIES COMPILE_DEFINITIONS "LM_EXPORTS")

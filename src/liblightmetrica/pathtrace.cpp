@@ -162,8 +162,9 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 
 RenderProcess* PathtraceRenderer::CreateRenderProcess(const Scene& scene) const
 {
-	auto* masterFilm = scene.MainCamera()->GetFilm();
-	return new PathtraceRenderer_RenderProcess(*this, initialSampler->Clone(), masterFilm->Clone());
+	auto* sampler = initialSampler->Clone();
+	sampler->SetSeed(initialSampler->NextUInt());
+	return new PathtraceRenderer_RenderProcess(*this, sampler, scene.MainCamera()->GetFilm()->Clone());
 }
 
 // --------------------------------------------------------------------------------
