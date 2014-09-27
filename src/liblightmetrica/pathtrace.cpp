@@ -33,9 +33,6 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/assert.h>
 #include <lightmetrica/defaultexperiments.h>
-#include <thread>
-#include <atomic>
-#include <omp.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -48,6 +45,10 @@ LM_NAMESPACE_BEGIN
 */
 class PathtraceRenderer : public Renderer
 {
+private:
+
+	friend class PathtraceRenderer_RenderProcess;
+
 public:
 
 	LM_COMPONENT_IMPL_DEF("pt");
@@ -56,9 +57,8 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual void SetTerminationMode( TerminationMode mode, double time ) { terminationMode = mode; terminationTime = time; }
-	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
-	virtual bool Render( const Scene& scene );
+	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 	
 private:
@@ -68,8 +68,6 @@ private:
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
-	TerminationMode terminationMode;
-	double terminationTime;
 
 private:
 
@@ -86,23 +84,47 @@ private:
 
 };
 
+// --------------------------------------------------------------------------------
+
+/*!
+	Render process for PathtraceRenderer.
+	The class is responsible for per-thread execution of rendering tasks
+	and managing thread-dependent resources.
+*/
+class PathtraceRenderer_RenderProcess : public RenderProcess
+{
+public:
+
+	PathtraceRenderer_RenderProcess(const PathtraceRenderer& renderer, Sampler* sampler, Film* film)
+		: renderer(renderer)
+		, sampler(sampler)
+		, film(film)
+	{}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(PathtraceRenderer_RenderProcess);
+
+public:
+
+	virtual void ProcessSingleSample(const Scene& scene);
+	virtual const Film* GetFilm() const { return film.get(); }
+
+private:
+
+	const PathtraceRenderer& renderer;
+	std::unique_ptr<Sampler> sampler;
+	std::unique_ptr<Film> film;
+
+};
+
+// --------------------------------------------------------------------------------
+
 bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
 	node.ChildValueOrDefault("max_path_vertices", -1, maxPathVertices);
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
-	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
-	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
-	if (samplesPerBlock <= 0)
-	{
-		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
-		return false;
-	}
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
@@ -135,162 +157,26 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 	}
 #endif
 
-	// Set number of threads
-	omp_set_num_threads(numThreads);
-
 	return true;
 }
 
-bool PathtraceRenderer::Render( const Scene& scene )
+RenderProcess* PathtraceRenderer::CreateRenderProcess(const Scene& scene) const
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::atomic<long long> processedBlocks(0);
-	std::atomic<long long> processedSamples(0);
-
-	signal_ReportProgress(0, false);
-
-	LM_EXPT_NOTIFY(expts, "RenderStarted");
-
-	// --------------------------------------------------------------------------------
-
-	// Random number generators and films
-	std::vector<std::unique_ptr<Sampler>> samplers;
-	std::vector<std::unique_ptr<Film>> films;
-	for (int i = 0; i < numThreads; i++)
-	{
-		samplers.emplace_back(initialSampler->Clone());
-		samplers.back()->SetSeed(initialSampler->NextUInt());
-		films.emplace_back(masterFilm->Clone());
-	}
-
-	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
-
-	// --------------------------------------------------------------------------------
-
-	bool cancel = false;
-	bool done = false;
-	auto startTime = std::chrono::high_resolution_clock::now();
-
-	while (true)
-	{
-		#pragma omp parallel for
-		for (long long block = 0; block < blocks; block++)
-		{
-			#pragma omp flush (done)
-			if (done)
-			{
-				continue;
-			}
-
-			// --------------------------------------------------------------------------------
-
-			try
-			{	
-				// Thread ID
-				int threadId = omp_get_thread_num();
-				auto& sampler = samplers[threadId];
-				auto& film = films[threadId];
-
-				// Sample range
-				long long sampleBegin = samplesPerBlock * block;
-				long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-				
-				processedSamples += sampleEnd - sampleBegin;
-				LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
-
-				for (long long sample = sampleBegin; sample < sampleEnd; sample++)
-				{
-					ProcessRenderSingleSample(scene, *sampler, *film);
-
-					LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-					LM_EXPT_NOTIFY(expts, "SampleFinished");
-				}
-			}
-			catch (const std::exception& e)
-			{
-				LM_LOG_ERROR(boost::str(boost::format("EXCEPTION (thread #%d) | %s") % omp_get_thread_num() % e.what()));
-				cancel = done = true;
-				#pragma omp flush (done)
-			}
-
-			// --------------------------------------------------------------------------------
-
-			// Progress report
-			processedBlocks++;
-			if (terminationMode == TerminationMode::Samples)
-			{
-				auto progress = static_cast<double>(processedBlocks) / blocks;
-				signal_ReportProgress(progress, false);
-				LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-			}
-			else if (terminationMode == TerminationMode::Time)
-			{
-				auto currentTime = std::chrono::high_resolution_clock::now();
-				double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()) / 1000.0;
-				if (elapsed > terminationTime)
-				{
-					done = true;
-					#pragma omp flush (done)
-				}
-				else
-				{
-					signal_ReportProgress(elapsed / terminationTime, false);
-				}
-			}
-			
-			// --------------------------------------------------------------------------------
-
-			LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-			LM_EXPT_NOTIFY(expts, "ProgressUpdated");	
-		}
-
-		if (done || terminationMode == TerminationMode::Samples)
-		{
-			break;
-		}
-	}
-
-	signal_ReportProgress(1, true);
-
-	if (cancel)
-	{
-		LM_LOG_ERROR("Render operation has been canceled");
-		return false;
-	}
-
-	// --------------------------------------------------------------------------------
-
-	// Accumulate rendered results for all threads to one film
-	for (auto& f : films)
-	{
-		masterFilm->AccumulateContribution(*f.get());
-	}
-
-	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
-
-	LM_EXPT_NOTIFY(expts, "RenderFinished");
-
-	// --------------------------------------------------------------------------------
-
-	auto finishTime = std::chrono::high_resolution_clock::now();
-	double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count()) / 1000.0;
-	LM_LOG_INFO("Rendering completed in " + std::to_string(elapsed) + " seconds");
-	LM_LOG_INFO("Processed number of samples : " + std::to_string(processedSamples));
-
-	return true;
+	return new PathtraceRenderer_RenderProcess(*this, initialSampler->Clone(), masterFilm->Clone());
 }
 
-void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& sampler, Film& film ) const
+// --------------------------------------------------------------------------------
+
+void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 {
 	// Raster position
-	auto rasterPos = sampler.NextVec2();
+	auto rasterPos = sampler->NextVec2();
 
 	// Sample position on camera
 	SurfaceGeometry geomE;
 	Math::PDFEval pdfP;
-	scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfP);
+	scene.MainCamera()->SamplePosition(sampler->NextVec2(), geomE, pdfP);
 
 	// Sample ray direction
 	GeneralizedBSDFSampleQuery bsdfSQ;
@@ -337,8 +223,8 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 
 		// Sample BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = sampler.NextVec2();
-		bsdfSQ.uComp = sampler.Next();
+		bsdfSQ.sample = sampler->NextVec2();
+		bsdfSQ.uComp = sampler->Next();
 		bsdfSQ.type = GeneralizedBSDFType::AllBSDF;
 		bsdfSQ.transportDir = TransportDirection::EL;
 		bsdfSQ.wi = -ray.d;
@@ -361,11 +247,11 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 
 		// --------------------------------------------------------------------------------
 
-		if (rrDepth != -1 && numPathVertices >= rrDepth)
+		if (renderer.rrDepth != -1 && numPathVertices >= renderer.rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-			if (sampler.Next() > p)
+			if (sampler->Next() > p)
 			{
 				break;
 			}
@@ -375,13 +261,13 @@ void PathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& 
 
 		numPathVertices++;
 
-		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
+		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
 		{
 			break;
 		}
 	}
 
-	film.AccumulateContribution(rasterPos, L);
+	film->AccumulateContribution(rasterPos, L);
 }
 
 LM_COMPONENT_REGISTER_IMPL(PathtraceRenderer, Renderer);

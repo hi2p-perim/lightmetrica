@@ -26,6 +26,7 @@
 #include <lightmetrica/primitives.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/rendersched.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/light.h>
@@ -68,16 +69,21 @@ public:
 
 	bool ParseArguments(int argc, char** argv);
 	bool Initialize(int argc, char** argv);
+	void Finalize();
 	bool Run();
 	void StartLogging();
 	void FinishLogging();
+
+public:
+
+	bool MPIMode() const { return mpiMode; }
 
 private:
 
 	bool LoadConfiguration(Config& config);
 	bool LoadAssets(const Config& config, Assets& assets);
 	bool LoadAndBuildScene(const Config& config, const Assets& assets, Scene& scene);
-	bool ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer);
+	bool ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer, RenderProcessScheduler& sched);
 
 private:
 
@@ -300,6 +306,8 @@ bool LightmetricaApplication::Run()
 	// --------------------------------------------------------------------------------
 
 	// # Create and configure renderer
+	
+	// Create renderer
 	auto rendererType = config->Root().Child("renderer").AttributeValue("type");
 	std::unique_ptr<Renderer> renderer(ComponentFactory::Create<Renderer>(rendererType));
 	if (renderer == nullptr)
@@ -307,7 +315,17 @@ bool LightmetricaApplication::Run()
 		LM_LOG_ERROR("Invalid renderer type ''" + rendererType + "'");
 		return false;
 	}
-	if (!ConfigureAndDispatchRenderer(*config, *assets, *scene, *renderer))
+
+	// Create render process scheduler
+	auto rendererSchedType = config->Root().Child("render_scheduler").AttributeValue("type");
+	std::unique_ptr<RenderProcessScheduler> sched(ComponentFactory::Create<RenderProcessScheduler>(rendererSchedType));
+	if (sched == nullptr)
+	{
+		LM_LOG_ERROR("Invalid renderer process scheduler type '" + rendererSchedType + "'");
+		return false;
+	}
+
+	if (!ConfigureAndDispatchRenderer(*config, *assets, *scene, *renderer, *sched))
 	{
 		return false;
 	}
@@ -317,6 +335,16 @@ bool LightmetricaApplication::Run()
 	PrintFinishMessage();
 
 	return true;
+}
+
+void LightmetricaApplication::Finalize()
+{
+#if LM_MPI
+	if (mpiMode)
+	{
+		MPI_Finalize();
+	}
+#endif
 }
 
 bool LightmetricaApplication::LoadConfiguration( Config& config )
@@ -470,23 +498,34 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 	return true;
 }
 
-bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer )
+bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer, RenderProcessScheduler& sched)
 {
+	// # Configure render process dispatcher
+	{
+		LM_LOG_INFO("Entering : Render process scheduler configuration");
+		LM_LOG_INDENTER();
+		
+		LM_LOG_INFO("Render process scheduler type : '" + sched.ComponentImplTypeName() + "'");
+		if (!sched.Configure(config.Root().Child("render_scheduler"), assets))
+		{
+			return false;
+		}
+
+		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Samples" : "Time"));
+		sched.SetTerminationMode(terminationTime == 0 ? TerminationMode::Samples : TerminationMode::Time, terminationTime);
+	}
+
+	// --------------------------------------------------------------------------------
+
 	// # Configure renderer
 	{
 		LM_LOG_INFO("Entering : Renderer configuration");
 		LM_LOG_INDENTER();
-	
-		// Configure
 		LM_LOG_INFO("Renderer type : '" + renderer.Type() + "'");
 		if (!renderer.Configure(config.Root().Child("renderer"), assets, scene))
 		{
 			return false;
 		}
-
-		// Termination mode
-		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Samples" : "Time"));
-		renderer.SetTerminationMode(terminationTime == 0 ? TerminationMode::Samples : TerminationMode::Time, terminationTime);
 	}
 
 	// --------------------------------------------------------------------------------
@@ -524,10 +563,10 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer( const Config& config
 		if (useProgressBar)
 		{
 			progressBar.Begin("RENDERING");
-			auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
+			auto conn = sched.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 		}
 
-		if (!renderer.Render(scene))
+		if (!sched.Render(renderer, scene))
 		{
 			progressBar.Abort();
 			return false;
@@ -770,14 +809,17 @@ int main(int argc, char** argv)
 		app.StartLogging();
 
 #if LM_MPI && LM_DEBUG_MODE
-		int rank;
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		if (rank == 0)
+		if (app.MPIMode())
 		{
-			std::cerr << "Wait for attaching. If you are prepared, press any key.";
-			std::cin.get();
+			int rank;
+			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+			if (rank == 0)
+			{
+				std::cerr << "Wait for attaching. If you are prepared, press any key.";
+				std::cin.get();
+			}
+			MPI_Barrier(MPI_COMM_WORLD);
 		}
-		MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
 		try
@@ -796,27 +838,26 @@ int main(int argc, char** argv)
 		app.FinishLogging();
 	}
 
-	// --------------------------------------------------------------------------------
-
 #if LM_DEBUG_MODE
 #if LM_MPI
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	if (rank == 0)
+	if (app.MPIMode())
 	{
-		std::cerr << "Press any key to exit ...";
-		std::cin.get();
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		if (rank == 0)
+		{
+			std::cerr << "Press any key to exit ...";
+			std::cin.get();
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
-	MPI_Barrier(MPI_COMM_WORLD);
 #else
 	std::cerr << "Press any key to exit ...";
 	std::cin.get();
 #endif
 #endif
 
-#if LM_MPI
-	MPI_Finalize();
-#endif
+	app.Finalize();
 
 	return result;
 }

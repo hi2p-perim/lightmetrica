@@ -22,6 +22,7 @@
 #define LIB_LIGHTMETRICA_RENDERER_H
 
 #include "component.h"
+#include <memory>
 #include <boost/signals2.hpp>
 
 LM_NAMESPACE_BEGIN
@@ -29,16 +30,7 @@ LM_NAMESPACE_BEGIN
 class Assets;
 class Scene;
 class ConfigNode;
-
-/*!
-	Termination mode.
-	Describes the termination mode of rendering.
-*/
-enum class TerminationMode
-{
-	Samples,			//!< Terminate after specified number of samples.
-	Time,				//!< Terminate after specified time.
-};
+class RenderProcess;
 
 /*!
 	Renderer class.
@@ -69,7 +61,6 @@ public:
 
 	/*!
 		Configure the renderer from XML element.
-		This function is used internally or testing.
 		\param node A XML element which consists of \a renderer element.
 		\param assets Assets manager.
 		\param scene Scene.
@@ -77,14 +68,6 @@ public:
 		\retval false Failed to configure.
 	*/
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene) = 0;
-
-	/*!
-		Set termination mode.
-		Configures termination mode of the renderer and its parameters.
-		\param terminationMode Termination mode.
-		\param time Termination time for Time mode (in seconds).
-	*/
-	virtual void SetTerminationMode(TerminationMode mode, double time) = 0;
 
 	/*!
 		Preprocess the renderer.
@@ -96,14 +79,14 @@ public:
 	virtual bool Preprocess(const Scene& scene) = 0;
 
 	/*!
-		Start rendering.
-		The function starts to render the #scene according to the current configuration.
+		Create a render process.
+		Creates a new instance of the render process associated with the renderer.
+		This function called from the render process scheduler.
+		Ownership of the created instance is deletgated to the caller.
 		\param scene Scene.
-		\param terminationMode Termination mode of the rendering.
-		\retval true Succeeded to render the scene.
-		\retval true Failed to render the scene.
+		\return An instance of render process.
 	*/
-	virtual bool Render(const Scene& scene) = 0;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const = 0;
 
 public:
 
@@ -113,6 +96,44 @@ public:
 		\param func Slot function.
 	*/
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
+
+};
+
+// --------------------------------------------------------------------------------
+
+class Film;
+
+/*!
+	Render process.
+	A base class for render process, which is responsible
+	for process some part of the entire samples.
+	This class is used for parallelization of renderers.
+*/
+class RenderProcess
+{
+public:
+
+	RenderProcess() {};
+	virtual ~RenderProcess() {}
+
+private:
+	
+	LM_DISABLE_COPY_AND_MOVE(RenderProcess);
+
+public:
+
+	/*!
+		Process single sample.
+		\param scene Scene.
+	*/
+	virtual void ProcessSingleSample(const Scene& scene) = 0;
+
+	/*!
+		Get film.
+		Gets internal film associate with the process.
+		\return Film.
+	*/
+	virtual const Film* GetFilm() const = 0;
 
 };
 

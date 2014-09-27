@@ -268,21 +268,33 @@ set(
 	_RENDERER_HEADERS
 	"${_INCLUDE_DIR}/renderer.h"
 	"${_INCLUDE_DIR}/renderutils.h"
+	"${_INCLUDE_DIR}/rendersched.h"
 )
 set(
 	_RENDERER_SOURCES
 	"renderutils.cpp"
-	"raycast.cpp"
+	#"raycast.cpp"
 	"pathtrace.cpp"
-	"pathtrace.direct.cpp"
-	"pathtrace.mis.cpp"
-	"lighttrace.cpp"
-	"simplebpt.cpp"
+	#"pathtrace.direct.cpp"
+	#"pathtrace.mis.cpp"
+	#"lighttrace.cpp"
+	#"simplebpt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
 list(APPEND _HEADER_FILES ${_RENDERER_HEADERS})
 list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
+
+################################################################################
+
+set(
+	_RENDERER_RENDERSCHED_SOURCES
+	"rendersched.mt.cpp"
+	"rendersched.st.cpp"
+	"rendersched.mpi.cpp"
+)
+source_group("${_SOURCE_FILES_ROOT}\\renderer\\rendersched" FILES ${_RENDERER_RENDERSCHED_SOURCES})
+list(APPEND _SOURCE_FILES ${_RENDERER_RENDERSCHED_SOURCES})
 
 ################################################################################
 
@@ -296,8 +308,8 @@ set(
 )
 set(
 	_RENDERER_PSSMLT_SOURCES
-	"pssmlt.cpp"
-	"pssmlt.bptopt.cpp"
+	#"pssmlt.cpp"
+	#"pssmlt.bptopt.cpp"
 	"pssmlt.splat.cpp"
 	"pssmlt.sampler.cpp"
 	"pssmlt.pathsampler.pt.cpp"
@@ -320,7 +332,7 @@ set(
 )
 set(
 	_RENDERER_BPT_SOURCES
-	"bpt.cpp"
+	#"bpt.cpp"
 	"bpt.subpath.cpp"
 	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"
@@ -343,7 +355,7 @@ set(
 )
 set(
 	_RENDERER_PM_SOURCES
-	"pm.cpp"
+	#"pm.cpp"
 	"pm.photonmap.kdtree.cpp"
 	"pm.photonmap.naive.cpp"
 	"pm.kernel.simpson.cpp"
