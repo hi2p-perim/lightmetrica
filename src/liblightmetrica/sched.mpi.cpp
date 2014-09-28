@@ -18,7 +18,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/rendersched.h>
+#include <lightmetrica/sched.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/scene.h>
@@ -47,7 +47,7 @@ enum MPIPTTagType
 
 /*!
 	MPI render process scheduler.
-	Process scheduler for hybrid MPI + OpenMP parallelization.
+	Render process scheduler for hybrid MPI + OpenMP parallelization.
 */
 class MPIRenderProcessScheduler : public RenderProcessScheduler
 {

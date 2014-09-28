@@ -208,6 +208,38 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 		imagePath = "result.hdr";
 		LM_LOG_WARN("Output image path is not specified. Using '" + imagePath + "' as default.");
 	}
+	else
+	{
+		// Check extension
+		boost::filesystem::path p(imagePath);
+		if (p.has_extension())
+		{
+			// Check validity
+			bool valid = (p.extension() == ".hdr" && type == BitmapImageType::RadianceHDR) ||
+						 (p.extension() == ".exr" && type == BitmapImageType::OpenEXR);
+			if (!valid)
+			{
+				imagePath = "result.hdr";
+				LM_LOG_WARN("Invalid extension '" + p.extension().string() + "'. Using '" + imagePath + "' as default.");
+			}
+		}
+		else
+		{
+			// Append the extension according to current type
+			if (type == BitmapImageType::RadianceHDR)
+			{
+				imagePath += ".hdr";
+			}
+			else if (type == BitmapImageType::OpenEXR)
+			{
+				imagePath += ".exr";
+			}
+			else
+			{
+				LM_UNREACHABLE();
+			}
+		}
+	}
 
 	// Create bitmap
 	// 128 bit RGBA float image

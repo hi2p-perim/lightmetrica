@@ -268,17 +268,16 @@ set(
 	_RENDERER_HEADERS
 	"${_INCLUDE_DIR}/renderer.h"
 	"${_INCLUDE_DIR}/renderutils.h"
-	"${_INCLUDE_DIR}/rendersched.h"
 )
 set(
 	_RENDERER_SOURCES
 	"renderutils.cpp"
-	#"raycast.cpp"
+	"raycast.cpp"
 	"pathtrace.cpp"
-	#"pathtrace.direct.cpp"
-	#"pathtrace.mis.cpp"
-	#"lighttrace.cpp"
-	#"simplebpt.cpp"
+	"pathtrace.direct.cpp"
+	"pathtrace.mis.cpp"
+	"lighttrace.cpp"
+	"simplebpt.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer" FILES ${_RENDERER_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer" FILES ${_RENDERER_SOURCES})
@@ -288,12 +287,18 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 ################################################################################
 
 set(
-	_RENDERER_RENDERSCHED_SOURCES
-	"rendersched.mt.cpp"
-	"rendersched.mpi.cpp"
+	_RENDERER_SCHED_HEADERS
+	"${_INCLUDE_DIR}/sched.h"
 )
-source_group("${_SOURCE_FILES_ROOT}\\renderer\\rendersched" FILES ${_RENDERER_RENDERSCHED_SOURCES})
-list(APPEND _SOURCE_FILES ${_RENDERER_RENDERSCHED_SOURCES})
+set(
+	_RENDERER_SCHED_SOURCES
+	"sched.mt.cpp"
+	"sched.mpi.cpp"
+)
+source_group("${_HEADER_FILES_ROOT}\\renderer\\sched" FILES ${_RENDERER_SCHED_HEADERS})
+source_group("${_SOURCE_FILES_ROOT}\\renderer\\sched" FILES ${_RENDERER_SCHED_SOURCES})
+list(APPEND _HEADER_FILES ${_RENDERER_SCHED_HEADERS})
+list(APPEND _SOURCE_FILES ${_RENDERER_SCHED_SOURCES})
 
 ################################################################################
 
@@ -331,7 +336,7 @@ set(
 )
 set(
 	_RENDERER_BPT_SOURCES
-	#"bpt.cpp"
+	"bpt.cpp"
 	"bpt.subpath.cpp"
 	"bpt.fullpath.cpp"
 	"bpt.pool.cpp"

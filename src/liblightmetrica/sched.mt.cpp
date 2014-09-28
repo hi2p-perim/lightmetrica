@@ -18,7 +18,7 @@
 */
 
 #include "pch.h"
-#include <lightmetrica/rendersched.h>
+#include <lightmetrica/sched.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/scene.h>
@@ -56,9 +56,10 @@ private:
 
 private:
 
-	long long numSamples;									// Number of samples
-	int numThreads;											// Number of threads
-	long long samplesPerBlock;								// Samples to be processed per block
+	long long numSamples;					//!< Number of samples
+	int numThreads;							//!< Number of threads
+	long long samplesPerBlock;				//!< Samples to be processed per block
+	Math::Float progressImageInterval;		//!< Seconds between progress images' output (if -1, disabled)
 
 };
 
@@ -77,6 +78,7 @@ bool MultithreadedRenderProcessScheduler::Configure(const ConfigNode& node, cons
 		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
 		return false;
 	}
+	node.ChildValueOrDefault("progress_image_interval", Math::Float(-1), progressImageInterval);
 
 	// Set number of threads
 	omp_set_num_threads(numThreads);
@@ -111,6 +113,8 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 	bool cancel = false;
 	bool done = false;
 	auto startTime = std::chrono::high_resolution_clock::now();
+	auto prevStartTime = startTime;
+	int intermediateImageOutputCount = 0;
 
 	while (true)
 	{
@@ -171,7 +175,41 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 				{
 					signal_ReportProgress(elapsed / terminationTime, false);
 				}
-			}	
+			}
+		}
+
+		if (progressImageInterval > Math::Float(0))
+		{
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			double elapsed = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - prevStartTime).count()) / 1000.0;
+			if (elapsed > static_cast<double>(progressImageInterval))
+			{
+				// Create output directory if it does not exists
+				const std::string outputDir = "progress." + renderer.ComponentImplTypeName();
+				if (!boost::filesystem::exists(outputDir))
+				{
+					LM_LOG_INFO("Creating directory : " + outputDir);
+					if (!boost::filesystem::create_directory(outputDir))
+					{
+						LM_LOG_WARN("Failed to create output directory : " + outputDir);
+					}
+				}
+
+				// Same intermediate image
+				masterFilm->Clear();
+				for (int i = 0; i < numThreads; i++)
+				{
+					masterFilm->AccumulateContribution(*processes[i]->GetFilm());
+				}
+
+				// Rescale & save
+				intermediateImageOutputCount++;
+				auto path = boost::filesystem::path(outputDir) / boost::str(boost::format("%010d") % intermediateImageOutputCount);
+				dynamic_cast<BitmapFilm*>(masterFilm)->RescaleAndSave(path.string(), Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(processedSamples));
+
+				LM_LOG_INFO("Saving : " + path.string());
+				prevStartTime = currentTime;
+			}
 		}
 
 		if (done || terminationMode == TerminationMode::Samples)

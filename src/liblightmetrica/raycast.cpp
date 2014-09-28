@@ -42,10 +42,10 @@ public:
 public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
-	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
-	virtual bool Render(const Scene& scene);
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene) { return true; }
+	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess() const { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
@@ -54,6 +54,42 @@ private:
 	int numThreads;
 
 };
+
+// --------------------------------------------------------------------------------
+
+class RaycastRenderer_RenderProcess : public RenderProcess
+{
+public:
+
+	RaycastRenderer_RenderProcess(const RaycastRenderer& renderer, Film* film)
+		: renderer(renderer)
+		, film(film)
+	{
+
+	}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(RaycastRenderer_RenderProcess);
+
+public:
+
+	virtual void ProcessSingleSample( const Scene& scene );
+	virtual const Film* GetFilm() const { return film.get(); }
+
+private:
+
+	const RaycastRenderer& renderer;
+	std::unique_ptr<Film> film;
+
+};
+
+// --------------------------------------------------------------------------------
+
+RenderProcess* CreateRenderProcess(const Scene& scene) const
+{
+
+}
 
 bool RaycastRenderer::Render(const Scene& scene)
 {
@@ -116,16 +152,53 @@ bool RaycastRenderer::Render(const Scene& scene)
 	return true;
 }
 
-bool RaycastRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
-{
-	// Load parameters
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
-	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
+// --------------------------------------------------------------------------------
 
-	return true;
+void RaycastRenderer_RenderProcess::ProcessSingleSample( const Scene& scene )
+{
+	for (int y = 0; y < film->Height(); y++)
+	{
+		for (int x = 0; x < film->Width(); x++)
+		{
+			// Raster position
+			Math::Vec2 rasterPos(
+				(Math::Float(0.5) + Math::Float(x)) / Math::Float(film->Width()),
+				(Math::Float(0.5) + Math::Float(y)) / Math::Float(film->Height()));
+
+			// Generate ray
+			// Note : position sampling is not used here (thus DoF is disabled)
+			SurfaceGeometry geomE;
+			Math::PDFEval pdfPE, pdfDE;
+			scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
+
+			GeneralizedBSDFSampleQuery bsdfSQ;
+			GeneralizedBSDFSampleResult bsdfSR;
+			bsdfSQ.sample = rasterPos;
+			bsdfSQ.transportDir = TransportDirection::EL;
+			bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+			scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
+
+			Ray ray;
+			ray.d = bsdfSR.wo;
+			ray.o = geomE.p;
+			ray.minT = Math::Float(0);
+			ray.maxT = Math::Constants::Inf();
+
+			// Check intersection
+			Intersection isect;
+			if (scene.Intersect(ray, isect))
+			{
+				// Intersected : while color
+				Math::Float c = Math::Abs(Math::Dot(isect.geom.sn, -ray.d));
+				film->RecordContribution(rasterPos, Math::Vec3(c));
+			}
+			else
+			{
+				// Not intersected : black color
+				film->RecordContribution(rasterPos, Math::Colors::Black());
+			}
+		}
+	}
 }
 
 LM_COMPONENT_REGISTER_IMPL(RaycastRenderer, Renderer);

@@ -58,12 +58,9 @@ public:
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess() const { return true; }
 	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
-	
-private:
-
-	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film) const;
 
 private:
 
@@ -71,15 +68,14 @@ private:
 
 private:
 
-	long long numSamples;									// Number of samples
 	int rrDepth;											// Depth of beginning RR
 	int maxPathVertices;									// Maximum number of light path vertices
-	int numThreads;											// Number of threads
-	long long samplesPerBlock;								// Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
 
+#if 0
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
+#endif
 #endif
 
 };
@@ -99,7 +95,9 @@ public:
 		: renderer(renderer)
 		, sampler(sampler)
 		, film(film)
-	{}
+	{
+
+	}
 
 private:
 
@@ -135,6 +133,7 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 		return false;
 	}
 
+#if 0
 #if LM_EXPERIMENTAL_MODE
 	// Experiments
 	auto experimentsNode = node.Child("experiments");
@@ -155,6 +154,7 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 			numThreads = 1;
 		}
 	}
+#endif
 #endif
 
 	return true;

@@ -177,7 +177,8 @@ if (LM_ENABLE_FORCE_NO_SIMD)
 	add_definitions(-DLM_ENABLE_FORCE_NO_SIMD)
 endif()
 
-option(LM_ENABLE_EXPERIMENTAL_MODE "Enable experimental features" ON)
+# Always disabled now
+option(LM_ENABLE_EXPERIMENTAL_MODE "Enable experimental features" OFF)
 if (LM_ENABLE_EXPERIMENTAL_MODE)
 	add_definitions(-DLM_ENABLE_EXPERIMENTAL_MODE)
 endif()

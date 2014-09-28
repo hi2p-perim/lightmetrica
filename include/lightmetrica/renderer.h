@@ -22,7 +22,6 @@
 #define LIB_LIGHTMETRICA_RENDERER_H
 
 #include "component.h"
-#include <memory>
 #include <boost/signals2.hpp>
 
 LM_NAMESPACE_BEGIN
@@ -79,10 +78,18 @@ public:
 	virtual bool Preprocess(const Scene& scene) = 0;
 
 	/*!
+		Postprocess the renderer.
+		This function is called after render process are completed.
+		\retval true Succeeded to postprocess.
+		\retval false Failed to postprocess.
+	*/
+	virtual bool Postprocess() const = 0;
+
+	/*!
 		Create a render process.
 		Creates a new instance of the render process associated with the renderer.
 		This function called from the render process scheduler.
-		Ownership of the created instance is deletgated to the caller.
+		Ownership of the created instance is delegated to the caller.
 		\param scene Scene.
 		\return An instance of render process.
 	*/
@@ -96,44 +103,6 @@ public:
 		\param func Slot function.
 	*/
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
-
-};
-
-// --------------------------------------------------------------------------------
-
-class Film;
-
-/*!
-	Render process.
-	A base class for render process, which is responsible
-	for process some part of the entire samples.
-	This class is used for parallelization of renderers.
-*/
-class RenderProcess
-{
-public:
-
-	RenderProcess() {};
-	virtual ~RenderProcess() {}
-
-private:
-	
-	LM_DISABLE_COPY_AND_MOVE(RenderProcess);
-
-public:
-
-	/*!
-		Process single sample.
-		\param scene Scene.
-	*/
-	virtual void ProcessSingleSample(const Scene& scene) = 0;
-
-	/*!
-		Get film.
-		Gets internal film associate with the process.
-		\return Film.
-	*/
-	virtual const Film* GetFilm() const = 0;
 
 };
 

@@ -26,7 +26,7 @@
 #include <lightmetrica/primitives.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/renderer.h>
-#include <lightmetrica/rendersched.h>
+#include <lightmetrica/sched.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/bitmapfilm.h>
 #include <lightmetrica/light.h>
