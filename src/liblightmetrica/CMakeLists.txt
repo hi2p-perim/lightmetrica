@@ -289,11 +289,13 @@ list(APPEND _SOURCE_FILES ${_RENDERER_SOURCES})
 set(
 	_RENDERER_SCHED_HEADERS
 	"${_INCLUDE_DIR}/sched.h"
+	"${_INCLUDE_DIR}/renderproc.h"
 )
 set(
 	_RENDERER_SCHED_SOURCES
 	"sched.mt.cpp"
 	"sched.mpi.cpp"
+	"sched.pixel.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\renderer\\sched" FILES ${_RENDERER_SCHED_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\renderer\\sched" FILES ${_RENDERER_SCHED_SOURCES})

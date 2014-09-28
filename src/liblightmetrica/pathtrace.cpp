@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
 #include <lightmetrica/ray.h>
@@ -87,7 +88,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class PathtraceRenderer_RenderProcess : public RenderProcess
+class PathtraceRenderer_RenderProcess : public SamplingBasedRenderProcess
 {
 public:
 

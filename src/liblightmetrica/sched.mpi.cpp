@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/sched.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/scene.h>
@@ -48,6 +49,8 @@ enum MPIPTTagType
 /*!
 	MPI render process scheduler.
 	Render process scheduler for hybrid MPI + OpenMP parallelization.
+	We note that this scheduler requires SamplingBasedRenderProcess.
+	\sa SamplingBasedRenderProcess.
 */
 class MPIRenderProcessScheduler : public RenderProcessScheduler
 {
@@ -212,10 +215,19 @@ bool MPIRenderProcessScheduler::Render(Renderer& renderer, const Scene& scene) c
 		// # Worker process
 
 		// ## Random number generators and films
-		std::vector<std::unique_ptr<RenderProcess>> processes;
+		std::vector<std::unique_ptr<SamplingBasedRenderProcess>> processes;
 		for (int i = 0; i < numThreads; i++)
 		{
-			processes.emplace_back(renderer.CreateRenderProcess(scene));
+			// Create & check compatibility
+			std::unique_ptr<RenderProcess> p(renderer.CreateRenderProcess(scene));
+			if (dynamic_cast<SamplingBasedRenderProcess*>(p.get()) == nullptr)
+			{
+				LM_LOG_ERROR("Invalid render process type");
+				return false;
+			}
+
+			// Add a process
+			processes.emplace_back(p.release());
 		}
 
 		// --------------------------------------------------------------------------------

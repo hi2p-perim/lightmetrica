@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/sched.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/scene.h>
@@ -33,9 +34,11 @@ LM_NAMESPACE_BEGIN
 /*!
 	Multithreaded render process scheduler.
 	Creates and schedules render processes among threads.
-	Multi-threaded support is achieved by OpenMP.
+	Multi-threading is supported by OpenMP.
+	We note that this scheduler requires SamplingBasedRenderProcess.
+	\sa SamplingBasedRenderProcess.
 */
-class MultithreadedRenderProcessScheduler : public RenderProcessScheduler
+class MTRenderProcessScheduler : public RenderProcessScheduler
 {
 public:
 
@@ -63,7 +66,7 @@ private:
 
 };
 
-bool MultithreadedRenderProcessScheduler::Configure(const ConfigNode& node, const Assets& assets)
+bool MTRenderProcessScheduler::Configure(const ConfigNode& node, const Assets& assets)
 {
 	// Load parameters
 	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
@@ -86,7 +89,7 @@ bool MultithreadedRenderProcessScheduler::Configure(const ConfigNode& node, cons
 	return true;
 }
 
-bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene& scene) const
+bool MTRenderProcessScheduler::Render(Renderer& renderer, const Scene& scene) const
 {
 	auto* masterFilm = scene.MainCamera()->GetFilm();
 	std::atomic<long long> processedBlocks(0);
@@ -100,10 +103,19 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 	// --------------------------------------------------------------------------------
 
 	// # Create processes
-	std::vector<std::unique_ptr<RenderProcess>> processes;
+	std::vector<std::unique_ptr<SamplingBasedRenderProcess>> processes;
 	for (int i = 0; i < numThreads; i++)
 	{
-		processes.emplace_back(renderer.CreateRenderProcess(scene));
+		// Create & check compatibility
+		std::unique_ptr<RenderProcess> p(renderer.CreateRenderProcess(scene));
+		if (dynamic_cast<SamplingBasedRenderProcess*>(p.get()) == nullptr)
+		{
+			LM_LOG_ERROR("Invalid render process type");
+			return false;
+		}
+
+		// Add a process
+		processes.emplace_back(p.release());
 	}
 
 	// --------------------------------------------------------------------------------
@@ -247,6 +259,6 @@ bool MultithreadedRenderProcessScheduler::Render(Renderer& renderer, const Scene
 	return true;
 }
 
-LM_COMPONENT_REGISTER_IMPL(MultithreadedRenderProcessScheduler, RenderProcessScheduler);
+LM_COMPONENT_REGISTER_IMPL(MTRenderProcessScheduler, RenderProcessScheduler);
 
 LM_NAMESPACE_END

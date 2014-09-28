@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
@@ -57,16 +58,11 @@ private:
 
 // --------------------------------------------------------------------------------
 
-class RaycastRenderer_RenderProcess : public RenderProcess
+class RaycastRenderer_RenderProcess : public DeterministicPixelBasedRenderProcess
 {
 public:
 
-	RaycastRenderer_RenderProcess(const RaycastRenderer& renderer, Film* film)
-		: renderer(renderer)
-		, film(film)
-	{
-
-	}
+	RaycastRenderer_RenderProcess() {}
 
 private:
 
@@ -74,130 +70,59 @@ private:
 
 public:
 
-	virtual void ProcessSingleSample( const Scene& scene );
-	virtual const Film* GetFilm() const { return film.get(); }
-
-private:
-
-	const RaycastRenderer& renderer;
-	std::unique_ptr<Film> film;
+	virtual void ProcessSinglePixel(const Scene& scene, const Math::Vec2i& pixel);
 
 };
 
 // --------------------------------------------------------------------------------
 
-RenderProcess* CreateRenderProcess(const Scene& scene) const
+RenderProcess* RaycastRenderer::CreateRenderProcess(const Scene& scene) const
 {
-
-}
-
-bool RaycastRenderer::Render(const Scene& scene)
-{
-	auto* film = scene.MainCamera()->GetFilm();
-	std::atomic<int> processedLines(0);
-
-	signal_ReportProgress(0, false);
-
-	// Set number of threads
-	omp_set_num_threads(numThreads);
-
-	#pragma omp parallel for
-	for (int y = 0; y < film->Height(); y++)
-	{
-		for (int x = 0; x < film->Width(); x++)
-		{
-			// Raster position
-			Math::Vec2 rasterPos(
-				(Math::Float(0.5) + Math::Float(x)) / Math::Float(film->Width()),
-				(Math::Float(0.5) + Math::Float(y)) / Math::Float(film->Height()));
-
-			// Generate ray
-			// Note : position sampling is not used here (thus DoF is disabled)
-			SurfaceGeometry geomE;
-			Math::PDFEval pdfPE, pdfDE;
-			scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
-			
-			GeneralizedBSDFSampleQuery bsdfSQ;
-			GeneralizedBSDFSampleResult bsdfSR;
-			bsdfSQ.sample = rasterPos;
-			bsdfSQ.transportDir = TransportDirection::EL;
-			bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-			scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
-
-			Ray ray;
-			ray.d = bsdfSR.wo;
-			ray.o = geomE.p;
-			ray.minT = Math::Float(0);
-			ray.maxT = Math::Constants::Inf();
-
-			// Check intersection
-			Intersection isect;
-			if (scene.Intersect(ray, isect))
-			{
-				// Intersected : while color
-				Math::Float c = Math::Abs(Math::Dot(isect.geom.sn, -ray.d));
-				film->RecordContribution(rasterPos, Math::Vec3(c));
-			}
-			else
-			{
-				// Not intersected : black color
-				film->RecordContribution(rasterPos, Math::Colors::Black());
-			}
-		}
-
-		processedLines++;
-		signal_ReportProgress(static_cast<double>(processedLines) / film->Height(), processedLines == film->Height());
-	}
-
-	return true;
+	return new RaycastRenderer_RenderProcess();
 }
 
 // --------------------------------------------------------------------------------
 
-void RaycastRenderer_RenderProcess::ProcessSingleSample( const Scene& scene )
+void RaycastRenderer_RenderProcess::ProcessSinglePixel(const Scene& scene, const Math::Vec2i& pixel)
 {
-	for (int y = 0; y < film->Height(); y++)
+	auto* film = scene.MainCamera()->GetFilm();
+
+	// Raster position
+	Math::Vec2 rasterPos(
+		(Math::Float(0.5) + Math::Float(pixel.x)) / Math::Float(film->Width()),
+		(Math::Float(0.5) + Math::Float(pixel.y)) / Math::Float(film->Height()));
+
+	// Generate ray
+	// Note : position sampling is not used here (thus DoF is disabled)
+	SurfaceGeometry geomE;
+	Math::PDFEval pdfPE, pdfDE;
+	scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
+
+	GeneralizedBSDFSampleQuery bsdfSQ;
+	GeneralizedBSDFSampleResult bsdfSR;
+	bsdfSQ.sample = rasterPos;
+	bsdfSQ.transportDir = TransportDirection::EL;
+	bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
+	scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
+
+	Ray ray;
+	ray.d = bsdfSR.wo;
+	ray.o = geomE.p;
+	ray.minT = Math::Float(0);
+	ray.maxT = Math::Constants::Inf();
+
+	// Check intersection
+	Intersection isect;
+	if (scene.Intersect(ray, isect))
 	{
-		for (int x = 0; x < film->Width(); x++)
-		{
-			// Raster position
-			Math::Vec2 rasterPos(
-				(Math::Float(0.5) + Math::Float(x)) / Math::Float(film->Width()),
-				(Math::Float(0.5) + Math::Float(y)) / Math::Float(film->Height()));
-
-			// Generate ray
-			// Note : position sampling is not used here (thus DoF is disabled)
-			SurfaceGeometry geomE;
-			Math::PDFEval pdfPE, pdfDE;
-			scene.MainCamera()->SamplePosition(Math::Vec2(), geomE, pdfPE);
-
-			GeneralizedBSDFSampleQuery bsdfSQ;
-			GeneralizedBSDFSampleResult bsdfSR;
-			bsdfSQ.sample = rasterPos;
-			bsdfSQ.transportDir = TransportDirection::EL;
-			bsdfSQ.type = GeneralizedBSDFType::EyeDirection;
-			scene.MainCamera()->SampleDirection(bsdfSQ, geomE, bsdfSR);
-
-			Ray ray;
-			ray.d = bsdfSR.wo;
-			ray.o = geomE.p;
-			ray.minT = Math::Float(0);
-			ray.maxT = Math::Constants::Inf();
-
-			// Check intersection
-			Intersection isect;
-			if (scene.Intersect(ray, isect))
-			{
-				// Intersected : while color
-				Math::Float c = Math::Abs(Math::Dot(isect.geom.sn, -ray.d));
-				film->RecordContribution(rasterPos, Math::Vec3(c));
-			}
-			else
-			{
-				// Not intersected : black color
-				film->RecordContribution(rasterPos, Math::Colors::Black());
-			}
-		}
+		// Intersected : while color
+		Math::Float c = Math::Abs(Math::Dot(isect.geom.sn, -ray.d));
+		film->RecordContribution(rasterPos, Math::Vec3(c));
+	}
+	else
+	{
+		// Not intersected : black color
+		film->RecordContribution(rasterPos, Math::Colors::Black());
 	}
 }
 

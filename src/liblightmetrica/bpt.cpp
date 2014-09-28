@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
@@ -115,7 +116,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class BidirectionalPathtraceRenderer_RenderProcess : public RenderProcess
+class BidirectionalPathtraceRenderer_RenderProcess : public SamplingBasedRenderProcess
 {
 public:
 

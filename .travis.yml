@@ -14,9 +14,9 @@ install:
   - export CXX="g++-4.8"
   - export CC="gcc-4.8"
   - git clone --depth=1 --branch v3.1.1 https://github.com/assimp/assimp.git /tmp/assimp
-  - mkdir build_assimp && cd build_assimp && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make -j4 && sudo make install
+  - mkdir build_assimp && cd build_assimp && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && sudo make install
   - cd ..
 
 script:
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
   - cd bin && ./lightmetrica.test

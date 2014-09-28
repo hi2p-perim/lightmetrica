@@ -22,7 +22,9 @@
 #define LIB_LIGHTMETRICA_RENDER_PROC_H
 
 #include "component.h"
+#include "math.types.h"
 #include <memory>
+#include <string>
 
 LM_NAMESPACE_BEGIN
 
@@ -46,23 +48,21 @@ private:
 	
 	LM_DISABLE_COPY_AND_MOVE(RenderProcess);
 
-public:
-
-
-
 };
+
+// --------------------------------------------------------------------------------
 
 /*!
 	Sampling-based render process.
 	Defines sampling-based render process, which is responsible for
-	sampling-based renderers such as PT or MLT etc.
+	sampling-based renderers such as \a PT or \a MLT etc.
 */
 class SamplingBasedRenderProcess : public RenderProcess
 {
 public:
 
 	/*!
-		Process single sample.
+		Process a single sample.
 		\param scene Scene.
 	*/
 	virtual void ProcessSingleSample(const Scene& scene) = 0;
@@ -73,6 +73,26 @@ public:
 		\return Film.
 	*/
 	virtual const Film* GetFilm() const = 0;
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
+	Deterministic pixel based render process.
+	Defines deterministic pixel based render process,
+	which is utilizes by \a raytracing or \a raycasting.
+*/
+class DeterministicPixelBasedRenderProcess : public RenderProcess
+{
+public:
+
+	/*!
+		Process a single pixel.
+		\param scene Scene.
+		\param pixel Pixel coordinates.
+	*/
+	virtual void ProcessSinglePixel(const Scene& scene, const Math::Vec2i& pixel) = 0;
 
 };
 
