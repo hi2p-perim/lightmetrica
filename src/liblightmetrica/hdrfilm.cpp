@@ -244,7 +244,7 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 	// Check if intermediate directory exists.
 	// If it does not exists try to create one.
 	auto parentDir = boost::filesystem::path(imagePath).parent_path();
-	if (!boost::filesystem::exists(parentDir))
+	if (!boost::filesystem::exists(parentDir) && parentDir != "")
 	{
 		LM_LOG_INFO("Creating directory : " + parentDir.string());
 		if (!boost::filesystem::create_directory(parentDir))
