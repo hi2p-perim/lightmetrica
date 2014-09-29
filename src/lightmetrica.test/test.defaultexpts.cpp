@@ -38,6 +38,8 @@ namespace
 LM_NAMESPACE_BEGIN
 LM_TEST_NAMESPACE_BEGIN
 
+#if LM_EXPERIMENTAL_MODE
+
 class StubExperiment : public Experiment
 {
 public:
@@ -133,6 +135,8 @@ TEST_F(DefaultExperimentsTest, LoadExperiments)
 
 	EXPECT_EQ(experiments[0], expts.ExperimentByName("stub"));
 }
+
+#endif
 
 LM_TEST_NAMESPACE_END
 LM_NAMESPACE_END

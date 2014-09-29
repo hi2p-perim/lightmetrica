@@ -63,7 +63,7 @@ public:
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
 	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
@@ -160,7 +160,7 @@ bool SimpleBidirectionalPathtraceRenderer::Configure(const ConfigNode& node, con
 	return true;
 }
 
-RenderProcess* SimpleBidirectionalPathtraceRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const
+RenderProcess* SimpleBidirectionalPathtraceRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads)
 {
 	auto* sampler = initialSampler->Clone();
 	sampler->SetSeed(initialSampler->NextUInt());

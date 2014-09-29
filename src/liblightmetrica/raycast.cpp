@@ -51,7 +51,7 @@ public:
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene) { return true; }
 	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
 	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
@@ -86,7 +86,7 @@ public:
 
 // --------------------------------------------------------------------------------
 
-RenderProcess* RaycastRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const
+RenderProcess* RaycastRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads)
 {
 	return new RaycastRenderer_RenderProcess();
 }

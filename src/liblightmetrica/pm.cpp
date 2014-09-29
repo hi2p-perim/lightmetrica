@@ -69,7 +69,7 @@ public:
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual bool Preprocess(const Scene& scene);
 	virtual bool Postprocess(const Scene& scene) const;
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
 
 private:
@@ -253,7 +253,7 @@ bool PhotonMappingRenderer::Postprocess(const Scene& scene) const
 	return true;
 }
 
-RenderProcess* PhotonMappingRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const
+RenderProcess* PhotonMappingRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads)
 {
 	auto* sampler = initialSampler->Clone();
 	sampler->SetSeed(initialSampler->NextUInt());

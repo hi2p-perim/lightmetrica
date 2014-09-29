@@ -325,7 +325,7 @@ if (GLEW_FOUND AND GLFW_FOUND)
 endif()
 
 # Plugins
-#add_subdirectory("plugin")
-#if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/experimental")
-#	add_subdirectory("experimental/plugin")
-#endif()
+add_subdirectory("plugin")
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/experimental")
+	add_subdirectory("experimental/plugin")
+endif()

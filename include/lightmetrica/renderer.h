@@ -96,7 +96,7 @@ public:
 		\param numThreads Number of threads.
 		\return An instance of render process.
 	*/
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const = 0;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) = 0;
 
 public:
 
