@@ -69,8 +69,8 @@ public:
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
 	virtual bool Preprocess(const Scene& scene);
-	virtual bool Postprocess() const;
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
+	virtual bool Postprocess(const Scene& scene) const;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const;
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
 
 private:
@@ -126,7 +126,9 @@ public:
 		, film(film)
 		, subpathL(TransportDirection::LE)
 		, subpathE(TransportDirection::EL)
-	{}
+	{
+
+	}
 
 private:
 
@@ -268,7 +270,7 @@ bool BidirectionalPathtraceRenderer::Preprocess(const Scene& scene)
 	return true;
 }
 
-bool BidirectionalPathtraceRenderer::Postprocess() const
+bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene) const
 {
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	if (enableExperimentalMode)
@@ -329,7 +331,7 @@ bool BidirectionalPathtraceRenderer::Postprocess() const
 	return true;
 }
 
-RenderProcess* BidirectionalPathtraceRenderer::CreateRenderProcess(const Scene& scene) const
+RenderProcess* BidirectionalPathtraceRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const
 {
 	auto* sampler = initialSampler->Clone();
 	sampler->SetSeed(initialSampler->NextUInt());

@@ -314,8 +314,8 @@ set(
 )
 set(
 	_RENDERER_PSSMLT_SOURCES
-	#"pssmlt.cpp"
-	#"pssmlt.bptopt.cpp"
+	"pssmlt.cpp"
+	"pssmlt.bptopt.cpp"
 	"pssmlt.splat.cpp"
 	"pssmlt.sampler.cpp"
 	"pssmlt.pathsampler.pt.cpp"
@@ -361,7 +361,7 @@ set(
 )
 set(
 	_RENDERER_PM_SOURCES
-	#"pm.cpp"
+	"pm.cpp"
 	"pm.photonmap.kdtree.cpp"
 	"pm.photonmap.naive.cpp"
 	"pm.kernel.simpson.cpp"

@@ -80,10 +80,11 @@ public:
 	/*!
 		Postprocess the renderer.
 		This function is called after render process are completed.
+		\param scene Scene.
 		\retval true Succeeded to postprocess.
 		\retval false Failed to postprocess.
 	*/
-	virtual bool Postprocess() const = 0;
+	virtual bool Postprocess(const Scene& scene) const = 0;
 
 	/*!
 		Create a render process.
@@ -91,9 +92,11 @@ public:
 		This function called from the render process scheduler.
 		Ownership of the created instance is delegated to the caller.
 		\param scene Scene.
+		\param threadID Thread ID of the process.
+		\param numThreads Number of threads.
 		\return An instance of render process.
 	*/
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const = 0;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const = 0;
 
 public:
 

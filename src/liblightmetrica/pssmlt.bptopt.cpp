@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/pssmlt.common.h>
 #include <lightmetrica/pssmlt.pathseed.h>
 #include <lightmetrica/pssmlt.sampler.h>
@@ -39,42 +40,12 @@
 #include <lightmetrica/scene.h>
 #include <lightmetrica/camera.h>
 #include <lightmetrica/film.h>
+#include <lightmetrica/math.distribution.h>
 #include <thread>
 #include <atomic>
 #include <omp.h>
 
 LM_NAMESPACE_BEGIN
-
-/*!
-	Per-thread data.
-	Contains data associated with a thread.
-*/
-struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
-{
-
-	std::unique_ptr<Sampler> randomSampler;							//!< Ordinary random sampler
-	std::unique_ptr<PSSMLTPathSampler> pathSampler;					//!< Path sampler
-	std::unique_ptr<Film> film;										//!< Film
-	std::unique_ptr<PSSMLTPrimarySampler> lightSubpathSampler;		//!< Kelemen's lazy sampler (for light subpath)
-	std::unique_ptr<PSSMLTPrimarySampler> eyeSubpathSampler;		//!< Kelemen's lazy sampler (for eye subpath)
-	PSSMLTSplats records[2];										//!< Path sample records (current or proposed)
-	int current;													//!< Index of current record
-
-	BPTOptimizedPSSMLTThreadContext(Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film)
-		: randomSampler(randomSampler)
-		, pathSampler(pathSampler)
-		, film(film)
-		, lightSubpathSampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
-		, eyeSubpathSampler(ComponentFactory::Create<PSSMLTPrimarySampler>())
-		, current(0)
-	{
-
-	}
-
-	PSSMLTSplats& Current() { return records[current]; }
-	PSSMLTSplats& Proposed() { return records[1-current]; }
-
-};
 
 /*!
 	PSSMLT optimized for BPT.
@@ -85,6 +56,10 @@ struct BPTOptimizedPSSMLTThreadContext : public SIMDAlignedType
 */
 class BPTOptimizedPSSMLTRenderer : public Renderer
 {
+private:
+
+	friend class BPTOptimizedPSSMLTRenderer_RenderProcess;
+
 public:
 
 	LM_COMPONENT_IMPL_DEF("pssmlt.bptopt");
@@ -93,24 +68,22 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess( const Scene& scene );
-	virtual bool Render( const Scene& scene );
+	virtual bool Preprocess(const Scene& scene);
+	virtual bool Postprocess(const Scene& scene) const { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const;
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
-
-private:
-
-	void ProcessRenderSingleSample(const Scene& scene, BPTOptimizedPSSMLTThreadContext& context) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;									//!< Number of sample mutations
+private:
+
 	int rrDepth;											//!< Depth of beginning RR
-	int numThreads;											//!< Number of threads
-	long long samplesPerBlock;								//!< Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	//!< Sampler
 	std::unique_ptr<PSSMLTPathSampler> pathSampler;			//!< Path sampler
+
+private:
 
 	long long numSeedSamples;								//!< Number of seed samples
 	Math::Float largeStepProb;								//!< Large step mutation probability
@@ -121,29 +94,71 @@ private:
 
 	Math::Float normFactor;									//!< Normalization factor
 	std::unique_ptr<RewindableSampler> rewindableSampler;	//!< Rewindable sampler for light path generation
-	std::vector<PSSMLTPathSeed> seeds;						//!< Path seeds for each thread
+	std::vector<PSSMLTPathSeed> seedCandidates;				//!< Candidates of seeds for each thread
+	Math::DiscreteDistribution1D seedCandidateDist;			//!< Distribution for seed selection
 
 };
+
+// --------------------------------------------------------------------------------
+
+/*!
+	Render process for BPTOptimizedPSSMLTRenderer.
+	The class is responsible for per-thread execution of rendering tasks
+	and managing thread-dependent resources.
+*/
+class BPTOptimizedPSSMLTRenderer_RenderProcess : public SamplingBasedRenderProcess
+{
+public:
+
+	BPTOptimizedPSSMLTRenderer_RenderProcess(const BPTOptimizedPSSMLTRenderer& renderer, Sampler* randomSampler, PSSMLTPathSampler* pathSampler, Film* film)
+		: renderer(renderer)
+		, randomSampler(randomSampler)
+		, pathSampler(pathSampler)
+		, film(film)
+		, subpathSamplerL(ComponentFactory::Create<PSSMLTPrimarySampler>())
+		, subpathSamplerE(ComponentFactory::Create<PSSMLTPrimarySampler>())
+		, currentIdx(0)
+	{
+
+	}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(BPTOptimizedPSSMLTRenderer_RenderProcess);
+
+public:
+
+	virtual void ProcessSingleSample(const Scene& scene);
+	virtual const Film* GetFilm() const { return film.get(); }
+
+public:
+
+	bool Configure(const Scene& scene, const PSSMLTPathSeed& seed);
+
+private:
+
+	PSSMLTSplats& Current() { return records[currentIdx]; }
+	PSSMLTSplats& Proposed() { return records[1-currentIdx]; }
+
+private:
+
+	const BPTOptimizedPSSMLTRenderer& renderer;
+	std::unique_ptr<Sampler> randomSampler;						//!< Ordinary random sampler
+	std::unique_ptr<PSSMLTPathSampler> pathSampler;				//!< Path sampler
+	std::unique_ptr<Film> film;									//!< Film
+	std::unique_ptr<PSSMLTPrimarySampler> subpathSamplerL;		//!< Kelemen's lazy sampler (for light subpath)
+	std::unique_ptr<PSSMLTPrimarySampler> subpathSamplerE;		//!< Kelemen's lazy sampler (for eye subpath)
+	PSSMLTSplats records[2];									//!< Path sample records (current or proposed)
+	int currentIdx;												//!< Index of current record
+
+};
+
+// --------------------------------------------------------------------------------
 
 bool BPTOptimizedPSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
-	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
-	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
-	if (samplesPerBlock <= 0)
-	{
-		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
-		return false;
-	}
-
-	// Set number of threads
-	omp_set_num_threads(numThreads);
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
@@ -191,16 +206,22 @@ bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
 {
 	signal_ReportProgress(0, false);
 
+	// --------------------------------------------------------------------------------
+
 	// Initialize sampler
 	rewindableSampler.reset(ComponentFactory::Create<RewindableSampler>());
 	rewindableSampler->Configure(initialSampler->Rng()->Clone());
 	rewindableSampler->SetSeed(initialSampler->NextUInt());
 
+	// --------------------------------------------------------------------------------
+
+	// # Sample candidates for seeds
+
 	// Take #numSeedSamples path samples and generate seeds for each thread
 	// This process must be done in a single thread in order to keep consistency of sample indexes
+
 	PSSMLTSplats splats;
 	Math::Float sumI(0);
-	std::vector<PSSMLTPathSeed> candidates;
 
 	for (long long sample = 0; sample < numSeedSamples; sample++)
 	{
@@ -216,136 +237,96 @@ bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
 		if (!Math::IsZero(I))
 		{
 			sumI += I;
-			candidates.emplace_back(index, I);
+			seedCandidates.emplace_back(index, I);
 		}
 
 		signal_ReportProgress(static_cast<double>(sample) / numSeedSamples, false);
 	}
 
+	// --------------------------------------------------------------------------------
+
+	// # Normalization factor & CDF
+
 	// Normalization factor
 	normFactor = sumI / Math::Float(numSeedSamples);
 
 	// Create CDF
-	std::vector<Math::Float> cdf;
-	cdf.push_back(Math::Float(0));
-	for (auto& candidate : candidates)
+	for (auto& candidate : seedCandidates)
 	{
-		cdf.push_back(cdf.back() + candidate.I);
+		seedCandidateDist.Add(candidate.I);
 	}
 
-	// Normalize
-	auto sum = cdf.back();
-	for (auto& v : cdf)
-	{
-		v /= sum;
-	}
+	seedCandidateDist.Normalize();
 
-	// Sample seeds for each thread
-	seeds.clear();
-	LM_ASSERT(candidates.size() >= static_cast<size_t>(numThreads));
-	for (int i = 0; i < numThreads; i++)
-	{
-		double u = rewindableSampler->Next();
-		int idx =
-			Math::Clamp(
-			static_cast<int>(std::upper_bound(cdf.begin(), cdf.end(), u) - cdf.begin()) - 1,
-			0, static_cast<int>(cdf.size()) - 1);
-
-		seeds.push_back(candidates[idx]);
-	}
+	// --------------------------------------------------------------------------------
 
 	signal_ReportProgress(1, true);
 
 	return true;
 }
 
-bool BPTOptimizedPSSMLTRenderer::Render( const Scene& scene )
+RenderProcess* BPTOptimizedPSSMLTRenderer::CreateRenderProcess(const Scene& scene, int threadID, int numThreads) const
 {
-	// # Initialize thread context
-
-	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::vector<std::unique_ptr<BPTOptimizedPSSMLTThreadContext>> contexts;
-	for (int i = 0; i < numThreads; i++)
+	if (seedCandidates.size() < static_cast<size_t>(numThreads))
 	{
-		// Add an entry
-		contexts.emplace_back(new BPTOptimizedPSSMLTThreadContext(initialSampler->Clone(), pathSampler->Clone(), masterFilm->Clone()));
-
-		// Configure and set seeds
-		auto& context = contexts.back();
-		context->lightSubpathSampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
-		context->lightSubpathSampler->SetSeed(initialSampler->NextUInt());
-		context->eyeSubpathSampler->Configure(initialSampler->Rng()->Clone(), kernelSizeS1, kernelSizeS2);
-		context->eyeSubpathSampler->SetSeed(initialSampler->NextUInt());
-		context->randomSampler->SetSeed(initialSampler->NextUInt());
-
-		// Restore state of the seed path
-		rewindableSampler->Rewind(seeds[i].index);
-		context->lightSubpathSampler->BeginRestore(*rewindableSampler);
-		context->eyeSubpathSampler->BeginRestore(*rewindableSampler);
-		pathSampler->SampleAndEvaluateBidir(scene, *context->lightSubpathSampler, *context->eyeSubpathSampler, context->Current(), rrDepth, -1);
-		context->eyeSubpathSampler->EndRestore();
-		context->lightSubpathSampler->EndRestore();
-
-		LM_ASSERT(Math::Abs(context->Current().SumI() - seeds[i].I) < Math::Constants::Eps());
+		LM_LOG_ERROR("Number of candidates is too small");
+		return nullptr;
 	}
 
-	// --------------------------------------------------------------------------------
+	// Choose a seed
+	const auto& seed = seedCandidates[seedCandidateDist.Sample(initialSampler->Next())];
 
-	// # Rendering process
-
-	std::atomic<long long> processedBlocks(0);								// Number of processes blocks
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;	// Number of blocks
-	signal_ReportProgress(0, false);
-
-	#pragma omp parallel for
-	for (long long block = 0; block < blocks; block++)
+	// Create a process
+	std::unique_ptr<BPTOptimizedPSSMLTRenderer_RenderProcess> process(new BPTOptimizedPSSMLTRenderer_RenderProcess(*this, initialSampler->Clone(), pathSampler->Clone(), scene.MainCamera()->GetFilm()->Clone()));
+	if (!process->Configure(scene, seed))
 	{
-		// Thread ID
-		int threadId = omp_get_thread_num();
-		auto& context = contexts[threadId];
-
-		// Sample range
-		long long sampleBegin = samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-
-		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
-		{
-			ProcessRenderSingleSample(scene, *context);
-		}
-
-		processedBlocks++;
-		auto progress = static_cast<double>(processedBlocks) / blocks;
-		signal_ReportProgress(progress, processedBlocks == blocks);
+		return nullptr;
 	}
 
-	// --------------------------------------------------------------------------------
+	return process.release();
+}
 
-	// # Gathering results
+// --------------------------------------------------------------------------------
 
-	// Accumulate rendered results for all threads to one film
-	for (auto& context : contexts)
+bool BPTOptimizedPSSMLTRenderer_RenderProcess::Configure(const Scene& scene, const PSSMLTPathSeed& seed)
+{
+	// Configure and set seeds
+	subpathSamplerL->Configure(renderer.initialSampler->Rng()->Clone(), renderer.kernelSizeS1, renderer.kernelSizeS2);
+	subpathSamplerL->SetSeed(renderer.initialSampler->NextUInt());
+	subpathSamplerE->Configure(renderer.initialSampler->Rng()->Clone(), renderer.kernelSizeS1, renderer.kernelSizeS2);
+	subpathSamplerE->SetSeed(renderer.initialSampler->NextUInt());
+	randomSampler->SetSeed(renderer.initialSampler->NextUInt());
+
+	// Restore state of the seed path
+	renderer.rewindableSampler->Rewind(seed.index);
+	subpathSamplerL->BeginRestore(*renderer.rewindableSampler);
+	subpathSamplerE->BeginRestore(*renderer.rewindableSampler);
+	pathSampler->SampleAndEvaluateBidir(scene, *subpathSamplerL, *subpathSamplerE, Current(), renderer.rrDepth, -1);
+	subpathSamplerE->EndRestore();
+	subpathSamplerL->EndRestore();
+
+	// Sanity check
+	if (Math::Abs(Current().SumI() - seed.I) > Math::Constants::Eps())
 	{
-		masterFilm->AccumulateContribution(*context->film.get());
+		LM_LOG_ERROR("Failed to reconstruct a seed path, invalid luminance");
+		return false;
 	}
-
-	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
 
 	return true;
 }
 
-void BPTOptimizedPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, BPTOptimizedPSSMLTThreadContext& context ) const
+void BPTOptimizedPSSMLTRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 {
-	auto& current  = context.Current();
-	auto& proposed = context.Proposed();
+	auto& current  = Current();
+	auto& proposed = Proposed();
 
 	// Enable large step mutation
-	bool enableLargeStep = context.randomSampler->Next() < largeStepProb;
-	context.lightSubpathSampler->EnableLargeStepMutation(enableLargeStep);
-	context.eyeSubpathSampler->EnableLargeStepMutation(enableLargeStep);
+	bool enableLargeStep = randomSampler->Next() < renderer.largeStepProb;
+	subpathSamplerL->EnableLargeStepMutation(enableLargeStep);
+	subpathSamplerE->EnableLargeStepMutation(enableLargeStep);
 
 	// Sample and evaluate proposed path
-	context.pathSampler->SampleAndEvaluateBidir(scene, *context.lightSubpathSampler, *context.eyeSubpathSampler, proposed, rrDepth, -1);
+	pathSampler->SampleAndEvaluateBidir(scene, *subpathSamplerL, *subpathSamplerE, proposed, renderer.rrDepth, -1);
 
 	// Compute acceptance ratio
 	auto currentI  = current.SumI();
@@ -353,27 +334,27 @@ void BPTOptimizedPSSMLTRenderer::ProcessRenderSingleSample( const Scene& scene, 
 	auto a = Math::IsZero(currentI) ? Math::Float(1) : Math::Min(Math::Float(1), proposedI / currentI);
 
 	// Determine accept or reject
-	if (context.randomSampler->Next() < a)
+	if (randomSampler->Next() < a)
 	{
-		context.lightSubpathSampler->Accept();
-		context.eyeSubpathSampler->Accept();
-		context.current = 1 - context.current;
+		subpathSamplerL->Accept();
+		subpathSamplerE->Accept();
+		currentIdx = 1 - currentIdx;
 	}
 	else
 	{
-		context.lightSubpathSampler->Reject();
-		context.eyeSubpathSampler->Reject();
+		subpathSamplerL->Reject();
+		subpathSamplerE->Reject();
 	}
 
 	// Accumulate contribution
 	if (proposedI > Math::Float(0))
 	{
-		current.AccumulateContributionToFilm(*context.film, (1 - a) * normFactor / currentI);
-		proposed.AccumulateContributionToFilm(*context.film, a * normFactor / proposedI);
+		current.AccumulateContributionToFilm(*film, (1 - a) * renderer.normFactor / currentI);
+		proposed.AccumulateContributionToFilm(*film, a * renderer.normFactor / proposedI);
 	}
 	else
 	{
-		current.AccumulateContributionToFilm(*context.film, normFactor / currentI);
+		current.AccumulateContributionToFilm(*film, renderer.normFactor / currentI);
 	}
 }
 

@@ -107,7 +107,12 @@ bool MTRenderProcessScheduler::Render(Renderer& renderer, const Scene& scene) co
 	for (int i = 0; i < numThreads; i++)
 	{
 		// Create & check compatibility
-		std::unique_ptr<RenderProcess> p(renderer.CreateRenderProcess(scene));
+		std::unique_ptr<RenderProcess> p(renderer.CreateRenderProcess(scene, i, numThreads));
+		if (p == nullptr)
+		{
+			LM_LOG_ERROR("Failed to create render process (thread #" + std::to_string(i) + ")");
+			return false;
+		}
 		if (dynamic_cast<SamplingBasedRenderProcess*>(p.get()) == nullptr)
 		{
 			LM_LOG_ERROR("Invalid render process type");

@@ -23,6 +23,7 @@
 
 #include "component.h"
 #include "math.types.h"
+#include "align.h"
 #include <memory>
 #include <string>
 
@@ -37,7 +38,7 @@ class Film;
 	for process some part of the entire samples.
 	This class is used for parallelization of renderers.
 */
-class RenderProcess
+class RenderProcess : public SIMDAlignedType
 {
 public:
 
