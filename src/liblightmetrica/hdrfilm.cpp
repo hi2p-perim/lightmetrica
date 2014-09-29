@@ -241,6 +241,19 @@ bool HDRBitmapFilm::RescaleAndSave( const std::string& path, const Math::Float& 
 		}
 	}
 
+	// Check if intermediate directory exists.
+	// If it does not exists try to create one.
+	auto parentDir = boost::filesystem::path(imagePath).parent_path();
+	if (!boost::filesystem::exists(parentDir))
+	{
+		LM_LOG_INFO("Creating directory : " + parentDir.string());
+		if (!boost::filesystem::create_directory(parentDir))
+		{
+			LM_LOG_WARN("Failed to create output directory : " + parentDir.string());
+			return false;
+		}
+	}
+
 	// Create bitmap
 	// 128 bit RGBA float image
 	// Note: EXR - FIT_RGBAF, HDR - FIT_RGBF
