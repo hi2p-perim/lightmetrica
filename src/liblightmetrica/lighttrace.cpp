@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/ray.h>
 #include <lightmetrica/intersection.h>
@@ -48,6 +49,10 @@ LM_NAMESPACE_BEGIN
 */
 class LighttraceRenderer : public Renderer
 {
+private:
+
+	friend class LighttraceRenderer_RenderProcess;
+
 public:
 
 	LM_COMPONENT_IMPL_DEF("lt");
@@ -56,24 +61,21 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
-	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
-	virtual bool Render( const Scene& scene );
+	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess() const { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
-
-private:
-
-	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;									// Number of samples
+private:
+
 	int rrDepth;											// Depth of beginning RR
-	int numThreads;											// Number of threads
-	long long samplesPerBlock;								// Samples to be processed per block
-	std::unique_ptr<ConfigurableSampler> initialSampler;		// Sampler
+	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
+
+private:
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -81,22 +83,48 @@ private:
 
 };
 
+// --------------------------------------------------------------------------------
+
+/*!
+	Render process for PathtraceRenderer.
+	The class is responsible for per-thread execution of rendering tasks
+	and managing thread-dependent resources.
+*/
+class LighttraceRenderer_RenderProcess : public SamplingBasedRenderProcess
+{
+public:
+
+	LighttraceRenderer_RenderProcess(const LighttraceRenderer& renderer, Sampler* sampler, Film* film)
+		: renderer(renderer)
+		, sampler(sampler)
+		, film(film)
+	{
+
+	}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(LighttraceRenderer_RenderProcess);
+
+public:
+
+	virtual void ProcessSingleSample(const Scene& scene);
+	virtual const Film* GetFilm() const { return film.get(); }
+
+private:
+
+	const LighttraceRenderer& renderer;
+	std::unique_ptr<Sampler> sampler;
+	std::unique_ptr<Film> film;
+
+};
+
+// --------------------------------------------------------------------------------
+
 bool LighttraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
-	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
-	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
-	if (samplesPerBlock <= 0)
-	{
-		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
-		return false;
-	}
 	
 	// Sampler
 	auto samplerNode = node.Child("sampler");
@@ -126,101 +154,28 @@ bool LighttraceRenderer::Configure(const ConfigNode& node, const Assets& assets,
 			LM_LOG_ERROR("Failed to configure experiments");
 			return false;
 		}
-
-		if (numThreads != 1)
-		{
-			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
-		}
 	}
 #endif
 
 	return true;
 }
 
-bool LighttraceRenderer::Render( const Scene& scene )
+RenderProcess* LighttraceRenderer::CreateRenderProcess(const Scene& scene) const
 {
-	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::atomic<long long> processedBlocks(0);
-
-	signal_ReportProgress(0, false);
-
-	LM_EXPT_NOTIFY(expts, "RenderStarted");
-
-	// --------------------------------------------------------------------------------
-
-	// Set number of threads
-	omp_set_num_threads(numThreads);
-
-	// Random number generators and films
-	std::vector<std::unique_ptr<Sampler>> samplers;
-	std::vector<std::unique_ptr<Film>> films;
-	for (int i = 0; i < numThreads; i++)
-	{
-		samplers.emplace_back(initialSampler->Clone());
-		samplers.back()->SetSeed(initialSampler->NextUInt());
-		films.emplace_back(masterFilm->Clone());
-	}
-
-	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
-
-	// --------------------------------------------------------------------------------
-
-	#pragma omp parallel for
-	for (long long block = 0; block < blocks; block++)
-	{
-		// Thread ID
-		int threadId = omp_get_thread_num();
-		auto& sampler = samplers[threadId];
-		auto& film = films[threadId];
-
-		// Sample range
-		long long sampleBegin = samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-
-		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
-
-		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
-		{
-			ProcessRenderSingleSample(scene, *sampler, *film);
-
-			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-			LM_EXPT_NOTIFY(expts, "SampleFinished");
-		}
-
-		processedBlocks++;
-		auto progress = static_cast<double>(processedBlocks) / blocks;
-		signal_ReportProgress(progress, processedBlocks == blocks);
-
-		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
-	}
-
-	// --------------------------------------------------------------------------------
-
-	// Accumulate rendered results for all threads to one film
-	for (auto& f : films)
-	{
-		masterFilm->AccumulateContribution(*f.get());
-	}
-
-	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
-
-	LM_EXPT_NOTIFY(expts, "RenderFinished");
-
-	return true;
+	auto* sampler = initialSampler->Clone();
+	sampler->SetSeed(initialSampler->NextUInt());
+	return new LighttraceRenderer_RenderProcess(*this, sampler, scene.MainCamera()->GetFilm()->Clone());
 }
 
-void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& sampler, Film& film ) const
+// --------------------------------------------------------------------------------
+
+void LighttraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 {
 	SurfaceGeometry geomL;
 	Math::PDFEval pdfPL;
 
 	// Sample a position on the light
-	auto lightSampleP = sampler.NextVec2();
+	auto lightSampleP = sampler->NextVec2();
 	Math::PDFEval lightSelectionPdf;
 	const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 	light->SamplePosition(lightSampleP, geomL, pdfPL);
@@ -246,7 +201,7 @@ void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler&
 			// Sample a position on camera
 			SurfaceGeometry geomE;
 			Math::PDFEval pdfPE;
-			scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfPE);
+			scene.MainCamera()->SamplePosition(sampler->NextVec2(), geomE, pdfPE);
 
 			// Check connectivity between #geomE.p and #currGeom.p
 			auto ppE = Math::Normalize(geomE.p - currGeom.p);
@@ -279,18 +234,18 @@ void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler&
 
 					// Evaluate contribution and accumulate to film
 					auto contrb = throughput * fsL * G * fsE * positionalWe / pdfPE.v;
-					film.AccumulateContribution(rasterPos, contrb);
+					film->AccumulateContribution(rasterPos, contrb);
 				}
 			}
 		}
 
 		// --------------------------------------------------------------------------------
 
-		if (++depth >= rrDepth)
+		if (++depth >= renderer.rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));
-			if (sampler.Next() > p)
+			if (sampler->Next() > p)
 			{
 				break;
 			}
@@ -302,8 +257,8 @@ void LighttraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler&
 
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = sampler.NextVec2();
-		bsdfSQ.uComp = sampler.Next();
+		bsdfSQ.sample = sampler->NextVec2();
+		bsdfSQ.uComp = sampler->Next();
 		bsdfSQ.transportDir = TransportDirection::LE;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi;

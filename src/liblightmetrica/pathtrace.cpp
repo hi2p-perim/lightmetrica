@@ -73,10 +73,10 @@ private:
 	int maxPathVertices;									// Maximum number of light path vertices
 	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
 
-#if 0
+private:
+
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
-#endif
 #endif
 
 };
@@ -134,7 +134,6 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 		return false;
 	}
 
-#if 0
 #if LM_EXPERIMENTAL_MODE
 	// Experiments
 	auto experimentsNode = node.Child("experiments");
@@ -148,14 +147,7 @@ bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, 
 			LM_LOG_ERROR("Failed to configure experiments");
 			return false;
 		}
-
-		if (numThreads != 1)
-		{
-			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
-		}
 	}
-#endif
 #endif
 
 	return true;

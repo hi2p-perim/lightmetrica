@@ -69,16 +69,16 @@ public:
 
 private:
 
-	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film) const;
+	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 private:
-
-	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
 	int rrDepth;											// Depth of beginning RR
 	int maxPathVertices;									// Maximum number of light path vertices
 	long long samplesPerBlock;								// Samples to be processed per block
 	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
+
+private:
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -242,7 +242,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 		// --------------------------------------------------------------------------------
 
-		if (rrDepth != -1 && numPathVertices >= rrDepth)
+		if (renderer.rrDepth != -1 && numPathVertices >= renderer.rrDepth)
 		{
 			// Russian roulette for path termination
 			Math::Float p = Math::Min(Math::Float(0.5), Math::Luminance(throughput));

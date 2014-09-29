@@ -91,7 +91,7 @@ bool DeterministicMTRenderProcessScheduler::Render(Renderer& renderer, const Sce
 		}
 
 		// Add a process
-		processes.emplace_back(p.release());
+		processes.emplace_back(dynamic_cast<DeterministicPixelBasedRenderProcess*>(p.release()));
 	}
 
 	// --------------------------------------------------------------------------------

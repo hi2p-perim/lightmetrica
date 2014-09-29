@@ -115,7 +115,7 @@ bool MTRenderProcessScheduler::Render(Renderer& renderer, const Scene& scene) co
 		}
 
 		// Add a process
-		processes.emplace_back(p.release());
+		processes.emplace_back(dynamic_cast<SamplingBasedRenderProcess*>(p.release()));
 	}
 
 	// --------------------------------------------------------------------------------

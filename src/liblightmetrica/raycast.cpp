@@ -34,6 +34,11 @@
 
 LM_NAMESPACE_BEGIN
 
+/*!
+	Raycast renderer.
+	Implements raycasting.
+	This renderer is utilized for testing.
+*/
 class RaycastRenderer : public Renderer
 {
 public:
@@ -58,6 +63,11 @@ private:
 
 // --------------------------------------------------------------------------------
 
+/*!
+	Render process for RaycastRenderer.
+	The class is responsible for per-thread execution of rendering tasks
+	and managing thread-dependent resources.
+*/
 class RaycastRenderer_RenderProcess : public DeterministicPixelBasedRenderProcess
 {
 public:

@@ -19,6 +19,7 @@
 
 #include "pch.h"
 #include <lightmetrica/renderer.h>
+#include <lightmetrica/renderproc.h>
 #include <lightmetrica/logger.h>
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/scene.h>
@@ -48,6 +49,10 @@ LM_NAMESPACE_BEGIN
 */
 class SimpleBidirectionalPathtraceRenderer : public Renderer
 {
+private:
+
+	friend class SimpleBidirectionalPathtraceRenderer_RenderProcess;
+
 public:
 
 	LM_COMPONENT_IMPL_DEF("simplebpt");
@@ -56,24 +61,21 @@ public:
 
 	virtual std::string Type() const { return ImplTypeName(); }
 	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual void SetTerminationMode( TerminationMode mode, double time ) {}
 	virtual bool Preprocess( const Scene& /*scene*/ ) { signal_ReportProgress(1, true); return true; }
-	virtual bool Render( const Scene& scene );
+	virtual bool Postprocess() const { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene) const;
 	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
-
-private:
-
-	void ProcessRenderSingleSample(const Scene& scene, Sampler& sampler, Film& film) const;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
 
-	long long numSamples;									// Number of samples
+private:
+
 	int rrDepth;											// Depth of beginning RR
-	int numThreads;											// Number of threads
-	long long samplesPerBlock;								// Samples to be processed per block
-	std::unique_ptr<ConfigurableSampler> initialSampler;		// Sampler
+	std::unique_ptr<ConfigurableSampler> initialSampler;	// Sampler
+
+private:
 
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
@@ -81,22 +83,48 @@ private:
 
 };
 
+// --------------------------------------------------------------------------------
+
+/*!
+	Render process for SimpleBidirectionalPathtraceRenderer.
+	The class is responsible for per-thread execution of rendering tasks
+	and managing thread-dependent resources.
+*/
+class SimpleBidirectionalPathtraceRenderer_RenderProcess : public SamplingBasedRenderProcess
+{
+public:
+
+	SimpleBidirectionalPathtraceRenderer_RenderProcess(const SimpleBidirectionalPathtraceRenderer& renderer, Sampler* sampler, Film* film)
+		: renderer(renderer)
+		, sampler(sampler)
+		, film(film)
+	{
+
+	}
+
+private:
+
+	LM_DISABLE_COPY_AND_MOVE(SimpleBidirectionalPathtraceRenderer_RenderProcess);
+
+public:
+
+	virtual void ProcessSingleSample(const Scene& scene);
+	virtual const Film* GetFilm() const { return film.get(); }
+
+private:
+
+	const SimpleBidirectionalPathtraceRenderer& renderer;
+	std::unique_ptr<Sampler> sampler;
+	std::unique_ptr<Film> film;
+
+};
+
+// --------------------------------------------------------------------------------
+
 bool SimpleBidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
 {
 	// Load parameters
-	node.ChildValueOrDefault("num_samples", 1LL, numSamples);
 	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
-	node.ChildValueOrDefault("num_threads", static_cast<int>(std::thread::hardware_concurrency()), numThreads);
-	if (numThreads <= 0)
-	{
-		numThreads = Math::Max(1, static_cast<int>(std::thread::hardware_concurrency()) + numThreads);
-	}
-	node.ChildValueOrDefault("samples_per_block", 100LL, samplesPerBlock);
-	if (samplesPerBlock <= 0)
-	{
-		LM_LOG_ERROR("Invalid value for 'samples_per_block'");
-		return false;
-	}
 
 	// Sampler
 	auto samplerNode = node.Child("sampler");
@@ -126,101 +154,28 @@ bool SimpleBidirectionalPathtraceRenderer::Configure(const ConfigNode& node, con
 			LM_LOG_ERROR("Failed to configure experiments");
 			return false;
 		}
-
-		if (numThreads != 1)
-		{
-			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
-		}
 	}
 #endif
 
 	return true;
 }
 
-bool SimpleBidirectionalPathtraceRenderer::Render( const Scene& scene )
+RenderProcess* SimpleBidirectionalPathtraceRenderer::CreateRenderProcess(const Scene& scene) const
 {
-	auto* masterFilm = scene.MainCamera()->GetFilm();
-	std::atomic<long long> processedBlocks(0);
-
-	signal_ReportProgress(0, false);
-
-	LM_EXPT_NOTIFY(expts, "RenderStarted");
-
-	// --------------------------------------------------------------------------------
-
-	// Set number of threads
-	omp_set_num_threads(numThreads);
-
-	// Random number generators and films
-	std::vector<std::unique_ptr<Sampler>> samplers;
-	std::vector<std::unique_ptr<Film>> films;
-	for (int i = 0; i < numThreads; i++)
-	{
-		samplers.emplace_back(initialSampler->Clone());
-		samplers.back()->SetSeed(initialSampler->NextUInt());
-		films.emplace_back(masterFilm->Clone());
-	}
-
-	// Number of blocks to be separated
-	long long blocks = (numSamples + samplesPerBlock) / samplesPerBlock;
-
-	// --------------------------------------------------------------------------------
-
-	#pragma omp parallel for
-	for (long long block = 0; block < blocks; block++)
-	{
-		// Thread ID
-		int threadId = omp_get_thread_num();
-		auto& sampler = samplers[threadId];
-		auto& film = films[threadId];
-
-		// Sample range
-		long long sampleBegin = samplesPerBlock * block;
-		long long sampleEnd = Math::Min(sampleBegin + samplesPerBlock, numSamples);
-
-		LM_EXPT_UPDATE_PARAM(expts, "film", film.get());
-
-		for (long long sample = sampleBegin; sample < sampleEnd; sample++)
-		{
-			ProcessRenderSingleSample(scene, *sampler, *film);
-
-			LM_EXPT_UPDATE_PARAM(expts, "sample", &sample);
-			LM_EXPT_NOTIFY(expts, "SampleFinished");
-		}
-
-		processedBlocks++;
-		auto progress = static_cast<double>(processedBlocks) / blocks;
-		signal_ReportProgress(progress, processedBlocks == blocks);
-
-		LM_EXPT_UPDATE_PARAM(expts, "block", &block);
-		LM_EXPT_UPDATE_PARAM(expts, "progress", &progress);
-		LM_EXPT_NOTIFY(expts, "ProgressUpdated");
-	}
-
-	// --------------------------------------------------------------------------------
-
-	// Accumulate rendered results for all threads to one film
-	for (auto& f : films)
-	{
-		masterFilm->AccumulateContribution(*f.get());
-	}
-
-	// Rescale master film
-	masterFilm->Rescale(Math::Float(masterFilm->Width() * masterFilm->Height()) / Math::Float(numSamples));
-
-	LM_EXPT_NOTIFY(expts, "RenderFinished");
-
-	return true;
+	auto* sampler = initialSampler->Clone();
+	sampler->SetSeed(initialSampler->NextUInt());
+	return new SimpleBidirectionalPathtraceRenderer_RenderProcess(*this, sampler, scene.MainCamera()->GetFilm()->Clone());
 }
 
-void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scene& scene, Sampler& sampler, Film& film ) const
+// --------------------------------------------------------------------------------
+
+void SimpleBidirectionalPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 {
 	SurfaceGeometry geomE;
 	Math::PDFEval pdfPE;
 
 	// Sample position on the camera
-	scene.MainCamera()->SamplePosition(sampler.NextVec2(), geomE, pdfPE);
+	scene.MainCamera()->SamplePosition(sampler->NextVec2(), geomE, pdfPE);
 
 	// Evaluate We^{(0)} (positional component of We)
 	auto positionalWe = scene.MainCamera()->EvaluatePosition(geomE);
@@ -231,7 +186,7 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 	Math::PDFEval pdfPL;
 
 	// Sample a position on the light
-	auto lightSampleP = sampler.NextVec2();
+	auto lightSampleP = sampler->NextVec2();
 	Math::PDFEval lightSelectionPdf;
 	const auto* light = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
 	light->SamplePosition(lightSampleP, geomL, pdfPL);
@@ -306,7 +261,7 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 
 					// Evaluate contribution and accumulate to film
 					auto contrb = throughput[TransportDirection::EL] * fsE * G * fsL * throughput[TransportDirection::LE];
-					film.AccumulateContribution(rasterPos, contrb);
+					film->AccumulateContribution(rasterPos, contrb);
 				}
 			}
 		}
@@ -315,14 +270,14 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 
 		// Select which sub-path to be extended
 		// This selection might be tricky. TODO : Add some explanation
-		int subpath = sampler.Next() < Math::Float(0.5) ? TransportDirection::EL : TransportDirection::LE;
+		int subpath = sampler->Next() < Math::Float(0.5) ? TransportDirection::EL : TransportDirection::LE;
 
 		// Decide if the selected -path is actually extended by Russian roulette
 		// If the sub-path is not extended, terminate the loop.
-		if (numSubpathVertices[subpath] >= rrDepth)
+		if (numSubpathVertices[subpath] >= renderer.rrDepth)
 		{
 			auto p = Math::Min(Math::Float(0.5), Math::Luminance(throughput[subpath]));
-			if (sampler.Next() > p)
+			if (sampler->Next() > p)
 			{
 				break;
 			}
@@ -336,8 +291,8 @@ void SimpleBidirectionalPathtraceRenderer::ProcessRenderSingleSample( const Scen
 
 		// Sample generalized BSDF
 		GeneralizedBSDFSampleQuery bsdfSQ;
-		bsdfSQ.sample = sampler.NextVec2();
-		bsdfSQ.uComp = sampler.Next();
+		bsdfSQ.sample = sampler->NextVec2();
+		bsdfSQ.uComp = sampler->Next();
 		bsdfSQ.transportDir = (TransportDirection)subpath;
 		bsdfSQ.type = GeneralizedBSDFType::All;
 		bsdfSQ.wi = currWi[subpath];
