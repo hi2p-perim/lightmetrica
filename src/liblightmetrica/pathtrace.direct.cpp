@@ -93,7 +93,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class DirectPathtraceRenderer_RenderProcess : public RenderProcess
+class DirectPathtraceRenderer_RenderProcess : public SamplingBasedRenderProcess
 {
 public:
 
