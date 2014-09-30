@@ -151,14 +151,14 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 {
 	LM_ASSERT(vertices.empty());
 
-	BPTPathVertex* v;
+	// --------------------------------------------------------------------------------
 
-	// Initial vertex
-	v = pool.Construct();
+	// # Create initial vertex
+	auto* v = pool.Construct();
 	v->type = BPTPathVertexType::EndPoint;
 	v->transportDir = transportDir;
 
-	// Positional component
+	// ## Positional component
 	if (transportDir == TransportDirection::EL)
 	{
 		// EyePosition
@@ -171,7 +171,6 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 	}
 	else
 	{
-#if 1
 		// LightPosition
 		Math::PDFEval lightSelectionPdf;
 		v->emitter = scene.SampleLightSelection(sampler.Next(), lightSelectionPdf);
@@ -181,21 +180,9 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		{
 			v->areaLight = dynamic_cast<const Light*>(v->emitter);
 		}
-#else
-		// LightPosition
-		auto lightSampleP = sampler.NextVec2();
-		Math::PDFEval lightSelectionPdf;
-		v->emitter = scene.SampleLightSelection(lightSampleP, lightSelectionPdf);
-		v->emitter->SamplePosition(lightSampleP, v->geom, v->pdfP);
-		v->pdfP.v *= lightSelectionPdf.v;
-		if (!v->geom.degenerated)
-		{
-			v->areaLight = dynamic_cast<const Light*>(v->emitter);
-		}
-#endif
 	}
 
-	// Directional component
+	// ## Directional component
 	v->bsdf = v->emitter;
 
 	GeneralizedBSDFSampleQuery bsdfSQE;
@@ -206,23 +193,30 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 	GeneralizedBSDFSampleBidirResult bsdfSRE;
 	v->bsdf->SampleAndEstimateDirectionBidir(bsdfSQE, v->geom, bsdfSRE);
 	v->wo = bsdfSRE.wo;
+	v->componentType = bsdfSRE.sampledType;
 	v->weight[transportDir]   = bsdfSRE.weight[transportDir];
 	v->weight[1-transportDir] = bsdfSRE.weight[1-transportDir];
 	v->pdfD[transportDir]     = bsdfSRE.pdf[transportDir];
 	v->pdfD[1-transportDir]   = bsdfSRE.pdf[1-transportDir];
 
-	// # of vertices is always greater than 1
+	// Number of vertices is always greater than 1
 	v->pdfRR = Math::PDFEval(Math::Float(1), Math::ProbabilityMeasure::Discrete);
 
 	vertices.push_back(v);
 
 	// --------------------------------------------------------------------------------
 
+	// # Trace intermediate points
+
 	int numPathVertices = 1;
 	while (true)
 	{
-		// Previous vertex
+		// ## Previous vertex
 		auto* pv = vertices.back();
+
+		// --------------------------------------------------------------------------------
+
+		// ## Intersection query
 
 		// Create ray
 		Ray ray;
@@ -240,8 +234,10 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 		// --------------------------------------------------------------------------------
 
+		// ## Create a next vertex
+
 		// Create path vertex
-		v = pool.Construct();
+		auto* v = pool.Construct();
 		v->type = BPTPathVertexType::IntermediatePoint;
 		v->transportDir = transportDir;
 		v->bsdf = isect.primitive->bsdf;
@@ -275,6 +271,8 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 		// --------------------------------------------------------------------------------
 
+		// ## Path termination
+
 		// Apply RR
 		if (rrDepth != -1 && numPathVertices >= rrDepth)
 		{
@@ -296,7 +294,8 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 		// --------------------------------------------------------------------------------
 
-		// Sample generalized BSDF
+		// ## Sample generalized BSDF
+
 		GeneralizedBSDFSampleQuery bsdfSQ;
 		bsdfSQ.sample = sampler.NextVec2();
 		bsdfSQ.uComp = sampler.Next();
@@ -312,6 +311,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		}
 
 		v->wo = bsdfSR.wo;
+		v->componentType = bsdfSR.sampledType;
 		v->weight[transportDir]   = bsdfSR.weight[transportDir];
 		v->weight[1-transportDir] = bsdfSR.weight[1-transportDir];
 		v->pdfD[transportDir]     = bsdfSR.pdf[transportDir];
@@ -319,6 +319,8 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 
 		numPathVertices++;
 		vertices.push_back(v);
+
+		// --------------------------------------------------------------------------------
 
 		if (maxPathVertices != -1 && numPathVertices >= maxPathVertices)
 		{
