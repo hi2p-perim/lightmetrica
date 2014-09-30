@@ -209,7 +209,7 @@ public:
 		\retval true The BSDF is directionally degenerated.
 		\retval false The BSDF is not directionally degenerated.
 	*/
-	virtual bool Degenerated() const = 0;
+	//virtual bool Degenerated() const = 0;
 
 	/*!
 		Get generalized BSDF type.

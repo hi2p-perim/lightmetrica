@@ -45,6 +45,11 @@ BPTPathVertex::BPTPathVertex()
 
 }
 
+bool BPTPathVertex::Degenerated() const
+{
+	return (componentType & GeneralizedBSDFType::Specular) > 0;
+}
+
 void BPTPathVertex::DebugPrint() const
 {
 	LM_LOG_DEBUG("Type : " +

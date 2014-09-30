@@ -18,6 +18,7 @@
 #
 
 add_subdirectory("plugin.test")
+add_subdirectory("plugin.diffusemirror")
 if (MSVC)
 	add_subdirectory("plugin.embree")
 endif()

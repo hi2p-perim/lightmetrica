@@ -187,7 +187,8 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 	while (true)
 	{
-		// Skip if current BSDF is directionally degenerated
+		// Skip if current BSDF only have specular component
+		//if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::Specular) > 0)
 		if (!currBsdf->Degenerated())
 		{
 			// Sample a position on light
@@ -216,7 +217,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 					// fsE
 					bsdfEQ.transportDir = TransportDirection::EL;
-					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.type = GeneralizedBSDFType::All & ~GeneralizedBSDFType::Specular;
 					bsdfEQ.wi = currWi;
 					bsdfEQ.wo = ppL;
 					auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);

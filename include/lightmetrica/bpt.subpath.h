@@ -64,6 +64,14 @@ private:
 public:
 
 	/*!
+		Check if sampled BSDF component type is directionally degenerated.
+		e.g. specular BSDFs or directional light
+		\retval true The BSDF is directionally degenerated.
+		\retval false The BSDF is not directionally degenerated.
+	*/
+	bool Degenerated() const;
+
+	/*!
 		Debug print.
 		Prints the summary of the path vertex.
 	*/

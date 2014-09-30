@@ -237,7 +237,7 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 
 		// Both #vL and #vE must not be directionally degenerated
 		// which avoids unnecessary intersection query and BSDF evaluation
-		if (vL->bsdf->Degenerated() || vE->bsdf->Degenerated())
+		if (vL->Degenerated() || vE->Degenerated())
 		{
 			return Math::Vec3();
 		}
@@ -305,7 +305,7 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 		// regardless of no possibility to sample the path with p_i.
 		const auto* xL = FullPathVertex(i-1);
 		const auto* xE = FullPathVertex(i);
-		if (xL->bsdf->Degenerated() || xE->bsdf->Degenerated())
+		if (xL->Degenerated() || xE->Degenerated())
 		{
 			return Math::Float(0);
 		}
@@ -462,7 +462,7 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 		// which cannot be sampled by p_i
 		const auto* pi     = FullPathVertex(i-1);
 		const auto* piNext = FullPathVertex(i);
-		if (pi->bsdf->Degenerated() || piNext->bsdf->Degenerated())
+		if (pi->Degenerated() || piNext->Degenerated())
 		{
 			return true;
 		}
