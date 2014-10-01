@@ -23,7 +23,7 @@
 
 LM_NAMESPACE_BEGIN
 
-class RewindableSamplerImpl : public RewindableSampler
+class RewindableSamplerImpl final : public RewindableSampler
 {
 public:
 
@@ -31,50 +31,50 @@ public:
 
 public:
 
-	virtual Sampler* Clone() const
+	virtual Sampler* Clone() const override
 	{
 		LM_LOG_ERROR("Invalid operator for RestorableSampler");
 		return nullptr;
 	}
 
-	virtual void SetSeed( unsigned int seed )
+	virtual void SetSeed(unsigned int seed) override
 	{
 		currentIndex = 0;
 		initialSeed = seed;
 		rng->SetSeed(seed);
 	}
 
-	virtual Math::Float Next()
+	virtual Math::Float Next() override
 	{
 		currentIndex++;
 		return rng->Next();
 	}
 
-	virtual unsigned int NextUInt()
+	virtual unsigned int NextUInt() override
 	{
 		currentIndex++;
 		return rng->NextUInt();
 	}
 
-	virtual Math::Vec2 NextVec2()
+	virtual Math::Vec2 NextVec2() override
 	{
 		currentIndex += 2;
 		return rng->NextVec2();
 	}
 
-	virtual Random* Rng()
+	virtual Random* Rng() override
 	{
 		return rng.get();
 	}
 
 public:
 
-	virtual void Configure( Random* rng )
+	virtual void Configure(Random* rng) override
 	{
 		this->rng.reset(rng);
 	}
 
-	virtual void Rewind( int index )
+	virtual void Rewind(int index) override
 	{
 		// Reset the initial seed
 		currentIndex = 0;
@@ -89,7 +89,7 @@ public:
 		}
 	}
 
-	virtual int SampleIndex() const
+	virtual int SampleIndex() const override
 	{
 		return currentIndex;
 	}

@@ -155,7 +155,7 @@ struct BVHTraversalData
 	Naive bounding volume hierarchy implementation.
 	Based on pbrt's BVH implementation.
 */
-class BVHScene : public Scene
+class BVHScene final : public Scene
 {
 public:
 
@@ -167,11 +167,11 @@ public:
 
 public:
 
-	virtual bool Build();
-	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const;
-	virtual AABB GetAABBTriangles() const { return aabbTris; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void (double, bool)>& func) { return signal_ReportBuildProgress.connect(func); }
-	virtual bool Configure( const ConfigNode& node ) { return true; }
+	virtual bool Build() override;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const override;
+	virtual AABB GetAABBTriangles() const override { return aabbTris; }
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void(double, bool)>& func) override { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Configure(const ConfigNode& node) override { return true; }
 
 private:
 

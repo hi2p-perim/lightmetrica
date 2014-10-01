@@ -32,7 +32,7 @@ LM_NAMESPACE_BEGIN
 	Constant environment light.
 	Implements environment light with constant luminance.
 */
-class ConstantEnvironmentLight : public Light
+class ConstantEnvironmentLight final : public Light
 {
 public:
 
@@ -45,31 +45,30 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return false; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::LightDirection; }
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::LightDirection; }
 
 public:
 
-	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
-	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
-	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) {}
-	virtual void PostConfigure( const Scene& scene );
-	virtual EmitterShape* CreateEmitterShape() const;
-	virtual AABB GetAABB() const;
+	virtual void SamplePosition(const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf) const override;
+	virtual Math::Vec3 EvaluatePosition(const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluatePositionPDF(const SurfaceGeometry& geom) const override;
+	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) override {}
+	virtual void PostConfigure(const Scene& scene) override;
+	virtual EmitterShape* CreateEmitterShape() const override;
+	virtual AABB GetAABB() const override;
 
 public:
 
-	virtual bool EnvironmentLight() const { return true; }
+	virtual bool EnvironmentLight() const override { return true; }
 
 private:
 

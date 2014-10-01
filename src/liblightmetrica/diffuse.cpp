@@ -33,7 +33,7 @@ LM_NAMESPACE_BEGIN
 	Diffuse BSDF.
 	Implements the diffuse BSDF.
 */
-class DiffuseBSDF : public BSDF
+class DiffuseBSDF final : public BSDF
 {
 public:
 
@@ -46,17 +46,16 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return false; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::DiffuseReflection; }
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::DiffuseReflection; }
 
 private:
 
@@ -109,7 +108,7 @@ bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
 bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
@@ -125,7 +124,7 @@ bool DiffuseBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, cons
 Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -151,7 +150,7 @@ Math::Vec3 DiffuseBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQ
 bool DiffuseBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
@@ -185,7 +184,7 @@ Math::Vec3 DiffuseBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& q
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -203,7 +202,7 @@ Math::PDFEval DiffuseBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQu
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

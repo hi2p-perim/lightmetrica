@@ -34,7 +34,7 @@ struct PSSMLTPrimarySample
 	long long modify;		//!< Last modified time
 };
 
-class PSSMLTPrimarySamplerImpl : public PSSMLTPrimarySampler
+class PSSMLTPrimarySamplerImpl final : public PSSMLTPrimarySampler
 {
 public:
 
@@ -42,13 +42,13 @@ public:
 
 public:
 
-	virtual Sampler* Clone() const
+	virtual Sampler* Clone() const override
 	{
 		LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySampler");
 		return nullptr;
 	}
 
-	virtual void SetSeed( unsigned int seed )
+	virtual void SetSeed(unsigned int seed) override
 	{
 		time = 0;
 		largeStepTime = 0;
@@ -57,32 +57,32 @@ public:
 		rng->SetSeed(seed);
 	}
 
-	virtual Math::Float Next()
+	virtual Math::Float Next() override
 	{
 		return PrimarySample(currentIndex++);
 	}
 
-	virtual unsigned int NextUInt()
+	virtual unsigned int NextUInt() override
 	{
 		LM_LOG_ERROR("Invalid operator for PSSMLTPrimarySampler");
 		return 0;
 	}
 
-	virtual Math::Vec2 NextVec2()
+	virtual Math::Vec2 NextVec2() override
 	{
 		auto u1 = Next();
 		auto u2 = Next();
 		return Math::Vec2(u1, u2);
 	}
 
-	virtual Random* Rng()
+	virtual Random* Rng() override
 	{
 		return managedRng.get();
 	}
 
 public:
 
-	virtual void Configure( Random* rng, const Math::Float& s1, const Math::Float& s2 )
+	virtual void Configure(Random* rng, const Math::Float& s1, const Math::Float& s2) override
 	{
 		this->s1 = s1;
 		this->s2 = s2;
@@ -95,7 +95,7 @@ public:
 		currentIndex = 0;
 	}
 
-	virtual void Accept()
+	virtual void Accept() override
 	{
 		if (enableLargeStep)
 		{
@@ -108,7 +108,7 @@ public:
 		currentIndex = 0;
 	}
 
-	virtual void Reject()
+	virtual void Reject() override
 	{
 		// Restore samples
 		for (auto& v : prevSamples)
@@ -122,30 +122,30 @@ public:
 		currentIndex = 0;
 	}
 
-	virtual void EnableLargeStepMutation( bool enable )
+	virtual void EnableLargeStepMutation(bool enable) override
 	{
 		enableLargeStep = enable;
 	}
 
-	virtual bool LargeStepMutation() const
+	virtual bool LargeStepMutation() const override
 	{
 		return enableLargeStep;
 	}
 
-	virtual void BeginRestore( RewindableSampler& rewindableSampler )
+	virtual void BeginRestore(RewindableSampler& rewindableSampler) override
 	{
 		// Replace current RNG and get ready
 		// to restore sampled state as primary samples
 		rng = rewindableSampler.Rng();
 	}
 
-	virtual void EndRestore()
+	virtual void EndRestore() override
 	{
 		// Restore RNG
 		rng = managedRng.get();
 	}
 
-	virtual void GetCurrentSampleState( std::vector<Math::Float>& samples ) const
+	virtual void GetCurrentSampleState(std::vector<Math::Float>& samples) const override
 	{
 		samples.clear();
 		for (auto& sample : u)
@@ -154,7 +154,7 @@ public:
 		}
 	}
 
-	virtual void GetCurrentSampleState( std::vector<Math::Float>& samples, int numSamples )
+	virtual void GetCurrentSampleState(std::vector<Math::Float>& samples, int numSamples) override
 	{
 		samples.clear();
 		for (int i = 0; i < numSamples; i++)

@@ -26,11 +26,6 @@
 
 LM_NAMESPACE_BEGIN
 
-class ConfigNode;
-class Assets;
-class Renderer;
-class Scene;
-
 /*!
 	Termination mode.
 	Describes the termination mode of rendering.
@@ -40,6 +35,13 @@ enum class TerminationMode
 	Samples,			//!< Terminate after specified number of samples.
 	Time,				//!< Terminate after specified time.
 };
+
+// --------------------------------------------------------------------------------
+
+class ConfigNode;
+class Assets;
+class Renderer;
+class Scene;
 
 /*!
 	Render process scheduler.
@@ -97,6 +99,30 @@ public:
 		\param func Slot function.
 	*/
 	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) = 0;
+
+};
+
+// --------------------------------------------------------------------------------
+
+/*!
+	Sampling based render process scheduler.
+	A base class for Render process scheduler for sampling-based rendering techniques.
+*/
+class SamplingBasedRenderProcessScheduler : public RenderProcessScheduler
+{
+public:
+
+	SamplingBasedRenderProcessScheduler() {}
+	virtual ~SamplingBasedRenderProcessScheduler();
+
+private:
+
+	/*!
+		Get number of samples.
+		This function is valid only if the termination mode is \a Samples.
+		\return Number of samples.
+	*/
+	virtual long long NumSamples() const = 0;
 
 };
 

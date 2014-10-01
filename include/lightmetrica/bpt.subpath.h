@@ -99,8 +99,8 @@ public:
 	TransportDirection transportDir;		//!< Transport direction
 	int componentType;						//!< Sampled component type
 	const GeneralizedBSDF* bsdf;			//!< Generalized BSDF (note that BSDF and light or camera can point to different instances).
-	const Light* areaLight;					//!< Light associated with surface
-	const Camera* areaCamera;				//!< Camera associated with surface
+	const Light* areaL;						//!< Light associated with surface
+	const Camera* areaE;					//!< Camera associated with surface
 	Math::Vec3 wi;							//!< Incoming ray direction
 	Math::Vec3 wo;							//!< Outgoing ray direction
 

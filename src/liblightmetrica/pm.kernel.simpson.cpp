@@ -27,7 +27,7 @@ LM_NAMESPACE_BEGIN
 	Simpson's kernel.
 	Photon density estimation kernel implementation with Simpson's kernel.
 */
-class SimpsonPDEKernel : public PhotonDensityEstimationKernel
+class SimpsonPDEKernel final : public PhotonDensityEstimationKernel
 {
 public:
 
@@ -35,7 +35,7 @@ public:
 
 public:
 
-	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
+	virtual Math::Float Evaluate(const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2) const override
 	{
 		auto s = Math::Float(1) - Math::Length2(photon.p - p) / maxDist2;
 		return Math::Float(3) * Math::Constants::InvPi() * s * s;

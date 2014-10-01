@@ -42,7 +42,7 @@ LM_NAMESPACE_BEGIN
 	Bidirectional path tracing sampler.
 	Implements path sampler for PSSMLT with BPT.
 */
-class PSSMLTBPTPathSampler : public PSSMLTPathSampler
+class PSSMLTBPTPathSampler final : public PSSMLTPathSampler
 {
 public:
 
@@ -54,11 +54,11 @@ public:
 
 public:
 
-	virtual bool Configure( const ConfigNode& node, const Assets& assets );
-	virtual PSSMLTPathSampler* Clone() const;
-	virtual void SampleAndEvaluate( const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
-	virtual void SampleAndEvaluateBidir( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices );
-	virtual void SampleAndEvaluateBidirSpecified( const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t );
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override;
+	virtual PSSMLTPathSampler* Clone() const override;
+	virtual void SampleAndEvaluate(const Scene& scene, Sampler& sampler, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) override;
+	virtual void SampleAndEvaluateBidir(const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplats& splats, int rrDepth, int maxPathVertices) override;
+	virtual void SampleAndEvaluateBidirSpecified(const Scene& scene, Sampler& subpathSamplerL, Sampler& subpathSamplerE, PSSMLTSplat& splat, int rrDepth, int maxPathVertices, int s, int t) override;
 
 private:
 

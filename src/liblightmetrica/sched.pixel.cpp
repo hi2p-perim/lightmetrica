@@ -38,7 +38,7 @@ LM_NAMESPACE_BEGIN
 	We note that this scheduler requires DeterministicPixelBasedRenderProcess.
 	\sa DeterministicPixelBasedRenderProcess.
 */
-class DeterministicMTRenderProcessScheduler : public RenderProcessScheduler
+class DeterministicMTRenderProcessScheduler final : public RenderProcessScheduler
 {
 public:
 
@@ -46,10 +46,10 @@ public:
 
 public:
 
-	virtual bool Configure(const ConfigNode& node, const Assets& assets);
-	virtual void SetTerminationMode(TerminationMode mode, double time) {}
-	virtual bool Render(Renderer& renderer, const Scene& scene) const;
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override;
+	virtual void SetTerminationMode(TerminationMode mode, double time) override {}
+	virtual bool Render(Renderer& renderer, const Scene& scene) const override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 

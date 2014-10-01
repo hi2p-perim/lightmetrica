@@ -44,7 +44,7 @@ LM_NAMESPACE_BEGIN
 		J. T. Kajiya, The rendering equation,
 		Procs. of the 13th annual conference on Computer graphics and interactive techniques, 1986,
 */
-class PathtraceRenderer : public Renderer
+class PathtraceRenderer final : public Renderer
 {
 private:
 
@@ -56,12 +56,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -119,7 +119,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool PathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);

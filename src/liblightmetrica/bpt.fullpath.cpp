@@ -47,13 +47,13 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		// Compute #pdfDE[LE]
 		auto* z		= eyeSubpath.vertices[t-1];
 		auto* zPrev	= eyeSubpath.vertices[t-2];		// Always non-null because t >= 2
-		if (z->areaLight && !zPrev->geom.degenerated)
+		if (z->areaL && !zPrev->geom.degenerated)
 		{
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
 			bsdfEQ.transportDir = TransportDirection::LE;
 			bsdfEQ.type = GeneralizedBSDFType::LightDirection;
 			bsdfEQ.wo = z->wi;
-			pdfDE[TransportDirection::LE] = z->areaLight->EvaluateDirectionPDF(bsdfEQ, z->geom);
+			pdfDE[TransportDirection::LE] = z->areaL->EvaluateDirectionPDF(bsdfEQ, z->geom);
 		}
 		else
 		{
@@ -65,13 +65,13 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		// Compute #pdfDL[EL]
 		auto* y		= lightSubpath.vertices[s-1];
 		auto* yPrev	= lightSubpath.vertices[s-2];
-		if (y->areaCamera && !yPrev->geom.degenerated)
+		if (y->areaE && !yPrev->geom.degenerated)
 		{
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
 			bsdfEQ.transportDir = TransportDirection::EL;
 			bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
 			bsdfEQ.wo = y->wi;
-			pdfDL[TransportDirection::EL] = y->areaCamera->EvaluateDirectionPDF(bsdfEQ, y->geom);
+			pdfDL[TransportDirection::EL] = y->areaE->EvaluateDirectionPDF(bsdfEQ, y->geom);
 		}
 		else
 		{
@@ -86,7 +86,7 @@ BPTFullPath::BPTFullPath( int s, int t, const BPTSubpath& lightSubpath, const BP
 		auto* zPrev = t > 1 ? eyeSubpath.vertices[t-2] : nullptr;
 
 		GeneralizedBSDFEvaluateQuery bsdfEQ;
-		bsdfEQ.type = GeneralizedBSDFType::All;
+		bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 
 		auto yz = Math::Normalize(z->geom.p - y->geom.p);
 		auto zy = -yz;
@@ -190,43 +190,43 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 	{
 		// z_{t-1} is area light
 		const auto* v = eyeSubpath.vertices[t-1];
-		if (v->areaLight)
+		if (v->areaL)
 		{
 			// Camera emitter cannot be an light
 			LM_ASSERT(t >= 1);
 
 			// Evaluate Le^0(z_{t-1})
-			cst = v->areaLight->EvaluatePosition(v->geom);
+			cst = v->areaL->EvaluatePosition(v->geom);
 
 			// Evaluate Le^1(z_{t-1}\to z_{t-2})
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
 			bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
 			bsdfEQ.transportDir = TransportDirection::LE;
 			bsdfEQ.wo = v->wi;
-			cst *= v->areaLight->EvaluateDirection(bsdfEQ, v->geom);
+			cst *= v->areaL->EvaluateDirection(bsdfEQ, v->geom);
 		}
 	}
 	else if (s > 0 && t == 0)
 	{
 		// y_{s-1} is area camera
 		const auto* v = lightSubpath.vertices[s-1];
-		if (v->areaCamera)
+		if (v->areaE)
 		{
 			// Light emitter cannot be an camera
 			LM_ASSERT(s >= 1);
 
 			// Raster position
-			if (v->areaCamera->RayToRasterPosition(v->geom.p, v->wi, rasterPosition))
+			if (v->areaE->RayToRasterPosition(v->geom.p, v->wi, rasterPosition))
 			{
 				// Evaluate We^0(y_{s-1})
-				cst = v->areaCamera->EvaluatePosition(v->geom);
+				cst = v->areaE->EvaluatePosition(v->geom);
 
 				// Evaluate We^1(y_{s-1}\to y_{s-2})
 				GeneralizedBSDFEvaluateQuery bsdfEQ;
 				bsdfEQ.type = GeneralizedBSDFType::AllEmitter;
 				bsdfEQ.transportDir = TransportDirection::EL;
 				bsdfEQ.wo = v->wi;
-				cst *= v->areaCamera->EvaluateDirection(bsdfEQ, v->geom);
+				cst *= v->areaE->EvaluateDirection(bsdfEQ, v->geom);
 			}
 		}
 	}
@@ -237,7 +237,8 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 
 		// Both #vL and #vE must not be directionally degenerated
 		// which avoids unnecessary intersection query and BSDF evaluation
-		if (vL->Degenerated() || vE->Degenerated())
+		if ((vL->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0 || 
+			(vE->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0)
 		{
 			return Math::Vec3();
 		}
@@ -262,7 +263,7 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 		if (visible && !scene.Intersect(shadowRay, shadowIsect))
 		{			
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
-			bsdfEQ.type = GeneralizedBSDFType::All;
+			bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 
 			// fsL
 			bsdfEQ.transportDir = TransportDirection::LE;
@@ -443,7 +444,7 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 	if (i == 0)
 	{
 		const auto* p0 = FullPathVertex(0);
-		if (p0->areaLight == nullptr || p0->geom.degenerated)
+		if (p0->areaL == nullptr || p0->geom.degenerated)
 		{
 			return true;
 		}
@@ -451,7 +452,7 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 	else if (i == n)
 	{
 		const auto* pn = FullPathVertex(n-1);
-		if (pn->areaCamera == nullptr || pn->geom.degenerated)
+		if (pn->areaE == nullptr || pn->geom.degenerated)
 		{
 			return true;
 		}

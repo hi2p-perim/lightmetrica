@@ -20,6 +20,7 @@
 #include "pch.h"
 #include <lightmetrica/renderer.h>
 #include <lightmetrica/renderproc.h>
+#include <lightmetrica/sched.h>
 #include <lightmetrica/bpt.subpath.h>
 #include <lightmetrica/bpt.fullpath.h>
 #include <lightmetrica/bpt.pool.h>
@@ -54,7 +55,7 @@ LM_NAMESPACE_BEGIN
 		E. Veach and L. Guibas, Bidirectional estimators for light transport,
 		Procs. of the Fifth Eurographics Workshop on Rendering, pp.147-162, 1994.
 */
-class BidirectionalPathtraceRenderer : public Renderer
+class BidirectionalPathtraceRenderer final : public Renderer
 {
 private:
 
@@ -66,12 +67,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene);
-	virtual bool Postprocess(const Scene& scene) const;
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -101,10 +102,8 @@ private:
 
 private:
 
-#if 0
 #if LM_EXPERIMENTAL_MODE
 	DefaultExperiments expts;	// Experiments manager
-#endif
 #endif
 
 };
@@ -116,7 +115,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class BidirectionalPathtraceRenderer_RenderProcess : public SamplingBasedRenderProcess
+class BidirectionalPathtraceRenderer_RenderProcess final : public SamplingBasedRenderProcess
 {
 public:
 
@@ -136,8 +135,8 @@ private:
 
 public:
 
-	virtual void ProcessSingleSample(const Scene& scene);
-	virtual const Film* GetFilm() const { return film.get(); }
+	virtual void ProcessSingleSample(const Scene& scene) override;
+	virtual const Film* GetFilm() const override { return film.get(); }
 
 private:
 
@@ -157,7 +156,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool BidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool BidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -220,7 +219,6 @@ bool BidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Ass
 	}
 #endif
 
-#if 0
 #if LM_EXPERIMENTAL_MODE
 	auto experimentsNode = node.Child("experiments");
 	if (!experimentsNode.Empty())
@@ -233,20 +231,13 @@ bool BidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Ass
 			LM_LOG_ERROR("Failed to configure experiments");
 			return false;
 		}
-
-		if (numThreads != 1)
-		{
-			LM_LOG_WARN("Number of thread must be 1 in experimental mode, forced 'num_threads' to 1");
-			numThreads = 1;
-		}
 	}
-#endif
 #endif
 
 	return true;
 }
 
-bool BidirectionalPathtraceRenderer::Preprocess(const Scene& scene)
+bool BidirectionalPathtraceRenderer::Preprocess(const Scene& scene, const RenderProcessScheduler& sched)
 {
 	signal_ReportProgress(1, true);
 
@@ -254,6 +245,7 @@ bool BidirectionalPathtraceRenderer::Preprocess(const Scene& scene)
 	// Initialize films for sub-path combinations
 	if (enableExperimentalMode)
 	{
+		const auto* masterFilm = scene.MainCamera()->GetFilm();
 		for (int s = 0; s <= maxSubpathNumVertices; s++)
 		{
 			for (int t = 0; t <= maxSubpathNumVertices; t++)
@@ -270,7 +262,7 @@ bool BidirectionalPathtraceRenderer::Preprocess(const Scene& scene)
 	return true;
 }
 
-bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene) const
+bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const
 {
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	if (enableExperimentalMode)
@@ -423,7 +415,8 @@ void BidirectionalPathtraceRenderer_RenderProcess::ProcessSingleSample(const Sce
 #endif
 
 			// Evaluate contribution C_{s,t} and record to the film
-			film->AccumulateContribution(rasterPosition, w * Cstar);
+			auto C = w * Cstar;
+			film->AccumulateContribution(rasterPosition, C);
 
 #if LM_ENABLE_BPT_EXPERIMENTAL
 			// Accumulate contribution to per length image

@@ -37,7 +37,7 @@ LM_NAMESPACE_BEGIN
 	A scene accelerated with Embree, high-performance ray tracing kernels:
 	http://embree.github.io/
 */
-class EmbreeScene : public Scene
+class EmbreeScene final : public Scene
 {
 public:
 
@@ -46,15 +46,15 @@ public:
 public:
 
 	EmbreeScene();
-	~EmbreeScene();
+	virtual ~EmbreeScene() override;
 
 public:
 
-	virtual bool Configure( const ConfigNode& node ) { return true; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
-	virtual bool Build();
-	virtual bool IntersectTriangles( Ray& ray, Intersection& isect ) const;
-	virtual AABB GetAABBTriangles() const { return aabbTris; }
+	virtual bool Configure(const ConfigNode& node) override { return true; }
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void(double, bool) >& func) override { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Build() override;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const override;
+	virtual AABB GetAABBTriangles() const override { return aabbTris; }
 
 public:
 

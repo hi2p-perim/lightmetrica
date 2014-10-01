@@ -339,7 +339,7 @@ enum class QBVHIntersectionMode
 	- LuxRender's QBVHAccel
 	- http://d.hatena.ne.jp/ototoi/20090925/p1
 */
-class QBVHScene : public Scene
+class QBVHScene final : public Scene
 {
 public:
 
@@ -351,11 +351,11 @@ public:
 
 public:
 
-	virtual bool Build();
-	virtual bool IntersectTriangles( Ray& ray, Intersection& isect ) const;
-	virtual AABB GetAABBTriangles() const { return aabbTris; }
-	virtual boost::signals2::connection Connect_ReportBuildProgress( const std::function<void (double, bool ) >& func) { return signal_ReportBuildProgress.connect(func); }
-	virtual bool Configure( const ConfigNode& node );
+	virtual bool Build() override;
+	virtual bool IntersectTriangles(Ray& ray, Intersection& isect) const override;
+	virtual AABB GetAABBTriangles() const override { return aabbTris; }
+	virtual boost::signals2::connection Connect_ReportBuildProgress(const std::function<void(double, bool) >& func) override { return signal_ReportBuildProgress.connect(func); }
+	virtual bool Configure(const ConfigNode& node) override;
 
 private:
 

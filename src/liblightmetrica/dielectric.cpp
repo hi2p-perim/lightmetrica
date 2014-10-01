@@ -30,7 +30,7 @@ LM_NAMESPACE_BEGIN
 	Dielectric BSDF.
 	Implements dielectric BSDF.
 */
-class DielectricBSDF : public BSDF
+class DielectricBSDF final : public BSDF
 {
 public:
 
@@ -47,13 +47,12 @@ public:
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return true; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::Specular; }
+	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::Specular; }
 
 private:
 
@@ -80,7 +79,7 @@ bool DielectricBSDF::Load( const ConfigNode& node, const Assets& assets )
 
 bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	if ((query.type & BSDFTypes()) == 0)
 	{
 		return false;
 	}
@@ -126,7 +125,7 @@ bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 
 Math::Vec3 DielectricBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	if ((query.type & BSDFTypes()) == 0)
 	{
 		return Math::Vec3();
 	}
@@ -203,7 +202,7 @@ Math::Vec3 DielectricBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSamp
 
 bool DielectricBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || (query.type & GeneralizedBSDFType::SpecularTransmission) == 0)
+	if ((query.type & BSDFTypes()) == 0)
 	{
 		return false;
 	}

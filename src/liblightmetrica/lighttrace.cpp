@@ -47,7 +47,7 @@ LM_NAMESPACE_BEGIN
 		J. Arvo and D. Kirk, Particle transport and image synthesis,
 		Computer Graphics (Procs. of SIGGRAPH 90), 24, 4, pp.63-66, 1990.
 */
-class LighttraceRenderer : public Renderer
+class LighttraceRenderer final : public Renderer
 {
 private:
 
@@ -59,12 +59,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -121,7 +121,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool LighttraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool LighttraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
@@ -196,7 +196,7 @@ void LighttraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 	while (true)
 	{
 		// Skip if current BSDF is directionally degenerated
-		if (!currBsdf->Degenerated())
+		if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
 			// Sample a position on camera
 			SurfaceGeometry geomE;
@@ -215,14 +215,14 @@ void LighttraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 					// fsL
 					bsdfEQ.transportDir = TransportDirection::LE;
-					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 					bsdfEQ.wi = currWi;
 					bsdfEQ.wo = ppE;
 					auto fsL = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
 
 					// fsE
 					bsdfEQ.transportDir = TransportDirection::EL;
-					bsdfEQ.type = GeneralizedBSDFType::EyeDirection;
+					bsdfEQ.type = GeneralizedBSDFType::NonDeltaEyeDirection;
 					bsdfEQ.wo = -ppE;
 					auto fsE = scene.MainCamera()->EvaluateDirection(bsdfEQ, geomE);
 

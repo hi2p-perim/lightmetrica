@@ -39,15 +39,15 @@ BPTPathVertex::BPTPathVertex()
 	: type(BPTPathVertexType::None)
 	, emitter(nullptr)
 	, bsdf(nullptr)
-	, areaLight(nullptr)
-	, areaCamera(nullptr)
+	, areaL(nullptr)
+	, areaE(nullptr)
 {
 
 }
 
 bool BPTPathVertex::Degenerated() const
 {
-	return (componentType & GeneralizedBSDFType::Specular) > 0;
+	return (componentType & GeneralizedBSDFType::Delta) > 0;
 }
 
 void BPTPathVertex::DebugPrint() const
@@ -171,7 +171,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		v->emitter->SamplePosition(sampler.NextVec2(), v->geom, v->pdfP);
 		if (!v->geom.degenerated)
 		{
-			v->areaCamera = dynamic_cast<const Camera*>(v->emitter);
+			v->areaE = dynamic_cast<const Camera*>(v->emitter);
 		}
 	}
 	else
@@ -183,7 +183,7 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		v->pdfP.v *= lightSelectionPdf.v;
 		if (!v->geom.degenerated)
 		{
-			v->areaLight = dynamic_cast<const Light*>(v->emitter);
+			v->areaL = dynamic_cast<const Light*>(v->emitter);
 		}
 	}
 
@@ -250,18 +250,18 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		v->wi = -pv->wo;
 
 		// Area light or camera
-		v->areaLight = isect.primitive->light;
-		v->areaCamera = isect.primitive->camera;
+		v->areaL = isect.primitive->light;
+		v->areaE = isect.primitive->camera;
 
 		// Area light or camera should not be associated with the same surfaces
-		LM_ASSERT(v->areaLight == nullptr || v->areaCamera == nullptr);
-		if (v->areaLight)
+		LM_ASSERT(v->areaL == nullptr || v->areaE == nullptr);
+		if (v->areaL)
 		{
-			v->emitter = v->areaLight;
+			v->emitter = v->areaL;
 		}
-		if (v->areaCamera)
+		if (v->areaE)
 		{
-			v->emitter = v->areaCamera;
+			v->emitter = v->areaE;
 		}
 		if (v->emitter)
 		{

@@ -31,7 +31,7 @@ LM_NAMESPACE_BEGIN
 	Bitmap texture.
 	Implements a bitmap texture.
 */
-class DefaultBitmapTexture : public BitmapTexture
+class DefaultBitmapTexture final : public BitmapTexture
 {
 public:
 
@@ -44,16 +44,16 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool Load(const std::string& path, bool verticalFlip);
-	virtual const BitmapImage& Bitmap() const { return bitmap; }
+	virtual bool Load(const std::string& path, bool verticalFlip) override;
+	virtual const BitmapImage& Bitmap() const override { return bitmap; }
 
 public:
 
-	virtual Math::Vec3 Evaluate( const Math::Vec2& uv ) const;
+	virtual Math::Vec3 Evaluate(const Math::Vec2& uv) const override;
 
 public:
 

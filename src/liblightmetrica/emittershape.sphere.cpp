@@ -32,7 +32,7 @@ LM_NAMESPACE_BEGIN
 	Sphere for emitter shape.
 	Spheres associated with environment light emitter or directional light emitter.
 */
-class SphereEmitterShape : public EmitterShape
+class SphereEmitterShape final : public EmitterShape
 {
 public:
 
@@ -40,10 +40,10 @@ public:
 
 public:
 
-	virtual bool Configure( std::map<std::string, boost::any>& params );
-	virtual bool Intersect( Ray& ray, Math::Float& t ) const;
-	virtual void StoreIntersection( const Ray& ray, Intersection& isect ) const;
-	virtual AABB GetAABB() const;
+	virtual bool Configure(std::map<std::string, boost::any>& params) override;
+	virtual bool Intersect(Ray& ray, Math::Float& t) const override;
+	virtual void StoreIntersection(const Ray& ray, Intersection& isect) const override;
+	virtual AABB GetAABB() const override;
 
 public:
 

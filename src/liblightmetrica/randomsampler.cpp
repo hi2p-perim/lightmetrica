@@ -31,7 +31,7 @@ LM_NAMESPACE_BEGIN
 	A sampler implementation with simple random number generation.
 	This implementation simply routes random number generator.
 */
-class RandomSampler : public ConfigurableSampler
+class RandomSampler final : public ConfigurableSampler
 {
 public:
 
@@ -39,7 +39,7 @@ public:
 
 public:
 
-	virtual bool Configure( const ConfigNode& node, const Assets& assets )
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override
 	{
 		// Load parameters
 		std::string rngType;
@@ -64,7 +64,7 @@ public:
 		return true;
 	}
 
-	virtual Sampler* Clone() const
+	virtual Sampler* Clone() const override
 	{
 		auto* sampler = new RandomSampler;
 		sampler->rng.reset(ComponentFactory::Create<Random>(rng->ComponentImplTypeName()));
@@ -72,28 +72,28 @@ public:
 		return sampler;
 	}
 
-	virtual void SetSeed( unsigned int seed )
+	virtual void SetSeed(unsigned int seed) override
 	{
 		initialSeed = seed;
 		rng->SetSeed(initialSeed);
 	}
 
-	virtual Math::Float Next()
+	virtual Math::Float Next() override
 	{
 		return rng->Next();
 	}
 
-	virtual unsigned int NextUInt()
+	virtual unsigned int NextUInt() override
 	{
 		return rng->NextUInt();
 	}
 
-	virtual Math::Vec2 NextVec2()
+	virtual Math::Vec2 NextVec2() override
 	{
 		return rng->NextVec2();
 	}
 
-	virtual Random* Rng()
+	virtual Random* Rng() override
 	{
 		return rng.get();
 	}

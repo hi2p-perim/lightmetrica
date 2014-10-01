@@ -35,7 +35,7 @@
 
 LM_NAMESPACE_BEGIN
 
-class PrimitivesImpl : public Primitives
+class PrimitivesImpl final : public Primitives
 {
 public:
 
@@ -47,17 +47,17 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
-	virtual bool PostConfigure( const Scene& scene );
-	virtual bool IntersectEmitterShapes( Ray& ray, Intersection& isect ) const;
-	virtual AABB GetAABBEmitterShapes() const;
-	virtual void Reset();
-	virtual int NumPrimitives() const										{ return static_cast<int>(primitives.size()); }
-	virtual const Primitive* PrimitiveByIndex( int index ) const			{ return index < static_cast<int>(primitives.size()) ? primitives[index].get() : nullptr; }
-	virtual const Primitive* PrimitiveByID( const std::string& id ) const	{ return idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end() ? primitives[idPrimitiveIndexMap.at(id)].get() : nullptr; }
-	virtual const Camera* MainCamera() const								{ return mainCamera; }
-	virtual int NumLights() const											{ return static_cast<int>(lights.size()); }
-	virtual const Light* LightByIndex( int index ) const					{ return index < static_cast<int>(lights.size()) ? lights[index] : nullptr; }
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
+	virtual bool PostConfigure(const Scene& scene) override;
+	virtual bool IntersectEmitterShapes(Ray& ray, Intersection& isect) const override;
+	virtual AABB GetAABBEmitterShapes() const override;
+	virtual void Reset() override;
+	virtual int NumPrimitives() const override										{ return static_cast<int>(primitives.size()); }
+	virtual const Primitive* PrimitiveByIndex(int index) const override				{ return index < static_cast<int>(primitives.size()) ? primitives[index].get() : nullptr; }
+	virtual const Primitive* PrimitiveByID(const std::string& id) const override	{ return idPrimitiveIndexMap.find(id) != idPrimitiveIndexMap.end() ? primitives[idPrimitiveIndexMap.at(id)].get() : nullptr; }
+	virtual const Camera* MainCamera() const override								{ return mainCamera; }
+	virtual int NumLights() const override											{ return static_cast<int>(lights.size()); }
+	virtual const Light* LightByIndex(int index) const override						{ return index < static_cast<int>(lights.size()) ? lights[index] : nullptr; }
 
 private:
 

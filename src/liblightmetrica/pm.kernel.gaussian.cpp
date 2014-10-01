@@ -27,7 +27,7 @@ LM_NAMESPACE_BEGIN
 	Gaussian filter.
 	Photon density estimation kernel implementation with Gaussian filter.
 */
-class GaussianFilterPDEKernel : public PhotonDensityEstimationKernel
+class GaussianFilterPDEKernel final : public PhotonDensityEstimationKernel
 {
 public:
 
@@ -35,7 +35,7 @@ public:
 
 public:
 
-	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
+	virtual Math::Float Evaluate(const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2) const override
 	{
 		const auto Alpha = Math::Float(1.818);
 		const auto Beta = Math::Float(1.953);

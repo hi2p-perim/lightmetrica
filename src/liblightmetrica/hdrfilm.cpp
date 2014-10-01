@@ -31,7 +31,7 @@ LM_NAMESPACE_BEGIN
 	High dynamic range bitmap film.
 	Implements HDR version of bitmap image recording.
 */
-class HDRBitmapFilm : public BitmapFilm
+class HDRBitmapFilm final : public BitmapFilm
 {
 public:
 
@@ -44,27 +44,27 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 	
 public:
 
-	virtual int Width() const { return width; }
-	virtual int Height() const { return height; }
-	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb);
-	virtual void AccumulateContribution( const Math::Vec2& rasterPos, const Math::Vec3& contrb );
-	virtual void AccumulateContribution( const Film& film );
-	virtual void Rescale( const Math::Float& weight );
-	virtual Film* Clone() const;
-	virtual void Clear();
+	virtual int Width() const override { return width; }
+	virtual int Height() const override { return height; }
+	virtual void RecordContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) override;
+	virtual void AccumulateContribution(const Math::Vec2& rasterPos, const Math::Vec3& contrb) override;
+	virtual void AccumulateContribution(const Film& film) override;
+	virtual void Rescale(const Math::Float& weight) override;
+	virtual Film* Clone() const override;
+	virtual void Clear() override;
 
 public:
 
-	virtual bool Save(const std::string& path) const { return RescaleAndSave(path, Math::Float(1)); }
-	virtual bool RescaleAndSave( const std::string& path, const Math::Float& weight ) const;
-	virtual void Allocate(int width, int height);
-	virtual void SetImageType(BitmapImageType type) { this->type = type; }
-	virtual BitmapImageType ImageType() const { return type; }
-	virtual BitmapImage& Bitmap() { return bitmap; }
+	virtual bool Save(const std::string& path) const override { return RescaleAndSave(path, Math::Float(1)); }
+	virtual bool RescaleAndSave(const std::string& path, const Math::Float& weight) const override;
+	virtual void Allocate(int width, int height) override;
+	virtual void SetImageType(BitmapImageType type) override { this->type = type; }
+	virtual BitmapImageType ImageType() const override { return type; }
+	virtual BitmapImage& Bitmap() override { return bitmap; }
 
 public:
 

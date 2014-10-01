@@ -46,7 +46,7 @@ LM_NAMESPACE_BEGIN
 	Implements path tracing using multiple importance sampling with
 	BSDF sampling and direct light sampling.
 */
-class MISPathtraceRenderer : public Renderer
+class MISPathtraceRenderer final : public Renderer
 {
 private:
 
@@ -58,12 +58,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -121,7 +121,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool MISPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool MISPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -185,7 +185,7 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 	while (true)
 	{
 		// Skip if current BSDF is directionally degenerated
-		if (!currBsdf->Degenerated())
+		if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
 			// Sample a position on light
 			SurfaceGeometry geomL;
@@ -213,14 +213,14 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 					// fsE
 					bsdfEQ.transportDir = TransportDirection::EL;
-					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 					bsdfEQ.wi = currWi;
 					bsdfEQ.wo = ppL;
 					auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);
 
 					// fsL
 					bsdfEQ.transportDir = TransportDirection::LE;
-					bsdfEQ.type = GeneralizedBSDFType::LightDirection;
+					bsdfEQ.type = GeneralizedBSDFType::NonDeltaLightDirection;
 					bsdfEQ.wo = -ppL;
 					auto fsL = light->EvaluateDirection(bsdfEQ, geomL);
 
@@ -238,7 +238,7 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 						// PDF for BSDF sampling (in projected solid angle measure)
 						bsdfEQ.transportDir = TransportDirection::EL;
-						bsdfEQ.type = GeneralizedBSDFType::All;
+						bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 						bsdfEQ.wi = currWi;
 						bsdfEQ.wo = ppL;
 						auto pdfD_BSDF = currBsdf->EvaluateDirectionPDF(bsdfEQ, currGeom).v;

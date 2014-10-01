@@ -29,7 +29,7 @@ LM_NAMESPACE_BEGIN
 	Perfect mirror BSDF.
 	Implements perfect mirror BSDF.
 */
-class PerfectMirrorBSDF : public BSDF
+class PerfectMirrorBSDF final : public BSDF
 {
 public:
 
@@ -42,17 +42,17 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return true; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::SpecularReflection; }
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual bool Degenerated() const override { return true; }
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::SpecularReflection; }
 
 private:
 
@@ -69,7 +69,7 @@ bool PerfectMirrorBSDF::Load( const ConfigNode& node, const Assets& assets )
 bool PerfectMirrorBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
@@ -85,7 +85,7 @@ bool PerfectMirrorBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query
 Math::Vec3 PerfectMirrorBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -110,7 +110,7 @@ Math::Vec3 PerfectMirrorBSDF::SampleAndEstimateDirection( const GeneralizedBSDFS
 bool PerfectMirrorBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
 {
 	auto localWi = geom.worldToShading * query.wi;
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0)
 	{
 		return false;
 	}
@@ -143,7 +143,7 @@ Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -181,7 +181,7 @@ Math::PDFEval PerfectMirrorBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEval
 {
 	auto localWi = geom.worldToShading * query.wi;
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::SpecularReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

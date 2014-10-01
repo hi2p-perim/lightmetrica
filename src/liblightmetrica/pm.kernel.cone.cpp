@@ -27,7 +27,7 @@ LM_NAMESPACE_BEGIN
 	Cone filter.
 	Photon density estimation kernel implementation with Cone filter.
 */
-class ConeFilterPDEKernel : public PhotonDensityEstimationKernel
+class ConeFilterPDEKernel final : public PhotonDensityEstimationKernel
 {
 public:
 
@@ -35,7 +35,7 @@ public:
 
 public:
 
-	virtual Math::Float Evaluate( const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2 ) const
+	virtual Math::Float Evaluate(const Math::Vec3& p, const Photon& photon, const Math::Float& maxDist2) const override
 	{
 		const auto k = Math::Float(1.1);
 		auto dist = Math::Length(p - photon.p);

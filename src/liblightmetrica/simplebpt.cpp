@@ -47,7 +47,7 @@ LM_NAMESPACE_BEGIN
 	which is originally referred in the Veach's thesis.
 	NOTE : Incorrect method. It cannot handle specular materials
 */
-class SimpleBidirectionalPathtraceRenderer : public Renderer
+class SimpleBidirectionalPathtraceRenderer final : public Renderer
 {
 private:
 
@@ -59,12 +59,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool) >& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -121,7 +121,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool SimpleBidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool SimpleBidirectionalPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 0, rrDepth);
@@ -224,7 +224,8 @@ void SimpleBidirectionalPathtraceRenderer_RenderProcess::ProcessSingleSample(con
 
 	while (true)
 	{
-		if (!currBsdfs[TransportDirection::LE]->Degenerated() && !currBsdfs[TransportDirection::EL]->Degenerated())
+		if ((currBsdfs[TransportDirection::LE]->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0 &&
+			(currBsdfs[TransportDirection::EL]->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
 			// Check connectivity between #pE and #pL
 			auto pEpL = Math::Normalize(currGeom[TransportDirection::LE].p - currGeom[TransportDirection::EL].p);
@@ -244,14 +245,14 @@ void SimpleBidirectionalPathtraceRenderer_RenderProcess::ProcessSingleSample(con
 
 					// fsE
 					bsdfEQ.transportDir = TransportDirection::EL;
-					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 					bsdfEQ.wi = currWi[TransportDirection::EL];
 					bsdfEQ.wo = pEpL;
 					auto fsE = currBsdfs[TransportDirection::EL]->EvaluateDirection(bsdfEQ, currGeom[TransportDirection::EL]);
 
 					// fsL
 					bsdfEQ.transportDir = TransportDirection::LE;
-					bsdfEQ.type = GeneralizedBSDFType::All;
+					bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 					bsdfEQ.wi = currWi[TransportDirection::LE];
 					bsdfEQ.wo = -pEpL;
 					auto fsL = currBsdfs[TransportDirection::LE]->EvaluateDirection(bsdfEQ, currGeom[TransportDirection::LE]);

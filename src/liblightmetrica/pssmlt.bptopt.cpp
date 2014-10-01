@@ -54,7 +54,7 @@ LM_NAMESPACE_BEGIN
 	one for sampling light subpaths and the other for eye subpath.
 	Note: some experimental features and estimator modes are omitted.
 */
-class BPTOptimizedPSSMLTRenderer : public Renderer
+class BPTOptimizedPSSMLTRenderer final : public Renderer
 {
 private:
 
@@ -66,12 +66,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene);
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool) >& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -155,7 +155,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool BPTOptimizedPSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool BPTOptimizedPSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -202,7 +202,7 @@ bool BPTOptimizedPSSMLTRenderer::Configure(const ConfigNode& node, const Assets&
 	return true;
 }
 
-bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene )
+bool BPTOptimizedPSSMLTRenderer::Preprocess( const Scene& scene, const RenderProcessScheduler& sched )
 {
 	signal_ReportProgress(0, false);
 

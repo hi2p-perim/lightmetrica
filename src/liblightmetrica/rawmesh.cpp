@@ -29,7 +29,7 @@ LM_NAMESPACE_BEGIN
 	Implements an triangle mesh whose geometry information
 	is stored directly in the configuration file.
 */
-class RawMesh : public TriangleMesh
+class RawMesh final : public TriangleMesh
 {
 public:
 
@@ -38,20 +38,20 @@ public:
 public:
 
 	RawMesh() {}
-	virtual ~RawMesh() {}
+	virtual ~RawMesh() override {}
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual int NumVertices() const					{ return static_cast<int>(positions.size()); }
-	virtual int NumFaces() const					{ return static_cast<int>(faces.size()); }
-	virtual const Math::Float* Positions() const	{ return positions.empty() ? nullptr : &positions[0]; }
-	virtual const Math::Float* Normals() const		{ return normals.empty() ? nullptr : &normals[0]; }
-	virtual const Math::Float* TexCoords() const	{ return texcoords.empty() ? nullptr : &texcoords[0]; }
-	virtual const unsigned int* Faces() const		{ return faces.empty() ? nullptr : &faces[0]; }
+	virtual int NumVertices() const override				{ return static_cast<int>(positions.size()); }
+	virtual int NumFaces() const override					{ return static_cast<int>(faces.size()); }
+	virtual const Math::Float* Positions() const override	{ return positions.empty() ? nullptr : &positions[0]; }
+	virtual const Math::Float* Normals() const override		{ return normals.empty() ? nullptr : &normals[0]; }
+	virtual const Math::Float* TexCoords() const override	{ return texcoords.empty() ? nullptr : &texcoords[0]; }
+	virtual const unsigned int* Faces() const override		{ return faces.empty() ? nullptr : &faces[0]; }
 
 public:
 

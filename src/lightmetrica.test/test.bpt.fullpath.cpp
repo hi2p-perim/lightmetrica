@@ -115,8 +115,8 @@ public:
 			y0->wi = Math::Vec3();
 			y0->wo = Math::Normalize(Math::Vec3(1, 1, 0));
 			y0->emitter = light.get();
-			y0->areaLight = light.get();
-			y0->areaCamera = nullptr;
+			y0->areaL = light.get();
+			y0->areaE = nullptr;
 			y0->bsdf = light.get();
 			y0->pdfP = light->EvaluatePositionPDF(y0->geom);
 			y0->pdfD[TransportDirection::LE] = light->EvaluateDirectionPDF(
@@ -136,8 +136,8 @@ public:
 			y1->wi = Math::Normalize(Math::Vec3(-1, -1, 0));
 			y1->wo = Math::Vec3();	// Invalid
 			y1->emitter = nullptr;
-			y1->areaLight = nullptr;
-			y1->areaCamera = nullptr;
+			y1->areaL = nullptr;
+			y1->areaE = nullptr;
 			y1->bsdf = diffuseBSDF_White.get();
 			y1->pdfP = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::Area);
 			y1->pdfD[TransportDirection::LE] = Math::PDFEval();		// Invalid
@@ -154,8 +154,8 @@ public:
 			z0->wi = Math::Vec3();	// Invalid
 			z0->wo = Math::Normalize(Math::Vec3(-1, -1, 0));
 			z0->emitter = camera.get();
-			z0->areaLight = nullptr;
-			z0->areaCamera = nullptr;
+			z0->areaL = nullptr;
+			z0->areaE = nullptr;
 			z0->bsdf = camera.get();
 			z0->pdfP = camera->EvaluatePositionPDF(z0->geom);
 			z0->pdfD[TransportDirection::LE] = Math::PDFEval();
@@ -175,8 +175,8 @@ public:
 			z1->wi = Math::Normalize(Math::Vec3(1, 1, 0));
 			z1->wo = Math::Vec3();	// Invalid
 			z1->emitter = nullptr;
-			z1->areaLight = nullptr;
-			z1->areaCamera = nullptr;
+			z1->areaL = nullptr;
+			z1->areaE = nullptr;
 			z1->bsdf = diffuseBSDF_White.get();
 			z1->pdfP = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::Area);
 			z1->pdfD[TransportDirection::LE] = Math::PDFEval();		// Invalid

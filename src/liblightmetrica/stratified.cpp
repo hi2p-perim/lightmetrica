@@ -26,7 +26,7 @@ LM_NAMESPACE_BEGIN
 	Stratified sampler.
 	Implements stratified sampling for samples for cameras.
 */
-class StratifiedSampler : public CameraSampler
+class StratifiedSampler final : public CameraSampler
 {
 public:
 
@@ -34,42 +34,42 @@ public:
 
 public:
 
-	virtual void GenerateSamples( Math::Vec2i& pixelPos )
+	virtual void GenerateSamples(Math::Vec2i& pixelPos) override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual bool Configure( const ConfigNode& node, const Assets& assets )
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual Sampler* Clone() const
+	virtual Sampler* Clone() const override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual void SetSeed( unsigned int seed )
+	virtual void SetSeed(unsigned int seed) override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual Math::Float Next()
+	virtual Math::Float Next() override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual unsigned int NextUInt()
+	virtual unsigned int NextUInt() override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual Math::Vec2 NextVec2()
+	virtual Math::Vec2 NextVec2() override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	virtual Random* Rng()
+	virtual Random* Rng() override
 	{
 		throw std::logic_error("The method or operation is not implemented.");
 	}

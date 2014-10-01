@@ -101,29 +101,28 @@ public:
 
 private:
 
-	// Application info
+	#pragma region Application info
 	std::string appName;
 	std::string appDescription;
 	std::string appFlags;
+	int rank;						// For MPI
+	#pragma endregion
 
-	// Command line parameters
+	#pragma region Command line parameters
 	std::string inputFile;
 	std::string outputImagePath;
 	bool interactiveMode;
 	std::string basePath;
 	double terminationTime;
 	bool mpiMode;
+	#pragma endregion
 
-	// Logging thread related variables
+	#pragma region Logging & progress control thread related variables
 	std::atomic<bool> logThreadDone;
 	std::future<void> logResult;
-
-	// Progress bar
 	bool useProgressBar;
 	ProgressBar progressBar;
-
-	// For MPI
-	int rank;
+	#pragma endregion
 
 };
 
@@ -261,36 +260,31 @@ bool LightmetricaApplication::Run()
 {
 	PrintStartMessage();
 
-	// --------------------------------------------------------------------------------
-
-	// # Load plugins
+	#pragma region Load plugins
 	{
 		LM_LOG_INFO("Entering : Loading plugins");
 		LM_LOG_INDENTER();
 		ComponentFactory::LoadPlugins(".");
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Load configuration
+	#pragma region Load configuration
 	std::unique_ptr<Config> config(ComponentFactory::Create<Config>());
 	if (!LoadConfiguration(*config))
 	{
 		return false;
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Load assets
+	#pragma region Load assets
 	std::unique_ptr<Assets> assets(ComponentFactory::Create<Assets>());
 	if (!LoadAssets(*config, *assets))
 	{
 		return false;
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Create and setup scene
+	#pragma region Create and setup scene
 	auto sceneType = config->Root().Child("scene").AttributeValue("type");
 	std::unique_ptr<Scene> scene(ComponentFactory::Create<Scene>(sceneType));
 	if (scene == nullptr)
@@ -302,10 +296,9 @@ bool LightmetricaApplication::Run()
 	{
 		return false;
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Create and configure renderer
+	#pragma region Create and configure renderer
 	
 	// Create renderer
 	auto rendererType = config->Root().Child("renderer").AttributeValue("type");
@@ -330,7 +323,7 @@ bool LightmetricaApplication::Run()
 		return false;
 	}
 
-	// --------------------------------------------------------------------------------
+	#pragma endregion
 
 	PrintFinishMessage();
 
@@ -383,17 +376,18 @@ bool LightmetricaApplication::LoadConfiguration( Config& config )
 
 bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 {
-	// # Register component interfaces
-	assets.RegisterInterface<Texture>();
-	assets.RegisterInterface<BSDF>();
-	assets.RegisterInterface<TriangleMesh>();
-	assets.RegisterInterface<Film>();
-	assets.RegisterInterface<Camera>();
-	assets.RegisterInterface<Light>();
-
-	// --------------------------------------------------------------------------------
-
-	// # Load assets
+	#pragma region Register component interfaces
+	{
+		assets.RegisterInterface<Texture>();
+		assets.RegisterInterface<BSDF>();
+		assets.RegisterInterface<TriangleMesh>();
+		assets.RegisterInterface<Film>();
+		assets.RegisterInterface<Camera>();
+		assets.RegisterInterface<Light>();
+	}
+	#pragma endregion
+	
+	#pragma region Load assets
 	{
 		LM_LOG_INFO("Entering : Asset loading");
 		LM_LOG_INDENTER();
@@ -415,15 +409,14 @@ bool LightmetricaApplication::LoadAssets( const Config& config, Assets& assets )
 			progressBar.End();
 		}
 	}
-
-	// --------------------------------------------------------------------------------
+	#pragma endregion
 
 	return true;
 }
 
 bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Assets& assets, Scene& scene )
 {
-	// # Load primitives
+	#pragma region Load primitives
 	{
 		std::unique_ptr<Primitives> primitives(ComponentFactory::Create<Primitives>());
 		if (primitives == nullptr)
@@ -442,10 +435,9 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 		// Load #primitives to #scene. #primitives are managed by #scene
 		scene.Load(primitives.release());
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Configure scene
+	#pragma region Configure scene
 	{
 		LM_LOG_INFO("Entering : Scene configuration");
 		LM_LOG_INDENTER();
@@ -455,10 +447,9 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 			return false;
 		}
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Build scene
+	#pragma region Build scene
 	{
 		LM_LOG_INFO("Entering : Scene building");
 		LM_LOG_INDENTER();
@@ -480,10 +471,9 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 			progressBar.End();
 		}
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Post configuration
+	#pragma region Post configuration
 	{
 		LM_LOG_INFO("Entering : Scene post configuration");
 		LM_LOG_INDENTER();
@@ -492,15 +482,14 @@ bool LightmetricaApplication::LoadAndBuildScene( const Config& config, const Ass
 			return false;
 		}
 	}
-
-	// --------------------------------------------------------------------------------
+	#pragma endregion
 
 	return true;
 }
 
 bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config, const Assets& assets, const Scene& scene, Renderer& renderer, RenderProcessScheduler& sched)
 {
-	// # Configure render process dispatcher
+	#pragma region Configure render process dispatcher
 	{
 		LM_LOG_INFO("Entering : Render process scheduler configuration");
 		LM_LOG_INDENTER();
@@ -514,23 +503,21 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 		LM_LOG_INFO("Termination mode : " + std::string(terminationTime == 0 ? "Samples" : "Time"));
 		sched.SetTerminationMode(terminationTime == 0 ? TerminationMode::Samples : TerminationMode::Time, terminationTime);
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Configure renderer
+	#pragma region Configure renderer
 	{
 		LM_LOG_INFO("Entering : Renderer configuration");
 		LM_LOG_INDENTER();
 		LM_LOG_INFO("Renderer type : '" + renderer.Type() + "'");
-		if (!renderer.Configure(config.Root().Child("renderer"), assets, scene))
+		if (!renderer.Configure(config.Root().Child("renderer"), assets, scene, sched))
 		{
 			return false;
 		}
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Preprocess renderer
+	#pragma region Preprocess renderer
 	{
 		LM_LOG_INFO("Entering : Preprocess");
 		LM_LOG_INDENTER();
@@ -541,7 +528,7 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 			auto conn = renderer.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 		}
 
-		if (!renderer.Preprocess(scene))
+		if (!renderer.Preprocess(scene, sched))
 		{
 			progressBar.Abort();
 			return false;
@@ -552,10 +539,9 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 			progressBar.End();
 		}
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
-
-	// # Begin rendering
+	#pragma region Begin rendering
 	{
 		LM_LOG_INFO("Entering : Render");
 		LM_LOG_INDENTER();
@@ -577,10 +563,20 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 			progressBar.End();
 		}
 	}
+	#pragma endregion
 
-	// --------------------------------------------------------------------------------
+	#pragma region Postprocess renderer
+	{
+		LM_LOG_INFO("Entering : Postprocess");
+		LM_LOG_INDENTER();
+		if (!renderer.Postprocess(scene, sched))
+		{
+			return false;
+		}
+	}
+	#pragma endregion
 
-	// # Save rendered image
+	#pragma region Save rendered image
 	{
 		if (!mpiMode || (mpiMode && rank == 0))
 		{
@@ -600,15 +596,14 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 			}
 		}
 	}
-
-	// --------------------------------------------------------------------------------
+	#pragma endregion
 
 	return true;
 }
 
 void LightmetricaApplication::StartLogging()
 {
-	// Configure the logger
+	#pragma region Logger configuration
 	if (mpiMode)
 	{
 		int rank;
@@ -629,8 +624,9 @@ void LightmetricaApplication::StartLogging()
 	{
 		Logger::SetOutputMode(Logger::LogOutputMode::Stdout | Logger::LogOutputMode::File);
 	}
+	#pragma endregion
 
-	// Start the logger thread
+	#pragma region Logger & progress control thread
 	logResult = std::async(
 		std::launch::async,
 		[this]()
@@ -690,6 +686,7 @@ void LightmetricaApplication::StartLogging()
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 		});
+	#pragma endregion
 }
 
 void LightmetricaApplication::FinishLogging()

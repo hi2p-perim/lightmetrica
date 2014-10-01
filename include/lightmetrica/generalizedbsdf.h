@@ -45,9 +45,11 @@ enum GeneralizedBSDFType
 	GlossyReflection		= 1<<4,
 	GlossyTransmission		= 1<<5,
 
-	// Emitter types
-	LightDirection			= 1<<6,
-	EyeDirection			= 1<<7,
+	// Emitter primitive types
+	DeltaLightDirection		= 1<<6,
+	NonDeltaLightDirection	= 1<<7,
+	DeltaEyeDirection		= 1<<8,
+	NonDeltaEyeDirection	= 1<<9,
 
 	// Material type flags for BSDF types
 	Diffuse					= DiffuseReflection | DiffuseTransmission,
@@ -56,10 +58,18 @@ enum GeneralizedBSDFType
 	Reflection				= DiffuseReflection | SpecularReflection | GlossyReflection,
 	Transmission			= DiffuseTransmission | SpecularTransmission | GlossyTransmission,
 
+	// Emitter type flags
+	LightDirection			= DeltaLightDirection | NonDeltaLightDirection,
+	EyeDirection			= DeltaEyeDirection | NonDeltaEyeDirection,
+
 	// Useful type flags
 	AllEmitter				= LightDirection | EyeDirection,
 	AllBSDF					= Diffuse | Specular | Glossy,
 	All						= AllEmitter | AllBSDF,
+
+	// Delta or non-delta
+	Delta					= Specular | DeltaLightDirection | DeltaEyeDirection,
+	NonDelta				= All & ~Delta
 
 };
 

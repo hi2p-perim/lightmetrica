@@ -31,7 +31,7 @@ LM_NAMESPACE_BEGIN
 	Power heuristics MIS weight.
 	Implements power heuristics.
 */
-class BPTPowerHeuristicsMISWeight : public BPTMISWeight
+class BPTPowerHeuristicsMISWeight final : public BPTMISWeight
 {
 public:
 
@@ -39,9 +39,9 @@ public:
 
 public:
 
-	virtual bool Configure(const ConfigNode& node, const Assets& assets);
-	virtual BPTMISWeight* Clone() const;
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override;
+	virtual BPTMISWeight* Clone() const override;
+	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const override;
 
 
 private:

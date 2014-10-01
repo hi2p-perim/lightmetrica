@@ -53,7 +53,7 @@ typedef std::pair<const Photon*, Math::Float> CollectedPhotonInfo;
 	  - H. W. Jensen, Realistic image synthesis using photon mapping,
 	    AK Peters, 2001
 */
-class PhotonMappingRenderer : public Renderer
+class PhotonMappingRenderer final : public Renderer
 {
 private:
 
@@ -65,12 +65,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene);
-	virtual bool Postprocess(const Scene& scene) const;
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override;
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -138,7 +138,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool PhotonMappingRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool PhotonMappingRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	node.ChildValueOrDefault("num_photon_trace_samples", 1LL, numPhotonTraceSamples);
 	node.ChildValueOrDefault("max_photons", 1LL, maxPhotons);
@@ -208,7 +208,7 @@ bool PhotonMappingRenderer::Configure(const ConfigNode& node, const Assets& asse
 	return true;
 }
 
-bool PhotonMappingRenderer::Preprocess(const Scene& scene)
+bool PhotonMappingRenderer::Preprocess(const Scene& scene, const RenderProcessScheduler& sched)
 {
 	signal_ReportProgress(0, false);
 
@@ -241,7 +241,7 @@ bool PhotonMappingRenderer::Preprocess(const Scene& scene)
 	return true;
 }
 
-bool PhotonMappingRenderer::Postprocess(const Scene& scene) const
+bool PhotonMappingRenderer::Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const
 {
 	// Visualize photons (for debugging)
 	if (visualizePhotons)

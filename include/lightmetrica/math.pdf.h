@@ -92,12 +92,16 @@ struct TPDFEval
 		, measure(measure)
 
 	{
+
 	}
 
 	T v;							//!< Value of the PDF evaluation.
 	ProbabilityMeasure measure;		//!< Probability measure that the PDF is defined.
 
 };
+
+template <typename T> LM_FORCE_INLINE TPDFEval<T> operator*(const TPDFEval<T>& p, const T& s) { return TPDFEval<T>(p.v * s, p.measure); }
+template <typename T> LM_FORCE_INLINE TPDFEval<T> operator*(const T& s, const TPDFEval<T>& p) { return TPDFEval<T>(s * p.v, p.measure); }
 
 LM_MATH_NAMESPACE_END
 LM_NAMESPACE_END

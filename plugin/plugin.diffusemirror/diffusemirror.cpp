@@ -21,10 +21,11 @@
 #include <lightmetrica/plugin.common.h>
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/math.stats.h>
+#include <lightmetrica/confignode.h>
 
 LM_NAMESPACE_BEGIN
 
-class DiffuseMirrorMixBSDF : public BSDF
+class DiffuseMirrorMixBSDF final : public BSDF
 {
 public:
 
@@ -32,142 +33,174 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) 
+	DiffuseMirrorMixBSDF()
+		: ComponentProb(0.5)
 	{
-		R = Math::Vec3(Math::Float(1), Math::Float(0), Math::Float(0));
+		
+	}
+
+public:
+
+	virtual bool Load(const ConfigNode& node, const Assets& assets)  override
+	{
+		node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), R);
 		return true;
 	}
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
-		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+		auto cosThetaI = Math::CosThetaZUp(localWi);
+		if ((query.type & BSDFTypes()) == 0 || cosThetaI <= 0)
 		{
 			return false;
 		}
 
-		auto localWo = Math::CosineSampleHemisphere(query.sample);
-		result.wo = geom.shadingToWorld * localWo;
-		result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-		result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
+		if (query.uComp < ComponentProb)
+		{
+			// Diffuse reflection
+			auto localWo = Math::CosineSampleHemisphere(query.sample);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+			result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo) * ComponentProb;
+		}
+		else
+		{
+			// Specular reflection
+			auto localWo = Math::ReflectZUp(localWi);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::SpecularReflection;
+			result.pdf = Math::PDFEval(ComponentProb / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 
 		return true;
 	}
 
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
-		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+		auto cosThetaI = Math::CosThetaZUp(localWi);
+		if ((query.type & BSDFTypes()) == 0 || cosThetaI <= 0)
 		{
 			return Math::Vec3();
 		}
 
-		auto localWo = Math::CosineSampleHemisphere(query.sample);
-		result.wo = geom.shadingToWorld * localWo;
-		result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-		result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
-
-		Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
-		if (Math::IsZero(sf))
+		if (query.uComp < ComponentProb)
 		{
-			return Math::Vec3();
-		}
+			// Diffuse reflection
+			auto localWo = Math::CosineSampleHemisphere(query.sample);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+			result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo) * ComponentProb;
 
-		return sf * TexFunc(geom.uv);
+			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sf))
+			{
+				return Math::Vec3();
+			}
+
+			return sf * R / ComponentProb;
+		}
+		else
+		{
+			// Specular reflection
+			auto localWo = Math::ReflectZUp(localWi);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::SpecularReflection;
+			result.pdf = Math::PDFEval(ComponentProb / Math::Abs(cosThetaI), Math::ProbabilityMeasure::ProjectedSolidAngle);
+
+			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sf))
+			{
+				return Math::Vec3();
+			}
+
+			return sf * R / ComponentProb;
+		}
 	}
 
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
-		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
+		auto cosThetaI = Math::CosThetaZUp(localWi);
+		if ((query.type & BSDFTypes()) == 0 || cosThetaI <= 0)
 		{
 			return false;
 		}
 
-		auto localWo = Math::CosineSampleHemisphere(query.sample);
-		result.wo = geom.shadingToWorld * localWo;
-		result.sampledType = GeneralizedBSDFType::DiffuseReflection;
-		result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo);
-		result.pdf[1-query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWi);
-
-		auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
-		if (Math::IsZero(sf))
+		if (query.uComp < ComponentProb)
 		{
-			return false;
-		}
+			// Diffuse reflection
+			auto localWo = Math::CosineSampleHemisphere(query.sample);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::DiffuseReflection;
+			result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo) * ComponentProb;
+			result.pdf[1 - query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWi) * ComponentProb;
 
-		auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
-		if (Math::IsZero(sfInv))
+			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sf))
+			{
+				return false;
+			}
+
+			auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sfInv))
+			{
+				return false;
+			}
+
+			result.weight[query.transportDir] = sf * R / ComponentProb;
+			result.weight[1 - query.transportDir] = sfInv * R / ComponentProb;
+		}
+		else
 		{
-			return false;
-		}
+			// Specular reflection
+			auto localWo = Math::ReflectZUp(localWi);
+			result.wo = geom.shadingToWorld * localWo;
+			result.sampledType = GeneralizedBSDFType::SpecularReflection;
+			result.pdf[query.transportDir] = Math::PDFEval(ComponentProb / Math::CosThetaZUp(localWo), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			result.pdf[1 - query.transportDir] = result.pdf[query.transportDir];
 
-		result.weight[query.transportDir] = sf * TexFunc(geom.uv);
-		result.weight[1-query.transportDir] = sfInv * TexFunc(geom.uv);
+			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sf))
+			{
+				return false;
+			}
+
+			auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+			if (Math::IsZero(sfInv))
+			{
+				return false;
+			}
+
+			result.weight[query.transportDir] = R * sf / ComponentProb;
+			result.weight[1 - query.transportDir] = R * sfInv / ComponentProb;
+		}
 
 		return true;
 	}
 
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
-		auto localWi = geom.worldToShading * query.wi;
-		auto localWo = geom.worldToShading * query.wo;
-		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
-		{
-			return Math::Vec3();
-		}
-
-		Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
-		if (Math::IsZero(sf))
-		{
-			return Math::Vec3();
-		}
-
-		return Math::Constants::InvPi() * sf * TexFunc(geom.uv);
+		throw std::runtime_error("Not implemented");
 	}
 
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
-		auto localWi = geom.worldToShading * query.wi;
-		auto localWo = geom.worldToShading * query.wo;
-		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
-		{
-			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
-		}
-
-		return Math::CosineSampleHemispherePDFProjSA(localWo);
+		throw std::runtime_error("Not implemented");
 	}
 
-	virtual bool Degenerated() const
+	virtual int BSDFTypes() const override
 	{
-		return false;
-	}
-
-	virtual int BSDFTypes() const
-	{
-		return GeneralizedBSDFType::DiffuseReflection;
-	}
-
-private:
-
-	Math::Vec3 TexFunc(const Math::Vec2& uv) const
-	{
-		const Math::Float Scale(10);
-		auto u = uv.x * Scale;
-		auto v = uv.y * Scale;
-		if ((static_cast<int>(u) + static_cast<int>(v)) % 2 == 0)
-		{
-			return R;
-		}
-		
-		return Math::Vec3(Math::Float(1));
+		return GeneralizedBSDFType::DiffuseReflection | GeneralizedBSDFType::SpecularReflection;
 	}
 
 private:
 
 	Math::Vec3 R;
+	const Math::Float ComponentProb;
 
 };
 

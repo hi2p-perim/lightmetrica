@@ -23,6 +23,6 @@
 
 #include "common.h"
 
-#define LM_ENABLE_BPT_EXPERIMENTAL 0
+#define LM_ENABLE_BPT_EXPERIMENTAL 1
 
 #endif // LIB_LIGHTMETRICA_BPT_COMMON_H

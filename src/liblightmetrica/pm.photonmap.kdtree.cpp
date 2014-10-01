@@ -65,7 +65,7 @@ struct PhotonKdTreeNode
 	Kd-tree photon map.
 	Implements photon map with Kd-tree.
 */
-class KdTreePhotonMap : public PhotonMap
+class KdTreePhotonMap final : public PhotonMap
 {
 public:
 
@@ -73,9 +73,9 @@ public:
 
 public:
 
-	virtual void Build(const Photons& photons);
-	virtual void CollectPhotons(const Math::Vec3& p, Math::Float& maxDist2, const PhotonCollectFunc& collectFunc) const;
-	virtual void GetPhotons(std::vector<const Photon*>& photons) const;
+	virtual void Build(const Photons& photons) override;
+	virtual void CollectPhotons(const Math::Vec3& p, Math::Float& maxDist2, const PhotonCollectFunc& collectFunc) const override;
+	virtual void GetPhotons(std::vector<const Photon*>& photons) const override;
 
 private:
 

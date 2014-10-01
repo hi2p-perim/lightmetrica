@@ -48,7 +48,7 @@ LM_NAMESPACE_BEGIN
 	E{D,S}D+L paths are sampled by direct light sampling and
 	E{D,S}*S+L paths are sampled by BSDF sampling.
 */
-class DirectPathtraceRenderer : public Renderer
+class DirectPathtraceRenderer final : public Renderer
 {
 private:
 
@@ -60,12 +60,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene) { signal_ReportProgress(1, true); return true; }
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override { signal_ReportProgress(1, true); return true; }
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -124,7 +124,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool DirectPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool DirectPathtraceRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -188,8 +188,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 	while (true)
 	{
 		// Skip if current BSDF only have specular component
-		//if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::Specular) > 0)
-		if (!currBsdf->Degenerated())
+		if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
 			// Sample a position on light
 			SurfaceGeometry geomL;
@@ -217,7 +216,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 					// fsE
 					bsdfEQ.transportDir = TransportDirection::EL;
-					bsdfEQ.type = GeneralizedBSDFType::All & ~GeneralizedBSDFType::Specular;
+					bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 					bsdfEQ.wi = currWi;
 					bsdfEQ.wo = ppL;
 					auto fsE = currBsdf->EvaluateDirection(bsdfEQ, currGeom);

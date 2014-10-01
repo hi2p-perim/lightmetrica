@@ -35,7 +35,7 @@ LM_NAMESPACE_BEGIN
 	Area light.
 	Implements an area light source.
 */
-class AreaLight : public Light
+class AreaLight final : public Light
 {
 public:
 
@@ -48,31 +48,30 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return false; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::LightDirection; }
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::NonDeltaLightDirection; }
 
 public:
 
-	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
-	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
-	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives);
-	virtual void PostConfigure( const Scene& scene ) {}
-	virtual EmitterShape* CreateEmitterShape() const { return nullptr; }
-	virtual AABB GetAABB() const { return AABB(); }		// Not used (included in triangles)
+	virtual void SamplePosition(const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf) const override;
+	virtual Math::Vec3 EvaluatePosition(const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluatePositionPDF(const SurfaceGeometry& geom) const override;
+	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) override;
+	virtual void PostConfigure(const Scene& scene) override {}
+	virtual EmitterShape* CreateEmitterShape() const override { return nullptr; }
+	virtual AABB GetAABB() const override { return AABB(); }		// Not used (included in triangles)
 
 public:
 
-	virtual bool EnvironmentLight() const { return false; }
+	virtual bool EnvironmentLight() const override { return false; }
 
 private:
 
@@ -181,7 +180,7 @@ void AreaLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom,
 
 bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::LE))
 	{
 		return false;
 	}
@@ -196,7 +195,7 @@ bool AreaLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const 
 
 Math::Vec3 AreaLight::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::LE))
 	{
 		return Math::Vec3();
 	}
@@ -215,7 +214,7 @@ Math::Vec3 AreaLight::SampleAndEstimateDirection( const GeneralizedBSDFSampleQue
 
 bool AreaLight::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::LE))
 	{
 		return false;
 	}
@@ -244,7 +243,7 @@ Math::PDFEval AreaLight::EvaluatePositionPDF( const SurfaceGeometry& /*geom*/ ) 
 Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::Vec3();
 	}
@@ -255,7 +254,7 @@ Math::Vec3 AreaLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& que
 Math::PDFEval AreaLight::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
 	auto localWo = geom.worldToShading * query.wo;
-	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

@@ -30,7 +30,7 @@ LM_NAMESPACE_BEGIN
 	Defines simple MIS weight.
 	Simply reciprocal of # of full-paths with positive probability.
 */
-class BPTSimpleMISWeight : public BPTMISWeight
+class BPTSimpleMISWeight final : public BPTMISWeight
 {
 public:
 
@@ -38,9 +38,9 @@ public:
 
 public:
 
-	virtual bool Configure(const ConfigNode& node, const Assets& assets) { return true; }
-	virtual BPTMISWeight* Clone() const { return new BPTSimpleMISWeight; }
-	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const;
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override { return true; }
+	virtual BPTMISWeight* Clone() const override { return new BPTSimpleMISWeight; }
+	virtual Math::Float Evaluate(const BPTFullPath& fullPath) const override;
 
 };
 

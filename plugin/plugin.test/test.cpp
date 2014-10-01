@@ -28,7 +28,7 @@ LM_NAMESPACE_BEGIN
 	Test plugin.
 	This plugin implements almost-do-nothing BSDF.
 */
-class TestBSDF : public BSDF
+class TestBSDF final : public BSDF
 {
 public:
 
@@ -36,7 +36,7 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets ) 
+	virtual bool Load(const ConfigNode& node, const Assets& assets)  override
 	{
 		R = Math::Vec3(Math::Float(1), Math::Float(0), Math::Float(0));
 		return true;
@@ -44,7 +44,7 @@ public:
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
@@ -60,7 +60,7 @@ public:
 		return true;
 	}
 
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
@@ -82,7 +82,7 @@ public:
 		return sf * TexFunc(geom.uv);
 	}
 
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		if ((query.type & GeneralizedBSDFType::DiffuseReflection) == 0 || Math::CosThetaZUp(localWi) <= 0)
@@ -114,7 +114,7 @@ public:
 		return true;
 	}
 
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		auto localWo = geom.worldToShading * query.wo;
@@ -132,7 +132,7 @@ public:
 		return Math::Constants::InvPi() * sf * TexFunc(geom.uv);
 	}
 
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		auto localWo = geom.worldToShading * query.wo;
@@ -144,12 +144,12 @@ public:
 		return Math::CosineSampleHemispherePDFProjSA(localWo);
 	}
 
-	virtual bool Degenerated() const
+	virtual bool Degenerated() const override
 	{
 		return false;
 	}
 
-	virtual int BSDFTypes() const
+	virtual int BSDFTypes() const override
 	{
 		return GeneralizedBSDFType::DiffuseReflection;
 	}

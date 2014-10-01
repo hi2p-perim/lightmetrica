@@ -35,7 +35,7 @@ LM_NAMESPACE_BEGIN
 	Perspective camera.
 	A camera with perspective projection. a.k.a. pinhole camera.
 */
-class PerspectiveCamera : public Camera
+class PerspectiveCamera final : public Camera
 {
 public:
 
@@ -48,32 +48,31 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets );
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
 
 public:
 
-	virtual bool SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual Math::Vec3 SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const;
-	virtual bool SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const;
-	virtual Math::Vec3 EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const;
-	virtual bool Degenerated() const { return false; }
-	virtual int BSDFTypes() const { return GeneralizedBSDFType::EyeDirection; }
+	virtual bool SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual Math::Vec3 SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const override;
+	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
+	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
+	virtual int BSDFTypes() const override { return GeneralizedBSDFType::NonDeltaEyeDirection; }
 
 public:
 
-	virtual void SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const;
-	virtual Math::Vec3 EvaluatePosition( const SurfaceGeometry& geom ) const;
-	virtual Math::PDFEval EvaluatePositionPDF( const SurfaceGeometry& geom ) const;
-	virtual void RegisterPrimitives( const std::vector<Primitive*>& primitives );
-	virtual void PostConfigure( const Scene& scene ) {}
-	virtual EmitterShape* CreateEmitterShape() const { return nullptr; }
-	virtual AABB GetAABB() const { return AABB(position); }
+	virtual void SamplePosition(const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf) const override;
+	virtual Math::Vec3 EvaluatePosition(const SurfaceGeometry& geom) const override;
+	virtual Math::PDFEval EvaluatePositionPDF(const SurfaceGeometry& geom) const override;
+	virtual void RegisterPrimitives(const std::vector<Primitive*>& primitives) override;
+	virtual void PostConfigure(const Scene& scene) override {}
+	virtual EmitterShape* CreateEmitterShape() const override { return nullptr; }
+	virtual AABB GetAABB() const override { return AABB(position); }
 
 public:
 
-	virtual bool RayToRasterPosition( const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos ) const;
-	virtual Film* GetFilm() const { return film; }
+	virtual bool RayToRasterPosition(const Math::Vec3& p, const Math::Vec3& d, Math::Vec2& rasterPos) const override;
+	virtual Film* GetFilm() const override { return film; }
 
 private:
 
@@ -193,7 +192,7 @@ void PerspectiveCamera::SamplePosition( const Math::Vec2& sample, SurfaceGeometr
 
 bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return false;
 	}
@@ -205,7 +204,7 @@ bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query
 	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
 	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
 
-	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.sampledType = GeneralizedBSDFType::NonDeltaEyeDirection;
 	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
 	result.pdf = Math::PDFEval(
 		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
@@ -216,7 +215,7 @@ bool PerspectiveCamera::SampleDirection( const GeneralizedBSDFSampleQuery& query
 
 Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::Vec3();
 	}
@@ -228,7 +227,7 @@ Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFS
 	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
 	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
 
-	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.sampledType = GeneralizedBSDFType::NonDeltaEyeDirection;
 	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
 	result.pdf = Math::PDFEval(
 		EvaluateImportance(-Math::CosThetaZUp(dirTCam3)),
@@ -242,7 +241,7 @@ Math::Vec3 PerspectiveCamera::SampleAndEstimateDirection( const GeneralizedBSDFS
 
 bool PerspectiveCamera::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return false;
 	}
@@ -254,7 +253,7 @@ bool PerspectiveCamera::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSa
 	auto dirTCam4 = invProjectionMatrix * Math::Vec4(ndcRasterPos, Math::Float(1));
 	auto dirTCam3 = Math::Normalize(Math::Vec3(dirTCam4) / dirTCam4.w);
 
-	result.sampledType = GeneralizedBSDFType::EyeDirection;
+	result.sampledType = GeneralizedBSDFType::NonDeltaEyeDirection;
 	result.wo = Math::Normalize(Math::Vec3(invViewMatrix * Math::Vec4(dirTCam3, Math::Float(0))));
 	result.pdf[query.transportDir] = Math::PDFEval(EvaluateImportance(-Math::CosThetaZUp(dirTCam3)), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	result.pdf[1-query.transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
@@ -276,7 +275,7 @@ Math::PDFEval PerspectiveCamera::EvaluatePositionPDF( const SurfaceGeometry& /*g
 
 Math::Vec3 PerspectiveCamera::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::Vec3();
 	}
@@ -355,7 +354,7 @@ Math::Float PerspectiveCamera::EvaluateImportance( Math::Float cosTheta ) const
 
 Math::PDFEval PerspectiveCamera::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
 {
-	if ((query.type & GeneralizedBSDFType::EyeDirection) == 0 || (query.transportDir != TransportDirection::EL))
+	if ((query.type & BSDFTypes()) == 0 || (query.transportDir != TransportDirection::EL))
 	{
 		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 	}

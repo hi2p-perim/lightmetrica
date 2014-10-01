@@ -64,7 +64,7 @@ enum class PSSMLTEstimatorMode
 		A simple and robust mutation strategy for the metropolis light transport algorithm,
 		In Computer Graphics Forum. pp. 531–540, 2002.
 */
-class PSSMLTRenderer : public Renderer
+class PSSMLTRenderer final : public Renderer
 {
 private:
 
@@ -76,12 +76,12 @@ public:
 
 public:
 
-	virtual std::string Type() const { return ImplTypeName(); }
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene);
-	virtual bool Preprocess(const Scene& scene);
-	virtual bool Postprocess(const Scene& scene) const { return true; }
-	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads);
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void (double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual std::string Type() const override { return ImplTypeName(); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) override;
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const override { return true; }
+	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
 
 private:
 
@@ -170,7 +170,7 @@ private:
 
 // --------------------------------------------------------------------------------
 
-bool PSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene)
+bool PSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched)
 {
 	// Load parameters
 	node.ChildValueOrDefault("rr_depth", 1, rrDepth);
@@ -258,7 +258,7 @@ bool PSSMLTRenderer::Configure(const ConfigNode& node, const Assets& assets, con
 	return true;
 }
 
-bool PSSMLTRenderer::Preprocess( const Scene& scene )
+bool PSSMLTRenderer::Preprocess( const Scene& scene, const RenderProcessScheduler& sched )
 {
 	signal_ReportProgress(0, false);
 

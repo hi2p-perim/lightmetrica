@@ -27,7 +27,7 @@ LM_NAMESPACE_BEGIN
 	Constant color textures.
 	The texture which is evaluated to constant color value.
 */
-class ConstantTexture : public Texture
+class ConstantTexture final : public Texture
 {
 public:
 
@@ -35,7 +35,7 @@ public:
 
 public:
 
-	virtual bool Load( const ConfigNode& node, const Assets& assets )
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override
 	{
 		node.ChildValueOrDefault("color", Math::Vec3(Math::Float(1)), C);
 		return true;
@@ -43,7 +43,7 @@ public:
 
 public:
 
-	virtual Math::Vec3 Evaluate( const Math::Vec2& uv ) const
+	virtual Math::Vec3 Evaluate(const Math::Vec2& uv) const override
 	{
 		return C;
 	}

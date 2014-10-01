@@ -30,6 +30,7 @@ class Assets;
 class Scene;
 class ConfigNode;
 class RenderProcess;
+class RenderProcessScheduler;
 
 /*!
 	Renderer class.
@@ -63,28 +64,31 @@ public:
 		\param node A XML element which consists of \a renderer element.
 		\param assets Assets manager.
 		\param scene Scene.
+		\param sched Render process scheduler.
 		\retval true Succeeded to configure.
 		\retval false Failed to configure.
 	*/
-	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene) = 0;
+	virtual bool Configure(const ConfigNode& node, const Assets& assets, const Scene& scene, const RenderProcessScheduler& sched) = 0;
 
 	/*!
 		Preprocess the renderer.
 		Preprocess required by some renderers are dispatched in this function.
 		\param scene Scene.
+		\param sched Render process scheduler.
 		\retval true Succeeded to preprocess.
 		\retval false Failed to preprocess.
 	*/
-	virtual bool Preprocess(const Scene& scene) = 0;
+	virtual bool Preprocess(const Scene& scene, const RenderProcessScheduler& sched) = 0;
 
 	/*!
 		Postprocess the renderer.
 		This function is called after render process are completed.
 		\param scene Scene.
+		\param sched Render process scheduler.
 		\retval true Succeeded to postprocess.
 		\retval false Failed to postprocess.
 	*/
-	virtual bool Postprocess(const Scene& scene) const = 0;
+	virtual bool Postprocess(const Scene& scene, const RenderProcessScheduler& sched) const = 0;
 
 	/*!
 		Create a render process.

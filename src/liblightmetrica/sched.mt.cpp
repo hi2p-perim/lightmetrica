@@ -38,7 +38,7 @@ LM_NAMESPACE_BEGIN
 	We note that this scheduler requires SamplingBasedRenderProcess.
 	\sa SamplingBasedRenderProcess.
 */
-class MTRenderProcessScheduler : public RenderProcessScheduler
+class MTRenderProcessScheduler final : public SamplingBasedRenderProcessScheduler
 {
 public:
 
@@ -46,10 +46,11 @@ public:
 
 public:
 
-	virtual bool Configure(const ConfigNode& node, const Assets& assets);
-	virtual void SetTerminationMode(TerminationMode mode, double time) { terminationMode = mode; terminationTime = time; }
-	virtual bool Render(Renderer& renderer, const Scene& scene) const;
-	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) { return signal_ReportProgress.connect(func); }
+	virtual bool Configure(const ConfigNode& node, const Assets& assets) override;
+	virtual void SetTerminationMode(TerminationMode mode, double time) override { terminationMode = mode; terminationTime = time; }
+	virtual bool Render(Renderer& renderer, const Scene& scene) const override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
+	virtual long long NumSamples() const override { return numSamples; }
 
 private:
 

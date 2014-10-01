@@ -48,7 +48,7 @@ struct AssetInterfaceInfo
 	This structure is used for registering asset factory to #Assets class.
 	\sa Assets::RegisterAssetFactory
 */
-class AssetsImpl : public Assets
+class AssetsImpl final : public Assets
 {
 public:
 
@@ -56,18 +56,20 @@ public:
 
 public:
 
-	~AssetsImpl();
+	virtual ~AssetsImpl() override;
 
 public:
 
-	virtual bool Load( const ConfigNode& node );
-	virtual Asset* GetAssetByName( const std::string& name ) const;
-	virtual boost::signals2::connection Connect_ReportProgress( const std::function<void (double, bool ) >& func) { return signal_ReportProgress.connect(func); }
-	virtual bool RegisterInterface( const std::string& interfaceName, const std::string& interfaceGroupName, const std::vector<std::string>& dependencies );
+	virtual bool Load(const ConfigNode& node) override;
+	virtual Asset* GetAssetByName(const std::string& name) const override;
+	virtual boost::signals2::connection Connect_ReportProgress(const std::function<void(double, bool)>& func) override { return signal_ReportProgress.connect(func); }
+	virtual bool RegisterInterface(const std::string& interfaceName, const std::string& interfaceGroupName, const std::vector<std::string>& dependencies) override;
 
 private:
 
 	boost::signals2::signal<void (double, bool)> signal_ReportProgress;
+
+private:
 
 	std::unordered_map<std::string, AssetInterfaceInfo> interfaceInfo;		// Registered interfaces
 	std::vector<Asset*> assetInstances;										// Asset instances
