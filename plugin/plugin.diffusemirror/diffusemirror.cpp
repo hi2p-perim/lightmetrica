@@ -22,6 +22,7 @@
 #include <lightmetrica/bsdf.h>
 #include <lightmetrica/math.stats.h>
 #include <lightmetrica/confignode.h>
+#include <lightmetrica/assert.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -184,12 +185,74 @@ public:
 
 	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
-		throw std::runtime_error("Not implemented");
+		auto localWi = geom.worldToShading * query.wi;
+		auto localWo = geom.worldToShading * query.wo;
+		if (query.type != GeneralizedBSDFType::DiffuseReflection || query.type != GeneralizedBSDFType::SpecularReflection || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+		{
+			return Math::Vec3();
+		}
+
+		if (query.type == GeneralizedBSDFType::DiffuseReflection)
+		{
+			Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+			if (Math::IsZero(sf))
+			{
+				return Math::Vec3();
+			}
+
+			return R * Math::Constants::InvPi() * sf;
+		}
+		else if (query.type == GeneralizedBSDFType::SpecularReflection)
+		{
+			auto localWoTemp = Math::ReflectZUp(localWi);
+			auto localWiTemp = Math::ReflectZUp(localWo);
+			auto woTemp = geom.shadingToWorld * localWoTemp;
+			auto wiTemp = geom.shadingToWorld * localWiTemp;
+			if (woTemp != query.wo && wiTemp != query.wi)
+			{
+				return Math::Vec3();
+			}
+
+			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
+			if (Math::IsZero(sf))
+			{
+				return Math::Vec3();
+			}
+
+			return R * (sf / Math::CosThetaZUp(localWi));
+		}
+
+		LM_UNREACHABLE();
 	}
 
 	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override
 	{
-		throw std::runtime_error("Not implemented");
+		auto localWi = geom.worldToShading * query.wi;
+		auto localWo = geom.worldToShading * query.wo;
+		if (query.type != GeneralizedBSDFType::DiffuseReflection || query.type != GeneralizedBSDFType::SpecularReflection || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+
+		if (query.type == GeneralizedBSDFType::DiffuseReflection)
+		{
+			return Math::CosineSampleHemispherePDFProjSA(localWo) * ComponentProb;
+		}
+		else if (query.type == GeneralizedBSDFType::SpecularReflection)
+		{
+			auto localWoTemp = Math::ReflectZUp(localWi);
+			auto localWiTemp = Math::ReflectZUp(localWo);
+			auto woTemp = geom.shadingToWorld * localWoTemp;
+			auto wiTemp = geom.shadingToWorld * localWiTemp;
+			if (woTemp != query.wo && wiTemp != query.wi)
+			{
+				return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
+
+			return Math::PDFEval(ComponentProb / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+
+		LM_UNREACHABLE();
 	}
 
 	virtual int BSDFTypes() const override

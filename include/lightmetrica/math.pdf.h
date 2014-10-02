@@ -90,7 +90,6 @@ struct TPDFEval
 	TPDFEval(const T& v, ProbabilityMeasure measure)
 		: v(v)
 		, measure(measure)
-
 	{
 
 	}
