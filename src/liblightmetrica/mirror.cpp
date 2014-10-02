@@ -51,7 +51,6 @@ public:
 	virtual bool SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const override;
 	virtual Math::Vec3 EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
 	virtual Math::PDFEval EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const override;
-	virtual bool Degenerated() const override { return true; }
 	virtual int BSDFTypes() const override { return GeneralizedBSDFType::SpecularReflection; }
 
 private:

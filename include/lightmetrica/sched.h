@@ -113,9 +113,9 @@ class SamplingBasedRenderProcessScheduler : public RenderProcessScheduler
 public:
 
 	SamplingBasedRenderProcessScheduler() {}
-	virtual ~SamplingBasedRenderProcessScheduler();
+	virtual ~SamplingBasedRenderProcessScheduler() override {}
 
-private:
+public:
 
 	/*!
 		Get number of samples.

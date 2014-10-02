@@ -119,7 +119,7 @@ class BidirectionalPathtraceRenderer_RenderProcess final : public SamplingBasedR
 {
 public:
 
-	BidirectionalPathtraceRenderer_RenderProcess(const BidirectionalPathtraceRenderer& renderer, Sampler* sampler, Film* film)
+	BidirectionalPathtraceRenderer_RenderProcess(BidirectionalPathtraceRenderer& renderer, Sampler* sampler, Film* film)
 		: renderer(renderer)
 		, sampler(sampler)
 		, film(film)
@@ -140,7 +140,7 @@ public:
 
 private:
 
-	const BidirectionalPathtraceRenderer& renderer;
+	BidirectionalPathtraceRenderer& renderer;
 	std::unique_ptr<Sampler> sampler;
 	std::unique_ptr<Film> film;
 
@@ -267,6 +267,8 @@ bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene, const Rende
 #if LM_ENABLE_BPT_EXPERIMENTAL
 	if (enableExperimentalMode)
 	{
+		const long long NumSamples = dynamic_cast<const SamplingBasedRenderProcessScheduler&>(sched).NumSamples();
+
 		// Create output directory if it does not exists
 		if (!boost::filesystem::exists(subpathImageDir))
 		{
@@ -290,7 +292,7 @@ bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene, const Rende
 						LM_LOG_INFO("Saving " + path.string());
 						LM_LOG_INDENTER();
 						auto& film = subpathFilms[s*(maxSubpathNumVertices+1)+t];
-						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
+						if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(NumSamples)))
 						{
 							return false;
 						}
@@ -310,7 +312,7 @@ bool BidirectionalPathtraceRenderer::Postprocess(const Scene& scene, const Rende
 					LM_LOG_INFO("Saving " + path.string());
 					LM_LOG_INDENTER();
 					auto& film = kv.second;
-					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(numSamples)))
+					if (!film->RescaleAndSave(path.string(), Math::Float(film->Width() * film->Height()) / Math::Float(NumSamples)))
 					{
 						return false;
 					}

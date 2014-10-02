@@ -68,7 +68,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class RaycastRenderer_RenderProcess : public DeterministicPixelBasedRenderProcess
+class RaycastRenderer_RenderProcess final : public DeterministicPixelBasedRenderProcess
 {
 public:
 
@@ -80,7 +80,7 @@ private:
 
 public:
 
-	virtual void ProcessSinglePixel(const Scene& scene, const Math::Vec2i& pixel);
+	virtual void ProcessSinglePixel(const Scene& scene, const Math::Vec2i& pixel) override;
 
 };
 

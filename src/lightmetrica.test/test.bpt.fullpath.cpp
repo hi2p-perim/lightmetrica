@@ -107,6 +107,7 @@ public:
 			// y0 : Light
 			auto* y0 = subpaths.pool.Construct();
 			y0->type = BPTPathVertexType::EndPoint;
+			y0->componentType = GeneralizedBSDFType::NonDeltaLightDirection;
 			y0->transportDir = TransportDirection::LE;
 			y0->geom.degenerated = false;
 			y0->geom.p = Math::Vec3(0);
@@ -148,6 +149,7 @@ public:
 			// z0 : Camera
 			auto* z0 = subpaths.pool.Construct();
 			z0->type = BPTPathVertexType::EndPoint;
+			z0->componentType = GeneralizedBSDFType::NonDeltaEyeDirection;
 			z0->transportDir = TransportDirection::EL;
 			z0->geom.degenerated = true;
 			z0->geom.p = Math::Vec3(2, 1, 0);
@@ -364,7 +366,12 @@ TEST_F(BPTFullpathTest, Consistency)
 				auto ratio	= fullpath.EvaluateFullpathPDFRatio(i);
 				if (Math::Abs(pi) < Math::Constants::Eps())
 				{
-					EXPECT_TRUE(Math::Abs(ratio) < Math::Constants::Eps());
+					bool result = Math::Abs(ratio) < Math::Constants::Eps();
+					EXPECT_TRUE(result);
+					if (!result)
+					{
+						__debugbreak();
+					}
 				}
 				else
 				{

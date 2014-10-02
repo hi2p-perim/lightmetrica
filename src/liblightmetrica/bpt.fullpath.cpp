@@ -237,8 +237,7 @@ Math::Vec3 BPTFullPath::EvaluateUnweightContribution( const Scene& scene, Math::
 
 		// Both #vL and #vE must not be directionally degenerated
 		// which avoids unnecessary intersection query and BSDF evaluation
-		if ((vL->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0 || 
-			(vE->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0)
+		if ((vL->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0 || (vE->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0)
 		{
 			return Math::Vec3();
 		}
@@ -304,9 +303,11 @@ Math::Float BPTFullPath::EvaluateFullpathPDF( int i ) const
 		// the probability is zero because this full path cannot be sampled with p_i.
 		// Otherwise, importance-sampled value of directional PDF in specular material is used
 		// regardless of no possibility to sample the path with p_i.
+
 		const auto* xL = FullPathVertex(i-1);
 		const auto* xE = FullPathVertex(i);
-		if (xL->Degenerated() || xE->Degenerated())
+
+		if ((xL->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0 || (xE->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0)
 		{
 			return Math::Float(0);
 		}
@@ -463,7 +464,7 @@ bool BPTFullPath::FullpathPDFIsZero( int i ) const
 		// which cannot be sampled by p_i
 		const auto* pi     = FullPathVertex(i-1);
 		const auto* piNext = FullPathVertex(i);
-		if (pi->Degenerated() || piNext->Degenerated())
+		if ((pi->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0 || (piNext->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) == 0)
 		{
 			return true;
 		}

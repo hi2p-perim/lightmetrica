@@ -106,7 +106,7 @@ private:
 	The class is responsible for per-thread execution of rendering tasks
 	and managing thread-dependent resources.
 */
-class PhotonMappingRenderer_RenderProcess : public SamplingBasedRenderProcess
+class PhotonMappingRenderer_RenderProcess final : public SamplingBasedRenderProcess
 {
 public:
 
@@ -124,8 +124,8 @@ private:
 
 public:
 
-	virtual void ProcessSingleSample(const Scene& scene);
-	virtual const Film* GetFilm() const { return film.get(); }
+	virtual void ProcessSingleSample(const Scene& scene) override;
+	virtual const Film* GetFilm() const override { return film.get(); }
 
 private:
 

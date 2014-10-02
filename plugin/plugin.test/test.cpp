@@ -144,11 +144,6 @@ public:
 		return Math::CosineSampleHemispherePDFProjSA(localWo);
 	}
 
-	virtual bool Degenerated() const override
-	{
-		return false;
-	}
-
 	virtual int BSDFTypes() const override
 	{
 		return GeneralizedBSDFType::DiffuseReflection;
