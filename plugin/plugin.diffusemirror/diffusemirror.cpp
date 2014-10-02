@@ -189,12 +189,17 @@ public:
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		auto localWo = geom.worldToShading * query.wo;
-		if (query.type != GeneralizedBSDFType::DiffuseReflection || query.type != GeneralizedBSDFType::SpecularReflection || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+		if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 		{
 			return Math::Vec3();
 		}
 
-		if (query.type == GeneralizedBSDFType::DiffuseReflection)
+		if ((query.type & BSDFTypes()) == BSDFTypes())
+		{
+			return Math::Vec3();
+		}
+
+		if ((query.type & GeneralizedBSDFType::DiffuseReflection) > 0)
 		{
 			Math::Float sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
 			if (Math::IsZero(sf))
@@ -204,7 +209,7 @@ public:
 
 			return R * Math::Constants::InvPi() * sf * DiffuseWeight;
 		}
-		else if (query.type == GeneralizedBSDFType::SpecularReflection)
+		else if ((query.type & GeneralizedBSDFType::SpecularReflection) > 0)
 		{
 			auto localWoTemp = Math::ReflectZUp(localWi);
 			auto localWiTemp = Math::ReflectZUp(localWo);
@@ -231,16 +236,21 @@ public:
 	{
 		auto localWi = geom.worldToShading * query.wi;
 		auto localWo = geom.worldToShading * query.wo;
-		if (query.type != GeneralizedBSDFType::DiffuseReflection || query.type != GeneralizedBSDFType::SpecularReflection || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
+		if ((query.type & BSDFTypes()) == 0 || Math::CosThetaZUp(localWi) <= 0 || Math::CosThetaZUp(localWo) <= 0)
 		{
 			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
 		}
 
-		if (query.type == GeneralizedBSDFType::DiffuseReflection)
+		if ((query.type & BSDFTypes()) == BSDFTypes())
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
+
+		if ((query.type & GeneralizedBSDFType::DiffuseReflection) > 0)
 		{
 			return Math::CosineSampleHemispherePDFProjSA(localWo) * ComponentProb;
 		}
-		else if (query.type == GeneralizedBSDFType::SpecularReflection)
+		else if ((query.type & GeneralizedBSDFType::SpecularReflection) > 0)
 		{
 			auto localWoTemp = Math::ReflectZUp(localWi);
 			auto localWiTemp = Math::ReflectZUp(localWo);
