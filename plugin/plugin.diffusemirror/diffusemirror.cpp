@@ -41,7 +41,7 @@ public:
 
 public:
 
-	virtual bool Load(const ConfigNode& node, const Assets& assets)  override
+	virtual bool Load(const ConfigNode& node, const Assets& assets) override
 	{
 		node.ChildValueOrDefault("diffuse_reflectance", Math::Vec3(Math::Float(1)), R);
 		return true;
