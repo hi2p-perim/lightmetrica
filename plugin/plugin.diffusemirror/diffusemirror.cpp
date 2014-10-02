@@ -36,6 +36,8 @@ public:
 
 	DiffuseMirrorMixBSDF()
 		: ComponentProb(0.5)
+		, DiffuseWeight(0.5)
+		, SpecularWeight(0.5)
 	{
 		
 	}
@@ -102,7 +104,7 @@ public:
 				return Math::Vec3();
 			}
 
-			return sf * R / ComponentProb;
+			return sf * R * DiffuseWeight / ComponentProb;
 		}
 		else
 		{
@@ -118,7 +120,7 @@ public:
 				return Math::Vec3();
 			}
 
-			return sf * R / ComponentProb;
+			return sf * R * SpecularWeight / ComponentProb;
 		}
 	}
 
@@ -152,8 +154,8 @@ public:
 				return false;
 			}
 
-			result.weight[query.transportDir] = sf * R / ComponentProb;
-			result.weight[1 - query.transportDir] = sfInv * R / ComponentProb;
+			result.weight[query.transportDir] = sf * R * DiffuseWeight / ComponentProb;
+			result.weight[1 - query.transportDir] = sfInv * R * DiffuseWeight / ComponentProb;
 		}
 		else
 		{
@@ -176,8 +178,8 @@ public:
 				return false;
 			}
 
-			result.weight[query.transportDir] = R * sf / ComponentProb;
-			result.weight[1 - query.transportDir] = R * sfInv / ComponentProb;
+			result.weight[query.transportDir] = R * sf * SpecularWeight / ComponentProb;
+			result.weight[1 - query.transportDir] = R * sfInv * SpecularWeight / ComponentProb;
 		}
 
 		return true;
@@ -200,7 +202,7 @@ public:
 				return Math::Vec3();
 			}
 
-			return R * Math::Constants::InvPi() * sf;
+			return R * Math::Constants::InvPi() * sf * DiffuseWeight;
 		}
 		else if (query.type == GeneralizedBSDFType::SpecularReflection)
 		{
@@ -219,7 +221,7 @@ public:
 				return Math::Vec3();
 			}
 
-			return R * (sf / Math::CosThetaZUp(localWi));
+			return R * sf * SpecularWeight / Math::CosThetaZUp(localWi);
 		}
 
 		LM_UNREACHABLE();
@@ -264,6 +266,8 @@ private:
 
 	Math::Vec3 R;
 	const Math::Float ComponentProb;
+	const Math::Float DiffuseWeight;
+	const Math::Float SpecularWeight;
 
 };
 
