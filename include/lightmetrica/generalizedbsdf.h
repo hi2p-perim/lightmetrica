@@ -122,26 +122,38 @@ struct GeneralizedBSDFSampleBidirResult
 struct GeneralizedBSDFEvaluateQuery
 {
 
-	GeneralizedBSDFEvaluateQuery() {}
+	int type;							//!< Requested BSDF type.
+	TransportDirection transportDir;	//!< Transport direction.
+	Math::Vec3 wi;						//!< Input direction in shading coordinates.
+	Math::Vec3 wo;						//!< Outgoing direction in shading coordinates.
+	bool forced;						//!< Forces to evaluate values regardless of #wi or #wo. This is valid only when #type is Specular.
+
+public:
+
+	GeneralizedBSDFEvaluateQuery()
+	{
+
+	}
 
 	GeneralizedBSDFEvaluateQuery(const GeneralizedBSDFSampleQuery& query, const GeneralizedBSDFSampleResult& result)
 		: type(result.sampledType)
 		, transportDir(query.transportDir)
 		, wi(query.wi)
 		, wo(result.wo)
-	{}
+		, forced(false)
+	{
+
+	}
 
 	GeneralizedBSDFEvaluateQuery(int type, TransportDirection transportDir, const Math::Vec3& wi, const Math::Vec3& wo)
 		: type(type)
 		, transportDir(transportDir)
 		, wi(wi)
 		, wo(wo)
-	{}
-	
-	int type;							//!< Requested BSDF type.
-	TransportDirection transportDir;	//!< Transport direction.
-	Math::Vec3 wi;						//!< Input direction in shading coordinates.
-	Math::Vec3 wo;						//!< Outgoing direction in shading coordinates.
+		, forced(false)
+	{
+
+	}
 
 };
 
@@ -220,6 +232,8 @@ public:
 		\retval false The BSDF is not directionally degenerated.
 	*/
 	//virtual bool Degenerated() const = 0;
+
+	//virtual bool Connectable() const = 0;
 
 	/*!
 		Get generalized BSDF type.

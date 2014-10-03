@@ -318,13 +318,16 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 		// Reflection
 		// Reflected wi and wo must be same
 #if 1
-		auto localWoTemp = Math::ReflectZUp(localWi);
-		auto localWiTemp = Math::ReflectZUp(localWo);
-		auto woTemp = geom.shadingToWorld * localWoTemp;
-		auto wiTemp = geom.shadingToWorld * localWiTemp;
-		if (woTemp != query.wo && wiTemp != query.wi)
+		if (!query.forced)
 		{
-			return Math::Vec3();
+			auto localWoTemp = Math::ReflectZUp(localWi);
+			auto localWiTemp = Math::ReflectZUp(localWo);
+			auto woTemp = geom.shadingToWorld * localWoTemp;
+			auto wiTemp = geom.shadingToWorld * localWiTemp;
+			if (woTemp != query.wo && wiTemp != query.wi)
+			{
+				return Math::Vec3();
+			}
 		}
 #else
 		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
@@ -348,15 +351,18 @@ Math::Vec3 DielectricBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQuery
 	// Refraction
 	// Refracted wi and wo must be same
 #if 1
-	Math::Float cosThetaT2Rev;
-	EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
-	auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
-	auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
-	auto woTemp = geom.shadingToWorld * localWoTemp;
-	auto wiTemp = geom.shadingToWorld * localWiTemp;
-	if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+	if (!query.forced)
 	{
-		return Math::Vec3();
+		Math::Float cosThetaT2Rev;
+		EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
+		auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
+		auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+		{
+			return Math::Vec3();
+		}
 	}
 #elif 1
 	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
@@ -422,13 +428,16 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 		// Reflection
 		// Reflected wi and wo must be same
 #if 1
-		auto localWoTemp = Math::ReflectZUp(localWi);
-		auto localWiTemp = Math::ReflectZUp(localWo);
-		auto woTemp = geom.shadingToWorld * localWoTemp;
-		auto wiTemp = geom.shadingToWorld * localWiTemp;
-		if (woTemp != query.wo && wiTemp != query.wi)
+		if (!query.forced)
 		{
-			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			auto localWoTemp = Math::ReflectZUp(localWi);
+			auto localWiTemp = Math::ReflectZUp(localWo);
+			auto woTemp = geom.shadingToWorld * localWoTemp;
+			auto wiTemp = geom.shadingToWorld * localWiTemp;
+			if (woTemp != query.wo && wiTemp != query.wi)
+			{
+				return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+			}
 		}
 #else
 		if (!useR || Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
@@ -443,15 +452,18 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	// Refraction
 	// Refracted wi and wo must be same
 #if 1
-	Math::Float cosThetaT2Rev;
-	EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
-	auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
-	auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
-	auto woTemp = geom.shadingToWorld * localWoTemp;
-	auto wiTemp = geom.shadingToWorld * localWiTemp;
-	if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+	if (!query.forced)
 	{
-		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		Math::Float cosThetaT2Rev;
+		EvalFrDielectic(etaT, etaI, cosThetaT, cosThetaT2Rev);
+		auto localWoTemp = Math::RefractZUp(localWi, etaI / etaT, cosThetaT2);
+		auto localWiTemp = Math::RefractZUp(localWo, etaT / etaI, cosThetaT2Rev);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (!useT || (woTemp != query.wo && wiTemp != query.wi))
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 	}
 #elif 1
 	if (!useT || !CheckRefract(etaI, etaT, cosThetaI, cosThetaT))
