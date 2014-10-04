@@ -64,14 +64,13 @@ public:
 
 	size_t Sample(const Math::Float& u) const
 	{
-		return Math::Clamp<size_t>(
-			static_cast<size_t>(std::upper_bound(cdf.begin(), cdf.end(), u) - cdf.begin()) - 1,
-			0, cdf.size() - 2);
+		size_t v = static_cast<size_t>(std::upper_bound(cdf.begin(), cdf.end(), u) - cdf.begin()) - 1;
+		return Math::Clamp<size_t>(v, 0, cdf.size() - 2);
 	}
 	
-	Math::Float EvaluatePDF(size_t i) const
+	Math::Float EvaluatePDF(int i) const
 	{
-		return cdf[i+1] - cdf[i];
+		return (i < 0 || i + 1 >= static_cast<int>(cdf.size())) ? Math::Float(0) : cdf[i + 1] - cdf[i];
 	}
 
 	void Clear()

@@ -148,16 +148,19 @@ Math::Vec3 PerfectMirrorBSDF::EvaluateDirection( const GeneralizedBSDFEvaluateQu
 	}
 
 #if 1
-	// Comparison with #query.wo must be done with the same computation steps as SampleDirection
-	// Handle two possible combination of computation steps.
-	// TODO : This smells.
-	auto localWoTemp = Math::ReflectZUp(localWi);
-	auto localWiTemp = Math::ReflectZUp(localWo);
-	auto woTemp = geom.shadingToWorld * localWoTemp;
-	auto wiTemp = geom.shadingToWorld * localWiTemp;
-	if (woTemp != query.wo && wiTemp != query.wi)
+	if (!query.forced)
 	{
-		return Math::Vec3();
+		// Comparison with #query.wo must be done with the same computation steps as SampleDirection
+		// Handle two possible combination of computation steps.
+		// TODO : This smells.
+		auto localWoTemp = Math::ReflectZUp(localWi);
+		auto localWiTemp = Math::ReflectZUp(localWo);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (woTemp != query.wo && wiTemp != query.wi)
+		{
+			return Math::Vec3();
+		}
 	}
 #else
 	if (Math::LInfinityNorm(Math::ReflectZUp(localWi) - localWo) > Math::Constants::EpsLarge())
@@ -186,16 +189,19 @@ Math::PDFEval PerfectMirrorBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEval
 	}
 
 #if 1
-	// Comparison with #query.wo must be done with the same computation steps as SampleDirection
-	// Handle two possible combination of computation steps.
-	// TODO : This smells.
-	auto localWoTemp = Math::ReflectZUp(localWi);
-	auto localWiTemp = Math::ReflectZUp(localWo);
-	auto woTemp = geom.shadingToWorld * localWoTemp;
-	auto wiTemp = geom.shadingToWorld * localWiTemp;
-	if (woTemp != query.wo && wiTemp != query.wi)
+	if (!query.forced)
 	{
-		return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		// Comparison with #query.wo must be done with the same computation steps as SampleDirection
+		// Handle two possible combination of computation steps.
+		// TODO : This smells.
+		auto localWoTemp = Math::ReflectZUp(localWi);
+		auto localWiTemp = Math::ReflectZUp(localWo);
+		auto woTemp = geom.shadingToWorld * localWoTemp;
+		auto wiTemp = geom.shadingToWorld * localWiTemp;
+		if (woTemp != query.wo && wiTemp != query.wi)
+		{
+			return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+		}
 	}
 
 #else

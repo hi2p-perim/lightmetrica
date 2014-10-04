@@ -365,7 +365,7 @@ void PhotonMappingRenderer::TracePhotons(const Scene& scene, Photons& photons, l
 			// --------------------------------------------------------------------------------
 
 			// If intersected surface is non-specular, store the photon into photon map
-			if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::Specular) == 0)
+			if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 			{
 				Photon photon;
 				photon.p = isect.geom.p;
@@ -471,7 +471,9 @@ void PhotonMappingRenderer_RenderProcess::ProcessSingleSample(const Scene& scene
 		// --------------------------------------------------------------------------------
 
 		// If intersected surface is non-specular, compute radiance from photon map
-		if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::Specular) == 0)
+		// TODO : Select component first current implementation does not preserve energy
+		// if specular + diffuse material is used.
+		if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
 			// Collect near photons
 			Math::Float maxDist2 = renderer.maxNNQueryDist2;
@@ -517,7 +519,7 @@ void PhotonMappingRenderer_RenderProcess::ProcessSingleSample(const Scene& scene
 
 				GeneralizedBSDFEvaluateQuery bsdfEQ;
 				bsdfEQ.transportDir = TransportDirection::EL;
-				bsdfEQ.type = GeneralizedBSDFType::AllBSDF;
+				bsdfEQ.type = GeneralizedBSDFType::NonDelta;
 				bsdfEQ.wi = -ray.d;
 				bsdfEQ.wo = photon->wi;
 				auto fs = isect.primitive->bsdf->EvaluateDirection(bsdfEQ, isect.geom);
@@ -529,7 +531,11 @@ void PhotonMappingRenderer_RenderProcess::ProcessSingleSample(const Scene& scene
 				L += throughput * p * fs * photon->throughput;
 			}
 
-			break;
+			// For BSDFs with specular component it needs to continue
+			if ((isect.primitive->bsdf->BSDFTypes() & GeneralizedBSDFType::Specular) == 0)
+			{
+				break;
+			}
 		}
 
 		// --------------------------------------------------------------------------------

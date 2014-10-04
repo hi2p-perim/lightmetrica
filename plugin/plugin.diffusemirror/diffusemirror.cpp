@@ -211,13 +211,16 @@ public:
 		}
 		else if ((query.type & GeneralizedBSDFType::SpecularReflection) > 0)
 		{
-			auto localWoTemp = Math::ReflectZUp(localWi);
-			auto localWiTemp = Math::ReflectZUp(localWo);
-			auto woTemp = geom.shadingToWorld * localWoTemp;
-			auto wiTemp = geom.shadingToWorld * localWiTemp;
-			if (woTemp != query.wo && wiTemp != query.wi)
+			if (!query.forced)
 			{
-				return Math::Vec3();
+				auto localWoTemp = Math::ReflectZUp(localWi);
+				auto localWiTemp = Math::ReflectZUp(localWo);
+				auto woTemp = geom.shadingToWorld * localWoTemp;
+				auto wiTemp = geom.shadingToWorld * localWiTemp;
+				if (woTemp != query.wo && wiTemp != query.wi)
+				{
+					return Math::Vec3();
+				}
 			}
 
 			auto sf = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, query.wo);
@@ -252,13 +255,16 @@ public:
 		}
 		else if ((query.type & GeneralizedBSDFType::SpecularReflection) > 0)
 		{
-			auto localWoTemp = Math::ReflectZUp(localWi);
-			auto localWiTemp = Math::ReflectZUp(localWo);
-			auto woTemp = geom.shadingToWorld * localWoTemp;
-			auto wiTemp = geom.shadingToWorld * localWiTemp;
-			if (woTemp != query.wo && wiTemp != query.wi)
+			if (!query.forced)
 			{
-				return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+				auto localWoTemp = Math::ReflectZUp(localWi);
+				auto localWiTemp = Math::ReflectZUp(localWo);
+				auto woTemp = geom.shadingToWorld * localWoTemp;
+				auto wiTemp = geom.shadingToWorld * localWiTemp;
+				if (woTemp != query.wo && wiTemp != query.wi)
+				{
+					return Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+				}
 			}
 
 			return Math::PDFEval(ComponentProb / Math::CosThetaZUp(localWi), Math::ProbabilityMeasure::ProjectedSolidAngle);
