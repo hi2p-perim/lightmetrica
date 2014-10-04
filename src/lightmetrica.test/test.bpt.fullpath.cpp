@@ -368,10 +368,6 @@ TEST_F(BPTFullpathTest, Consistency)
 				{
 					bool result = Math::Abs(ratio) < Math::Constants::Eps();
 					EXPECT_TRUE(result);
-					if (!result)
-					{
-						__debugbreak();
-					}
 				}
 				else
 				{
