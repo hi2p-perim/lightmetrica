@@ -1,30 +1,29 @@
 language:
-  - cpp
-
+- cpp
 compiler:
-  - gcc
-
+- gcc
 before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo add-apt-repository -y ppa:boost-latest/ppa
-  - sudo apt-get update -qq
-
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo add-apt-repository -y ppa:boost-latest/ppa
+- sudo apt-get update -qq
 install:
-  - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev libopenmpi-dev doxygen
-  - export CXX="g++-4.8"
-  - export CC="gcc-4.8"
-  - git clone --depth=1 --branch v3.1.1 https://github.com/assimp/assimp.git /tmp/assimp
-  - mkdir build_assimp && cd build_assimp && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && sudo make install
-  - cd ..
-
+- sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev
+  libboost-program-options1.55-dev libboost-regex1.55-dev libopenmpi-dev doxygen
+- export CXX="g++-4.8"
+- export CC="gcc-4.8"
+- git clone --depth=1 --branch v3.1.1 https://github.com/assimp/assimp.git /tmp/assimp
+- mkdir build_assimp && cd build_assimp && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp
+  && make && sudo make install
+- cd ..
 script:
-#  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make doc
-  - cp -r ./doc/html $HOME/doc
-  - cd bin
-#  - cd bin && ./lightmetrica.test
-
+- mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON
+  .. && make doc
+- cp -r ./doc/html $HOME/doc
+- cd bin
 after_success:
-  - cd ../../scripts/
-  - chmod 744 ./deploy_gh-pages.sh
-  - ./deploy_gh-pages.sh
+- cd ../../scripts/
+- chmod 744 ./deploy_gh-pages.sh
+- "./deploy_gh-pages.sh"
+env:
+  global:
+    secure: JLRBw7VPkWxlO4HpK57DCFeTMELD+Pa11sWInautih27XqQdq0SvCsKp+bgvDkbsWFIOMpvOenVkmnRCtm9b1+EZGdMXHq/wMmh+/oBLSiv8uEni90Uvw6e+vGzWC0hTaLUWauOcW0S7KCEnfVrBxQ+/i7S7gIS9L2rliwq7NPg=
