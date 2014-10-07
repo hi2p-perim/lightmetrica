@@ -22,4 +22,4 @@ script:
   - cd bin && ./lightmetrica.test
 
 after_success:
-  - ./scripts/deploy_gh-pages.sh
+  - cd ../../ && ./scripts/deploy_gh-pages.sh
