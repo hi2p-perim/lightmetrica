@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>Lightmetrica: Main Page</title>
+<title>Lightmetrica: /home/travis/build/hi2p-perim/lightmetrica/src/lightmetrica/base.h Source File</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -46,9 +46,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
+      <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -67,13 +67,43 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+    </ul>
+  </div>
 </div>
 <div class="header">
   <div class="headertitle">
-<div class="title">Lightmetrica Documentation</div>  </div>
+<div class="title">/home/travis/build/hi2p-perim/lightmetrica/src/lightmetrica/base.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-</div><!-- contents -->
+<div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#ifndef __RF_TEST_BASE_H__</span>
+<a name="l00002"></a>00002 <span class="preprocessor"></span><span class="preprocessor">#define __RF_TEST_BASE_H__</span>
+<a name="l00003"></a>00003 <span class="preprocessor"></span>
+<a name="l00004"></a>00004 <span class="preprocessor">#include &quot;common.h&quot;</span>
+<a name="l00005"></a>00005 <span class="preprocessor">#include &lt;gtest/gtest.h&gt;</span>
+<a name="l00006"></a>00006 
+<a name="l00007"></a>00007 RF_TEST_NAMESPACE_BEGIN
+<a name="l00008"></a>00008 
+<a name="l00009"></a><a class="code" href="class_test_base.html">00009</a> <span class="keyword">class </span><a class="code" href="class_test_base.html">TestBase</a> : <span class="keyword">public</span> ::testing::Test
+<a name="l00010"></a>00010 {
+<a name="l00011"></a>00011 <span class="keyword">public</span>:
+<a name="l00012"></a>00012 
+<a name="l00013"></a>00013     <span class="comment">// Default timeout in milliseconds</span>
+<a name="l00014"></a>00014     <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> OutputProcessTimeout;
+<a name="l00015"></a>00015 
+<a name="l00016"></a>00016 <span class="keyword">protected</span>:
+<a name="l00017"></a>00017 
+<a name="l00018"></a>00018     <span class="keyword">virtual</span> <span class="keywordtype">void</span> SetUp();
+<a name="l00019"></a>00019     <span class="keyword">virtual</span> <span class="keywordtype">void</span> TearDown();
+<a name="l00020"></a>00020 
+<a name="l00021"></a>00021 };
+<a name="l00022"></a>00022 
+<a name="l00023"></a>00023 RF_TEST_NAMESPACE_END
+<a name="l00024"></a>00024 
+<a name="l00025"></a>00025 <span class="preprocessor">#endif // __RF_TEST_BASE_H__</span>
+</pre></div></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -91,7 +121,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 7 2014 22:31:26 for Lightmetrica by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 7 2014 22:31:22 for Lightmetrica by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>

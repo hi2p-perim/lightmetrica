@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>Lightmetrica: Main Page</title>
+<title>Lightmetrica: Object Class Reference</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -46,8 +46,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li><a href="annotated.html"><span>Classes</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -67,12 +67,58 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
+    </ul>
+  </div>
 </div>
 <div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">Lightmetrica Documentation</div>  </div>
+<div class="title">Object Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+<!-- doxytag: class="Object" -->
+<p><code>#include &lt;<a class="el" href="object_8h_source.html">object.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr><td colspan="2"><h2><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac9fbcf4deb56b95134c69a0f949bd89d"></a><!-- doxytag: member="Object::operator new" ref="ac9fbcf4deb56b95134c69a0f949bd89d" args="(std::size_t size)" -->
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>operator new</b> (std::size_t size)  throw (std::bad_alloc)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d5d62c0863ba449aba87b2d5907bfc7"></a><!-- doxytag: member="Object::operator delete" ref="a3d5d62c0863ba449aba87b2d5907bfc7" args="(void *p)" -->
+void&#160;</td><td class="memItemRight" valign="bottom"><b>operator delete</b> (void *p)</td></tr>
+</table>
+<hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
+<div class="textblock"><p><a class="el" href="class_object.html">Object</a>. The base class of the all classes. The class offers:</p>
+<ul>
+<li>Reference counting</li>
+<li>Operator overriding for new and delete<ul>
+<li><a class="el" href="class_aligned.html">Aligned</a> allocation for SIMD data types</li>
+<li>Enables to call new and delete from the outside library across the DLL boundary </li>
+</ul>
+</li>
+</ul>
+</div><div class="dynheader">
+Inheritance diagram for Object:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="class_object.png" usemap="#Object_map" alt=""/>
+  <map id="Object_map" name="Object_map">
+<area href="class_config_node.html" alt="ConfigNode" shape="rect" coords="0,56,107,80"/>
+<area href="class_config_node_1_1_impl.html" alt="ConfigNode::Impl" shape="rect" coords="117,56,224,80"/>
+</map>
+ </div></div>
+
+<p><a href="class_object-members.html">List of all members.</a></p>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>/home/travis/build/hi2p-perim/lightmetrica/include/lightmetrica/<a class="el" href="object_8h_source.html">object.h</a></li>
+<li>/home/travis/build/hi2p-perim/lightmetrica/src/liblightmetrica/object.cpp</li>
+</ul>
 </div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -91,7 +137,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 7 2014 22:31:26 for Lightmetrica by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 7 2014 22:31:24 for Lightmetrica by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>
