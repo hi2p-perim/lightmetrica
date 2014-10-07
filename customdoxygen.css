@@ -1148,18 +1148,23 @@ dl.section dd {
 #projectlogo
 {
 	text-align: center;
-	vertical-align: bottom;
+	vertical-align: middle;
 	border-collapse: separate;
+	margin: 0px;
+	padding: 0px 0px 0px 4px;
 }
  
 #projectlogo img
 { 
+	witdh: 40px;
+	height: 40px;
 	border: 0px none;
 }
  
 #projectname
 {
-	font: 220% Tahoma, Arial,sans-serif;
+	//font: 220% Tahoma, Arial,sans-serif;
+	font: 200% "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
 	margin: 0px;
 	padding: 2px 0px;
 }
