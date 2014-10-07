@@ -188,6 +188,8 @@ if (LM_ENABLE_STRICT_FP)
 	add_definitions(-DLM_ENABLE_STRICT_FP)
 endif()
 
+option(LM_ENABLE_BUILD_DOC "Enable to build documentation by Doxygen" OFF)
+
 ################################################################################
 
 if (MSVC)
@@ -243,9 +245,6 @@ set(LM_VERSION_MAJOR "0")
 set(LM_VERSION_MINOR "0")
 set(LM_VERSION_PATCH "1")
 set(LM_VERSION_CODENAME "yosakoi")
-#set(LM_VERSION_CODENAME "kokoro pyon pyon")
-#set(LM_VERSION_CODENAME "nantsutte tsuchatta")
-#set(LM_VERSION_CODENAME "nyanpass")
 
 # Execute git command in the project root and check revision number
 find_package(Git REQUIRED)
@@ -265,6 +264,7 @@ string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" LM_C
 
 ################################################################################
 
+# SIMD configuration
 if (NOT LM_ENABLE_FORCE_NO_SIMD)
 	# Add compiler options
 	if (MSVC)
@@ -275,8 +275,8 @@ if (NOT LM_ENABLE_FORCE_NO_SIMD)
 			"${CMAKE_BINARY_DIR}/CMakeFiles/ssecheck"
 			"${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssecheck.cpp"
 			COMPILE_OUTPUT_VARIABLE _SSE_CHECK_COMPILE_OUTPUT
-			RUN_OUTPUT_VARIABLE _SSE_CHECK_RUN_OUTPUT
-		)
+			RUN_OUTPUT_VARIABLE _SSE_CHECK_RUN_OUTPUT)
+		
 		if (NOT _SSE_CHECK_RUN_OUTPUT)
 			message(FATAL_ERROR "Failed to check SIMD support")
 		endif()
@@ -302,6 +302,39 @@ if (NOT LM_ENABLE_FORCE_NO_SIMD)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcx16 -msahf -mno-movbe -mno-aes -mpclmul -mpopcnt -mno-abm -mno-lwp -mno-fma -mno-fma4 -mno-xop -mno-bmi -mno-bmi2 -mno-tbm -mno-avx -mno-avx2 -msse4.2 -msse4.1 -mno-lzcnt -mno-rdrnd -mno-f16c -mfsgsbase --param l1-cache-size=32 --param l1-cache-line-size=64 --param l2-cache-size=2048 -mtune=generic")
 		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 	endif()
+endif()
+
+################################################################################
+
+# Documentation
+if (LM_ENABLE_BUILD_DOC)
+	# Find doxygen
+	find_package(Doxygen REQUIRED)
+	
+	# Main page
+	set(LM_DOXYGEN_MAIN_PAGE "@CMAKE_CURRENT_SOURCE_DIR@/README.md")
+	
+	# Input directories
+	set(LM_DOXYGEN_INPUT_DIR "${LM_DOXYGEN_INPUT_DIR} ${LM_DOXYGEN_MAIN_PAGE}")
+	set(LM_DOXYGEN_INPUT_DIR "${LM_DOXYGEN_INPUT_DIR} @CMAKE_CURRENT_SOURCE_DIR@/src")
+	set(LM_DOXYGEN_INPUT_DIR "${LM_DOXYGEN_INPUT_DIR} @CMAKE_CURRENT_SOURCE_DIR@/include")
+	set(LM_DOXYGEN_INPUT_DIR "${LM_DOXYGEN_INPUT_DIR} @CMAKE_CURRENT_SOURCE_DIR@/plugin")
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/experimental")
+		set(LM_DOXYGEN_INPUT_DIR "${LM_DOXYGEN_INPUT_DIR} @CMAKE_CURRENT_SOURCE_DIR@/experimental/plugin")
+	endif()
+	
+	# Generate Doxyfile
+	set(_DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in)
+	set(_DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+	configure_file(${_DOXYFILE_IN} ${_DOXYFILE} @ONLY)
+
+	# Add custom build target 'doc'
+	add_custom_target(
+		doc
+		COMMAND ${DOXYGEN_EXECUTABLE} ${_DOXYFILE}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMENT "Generates API documentation with Doxygen"
+		VERBATIM)
 endif()
 
 ################################################################################

@@ -18,7 +18,7 @@ Features
 - Moderately unit tested
 - Includes fast SIMD-based math library
 - Various options for floating-point precisions (single, double, multi-precision)
-- Clean and generalized design according Veach's formulation
+- Clean and generalized design according to Veach's formulation
 - Clean and easy-to-read log output
 - Experiments support
 - Plugin support
@@ -27,7 +27,7 @@ Dependencies
 --------------------
 
 Dependencies which requires additional installation step.  
-Specially for VS2012 environement in Windows, we offer x64 binaries in the external submodule.
+Specially for VS2012 and VS2013 environement in Windows, we offer x64 binaries in the external submodule.
 
 - **Boost** (1.53.0 or higher)
 - **Assimp** (3.1.1 or higher)
@@ -54,17 +54,17 @@ Implementation detail
 
 This software contains the following projects:
 
-- Core libraries
-  - **liblightmetrica** : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
-  - **liblightmetrica.test** : Static library for unit testing.
-- Applications
-  - **lightmetrica** : The command line renderer interface.
-  - **lightmetrica.gui** : The GUI renderer interface. Yet to be implemented.
-- Tests
-  - **lightmetrica.test** : Unit test project for **liblightmetrica**.
-  - **lightmetrica.perf** : Performance test project for **liblightmetrica**. Yet to be implemented.
-- Plugins
-  - **plugin.test** : An example plugin 
+- **Core libraries**
+  - `liblightmetrica` : The main library in which various rendering algorithms are implemented. The project is configured to compiled by the dynamic library (*.so in Linux, *.dll in Windows). The library is shared by the following projects.
+  - `liblightmetrica.test` : Static library for unit testing.
+- **Applications**
+  - `lightmetrica` : The command line renderer interface.
+  - `lightmetrica.gui` : The GUI renderer interface. Yet to be implemented.
+- **Tests**
+  - `lightmetrica.test` : Unit test project for `liblightmetrica`.
+  - `lightmetrica.perf` : Performance test project for `liblightmetrica`. Yet to be implemented.
+- **Plugins**
+  - `plugin.test` : An example plugin 
 
 Licence
 --------------------
