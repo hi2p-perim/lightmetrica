@@ -23,9 +23,9 @@ install:
   - cd ..
 
 script:
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make doc
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
   - cp -r ./doc/html $HOME/doc
-  - cd bin
+  - cd bin && ./lightmetrica.test
 
 after_success:
   - cd ../../scripts/
