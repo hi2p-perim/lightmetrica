@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev libopenmpi-dev
+  - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev libopenmpi-dev doxygen
   - export CXX="g++-4.8"
   - export CC="gcc-4.8"
   - git clone --depth=1 --branch v3.1.1 https://github.com/assimp/assimp.git /tmp/assimp
@@ -18,5 +18,8 @@ install:
   - cd ..
 
 script:
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
   - cd bin && ./lightmetrica.test
+
+after_success:
+  - ./scripts/deploy_gh-pages.sh
