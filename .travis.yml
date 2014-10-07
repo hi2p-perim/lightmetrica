@@ -18,8 +18,11 @@ install:
   - cd ..
 
 script:
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
-  - cd bin && ./lightmetrica.test
+#  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make doc
+#  - cd bin && ./lightmetrica.test
 
 after_success:
-  - cd ../../ && ./scripts/deploy_gh-pages.sh
+  - cd ../../scripts/
+  - chmod 744 ./deploy_gh-pages.sh
+  - ./deploy_gh-pages.sh
