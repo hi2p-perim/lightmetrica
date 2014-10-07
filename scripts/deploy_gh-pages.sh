@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd $HOME
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis"
@@ -6,5 +8,5 @@ cd gh-pages
 cp -rf $HOME/doc/* .
 git add -f .
 git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages"
-git push -fq origin gh-pages > /dev/null
+git push --force --quiet origin gh-pages > /dev/null
 
