@@ -1,3 +1,6 @@
 [submodule "external"]
 	path = external
 	url = https://github.com/hi2p-perim/lightmetrica-external.git
+[submodule "doc"]
+	path = doc
+	url = https://github.com/hi2p-perim/lightmetrica-doc.git
