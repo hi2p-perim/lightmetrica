@@ -13,24 +13,16 @@ install:
   - sudo apt-get install -qq -y g++-4.8 libfreeimage-dev libboost1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-regex1.55-dev libopenmpi-dev
   - export CXX="g++-4.8"
   - export CC="gcc-4.8"
-  - git clone --depth=1 --branch v3.1.1 https://github.com/assimp/assimp.git /tmp/assimp
-  - mkdir build_assimp && cd build_assimp && cmake -DCMAKE_BUILD_TYPE=Release /tmp/assimp && make && sudo make install
-  - cd ..
-  - sudo apt-get install -qq -y graphviz flex bison
-  - wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.8.src.tar.gz
-  - tar zxvf doxygen-1.8.8.src.tar.gz
-  - cd doxygen-1.8.8 && ./configure && make && sudo make install
-  - cd ..
+  - ./scripts/install_assimp.sh
+  - ./scripts/install_doxygen.sh
 
 script:
+  - cd $TRAVIS_BUILD_DIR
   - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
-  - cp -r ./doc/html $HOME/doc
   - cd bin && ./lightmetrica.test
 
 after_success:
-  - cd ../../scripts/
-  - chmod 744 ./deploy_gh-pages.sh
-  - ./deploy_gh-pages.sh
+  - ./scripts/deploy_gh-pages.sh
 
 env:
   global:
