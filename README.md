@@ -66,6 +66,11 @@ This software contains the following projects:
 - **Plugins**
   - `plugin.test` : An example plugin 
 
+Documentation
+--------------------
+
+Automatically generated documentation of the latest build is available [here](http://hi2p-perim.github.io/lightmetrica/).
+
 Licence
 --------------------
 
