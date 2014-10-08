@@ -22,6 +22,7 @@ script:
   - cd bin && ./lightmetrica.test
 
 after_success:
+  - cd $TRAVIS_BUILD_DIR
   - ./scripts/deploy_gh-pages.sh
 
 env:
