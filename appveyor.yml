@@ -7,7 +7,7 @@ branches:
 clone_folder: c:\projects\lightmetrica
 
 environment:
-  BOOST_ROOT: c:\Libraries\boost
+  BOOST_INCLUDEDIR: c:\Libraries\boost
   BOOST_LIBRARYDIR: c:\Libraries\boost\stage.x64\lib
 
 before_build:
@@ -15,6 +15,8 @@ before_build:
   - git submodule update
 
 build_script:
+  - cd c:\Libraries\boost
+  - dir
   - cd c:\projects\lightmetrica
   - md build
   - cd build
