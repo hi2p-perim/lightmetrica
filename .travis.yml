@@ -18,7 +18,7 @@ install:
 
 script:
   - cd $TRAVIS_BUILD_DIR
-  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make && make doc
+  - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DLM_ENABLE_BUILD_DOC=ON .. && make -j && make doc
   - cd bin && ./lightmetrica.test
 
 after_success:

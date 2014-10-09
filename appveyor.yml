@@ -1,0 +1,18 @@
+branches:
+  only:
+    - master
+  except:
+    - gh-pages
+
+clone_folder: c:\projects\lightmetrica
+
+build_script:
+  - cd c:\projects\lightmetrica
+  - md build
+  - cd build
+  - cmake -G "Visual Studio 12 Win64" ..
+  - msbuild /m /p:Configuration=Release /p:Platform=x64 lightmetrica.sln
+
+test_script:
+  - ps: cd bin\Release
+  - ps: lightmetrica.test.exe
