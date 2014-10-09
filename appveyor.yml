@@ -15,10 +15,6 @@ before_build:
   - git submodule update
 
 build_script:
-  - cd c:\Libraries\boost
-  - dir
-  - cd c:\Libraries\boost\stage
-  - dir
   - cd c:\projects\lightmetrica
   - md build
   - cd build
