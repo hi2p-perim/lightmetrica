@@ -6,6 +6,14 @@ branches:
 
 clone_folder: c:\projects\lightmetrica
 
+environment:
+  - BOOST_ROOT: c:\Libraries\boost
+  - BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+
+before_build:
+  - git submodule init
+  - git submodule update
+
 build_script:
   - cd c:\projects\lightmetrica
   - md build
