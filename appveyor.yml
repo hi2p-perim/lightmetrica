@@ -8,7 +8,7 @@ clone_folder: c:\projects\lightmetrica
 
 environment:
   - BOOST_ROOT: c:\Libraries\boost
-  - BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+  - BOOST_LIBRARYDIR: c:\Libraries\boost\stage.x64\lib
 
 before_build:
   - git submodule init
