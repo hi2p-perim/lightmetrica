@@ -60,7 +60,6 @@ AABB Scene::GetAABB() const
 	// Calculate scene's AABB
 	AABB aabb;
 	aabb = GetAABBTriangles();									// Triangles
-	aabb = aabb.Union(primitives->GetAABBEmitterShapes());		// Emitter shapers
 	aabb = aabb.Union(primitives->MainCamera()->GetAABB());		// Main camera
 	return aabb;
 }
@@ -68,7 +67,8 @@ AABB Scene::GetAABB() const
 bool Scene::Intersect( Ray& ray, Intersection& isect ) const
 {
 	// TODO : Refreshing #minT and #maxT?
-	return IntersectTriangles(ray, isect) || primitives->IntersectEmitterShapes(ray, isect);
+	bool isectT = IntersectTriangles(ray, isect);
+	return isectT || primitives->IntersectEmitterShapes(ray, isect);
 }
 
 const Camera* Scene::MainCamera() const
@@ -104,6 +104,8 @@ void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex,
 	isect.primitiveIndex = primitiveIndex;
 	isect.triangleIndex = triangleIndex;
 	isect.primitive = primitives->PrimitiveByIndex(primitiveIndex);
+	isect.camera = isect.primitive->camera;
+	isect.light = isect.primitive->light;
 
 	const auto* mesh = isect.primitive->mesh;
 	const auto* positions = mesh->Positions();

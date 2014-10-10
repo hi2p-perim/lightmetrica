@@ -143,7 +143,7 @@ void SphereEmitterShape::StoreIntersection( const Ray& ray, Intersection& isect 
 	isect.geom.p = ray.o + ray.d * ray.maxT;
 
 	// Geometry & shading normal
-	isect.geom.gn = isect.geom.sn = Math::Normalize(isect.geom.p - center);
+	isect.geom.gn = isect.geom.sn = Math::Normalize(center - isect.geom.p);
 	isect.geom.ComputeTangentSpace();
 
 	// Surface is not degenerated

@@ -199,18 +199,18 @@ void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		{
 			break;
 		}
-					
-		const auto* light = isect.primitive->light;
-		if (light)
+
+		if (isect.light)
 		{
 			// Evaluate Le
 			GeneralizedBSDFEvaluateQuery bsdfEQ;
 			bsdfEQ.transportDir = TransportDirection::LE;
 			bsdfEQ.type = GeneralizedBSDFType::LightDirection;
 			bsdfEQ.wo = -ray.d;
-			auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
-			auto LeP = light->EvaluatePosition(isect.geom);
+			auto LeD = isect.light->EvaluateDirection(bsdfEQ, isect.geom);
+			auto LeP = isect.light->EvaluatePosition(isect.geom);
 			L += throughput * LeD * LeP;
+			break;
 		}
 
 		// --------------------------------------------------------------------------------

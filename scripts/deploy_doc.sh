@@ -8,4 +8,3 @@ cp -rf $TRAVIS_BUILD_DIR/build/doc/html/* .
 git add -f .
 git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages"
 git push --force --quiet origin gh-pages > /dev/null
-

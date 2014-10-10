@@ -34,7 +34,7 @@ class Light : public Emitter
 public:
 
 	LM_ASSET_INTERFACE_DEF("light", "lights");
-	LM_ASSET_NO_DEPENDENCIES();
+	LM_ASSET_DEPENDENCIES("texture");
 
 public:
 

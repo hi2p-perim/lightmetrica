@@ -5,6 +5,6 @@ wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.8.src.tar.gz
 tar zxvf doxygen-1.8.8.src.tar.gz
 cd $HOME/doxygen-1.8.8
 ./configure
-make -j
+make
 sudo make install
 

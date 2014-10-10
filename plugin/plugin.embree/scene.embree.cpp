@@ -195,6 +195,8 @@ bool EmbreeScene::IntersectTriangles( Ray& ray, Intersection& isect ) const
 	isect.primitiveIndex = rtcGeomIDToPrimitiveIDMap.at(rtcRay.geomID);
 	isect.triangleIndex = rtcRay.primID;
 	isect.primitive = primitives->PrimitiveByIndex(isect.primitiveIndex);
+	isect.camera = isect.primitive->camera;
+	isect.light = isect.primitive->light;
 
 	const auto* mesh = isect.primitive->mesh;
 	const auto* positions = mesh->Positions();

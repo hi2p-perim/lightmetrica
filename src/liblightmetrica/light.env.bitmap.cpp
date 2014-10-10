@@ -25,23 +25,26 @@
 #include <lightmetrica/boundingsphere.h>
 #include <lightmetrica/scene.h>
 #include <lightmetrica/emittershape.h>
+#include <lightmetrica/texture.h>
+#include <lightmetrica/assets.h>
+#include <lightmetrica/math.transform.h>
 
 LM_NAMESPACE_BEGIN
 
 /*!
-	Constant environment light.
-	Implements environment light with constant luminance.
+	Bitmap environment light.
+	Implements environment light with environment map.
 */
-class ConstantEnvironmentLight final : public Light
+class EnvmapEnvironmentLight final : public Light
 {
 public:
 
-	LM_COMPONENT_IMPL_DEF("env.const");
+	LM_COMPONENT_IMPL_DEF("env.bitmap");
 
 public:
 
-	ConstantEnvironmentLight() {}
-	~ConstantEnvironmentLight() {}
+	EnvmapEnvironmentLight() {}
+	~EnvmapEnvironmentLight() {}
 
 public:
 
@@ -72,20 +75,41 @@ public:
 
 private:
 
-	Math::Vec3 Le;				//!< Luminance.
+	Math::Vec3 EvaluateLightProbe(const Math::Vec3& d) const;
+
+private:
+
+	const Texture* Le;			//!< Environment map (light probe format).
 	BoundingSphere bsphere;		//!< Bounding sphere containing the entire scene.
 	Math::Float area;			//!< Area of the bounding sphere.
 	Math::Float invArea;		//!< Inverse of #area.
+	Math::Float rotate;			//!< Rotation of environemnt map (counterclockwise).
 
 };
 
-bool ConstantEnvironmentLight::Load( const ConfigNode& node, const Assets& assets )
+bool EnvmapEnvironmentLight::Load(const ConfigNode& node, const Assets& assets)
 {
-	if (!node.ChildValue<Math::Vec3>("luminance", Le)) return false;
+	auto textureNode = node.Child("texture");
+	if (!textureNode.Empty())
+	{
+		Le = assets.ResolveReferenceToAsset<Texture>(textureNode);
+		if (!Le)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		LM_LOG_INFO("Missing 'texture' element");
+		return false;
+	}
+
+	node.ChildValueOrDefault("rotate", Math::Float(0), rotate);
+
 	return true;
 }
 
-void ConstantEnvironmentLight::PostConfigure( const Scene& scene )
+void EnvmapEnvironmentLight::PostConfigure(const Scene& scene)
 {
 	// Create bounding sphere
 	auto aabb = scene.GetAABB();
@@ -97,11 +121,11 @@ void ConstantEnvironmentLight::PostConfigure( const Scene& scene )
 	invArea = Math::Float(1) / area;
 }
 
-EmitterShape* ConstantEnvironmentLight::CreateEmitterShape() const
+EmitterShape* EnvmapEnvironmentLight::CreateEmitterShape() const
 {
 	// Create sphere
 	std::unique_ptr<EmitterShape> shape(ComponentFactory::Create<EmitterShape>("sphere"));
-	
+
 	// Configure parameters
 	std::map<std::string, boost::any> params;
 	params["center"] = bsphere.center;
@@ -115,7 +139,7 @@ EmitterShape* ConstantEnvironmentLight::CreateEmitterShape() const
 	return shape.release();
 }
 
-AABB ConstantEnvironmentLight::GetAABB() const
+AABB EnvmapEnvironmentLight::GetAABB() const
 {
 	AABB aabb;
 	aabb.min = bsphere.center - Math::Vec3(bsphere.radius);
@@ -123,7 +147,7 @@ AABB ConstantEnvironmentLight::GetAABB() const
 	return aabb;
 }
 
-bool ConstantEnvironmentLight::SampleDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+bool EnvmapEnvironmentLight::SampleDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const
 {
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
 	{
@@ -138,7 +162,7 @@ bool ConstantEnvironmentLight::SampleDirection( const GeneralizedBSDFSampleQuery
 	return true;
 }
 
-Math::Vec3 ConstantEnvironmentLight::SampleAndEstimateDirection( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result ) const
+Math::Vec3 EnvmapEnvironmentLight::SampleAndEstimateDirection(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleResult& result) const
 {
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
 	{
@@ -150,10 +174,10 @@ Math::Vec3 ConstantEnvironmentLight::SampleAndEstimateDirection( const Generaliz
 	result.wo = geom.shadingToWorld * localWo;
 	result.pdf = Math::CosineSampleHemispherePDFProjSA(localWo);
 
-	return Math::Vec3(Math::Float(1));
+	return EvaluateLightProbe(-result.wo);
 }
 
-bool ConstantEnvironmentLight::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result ) const
+bool EnvmapEnvironmentLight::SampleAndEstimateDirectionBidir(const GeneralizedBSDFSampleQuery& query, const SurfaceGeometry& geom, GeneralizedBSDFSampleBidirResult& result) const
 {
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE))
 	{
@@ -164,14 +188,14 @@ bool ConstantEnvironmentLight::SampleAndEstimateDirectionBidir( const Generalize
 	auto localWo = Math::CosineSampleHemisphere(query.sample);
 	result.wo = geom.shadingToWorld * localWo;
 	result.pdf[query.transportDir] = Math::CosineSampleHemispherePDFProjSA(localWo);
-	result.pdf[1-query.transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
-	result.weight[query.transportDir] = Math::Vec3(Math::Float(1));
-	result.weight[1-query.transportDir] = Math::Vec3();
+	result.pdf[1 - query.transportDir] = Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle);
+	result.weight[query.transportDir] = EvaluateLightProbe(-result.wo);
+	result.weight[1 - query.transportDir] = Math::Vec3();
 
 	return true;
 }
 
-Math::Vec3 ConstantEnvironmentLight::EvaluateDirection( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::Vec3 EnvmapEnvironmentLight::EvaluateDirection(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const
 {
 	auto localWo = geom.worldToShading * query.wo;
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
@@ -179,10 +203,10 @@ Math::Vec3 ConstantEnvironmentLight::EvaluateDirection( const GeneralizedBSDFEva
 		return Math::Vec3();
 	}
 
-	return Math::Vec3(Math::Constants::InvPi());
+	return EvaluateLightProbe(-query.wo) * Math::Constants::InvPi();
 }
 
-Math::PDFEval ConstantEnvironmentLight::EvaluateDirectionPDF( const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom ) const
+Math::PDFEval EnvmapEnvironmentLight::EvaluateDirectionPDF(const GeneralizedBSDFEvaluateQuery& query, const SurfaceGeometry& geom) const
 {
 	auto localWo = geom.worldToShading * query.wo;
 	if ((query.type & GeneralizedBSDFType::LightDirection) == 0 || (query.transportDir != TransportDirection::LE) || Math::CosThetaZUp(localWo) <= 0)
@@ -193,7 +217,7 @@ Math::PDFEval ConstantEnvironmentLight::EvaluateDirectionPDF( const GeneralizedB
 	return CosineSampleHemispherePDFProjSA(localWo);
 }
 
-void ConstantEnvironmentLight::SamplePosition( const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf ) const
+void EnvmapEnvironmentLight::SamplePosition(const Math::Vec2& sample, SurfaceGeometry& geom, Math::PDFEval& pdf) const
 {
 	auto d = Math::UniformSampleSphere(sample);
 	geom.degenerated = false;
@@ -203,16 +227,28 @@ void ConstantEnvironmentLight::SamplePosition( const Math::Vec2& sample, Surface
 	pdf = Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
-Math::Vec3 ConstantEnvironmentLight::EvaluatePosition( const SurfaceGeometry& geom ) const
+Math::Vec3 EnvmapEnvironmentLight::EvaluatePosition(const SurfaceGeometry& geom) const
 {
-	return Le * Math::Constants::Pi();
+	return Math::Constants::Pi();
 }
 
-Math::PDFEval ConstantEnvironmentLight::EvaluatePositionPDF( const SurfaceGeometry& geom ) const
+Math::PDFEval EnvmapEnvironmentLight::EvaluatePositionPDF(const SurfaceGeometry& geom) const
 {
 	return Math::PDFEval(invArea, Math::ProbabilityMeasure::Area);
 }
 
-LM_COMPONENT_REGISTER_IMPL(ConstantEnvironmentLight, Light);
+Math::Vec3 EnvmapEnvironmentLight::EvaluateLightProbe(const Math::Vec3& d) const
+{
+	// Rotated direction
+	const auto t = Math::Vec3(Math::Rotate(-rotate, Math::Vec3(0, 1, 0)) * Math::Vec4(d));
+
+	// Convert ray direction to the uv coordinates of light probe
+	// See http://www.pauldebevec.com/Probes/ for details
+	const auto r = Math::Constants::InvPi() * std::acos(t.z) / Math::Sqrt(t.x*t.x + t.y*t.y);
+	const auto uv = (Math::Vec2(t.x * r, t.y * r) + Math::Vec2(1)) / Math::Float(2);
+	return Le->Evaluate(uv);
+}
+
+LM_COMPONENT_REGISTER_IMPL(EnvmapEnvironmentLight, Light);
 
 LM_NAMESPACE_END
