@@ -118,7 +118,7 @@ set(
 	_ASSETS_LIGHTS_SOURCES
 	"light.area.cpp"
 	"light.env.const.cpp"
-	"light.env.envmap.cpp"
+	"light.env.bitmap.cpp"
 )
 source_group("${_HEADER_FILES_ROOT}\\assets" FILES ${_ASSETS_LIGHTS_HEADERS})
 source_group("${_SOURCE_FILES_ROOT}\\assets\\lights" FILES ${_ASSETS_LIGHTS_SOURCES})
