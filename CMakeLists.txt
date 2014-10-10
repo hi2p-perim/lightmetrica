@@ -266,31 +266,30 @@ string(REGEX REPLACE "([0-9]+)/([0-9]+)/([0-9]+) *.*(\n|\r)$" "\\1.\\2.\\3" LM_C
 
 # SIMD configuration
 if (NOT LM_ENABLE_FORCE_NO_SIMD)
-	# Add compiler options
-	if (MSVC)
-		# Automatic SIMD compatibility check
-		try_run(
-			_SSE_CHECK_RUN_RESULT
-			_SSE_CHECK_COMPILE_RESULT
-			"${CMAKE_BINARY_DIR}/CMakeFiles/ssecheck"
-			"${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssecheck.cpp"
-			COMPILE_OUTPUT_VARIABLE _SSE_CHECK_COMPILE_OUTPUT
-			RUN_OUTPUT_VARIABLE _SSE_CHECK_RUN_OUTPUT)
+	# Automatic SIMD compatibility check
+	try_run(
+		_SSE_CHECK_RUN_RESULT
+		_SSE_CHECK_COMPILE_RESULT
+		"${CMAKE_BINARY_DIR}/CMakeFiles/ssecheck"
+		"${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssecheck.cpp"
+		COMPILE_OUTPUT_VARIABLE _SSE_CHECK_COMPILE_OUTPUT
+		RUN_OUTPUT_VARIABLE _SSE_CHECK_RUN_OUTPUT)
 		
-		if (NOT _SSE_CHECK_RUN_OUTPUT)
-			message(FATAL_ERROR "Failed to check SIMD support")
-		endif()
+	if (NOT _SSE_CHECK_RUN_OUTPUT)
+		message(FATAL_ERROR "Failed to check SIMD support")
+	endif()
 	
-		string(REGEX REPLACE ".*SSE:([0-1]).*" "\\1" LM_USE_SSE ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE2:([0-1]).*" "\\1" LM_USE_SSE2 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE3:([0-1]).*" "\\1" LM_USE_SSE3 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSSE3:([0-1]).*" "\\1" LM_USE_SSSE3 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE4\\.1:([0-1]).*" "\\1" LM_USE_SSE4_1 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE4\\.2:([0-1]).*" "\\1" LM_USE_SSE4_2 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE4a:([0-1]).*" "\\1" LM_USE_SSE4A ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*SSE5:([0-1]).*" "\\1" LM_USE_SSE5 ${_SSE_CHECK_RUN_OUTPUT})
-		string(REGEX REPLACE ".*AVX:([0-1]).*" "\\1" LM_USE_AVX ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE:([0-1]).*" "\\1" LM_USE_SSE ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE2:([0-1]).*" "\\1" LM_USE_SSE2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE3:([0-1]).*" "\\1" LM_USE_SSE3 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSSE3:([0-1]).*" "\\1" LM_USE_SSSE3 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.1:([0-1]).*" "\\1" LM_USE_SSE4_1 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4\\.2:([0-1]).*" "\\1" LM_USE_SSE4_2 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE4a:([0-1]).*" "\\1" LM_USE_SSE4A ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*SSE5:([0-1]).*" "\\1" LM_USE_SSE5 ${_SSE_CHECK_RUN_OUTPUT})
+	string(REGEX REPLACE ".*AVX:([0-1]).*" "\\1" LM_USE_AVX ${_SSE_CHECK_RUN_OUTPUT})
 	
+	if (MSVC)
 		if (LM_USE_AVX)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
 		elseif (LM_USE_SSE2)
