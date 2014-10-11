@@ -327,11 +327,6 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 			break;
 		}
 
-		if (_isnan(v->wo.x))
-		{
-			__debugbreak();
-		}
-
 		numPathVertices++;
 		vertices.push_back(v);
 
