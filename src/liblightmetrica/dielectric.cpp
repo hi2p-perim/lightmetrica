@@ -499,25 +499,27 @@ Math::Float DielectricBSDF::EvalFrDielectic( const Math::Float& etaI, const Math
 		Fr = Math::Float(1); 
 		cosThetaT = Math::Float(0);
 	}
-
-	auto cosThetaI2 = Math::Abs(cosThetaI);
-	cosThetaT = Math::Sqrt(Math::Float(1) - sinThetaTSq);
-
-	if (etaI == etaT)
-	{
-		Fr = Math::Float(0);
-	}
 	else
 	{
-		Math::Float Rs = (etaI * cosThetaI2 - etaT * cosThetaT) / (etaI * cosThetaI2 + etaT * cosThetaT);
-		Math::Float Rp = (etaT * cosThetaI2 - etaI * cosThetaT) / (etaT * cosThetaI2 + etaI * cosThetaT);
+		auto cosThetaI2 = Math::Abs(cosThetaI);
+		cosThetaT = Math::Sqrt(Math::Float(1) - sinThetaTSq);
 
-		Fr = (Rs * Rs + Rp * Rp) / Math::Float(2);
-
-		// Flip theta_t if incoming ray comes from negative z
-		if (entering)
+		if (etaI == etaT)
 		{
-			cosThetaT = -cosThetaT;
+			Fr = Math::Float(0);
+		}
+		else
+		{
+			Math::Float Rs = (etaI * cosThetaI2 - etaT * cosThetaT) / (etaI * cosThetaI2 + etaT * cosThetaT);
+			Math::Float Rp = (etaT * cosThetaI2 - etaI * cosThetaT) / (etaT * cosThetaI2 + etaI * cosThetaT);
+
+			Fr = (Rs * Rs + Rp * Rp) / Math::Float(2);
+
+			// Flip theta_t if incoming ray comes from negative z
+			if (entering)
+			{
+				cosThetaT = -cosThetaT;
+			}
 		}
 	}
 

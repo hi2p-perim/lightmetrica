@@ -29,7 +29,6 @@ LM_NAMESPACE_BEGIN
 bool FloatintPointUtils::EnableFPControl()
 {
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
-#if 0
 
 	errno_t error;
 
@@ -55,9 +54,7 @@ bool FloatintPointUtils::EnableFPControl()
 	unsigned int newFPState = currentFPState &
 							~(_EM_INVALID    |		// Invalid operation
 							  _EM_DENORMAL   |		// Denormal operand 
-							  _EM_ZERODIVIDE |		// Divide by zero
-							  _EM_OVERFLOW   |		// Overflow
-							  _EM_UNDERFLOW);		// Inexact result
+							  _EM_ZERODIVIDE);		// Divide by zero
 #endif
 
 	if ((error = _controlfp_s(&currentFPState, newFPState, _MCW_EM)) != 0)
@@ -65,8 +62,6 @@ bool FloatintPointUtils::EnableFPControl()
 		LM_LOG_ERROR("_controlfp_s failed : " + std::string(strerror(error)));
 		return false;
 	}
-
-#endif
 
 	return true;
 

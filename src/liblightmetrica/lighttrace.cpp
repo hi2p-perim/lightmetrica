@@ -294,7 +294,7 @@ void LighttraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		// Update information
 		currGeom = isect.geom;
 		currWi = -ray.d;
-		currBsdf = isect.primitive->bsdf;
+		currBsdf = isect.bsdf;
 		depth++;
 	}
 }

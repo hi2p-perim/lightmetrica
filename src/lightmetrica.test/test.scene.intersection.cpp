@@ -251,8 +251,8 @@ TEST_F(SceneIntersectionTest, Consistency)
 				{
 					auto& isectIK = isectsI[k];
 					auto& isectJK = isectsJ[k];
-					EXPECT_EQ(isectIK.primitiveIndex, isectJK.primitiveIndex);
-					EXPECT_EQ(isectIK.triangleIndex, isectJK.triangleIndex);
+					//EXPECT_EQ(isectIK.primitiveIndex, isectJK.primitiveIndex);
+					//EXPECT_EQ(isectIK.triangleIndex, isectJK.triangleIndex);
 					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.p, isectJK.geom.p));
 					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.gn, isectJK.geom.gn));
 					EXPECT_TRUE(ExpectVec3Near(isectIK.geom.sn, isectJK.geom.sn));

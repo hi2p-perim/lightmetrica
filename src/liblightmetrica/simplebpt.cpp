@@ -336,7 +336,7 @@ void SimpleBidirectionalPathtraceRenderer_RenderProcess::ProcessSingleSample(con
 		numSubpathVertices[subpath]++;
 		currGeom[subpath] = isect.geom;
 		currWi[subpath] = -ray.d;
-		currBsdfs[subpath] = isect.primitive->bsdf;
+		currBsdfs[subpath] = isect.bsdf;
 	}
 }
 

@@ -210,7 +210,6 @@ void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 			auto LeD = isect.light->EvaluateDirection(bsdfEQ, isect.geom);
 			auto LeP = isect.light->EvaluatePosition(isect.geom);
 			L += throughput * LeD * LeP;
-			break;
 		}
 
 		// --------------------------------------------------------------------------------
@@ -224,7 +223,7 @@ void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		bsdfSQ.wi = -ray.d;
 		
 		GeneralizedBSDFSampleResult bsdfSR;
-		auto fs_Estimated = isect.primitive->bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
+		auto fs_Estimated = isect.bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
 		if (Math::IsZero(fs_Estimated))
 		{
 			break;

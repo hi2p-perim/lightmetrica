@@ -27,6 +27,7 @@
 LM_NAMESPACE_BEGIN
 
 struct Primitive;
+class BSDF;
 class Camera;
 class Light;
 
@@ -40,15 +41,16 @@ struct Intersection
 {
 
 	// Primitive and reference to the triangle
-	const Primitive* primitive;
-	unsigned int primitiveIndex;
-	unsigned int triangleIndex;
+	//const Primitive* primitive;
+	//unsigned int primitiveIndex;
+	//unsigned int triangleIndex;
 
-	// Emitters associated with intersected surface
+	// BSDF & emitters associated with intersected surface
 	// Thought this is duplicated with #light and #camera variable in #primitive,
 	// these variables are introduced in order to support emitters which are
 	// not associated with the #primitive such as environment light.
 	// TODO : Use unrestricted unions
+	const BSDF* bsdf;
 	const Camera* camera;
 	const Light* light;
 

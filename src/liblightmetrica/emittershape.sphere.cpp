@@ -25,6 +25,7 @@
 #include <lightmetrica/intersection.h>
 #include <lightmetrica/renderutils.h>
 #include <lightmetrica/light.h>
+#include <lightmetrica/bsdf.h>
 
 LM_NAMESPACE_BEGIN
 
@@ -37,6 +38,10 @@ class SphereEmitterShape final : public EmitterShape
 public:
 
 	LM_COMPONENT_IMPL_DEF("sphere");
+
+public:
+
+	SphereEmitterShape();
 
 public:
 
@@ -54,8 +59,15 @@ private:
 	Math::Vec3 center;
 	Math::Float radius;
 	const Emitter* emitter;
+	std::unique_ptr<BSDF> bsdf;
 
 };
+
+SphereEmitterShape::SphereEmitterShape()
+	: bsdf(ComponentFactory::Create<BSDF>("diffuse"))
+{
+	
+}
 
 bool SphereEmitterShape::Configure( std::map<std::string, boost::any>& params )
 {
@@ -77,6 +89,14 @@ bool SphereEmitterShape::Configure( std::map<std::string, boost::any>& params )
 	catch (const boost::bad_any_cast& e)
 	{
 		LM_LOG_ERROR("Invalid type : " + std::string(e.what()));
+		return false;
+	}
+
+	// Create black BSDF
+	std::map<std::string, boost::any> bsdfParams;
+	bsdfParams["color"] = Math::Vec3();
+	if (!bsdf->Load(bsdfParams))
+	{
 		return false;
 	}
 
@@ -149,7 +169,8 @@ void SphereEmitterShape::StoreIntersection( const Ray& ray, Intersection& isect 
 	// Surface is not degenerated
 	isect.geom.degenerated = false;
 
-	// Emitters
+	// BSDF & emitters
+	isect.bsdf = bsdf.get();
 	isect.camera = nullptr;
 	isect.light = dynamic_cast<const Light*>(emitter);
 }

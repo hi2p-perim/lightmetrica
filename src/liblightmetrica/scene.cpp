@@ -101,13 +101,14 @@ Math::PDFEval Scene::LightSelectionPdf() const
 void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex, unsigned int triangleIndex, const Ray& ray, const Math::Vec2& b, Intersection& isect ) const
 {
 	// Primitive
-	isect.primitiveIndex = primitiveIndex;
-	isect.triangleIndex = triangleIndex;
-	isect.primitive = primitives->PrimitiveByIndex(primitiveIndex);
-	isect.camera = isect.primitive->camera;
-	isect.light = isect.primitive->light;
+	//isect.primitiveIndex = primitiveIndex;
+	//isect.triangleIndex = triangleIndex;
+	const auto* primitive = primitives->PrimitiveByIndex(primitiveIndex);
+	isect.bsdf = primitive->bsdf;
+	isect.camera = primitive->camera;
+	isect.light = primitive->light;
 
-	const auto* mesh = isect.primitive->mesh;
+	const auto* mesh = primitive->mesh;
 	const auto* positions = mesh->Positions();
 	const auto* normals = mesh->Normals();
 	const auto* texcoords = mesh->TexCoords();
@@ -120,15 +121,15 @@ void Scene::StoreIntersectionFromBarycentricCoords( unsigned int primitiveIndex,
 	int v1 = faces[3*triangleIndex  ];
 	int v2 = faces[3*triangleIndex+1];
 	int v3 = faces[3*triangleIndex+2];
-	Math::Vec3 p1(isect.primitive->transform * Math::Vec4(positions[3*v1], positions[3*v1+1], positions[3*v1+2], Math::Float(1)));
-	Math::Vec3 p2(isect.primitive->transform * Math::Vec4(positions[3*v2], positions[3*v2+1], positions[3*v2+2], Math::Float(1)));
-	Math::Vec3 p3(isect.primitive->transform * Math::Vec4(positions[3*v3], positions[3*v3+1], positions[3*v3+2], Math::Float(1)));
+	Math::Vec3 p1(primitive->transform * Math::Vec4(positions[3*v1], positions[3*v1+1], positions[3*v1+2], Math::Float(1)));
+	Math::Vec3 p2(primitive->transform * Math::Vec4(positions[3*v2], positions[3*v2+1], positions[3*v2+2], Math::Float(1)));
+	Math::Vec3 p3(primitive->transform * Math::Vec4(positions[3*v3], positions[3*v3+1], positions[3*v3+2], Math::Float(1)));
 	isect.geom.gn = Math::Normalize(Math::Cross(p2 - p1, p3 - p1));
 
 	// Shading normal
-	Math::Vec3 n1(isect.primitive->normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]));
-	Math::Vec3 n2(isect.primitive->normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]));
-	Math::Vec3 n3(isect.primitive->normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]));
+	Math::Vec3 n1(primitive->normalTransform * Math::Vec3(normals[3*v1], normals[3*v1+1], normals[3*v1+2]));
+	Math::Vec3 n2(primitive->normalTransform * Math::Vec3(normals[3*v2], normals[3*v2+1], normals[3*v2+2]));
+	Math::Vec3 n3(primitive->normalTransform * Math::Vec3(normals[3*v3], normals[3*v3+1], normals[3*v3+2]));
 	isect.geom.sn = Math::Normalize(n1 * (Math::Float(1) - b[0] - b[1]) + n2 * b[0] + n3 * b[1]);
 
 	// Texture coordinates

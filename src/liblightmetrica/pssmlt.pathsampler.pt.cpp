@@ -112,7 +112,7 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 			break;
 		}
 
-		const auto* light = isect.primitive->light;
+		const auto* light = isect.light;
 		if (light)
 		{
 			// Evaluate Le
@@ -136,7 +136,7 @@ void PSSMLTPTPathSampler::SampleAndEvaluate( const Scene& scene, Sampler& sample
 		bsdfSQ.wi = -ray.d;
 
 		GeneralizedBSDFSampleResult bsdfSR;
-		auto fs_Estimated = isect.primitive->bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
+		auto fs_Estimated = isect.bsdf->SampleAndEstimateDirection(bsdfSQ, isect.geom, bsdfSR);
 		if (Math::IsZero(fs_Estimated))
 		{
 			break;

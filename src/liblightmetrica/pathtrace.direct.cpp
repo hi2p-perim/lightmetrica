@@ -303,8 +303,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 		// Intersected point is light
 		{
-			const auto* light = isect.primitive->light;
-			if (light != nullptr)
+			if (isect.light != nullptr)
 			{
 				// Previous BSDF is specular 
 				if ((bsdfSR.sampledType & GeneralizedBSDFType::Specular) > 0)
@@ -314,8 +313,8 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 					bsdfEQ.transportDir = TransportDirection::LE;
 					bsdfEQ.type = GeneralizedBSDFType::LightDirection;
 					bsdfEQ.wo = -ray.d;
-					auto LeD = light->EvaluateDirection(bsdfEQ, isect.geom);
-					auto LeP = light->EvaluatePosition(isect.geom);
+					auto LeD = isect.light->EvaluateDirection(bsdfEQ, isect.geom);
+					auto LeP = isect.light->EvaluatePosition(isect.geom);
 					film->AccumulateContribution(rasterPos, throughput * LeD * LeP);
 				}
 			}
@@ -326,7 +325,7 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 		// Update information
 		currGeom = isect.geom;
 		currWi = -ray.d;
-		currBsdf = isect.primitive->bsdf;
+		currBsdf = isect.bsdf;
 		numPathVertices++;
 
 		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)

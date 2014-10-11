@@ -317,7 +317,7 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 		// Intersected point is light
 		{
-			const auto* light = isect.primitive->light;
+			const auto* light = isect.light;
 			if (light != nullptr)
 			{
 				// Evaluate Le
@@ -356,7 +356,7 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		// Update information
 		currGeom = isect.geom;
 		currWi = -ray.d;
-		currBsdf = isect.primitive->bsdf;
+		currBsdf = isect.bsdf;
 		numPathVertices++;
 
 		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)

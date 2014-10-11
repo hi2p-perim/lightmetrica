@@ -47,6 +47,7 @@ public:
 public:
 
 	virtual bool Load(const ConfigNode& node, const Assets& assets) override;
+	virtual bool Load(std::map<std::string, boost::any>& params) override;
 
 public:
 
@@ -102,6 +103,14 @@ bool DiffuseBSDF::Load( const ConfigNode& node, const Assets& assets )
 		return false;
 	}
 
+	return true;
+}
+
+bool DiffuseBSDF::Load(std::map<std::string, boost::any>& params)
+{
+	constantColorTexture.reset(ComponentFactory::Create<Texture>("constant"));
+	constantColorTexture->Load(params);
+	R = constantColorTexture.get();
 	return true;
 }
 

@@ -41,6 +41,21 @@ public:
 		return true;
 	}
 
+	virtual bool Load(std::map<std::string, boost::any>& params) override
+	{
+		try
+		{
+			C = boost::any_cast<Math::Vec3>(params["color"]);
+		}
+		catch (const boost::bad_any_cast& e)
+		{
+			LM_LOG_ERROR("Invalid type : " + std::string(e.what()));
+			return false;
+		}
+
+		return true;
+	}
+
 public:
 
 	virtual Math::Vec3 Evaluate(const Math::Vec2& uv) const override

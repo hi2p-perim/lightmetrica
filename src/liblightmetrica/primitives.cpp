@@ -136,6 +136,8 @@ bool PrimitivesImpl::Load( const ConfigNode& node, const Assets& assets )
 			LM_LOG_ERROR("The light referenced by 'environment_light' is not an environment light");
 			return false;
 		}
+
+		lights.push_back(environmentLight);
 	}
 
 	// ----------------------------------------------------------------------

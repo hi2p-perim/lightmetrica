@@ -245,13 +245,13 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		auto* v = pool.Construct();
 		v->type = BPTPathVertexType::IntermediatePoint;
 		v->transportDir = transportDir;
-		v->bsdf = isect.primitive->bsdf;
+		v->bsdf = isect.bsdf;
 		v->geom = isect.geom;
 		v->wi = -pv->wo;
 
 		// Area light or camera
-		v->areaL = isect.primitive->light;
-		v->areaE = isect.primitive->camera;
+		v->areaL = isect.light;
+		v->areaE = isect.camera;
 
 		// Area light or camera should not be associated with the same surfaces
 		LM_ASSERT(v->areaL == nullptr || v->areaE == nullptr);
@@ -321,6 +321,16 @@ void BPTSubpath::Sample( const Scene& scene, Sampler& sampler, BPTPathVertexPool
 		v->weight[1-transportDir] = bsdfSR.weight[1-transportDir];
 		v->pdfD[transportDir]     = bsdfSR.pdf[transportDir];
 		v->pdfD[1-transportDir]   = pv->geom.degenerated ? Math::PDFEval(Math::Float(0), Math::ProbabilityMeasure::ProjectedSolidAngle) : bsdfSR.pdf[1-transportDir];
+		if (Math::IsZero(v->weight[transportDir]))
+		{
+			vertices.push_back(v);
+			break;
+		}
+
+		if (_isnan(v->wo.x))
+		{
+			__debugbreak();
+		}
 
 		numPathVertices++;
 		vertices.push_back(v);

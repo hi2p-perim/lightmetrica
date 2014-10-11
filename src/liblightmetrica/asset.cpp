@@ -24,14 +24,14 @@
 
 LM_NAMESPACE_BEGIN
 
-std::string Asset::ID() const
-{
-	return id;
-}
-
-void Asset::SetID( const std::string& id )
-{
-	this->id = id;
-}
+//std::string Asset::ID() const
+//{
+//	return id;
+//}
+//
+//void Asset::SetID( const std::string& id )
+//{
+//	this->id = id;
+//}
 
 LM_NAMESPACE_END

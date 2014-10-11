@@ -244,7 +244,7 @@ Math::Vec3 EnvmapEnvironmentLight::EvaluateLightProbe(const Math::Vec3& d) const
 
 	// Convert ray direction to the uv coordinates of light probe
 	// See http://www.pauldebevec.com/Probes/ for details
-	const auto r = Math::Constants::InvPi() * std::acos(t.z) / Math::Sqrt(t.x*t.x + t.y*t.y);
+	const auto r = Math::Constants::InvPi() * std::acos(Math::Clamp(t.z, Math::Float(-1), Math::Float(1))) / Math::Sqrt(t.x*t.x + t.y*t.y);
 	const auto uv = (Math::Vec2(t.x * r, t.y * r) + Math::Vec2(1)) / Math::Float(2);
 	return Le->Evaluate(uv);
 }

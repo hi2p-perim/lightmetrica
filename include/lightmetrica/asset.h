@@ -22,6 +22,9 @@
 #define LIB_LIGHTMETRICA_ASSET_H
 
 #include "component.h"
+#include <string>
+#include <map>
+#include <boost/any.hpp>
 
 LM_NAMESPACE_BEGIN
 
@@ -46,7 +49,7 @@ private:
 public:
 
 	/*!
-		Load an asset.
+		Load an asset from XML node.
 		Configure and initialize the asset by the XML elements given by #node.
 		Some assets have references to the other assets, so #assets is also required.
 		Dependent asset must be loaded beforehand.
@@ -58,10 +61,20 @@ public:
 	virtual bool Load(const ConfigNode& node, const Assets& assets) = 0;
 
 	/*!
+		Load an asset from parameter map.
+		Some assets support loading parameter with map.
+		This function is mainly for internal use.
+		\param params Parameters.
+		\param true Succeeded to load.
+		\param false Failed to load.
+	*/
+	virtual bool Load(std::map<std::string, boost::any>& params) { return true; }
+
+	/*!
 		Get ID of the asset.
 		\return ID of the asset.
 	*/
-	LM_PUBLIC_API std::string ID() const;
+	std::string ID() const { return id; }
 
 public:
 
@@ -70,7 +83,7 @@ public:
 		This is an internal function.
 		\param id ID of the asset.
 	*/
-	LM_HIDDEN_API void SetID(const std::string& id);
+	void SetID(const std::string& id) { this->id = id; }
 
 private:
 
