@@ -28,6 +28,8 @@ LM_NAMESPACE_BEGIN
 
 bool FloatintPointUtils::EnableFPControl()
 {
+#if 0
+
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 
 	errno_t error;
@@ -65,11 +67,16 @@ bool FloatintPointUtils::EnableFPControl()
 
 	return true;
 
+
 #else
 
 	LM_LOG_ERROR("Unsupported platform");
 	return false;
 
+#endif
+
+#else
+	return true;
 #endif
 }
 

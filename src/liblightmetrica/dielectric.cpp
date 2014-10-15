@@ -481,10 +481,38 @@ Math::PDFEval DielectricBSDF::EvaluateDirectionPDF( const GeneralizedBSDFEvaluat
 	return Math::PDFEval((Math::Float(1) - Fr) / Math::Abs(cosThetaT2), Math::ProbabilityMeasure::ProjectedSolidAngle);
 }
 
-Math::Float DielectricBSDF::EvalFrDielectic( const Math::Float& etaI, const Math::Float& etaT, const Math::Float& cosThetaI, Math::Float& cosThetaT ) const
+Math::Float DielectricBSDF::EvalFrDielectic( const Math::Float& /*etaI*/, const Math::Float& /*etaT*/, const Math::Float& cosThetaI, Math::Float& cosThetaT ) const
 {
 #if 0
 	return Math::Float(1);
+#elif 1
+
+	const bool entering = cosThetaI > Math::Float(0);
+	const auto eta = n2 / n1;
+	if (eta == Math::Float(1))
+	{
+		cosThetaT = -cosThetaI;
+		return Math::Float(0);
+	}
+
+	const auto scale = entering ? Math::Float(1) / eta : eta;
+	const auto cosThetaTSq = Math::Float(1) - (Math::Float(1) - cosThetaI * cosThetaI) * (scale * scale);
+
+	if (cosThetaTSq <= Math::Float(0))
+	{
+		cosThetaT = Math::Float(0);
+		return Math::Float(1);
+	}
+
+	auto cosThetaI_Temp = Math::Abs(cosThetaI);
+	auto cosThetaT_Temp = Math::Sqrt(cosThetaTSq);
+
+	auto Rs = (cosThetaI_Temp - eta * cosThetaT_Temp) / (cosThetaI_Temp + eta * cosThetaT_Temp);
+	auto Rp = (eta * cosThetaI_Temp - cosThetaT_Temp) / (eta * cosThetaI_Temp + cosThetaT_Temp);
+
+	cosThetaT = entering ? -cosThetaT_Temp : cosThetaT_Temp;
+	return Math::Float(0.5) * (Rs * Rs + Rp * Rp);
+
 #else
 	Math::Float Fr;
 	bool entering = cosThetaI > Math::Float(0);
