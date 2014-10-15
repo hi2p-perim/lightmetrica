@@ -193,6 +193,13 @@ void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 	while (true)
 	{
+		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
+		{
+			break;
+		}
+
+		// --------------------------------------------------------------------------------
+
 		// Check intersection
 		Intersection isect;
 		if (!scene.Intersect(ray, isect))
@@ -253,11 +260,6 @@ void PathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		}
 
 		numPathVertices++;
-
-		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
-		{
-			break;
-		}
 	}
 
 	film->AccumulateContribution(rasterPos, L);

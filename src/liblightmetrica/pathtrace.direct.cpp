@@ -187,6 +187,13 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 
 	while (true)
 	{
+		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
+		{
+			break;
+		}
+
+		// --------------------------------------------------------------------------------
+
 		// Skip if current BSDF only have specular component
 		if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
@@ -327,11 +334,6 @@ void DirectPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& sce
 		currWi = -ray.d;
 		currBsdf = isect.bsdf;
 		numPathVertices++;
-
-		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
-		{
-			break;
-		}
 	}
 }
 

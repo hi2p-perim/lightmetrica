@@ -184,6 +184,13 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 
 	while (true)
 	{
+		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
+		{
+			break;
+		}
+
+		// --------------------------------------------------------------------------------
+
 		// Skip if current BSDF is directionally degenerated
 		if ((currBsdf->BSDFTypes() & GeneralizedBSDFType::NonDelta) > 0)
 		{
@@ -358,11 +365,6 @@ void MISPathtraceRenderer_RenderProcess::ProcessSingleSample(const Scene& scene)
 		currWi = -ray.d;
 		currBsdf = isect.bsdf;
 		numPathVertices++;
-
-		if (renderer.maxPathVertices != -1 && numPathVertices >= renderer.maxPathVertices)
-		{
-			break;
-		}
 	}
 }
 
