@@ -103,7 +103,7 @@ bool DielectricBSDF::SampleDirection( const GeneralizedBSDFSampleQuery& query, c
 	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT);
 
 	// Choose reflection or transmission using RR
-	if (query.uComp < Fr)
+	if (query.uComp <= Fr)
 	{
 		// Reflection
 		auto localWo = Math::ReflectZUp(localWi);
@@ -149,7 +149,7 @@ Math::Vec3 DielectricBSDF::SampleAndEstimateDirection( const GeneralizedBSDFSamp
 	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT);
 
 	// Choose reflection or transmission using RR
-	if (query.uComp < Fr)
+	if (query.uComp <= Fr)
 	{
 		// Reflection
 		auto localWo = Math::ReflectZUp(localWi);
@@ -226,7 +226,7 @@ bool DielectricBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSampl
 	auto Fr = EvalFrDielectic(etaI, etaT, cosThetaI, cosThetaT);
 
 	// Choose reflection or transmission using RR
-	if (query.uComp < Fr)
+	if (query.uComp <= Fr)
 	{
 		// Reflection
 		auto localWo = Math::ReflectZUp(localWi);

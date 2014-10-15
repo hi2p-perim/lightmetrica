@@ -142,10 +142,11 @@ bool ObjMesh::Load( const ConfigNode& node, const Assets& /*assets*/ )
 	// Load file
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path.c_str(),
-		aiProcess_GenNormals |
+		//aiProcess_GenNormals |
+		aiProcess_GenSmoothNormals |
 		//aiProcess_CalcTangentSpace |
-		aiProcess_Triangulate);
-		//aiProcess_JoinIdenticalVertices);
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices);
 
 	if (!scene)
 	{
