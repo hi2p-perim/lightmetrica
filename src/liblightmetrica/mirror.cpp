@@ -126,7 +126,7 @@ bool PerfectMirrorBSDF::SampleAndEstimateDirectionBidir( const GeneralizedBSDFSa
 		return false;
 	}
 
-	auto sfInv = ShadingNormalCorrectionFactor(query.transportDir, geom, localWi, localWo, query.wi, result.wo);
+	auto sfInv = ShadingNormalCorrectionFactor(TransportDirection(1 - query.transportDir), geom, localWo, localWi, result.wo, query.wi);
 	if (Math::IsZero(sfInv))
 	{
 		return false;
