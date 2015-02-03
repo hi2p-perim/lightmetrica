@@ -33,9 +33,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 if (MSVC)
 	# Set prefix path according to generator
 	# Currently only VC11 and VC12 are supported
-	if (CMAKE_GENERATOR STREQUAL "Visual Studio 11 Win64")
+	if ((CMAKE_GENERATOR STREQUAL "Visual Studio 11 Win64") OR (CMAKE_GENERATOR STREQUAL "Visual Studio 11 2012 Win64"))
 		set(LM_GENERATOR_PREFIX "vc11")
-	elseif (CMAKE_GENERATOR STREQUAL "Visual Studio 12 Win64")
+	elseif ((CMAKE_GENERATOR STREQUAL "Visual Studio 12 Win64") OR (CMAKE_GENERATOR STREQUAL "Visual Studio 12 2013 Win64"))
 		set(LM_GENERATOR_PREFIX "vc12")
 	else()
 		message(FATAL_ERROR "Invalid generator")
