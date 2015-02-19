@@ -56,10 +56,6 @@ public:
 				v *= invSum;
 			}
 		}
-		else
-		{
-			LM_LOG_WARN("Unable to normalize. Sum is zero.")
-		}
 	}
 
 	size_t Sample(const Math::Float& u) const
