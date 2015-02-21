@@ -29,7 +29,7 @@ LM_NAMESPACE_BEGIN
 bool FloatintPointUtils::EnableFPControl()
 {
 	// TODO : Sometimes FLT_INVALID is generated, investigate the cause.
-#if 1
+#if 0
 
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 

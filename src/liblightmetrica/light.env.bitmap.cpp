@@ -84,6 +84,7 @@ private:
 	Math::Float area;			//!< Area of the bounding sphere.
 	Math::Float invArea;		//!< Inverse of #area.
 	Math::Float rotate;			//!< Rotation of environemnt map (counterclockwise).
+	Math::Float scale;			//!< Scale in radiance.
 
 };
 
@@ -105,6 +106,7 @@ bool EnvmapEnvironmentLight::Load(const ConfigNode& node, const Assets& assets)
 	}
 
 	node.ChildValueOrDefault("rotate", Math::Float(0), rotate);
+	node.ChildValueOrDefault("scale", Math::Float(1), scale);
 
 	return true;
 }
@@ -246,7 +248,7 @@ Math::Vec3 EnvmapEnvironmentLight::EvaluateLightProbe(const Math::Vec3& d) const
 	// See http://www.pauldebevec.com/Probes/ for details
 	const auto r = Math::Constants::InvPi() * std::acos(Math::Clamp(t.z, Math::Float(-1), Math::Float(1))) / Math::Sqrt(t.x*t.x + t.y*t.y);
 	const auto uv = (Math::Vec2(t.x * r, t.y * r) + Math::Vec2(1)) / Math::Float(2);
-	return Le->Evaluate(uv);
+	return Le->Evaluate(uv) * scale;
 }
 
 LM_COMPONENT_REGISTER_IMPL(EnvmapEnvironmentLight, Light);
