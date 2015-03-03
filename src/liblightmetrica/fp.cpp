@@ -29,8 +29,6 @@ LM_NAMESPACE_BEGIN
 bool FloatintPointUtils::EnableFPControl()
 {
 	// TODO : Sometimes FLT_INVALID is generated, investigate the cause.
-#if 0
-
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 
 	errno_t error;
@@ -68,16 +66,31 @@ bool FloatintPointUtils::EnableFPControl()
 
 	return true;
 
-
 #else
 
-	LM_LOG_ERROR("Unsupported platform");
 	return false;
 
 #endif
+}
+
+bool FloatintPointUtils::DisableFPControl()
+{
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+
+	errno_t error;
+	unsigned int FPState;
+	if ((error = _controlfp_s(&FPState, _CW_DEFAULT, _MCW_EM)) != 0)
+	{
+		LM_LOG_ERROR("_controlfp_s failed : " + std::string(strerror(error)));
+		return false;
+	}
+
+	return true;
 
 #else
-	return true;
+
+	return false;
+
 #endif
 }
 

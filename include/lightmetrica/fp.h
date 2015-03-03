@@ -46,6 +46,12 @@ public:
 	*/
 	static bool EnableFPControl();
 
+	/*!
+		Disable floating point control.
+		This function is available only for strict floating-point mode and in Windows.
+	*/
+	static bool DisableFPControl();
+
 };
 
 LM_NAMESPACE_END

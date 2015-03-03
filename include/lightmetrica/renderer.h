@@ -93,7 +93,7 @@ public:
 	/*!
 		Create a render process.
 		Creates a new instance of the render process associated with the renderer.
-		This function called from the render process scheduler.
+		This function is called from the render process scheduler.
 		Ownership of the created instance is delegated to the caller.
 		\param scene Scene.
 		\param threadID Thread ID of the process.
@@ -101,6 +101,25 @@ public:
 		\return An instance of render process.
 	*/
 	virtual RenderProcess* CreateRenderProcess(const Scene& scene, int threadID, int numThreads) = 0;
+
+public:
+
+	/*!
+		Notification that all render processes are finished.
+		This function is called from the render process scheduler
+		when all render processes are finished.
+		\sa RenderProcessScheduler
+	*/
+	virtual void RenderProcessFinished(RenderProcess* process) {}
+
+	/*!
+		Notification that all render process assigned for each node are finished.
+		This function is inter-process version of RenderProcessFinished function
+		and is supposed to be used as gathering date from the processes.
+		\param rank 
+		\sa RenderProcessScheduler, MPIRenderProcessScheduler
+	*/
+	virtual void RenderProcessNodeFinished(int rank) {}
 
 public:
 

@@ -24,6 +24,7 @@
 #include <lightmetrica/confignode.h>
 #include <lightmetrica/config.h>
 #include <lightmetrica/pathutils.h>
+#include <lightmetrica/fp.h>
 #include <assimp/Importer.hpp>
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
@@ -139,6 +140,13 @@ bool ObjMesh::Load( const ConfigNode& node, const Assets& /*assets*/ )
 	Assimp::DefaultLogger::get()->attachStream(new LogStream(Logger::LogLevel::Debug), Assimp::Logger::Debugging);
 #endif
 
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+	if (!FloatintPointUtils::EnableFPControl())
+	{
+		return false;
+	}
+#endif
+
 	// Load file
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path.c_str(),
@@ -147,6 +155,13 @@ bool ObjMesh::Load( const ConfigNode& node, const Assets& /*assets*/ )
 		//aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices);
+
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+	if (!FloatintPointUtils::DisableFPControl())
+	{
+		return false;
+	}
+#endif
 
 	if (!scene)
 	{

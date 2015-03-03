@@ -247,10 +247,6 @@ bool LightmetricaApplication::Initialize( int argc, char** argv )
 
 #if LM_STRICT_FP && LM_PLATFORM_WINDOWS
 	_set_se_translator(SETransFunc);
-	if (!FloatintPointUtils::EnableFPControl())
-	{
-		return false;
-	}
 #endif
 
 	return true;
@@ -552,11 +548,25 @@ bool LightmetricaApplication::ConfigureAndDispatchRenderer(const Config& config,
 			auto conn = sched.Connect_ReportProgress(std::bind(&ProgressBar::OnReportProgress, &progressBar, std::placeholders::_1, std::placeholders::_2));
 		}
 
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+		if (!FloatintPointUtils::EnableFPControl())
+		{
+			return false;
+		}
+#endif
+
 		if (!sched.Render(renderer, scene))
 		{
 			progressBar.Abort();
 			return false;
 		}
+
+#if LM_STRICT_FP && LM_PLATFORM_WINDOWS
+		if (!FloatintPointUtils::DisableFPControl())
+		{
+			return false;
+		}
+#endif
 
 		if (useProgressBar)
 		{

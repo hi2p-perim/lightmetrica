@@ -31,7 +31,7 @@
 #include <omp.h>
 #include <mpi.h>
 
-#ifndef LM_MPI
+#if !LM_MPI
 #error "MPI must be enabled"
 #endif
 
